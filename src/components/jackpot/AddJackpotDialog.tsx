@@ -42,14 +42,7 @@ export function AddJackpotDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute top-2 right-2 text-muted-foreground hover:text-white hover:bg-poker-dark-green transition-colors"
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span className="sr-only">Adicionar ao Jackpot</span>
-        </Button>
+        <span className="sr-only">Adicionar ao Jackpot</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
