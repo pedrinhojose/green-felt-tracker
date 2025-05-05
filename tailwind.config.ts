@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -24,6 +25,16 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				poker: {
+					"green": "#0A3B23",
+					"dark-green": "#072818",
+					"navy": "#0C1B33",
+					"dark-navy": "#060E1A",
+					"black": "#121212",
+					"gold": "#D4AF37",
+					"red": "#C53030",
+					"blue": "#3182CE"
+				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -84,11 +95,20 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'card-float': {
+					'0%, 100%': {
+						transform: 'translateY(0)'
+					},
+					'50%': {
+						transform: 'translateY(-5px)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'card-float': 'card-float 3s ease-in-out infinite'
 			}
 		}
 	},
