@@ -6,12 +6,26 @@ import { useRef } from "react";
 
 interface RankingTableProps {
   sortedRankings: RankingEntry[];
+  currentPage: number;
+  pageSize: number;
   getInitials: (name: string) => string;
   getMedalEmoji: (position: number) => string;
 }
 
-export default function RankingTable({ sortedRankings, getInitials, getMedalEmoji }: RankingTableProps) {
+export default function RankingTable({ 
+  sortedRankings, 
+  currentPage, 
+  pageSize, 
+  getInitials, 
+  getMedalEmoji 
+}: RankingTableProps) {
   const rankingTableRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate the starting index for the current page
+  const startIndex = (currentPage - 1) * pageSize;
+  
+  // Get only the rankings for the current page
+  const currentPageRankings = sortedRankings.slice(startIndex, startIndex + pageSize);
   
   return (
     <Card>
@@ -30,11 +44,11 @@ export default function RankingTable({ sortedRankings, getInitials, getMedalEmoj
               </tr>
             </thead>
             <tbody>
-              {sortedRankings.map((ranking, index) => (
+              {currentPageRankings.map((ranking, index) => (
                 <tr key={ranking.playerId} className="border-b border-poker-dark-green hover:bg-poker-dark-green/30">
                   <td className="py-3 px-4 font-semibold">
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-poker-dark-green text-center">
-                      {getMedalEmoji(index)}
+                      {getMedalEmoji(startIndex + index)}
                     </span>
                   </td>
                   
