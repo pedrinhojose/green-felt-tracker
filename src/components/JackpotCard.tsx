@@ -31,8 +31,9 @@ export default function JackpotCard() {
     ? jackpotValue 
     : (activeSeason?.jackpot || 0);
 
-  // Handler para abrir o diálogo
+  // Handler para abrir o diálogo com prevenção de propagação
   const handleOpenDialog = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Impedir a propagação do evento para garantir que não afete outros elementos
     e.preventDefault();
     e.stopPropagation();
     setDialogOpen(true);
@@ -100,7 +101,9 @@ export default function JackpotCard() {
       {/* Diálogo de adicionar ao jackpot */}
       <AddJackpotDialog 
         open={dialogOpen} 
-        onOpenChange={setDialogOpen} 
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+        }} 
       />
     </div>
   );

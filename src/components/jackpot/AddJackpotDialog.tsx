@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +37,17 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
   const [amount, setAmount] = useState("");
   const [isAddition, setIsAddition] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Limpar estados quando o diálogo é fechado
+  useEffect(() => {
+    if (!open) {
+      // Reset de todos os estados quando o diálogo é fechado
+      setAmount("");
+      setIsAddition(true);
+      setIsProcessing(false);
+      setConfirmOpen(false);
+    }
+  }, [open]);
 
   const handleConfirm = async () => {
     if (!activeSeason) return;
@@ -62,13 +73,13 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
         variant: "destructive",
       });
     } finally {
-      // Limpar estados e fechar diálogos
-      setConfirmOpen(false);
+      // Limpar estados
       setAmount("");
       setIsAddition(true);
+      setConfirmOpen(false);
       setIsProcessing(false);
       
-      // Importante: fechar o diálogo principal por último
+      // Fechar o diálogo principal com um pequeno atraso
       setTimeout(() => {
         onOpenChange(false);
       }, 100);
@@ -77,12 +88,17 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Impedir propagação de eventos
     setConfirmOpen(true);
   };
   
   const handleDialogClose = () => {
     // Só permitir fechar se não estiver processando
     if (!isProcessing) {
+      // Reset completo do estado
+      setAmount("");
+      setIsAddition(true);
+      setConfirmOpen(false);
       onOpenChange(false);
     }
   };
@@ -105,7 +121,10 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
                 <Button
                   type="button"
                   variant={isAddition ? "default" : "outline"} 
-                  onClick={() => setIsAddition(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAddition(true);
+                  }}
                   className="w-1/2"
                   disabled={isProcessing}
                 >
@@ -115,7 +134,10 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
                 <Button
                   type="button"
                   variant={!isAddition ? "default" : "outline"}
-                  onClick={() => setIsAddition(false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAddition(false);
+                  }}
                   className="w-1/2"
                   disabled={isProcessing}
                 >
@@ -148,7 +170,14 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog 
+        open={confirmOpen} 
+        onOpenChange={(open) => {
+          if (!isProcessing) {
+            setConfirmOpen(open);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmação</AlertDialogTitle>
@@ -160,8 +189,24 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isProcessing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} disabled={isProcessing}>
+            <AlertDialogCancel 
+              disabled={isProcessing}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isProcessing) {
+                  setConfirmOpen(false);
+                }
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfirm();
+              }} 
+              disabled={isProcessing}
+            >
               {isProcessing ? "Processando..." : "Confirmar"}
             </AlertDialogAction>
           </AlertDialogFooter>
