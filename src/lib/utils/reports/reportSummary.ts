@@ -3,14 +3,94 @@ import { Game } from '../../db/models';
 import { formatCurrency } from '../dateUtils';
 
 /**
- * Creates the summary section with totals
+ * Creates the summary section with totals and winner information
  * @param game The game object
+ * @param players Array of all players
  * @returns A div element with the summary
  */
-export const createReportSummary = (game: Game) => {
+export const createReportSummary = (game: Game, players = []) => {
   const summary = document.createElement('div');
   summary.style.borderTop = '1px solid rgba(255,255,255,0.2)';
   summary.style.paddingTop = '12px';
+  
+  // Winners section
+  const winnersSection = document.createElement('div');
+  winnersSection.style.marginBottom = '12px';
+  
+  // Find top 3 winners
+  const top3Players = game.players
+    .filter(p => p.position && p.position <= 3)
+    .sort((a, b) => (a.position || 0) - (b.position || 0));
+  
+  if (top3Players.length > 0) {
+    const winnersTitle = document.createElement('div');
+    winnersTitle.textContent = 'VENCEDORES';
+    winnersTitle.style.fontSize = '14px';
+    winnersTitle.style.fontWeight = 'bold';
+    winnersTitle.style.color = '#9b87f5';
+    winnersTitle.style.marginBottom = '8px';
+    winnersSection.appendChild(winnersTitle);
+    
+    // Create winners table
+    const winnersTable = document.createElement('div');
+    winnersTable.style.display = 'flex';
+    winnersTable.style.flexDirection = 'column';
+    winnersTable.style.gap = '6px';
+    
+    for (const player of top3Players) {
+      const playerInfo = players.find(p => p.id === player.playerId);
+      const playerName = playerInfo?.name || 'Desconhecido';
+      const position = player.position || 0;
+      const prize = player.prize || 0;
+      
+      // Create player row
+      const playerRow = document.createElement('div');
+      playerRow.style.display = 'flex';
+      playerRow.style.justifyContent = 'space-between';
+      playerRow.style.alignItems = 'center';
+      
+      // Position and name
+      const playerInfo = document.createElement('div');
+      playerInfo.style.display = 'flex';
+      playerInfo.style.alignItems = 'center';
+      
+      const positionSpan = document.createElement('span');
+      positionSpan.textContent = `${position}º`;
+      positionSpan.style.fontWeight = 'bold';
+      positionSpan.style.marginRight = '6px';
+      
+      if (position === 1) {
+        positionSpan.style.color = '#FFD700'; // Gold
+      } else if (position === 2) {
+        positionSpan.style.color = '#C0C0C0'; // Silver
+      } else if (position === 3) {
+        positionSpan.style.color = '#CD7F32'; // Bronze
+      }
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = playerName;
+      
+      playerInfo.appendChild(positionSpan);
+      playerInfo.appendChild(nameSpan);
+      
+      // Prize
+      const prizeSpan = document.createElement('span');
+      prizeSpan.textContent = formatCurrency(prize);
+      prizeSpan.style.fontWeight = 'bold';
+      
+      if (position === 1) {
+        prizeSpan.style.color = '#FFD700'; // Gold
+      }
+      
+      playerRow.appendChild(playerInfo);
+      playerRow.appendChild(prizeSpan);
+      
+      winnersTable.appendChild(playerRow);
+    }
+    
+    winnersSection.appendChild(winnersTable);
+    summary.appendChild(winnersSection);
+  }
   
   // Total Dinner
   if (game.dinnerCost && game.dinnerCost > 0) {

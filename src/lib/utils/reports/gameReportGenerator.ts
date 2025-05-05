@@ -22,8 +22,8 @@ export const createGameReport = (game: Game, players: Player[], seasonName: stri
   // Add players table
   container.appendChild(createPlayersTable(game, players));
   
-  // Add summary
-  container.appendChild(createReportSummary(game));
+  // Add summary with players for winner info
+  container.appendChild(createReportSummary(game, players));
   
   // Add footer
   container.appendChild(createReportFooter());

@@ -119,12 +119,14 @@ export default function GameManagement() {
           <BlindTimer />
           
           {/* Prize Pool */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
             <PrizePoolManager 
               totalPrizePool={game.totalPrizePool}
               onCalculateDinner={calculateDinnerCosts}
               onDistributePrizes={distributeWinningsByPrize}
               initialDinnerCost={dinnerCost}
+              game={game}
+              players={players}
             />
             
             {/* Botão para adicionar jogador tardio */}
@@ -132,7 +134,7 @@ export default function GameManagement() {
               <Button 
                 onClick={() => setIsAddPlayerDialogOpen(true)}
                 disabled={getAvailablePlayers().length === 0}
-                className="ml-2"
+                className="mt-2 lg:mt-0"
                 variant="outline"
               >
                 <UserPlus className="mr-2 h-4 w-4" />
