@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,33 +53,33 @@ export default function RankingPage() {
       // Cria um elemento temporário para renderizar o ranking com estilo otimizado para exportação
       const exportDiv = document.createElement('div');
       exportDiv.id = 'ranking-export';
-      exportDiv.style.padding = '15px';  // Reduz o padding para economizar espaço
-      exportDiv.style.backgroundColor = '#0A3B23'; // Cor de fundo do poker green
-      exportDiv.style.borderRadius = '12px';
-      exportDiv.style.width = '100%';
-      exportDiv.style.maxWidth = '500px';  // Reduz a largura máxima para mobile
-      exportDiv.style.margin = '0 auto';
-      exportDiv.style.overflow = 'visible'; // Garante que o conteúdo não seja cortado
+      (exportDiv as HTMLElement).style.padding = '15px';  // Reduz o padding para economizar espaço
+      (exportDiv as HTMLElement).style.backgroundColor = '#0A3B23'; // Cor de fundo do poker green
+      (exportDiv as HTMLElement).style.borderRadius = '12px';
+      (exportDiv as HTMLElement).style.width = '100%';
+      (exportDiv as HTMLElement).style.maxWidth = '500px';  // Reduz a largura máxima para mobile
+      (exportDiv as HTMLElement).style.margin = '0 auto';
+      (exportDiv as HTMLElement).style.overflow = 'visible'; // Garante que o conteúdo não seja cortado
       
       // Adiciona cabeçalho - mais compacto
       const header = document.createElement('div');
-      header.style.display = 'flex';
-      header.style.justifyContent = 'space-between';
-      header.style.alignItems = 'center';
-      header.style.marginBottom = '12px';  // Reduz o espaço
-      header.style.padding = '8px 12px';  // Reduz o padding
-      header.style.borderBottom = '2px solid #072818';
+      (header as HTMLElement).style.display = 'flex';
+      (header as HTMLElement).style.justifyContent = 'space-between';
+      (header as HTMLElement).style.alignItems = 'center';
+      (header as HTMLElement).style.marginBottom = '12px';  // Reduz o espaço
+      (header as HTMLElement).style.padding = '8px 12px';  // Reduz o padding
+      (header as HTMLElement).style.borderBottom = '2px solid #072818';
       
       const title = document.createElement('h2');
-      title.textContent = 'Ranking do Poker';
-      title.style.fontSize = '20px';  // Fonte menor
-      title.style.fontWeight = 'bold';
-      title.style.color = '#ffffff';
+      (title as HTMLElement).textContent = 'Ranking do Poker';
+      (title as HTMLElement).style.fontSize = '20px';  // Fonte menor
+      (title as HTMLElement).style.fontWeight = 'bold';
+      (title as HTMLElement).style.color = '#ffffff';
       
       const subtitle = document.createElement('p');
-      subtitle.textContent = activeSeason ? activeSeason.name : 'Temporada Ativa';
-      subtitle.style.color = '#D4AF37';
-      subtitle.style.fontSize = '14px';  // Fonte menor
+      (subtitle as HTMLElement).textContent = activeSeason ? activeSeason.name : 'Temporada Ativa';
+      (subtitle as HTMLElement).style.color = '#D4AF37';
+      (subtitle as HTMLElement).style.fontSize = '14px';  // Fonte menor
       
       const titleContainer = document.createElement('div');
       titleContainer.appendChild(title);
@@ -88,9 +89,9 @@ export default function RankingPage() {
       
       // Adicionar a data da exportação
       const dateContainer = document.createElement('div');
-      dateContainer.textContent = new Date().toLocaleDateString('pt-BR');
-      dateContainer.style.color = '#ffffff';
-      dateContainer.style.fontSize = '12px';  // Fonte menor
+      (dateContainer as HTMLElement).textContent = new Date().toLocaleDateString('pt-BR');
+      (dateContainer as HTMLElement).style.color = '#ffffff';
+      (dateContainer as HTMLElement).style.fontSize = '12px';  // Fonte menor
       
       header.appendChild(dateContainer);
       
@@ -107,26 +108,28 @@ export default function RankingPage() {
       
       // Ajusta o estilo das células para otimizar espaço
       const cells = tableClone.querySelectorAll('td, th');
-      cells.forEach((cell: HTMLElement) => {
-        cell.style.whiteSpace = 'nowrap';
-        cell.style.padding = '6px 8px'; // Padding menor
-        cell.style.overflow = 'visible';
+      cells.forEach((cell) => {
+        const cellElement = cell as HTMLElement;
+        cellElement.style.whiteSpace = 'nowrap';
+        cellElement.style.padding = '6px 8px'; // Padding menor
+        cellElement.style.overflow = 'visible';
       });
       
       // Configurando larguras específicas para cada coluna
       const columns = tableClone.querySelectorAll('tr');
-      columns.forEach((row: HTMLElement) => {
-        const cells = row.querySelectorAll('td, th');
+      columns.forEach((row) => {
+        const rowElement = row as HTMLElement;
+        const cells = rowElement.querySelectorAll('td, th');
         if (cells.length > 0) {
           // Posição (# com medalha)
           if (cells[0]) {
-            cells[0].style.width = '40px';
-            cells[0].style.maxWidth = '40px';
+            (cells[0] as HTMLElement).style.width = '40px';
+            (cells[0] as HTMLElement).style.maxWidth = '40px';
           }
           
           // Nome do jogador
           if (cells[1]) {
-            cells[1].style.maxWidth = '180px';
+            (cells[1] as HTMLElement).style.maxWidth = '180px';
             
             // Tenta reduzir o tamanho do Avatar, se existir
             const avatar = cells[1].querySelector('.h-10.w-10') as HTMLElement;
@@ -140,16 +143,16 @@ export default function RankingPage() {
           
           // Jogos
           if (cells[2]) {
-            cells[2].style.width = '50px';
-            cells[2].style.maxWidth = '50px';
-            cells[2].style.textAlign = 'center';
+            (cells[2] as HTMLElement).style.width = '50px';
+            (cells[2] as HTMLElement).style.maxWidth = '50px';
+            (cells[2] as HTMLElement).style.textAlign = 'center';
           }
           
           // Pontos
           if (cells[3]) {
-            cells[3].style.width = '60px';
-            cells[3].style.maxWidth = '60px';
-            cells[3].style.textAlign = 'center';
+            (cells[3] as HTMLElement).style.width = '60px';
+            (cells[3] as HTMLElement).style.maxWidth = '60px';
+            (cells[3] as HTMLElement).style.textAlign = 'center';
           }
         }
       });
