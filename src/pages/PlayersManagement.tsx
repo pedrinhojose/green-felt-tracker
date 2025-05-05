@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,7 +229,7 @@ export default function PlayersManagement() {
   };
   
   // Cleanup camera on unmount
-  useState(() => {
+  useEffect(() => {
     return () => {
       stopCamera();
     };
