@@ -2,13 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
-import { exportGameReport } from "@/lib/utils/exportUtils";
+import { exportGameReport, exportGameReportAsImage } from "@/lib/utils/exportUtils";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { FileImage, Image } from "lucide-react";
 
 export default function LastGameCard() {
   const { lastGame, players } = usePoker();
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingImage, setIsExportingImage] = useState(false);
   const { toast } = useToast();
   
   // Get winner of the last game
@@ -42,6 +44,37 @@ export default function LastGameCard() {
       setIsExporting(false);
     }
   };
+  
+  const handleExportReportAsImage = async () => {
+    if (!lastGame) return;
+    
+    try {
+      setIsExportingImage(true);
+      const imageUrl = await exportGameReportAsImage(lastGame.id, players);
+      
+      // Criar link de download
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `poker-report-${lastGame.number}-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Imagem gerada com sucesso",
+        description: "A imagem do relatório foi baixada.",
+      });
+    } catch (error) {
+      console.error("Error exporting game report as image:", error);
+      toast({
+        title: "Erro ao gerar imagem",
+        description: "Não foi possível gerar a imagem do relatório.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExportingImage(false);
+    }
+  };
 
   return (
     <div className="card-dashboard">
@@ -57,13 +90,26 @@ export default function LastGameCard() {
             <div className="mt-1">Total: {formatCurrency(lastGame.totalPrizePool)}</div>
           </div>
           
-          <Button 
-            onClick={handleExportReport} 
-            disabled={isExporting || !lastGame.isFinished}
-            className="bg-poker-gold hover:bg-poker-gold/80 text-black"
-          >
-            {isExporting ? "Exportando..." : "Exportar Relatório"}
-          </Button>
+          <div className="flex flex-col space-y-2">
+            <Button 
+              onClick={handleExportReport} 
+              disabled={isExporting || !lastGame.isFinished}
+              className="bg-poker-gold hover:bg-poker-gold/80 text-black"
+            >
+              {isExporting ? "Exportando..." : "Exportar PDF"}
+              <FileImage className="ml-2" size={18} />
+            </Button>
+            
+            <Button 
+              onClick={handleExportReportAsImage} 
+              disabled={isExportingImage || !lastGame.isFinished}
+              variant="outline"
+              className="border-poker-gold text-poker-gold hover:bg-poker-gold/10"
+            >
+              {isExportingImage ? "Exportando..." : "Exportar Imagem"}
+              <Image className="ml-2" size={18} />
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center text-muted-foreground">

@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas';
 import { Game, Player } from '../db/models';
 import { formatDate, formatCurrency } from './dateUtils';
 import { pokerDB } from '../db/database';
+import { createGameReport } from './gameReportGenerator';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -70,6 +71,47 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
   } catch (error) {
     console.error("Erro ao gerar relatório:", error);
     throw new Error("Falha ao gerar o relatório do jogo");
+  }
+};
+
+/**
+ * Exporta o relatório do jogo como uma imagem otimizada para visualização em celular
+ * @param gameId ID do jogo a ser exportado
+ * @param players Lista de jogadores
+ * @returns URL da imagem gerada
+ */
+export const exportGameReportAsImage = async (gameId: string, players: Player[]): Promise<string> => {
+  try {
+    // Buscar o jogo do banco de dados
+    const game = await pokerDB.getGame(gameId);
+    if (!game) {
+      throw new Error("Jogo não encontrado");
+    }
+    
+    // Criar o elemento HTML do relatório
+    const reportElement = createGameReport(game, players);
+    
+    // Adicionar ao DOM temporariamente para captura
+    document.body.appendChild(reportElement);
+    
+    // Capturar como imagem
+    const canvas = await html2canvas(reportElement, {
+      scale: 2, // Escala maior para melhor qualidade
+      backgroundColor: '#1A1F2C',
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+    
+    // Remover do DOM
+    document.body.removeChild(reportElement);
+    
+    // Converter para URL e retornar
+    const imageUrl = canvas.toDataURL('image/png');
+    return imageUrl;
+  } catch (error) {
+    console.error("Erro ao exportar relatório como imagem:", error);
+    throw new Error("Falha ao gerar a imagem do relatório");
   }
 };
 
