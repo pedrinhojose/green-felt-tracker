@@ -14,15 +14,16 @@ import PlayersManagement from "@/pages/PlayersManagement";
 import RankingPage from "@/pages/RankingPage";
 import NotFound from "./pages/NotFound";
 
+// Create a client for react-query
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <PokerProvider>
         <BrowserRouter>
+          <Toaster />
+          <Sonner />
           <div className="min-h-screen flex flex-col bg-poker-black text-white">
             <PokerNav />
             <main className="flex-1">

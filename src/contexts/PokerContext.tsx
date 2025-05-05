@@ -9,6 +9,7 @@ import { useRankingFunctions } from './useRankingFunctions';
 import { usePokerUtils } from './usePokerUtils';
 import { useGameFunctions } from './useGameFunctions';
 
+// Create context with undefined as initial value
 const PokerContext = createContext<PokerContextProps | undefined>(undefined);
 
 export function PokerProvider({ children }: { children: ReactNode }) {
@@ -44,7 +45,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
         await updateRankings(activeSeason.id);
       }
     },
-    setActiveSeason // Passando setActiveSeason para useGameFunctions
+    setActiveSeason
   );
 
   // Load initial data
