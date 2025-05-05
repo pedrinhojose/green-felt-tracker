@@ -75,32 +75,12 @@ export default function RankingCard() {
     const thirdPlace = topPlayers[2] || null;
 
     return (
-      <div className="flex flex-col items-center">
-        {/* Nova estrutura do pódio com 1º no centro e mais alto, e 2º e 3º em lados opostos */}
-        <div className="flex items-end justify-center gap-4 w-full relative mt-4">
-          {/* First place (center and elevated) */}
-          {firstPlace && (
-            <div className="flex flex-col items-center z-10 absolute top-[-30px]">
-              <Avatar className="h-16 w-16 border-2 border-poker-gold">
-                {firstPlace.photoUrl ? (
-                  <AvatarImage src={firstPlace.photoUrl} alt={firstPlace.playerName} />
-                ) : null}
-                <AvatarFallback className="bg-poker-navy text-white text-xl">
-                  {getInitials(firstPlace.playerName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
-              <div className="mt-1 text-center">
-                <div className="font-medium text-white truncate max-w-[100px]">{firstPlace.playerName}</div>
-                <div className="font-bold text-poker-gold">{firstPlace.totalPoints} pts</div>
-                <div className="text-xs text-muted-foreground">{firstPlace.gamesPlayed} jogos</div>
-              </div>
-            </div>
-          )}
-
+      <div className="flex flex-col items-center w-full py-2">
+        {/* Nova estrutura do pódio ajustada para caber no card */}
+        <div className="flex items-end justify-between w-full relative px-2 pt-10 pb-2">
           {/* Second place (left side) */}
           {secondPlace && (
-            <div className="flex flex-col items-center mb-2 mr-24">
+            <div className="flex flex-col items-center mb-2 w-1/3 max-w-[90px]">
               <Avatar className="h-12 w-12 border-2 border-gray-400">
                 {secondPlace.photoUrl ? (
                   <AvatarImage src={secondPlace.photoUrl} alt={secondPlace.playerName} />
@@ -118,9 +98,29 @@ export default function RankingCard() {
             </div>
           )}
 
+          {/* First place (center and elevated) */}
+          {firstPlace && (
+            <div className="flex flex-col items-center z-10 absolute top-[-20px] left-1/2 transform -translate-x-1/2">
+              <Avatar className="h-16 w-16 border-2 border-poker-gold">
+                {firstPlace.photoUrl ? (
+                  <AvatarImage src={firstPlace.photoUrl} alt={firstPlace.playerName} />
+                ) : null}
+                <AvatarFallback className="bg-poker-navy text-white text-xl">
+                  {getInitials(firstPlace.playerName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
+              <div className="mt-1 text-center">
+                <div className="font-medium text-white truncate max-w-[100px]">{firstPlace.playerName}</div>
+                <div className="font-bold text-poker-gold">{firstPlace.totalPoints} pts</div>
+                <div className="text-xs text-muted-foreground">{firstPlace.gamesPlayed} jogos</div>
+              </div>
+            </div>
+          )}
+
           {/* Third place (right side) */}
           {thirdPlace && (
-            <div className="flex flex-col items-center mb-4 ml-24">
+            <div className="flex flex-col items-center mb-4 w-1/3 max-w-[90px]">
               <Avatar className="h-11 w-11 border-2 border-amber-700">
                 {thirdPlace.photoUrl ? (
                   <AvatarImage src={thirdPlace.photoUrl} alt={thirdPlace.playerName} />
@@ -160,7 +160,7 @@ export default function RankingCard() {
         )}
       </div>
       
-      <div className="flex-1 flex items-center justify-center py-4">
+      <div className="flex-1 flex items-center justify-center py-2">
         {renderPodium()}
       </div>
     </div>
