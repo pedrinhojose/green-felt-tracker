@@ -53,33 +53,33 @@ export default function RankingPage() {
       // Cria um elemento temporário para renderizar o ranking com estilo otimizado para exportação
       const exportDiv = document.createElement('div');
       exportDiv.id = 'ranking-export';
-      (exportDiv as HTMLElement).style.padding = '15px';  // Reduz o padding para economizar espaço
-      (exportDiv as HTMLElement).style.backgroundColor = '#0A3B23'; // Cor de fundo do poker green
+      (exportDiv as HTMLElement).style.padding = '15px';
+      (exportDiv as HTMLElement).style.backgroundColor = '#0A3B23';
       (exportDiv as HTMLElement).style.borderRadius = '12px';
       (exportDiv as HTMLElement).style.width = '100%';
-      (exportDiv as HTMLElement).style.maxWidth = '500px';  // Reduz a largura máxima para mobile
+      (exportDiv as HTMLElement).style.maxWidth = '450px';  // Reduz ainda mais a largura máxima
       (exportDiv as HTMLElement).style.margin = '0 auto';
-      (exportDiv as HTMLElement).style.overflow = 'visible'; // Garante que o conteúdo não seja cortado
+      (exportDiv as HTMLElement).style.overflow = 'visible';
       
       // Adiciona cabeçalho - mais compacto
       const header = document.createElement('div');
       (header as HTMLElement).style.display = 'flex';
       (header as HTMLElement).style.justifyContent = 'space-between';
       (header as HTMLElement).style.alignItems = 'center';
-      (header as HTMLElement).style.marginBottom = '12px';  // Reduz o espaço
-      (header as HTMLElement).style.padding = '8px 12px';  // Reduz o padding
+      (header as HTMLElement).style.marginBottom = '10px';  // Reduz ainda mais o espaço
+      (header as HTMLElement).style.padding = '6px 10px';  // Reduz ainda mais o padding
       (header as HTMLElement).style.borderBottom = '2px solid #072818';
       
       const title = document.createElement('h2');
       (title as HTMLElement).textContent = 'Ranking do Poker';
-      (title as HTMLElement).style.fontSize = '20px';  // Fonte menor
+      (title as HTMLElement).style.fontSize = '18px';  // Fonte ainda menor
       (title as HTMLElement).style.fontWeight = 'bold';
       (title as HTMLElement).style.color = '#ffffff';
       
       const subtitle = document.createElement('p');
       (subtitle as HTMLElement).textContent = activeSeason ? activeSeason.name : 'Temporada Ativa';
       (subtitle as HTMLElement).style.color = '#D4AF37';
-      (subtitle as HTMLElement).style.fontSize = '14px';  // Fonte menor
+      (subtitle as HTMLElement).style.fontSize = '12px';  // Fonte ainda menor
       
       const titleContainer = document.createElement('div');
       titleContainer.appendChild(title);
@@ -91,7 +91,7 @@ export default function RankingPage() {
       const dateContainer = document.createElement('div');
       (dateContainer as HTMLElement).textContent = new Date().toLocaleDateString('pt-BR');
       (dateContainer as HTMLElement).style.color = '#ffffff';
-      (dateContainer as HTMLElement).style.fontSize = '12px';  // Fonte menor
+      (dateContainer as HTMLElement).style.fontSize = '11px';  // Fonte ainda menor
       
       header.appendChild(dateContainer);
       
@@ -104,14 +104,14 @@ export default function RankingPage() {
       tableClone.style.width = '100%';
       tableClone.style.borderCollapse = 'collapse';
       tableClone.style.tableLayout = 'fixed';
-      tableClone.style.fontSize = '14px'; // Fonte menor para caber melhor
+      tableClone.style.fontSize = '13px'; // Fonte ainda menor
       
       // Ajusta o estilo das células para otimizar espaço
       const cells = tableClone.querySelectorAll('td, th');
       cells.forEach((cell) => {
         const cellElement = cell as HTMLElement;
         cellElement.style.whiteSpace = 'nowrap';
-        cellElement.style.padding = '6px 8px'; // Padding menor
+        cellElement.style.padding = '4px 6px'; // Padding ainda menor
         cellElement.style.overflow = 'visible';
       });
       
@@ -123,35 +123,55 @@ export default function RankingPage() {
         if (cells.length > 0) {
           // Posição (# com medalha)
           if (cells[0]) {
-            (cells[0] as HTMLElement).style.width = '40px';
-            (cells[0] as HTMLElement).style.maxWidth = '40px';
+            (cells[0] as HTMLElement).style.width = '36px';
+            (cells[0] as HTMLElement).style.maxWidth = '36px';
           }
           
-          // Nome do jogador
+          // Nome do jogador - Reduz ainda mais o espaço para nome
           if (cells[1]) {
-            (cells[1] as HTMLElement).style.maxWidth = '180px';
+            (cells[1] as HTMLElement).style.maxWidth = '140px'; // Reduz o tamanho máximo da coluna de nomes
+            (cells[1] as HTMLElement).style.width = '140px';
+            (cells[1] as HTMLElement).style.overflow = 'hidden';
+            (cells[1] as HTMLElement).style.textOverflow = 'ellipsis';
             
-            // Tenta reduzir o tamanho do Avatar, se existir
-            const avatar = cells[1].querySelector('.h-10.w-10') as HTMLElement;
+            // Tenta acessar o texto do nome do jogador para verificar se está sendo cortado
+            const playerNameDiv = cells[1].querySelector('.font-medium');
+            if (playerNameDiv) {
+              (playerNameDiv as HTMLElement).style.width = '100%';
+              (playerNameDiv as HTMLElement).style.overflow = 'hidden';
+              (playerNameDiv as HTMLElement).style.textOverflow = 'ellipsis';
+            }
+            
+            // Reduz ainda mais o tamanho do Avatar
+            const avatar = cells[1].querySelector('.h-10.w-10, .h-7.w-7') as HTMLElement;
             if (avatar) {
-              avatar.style.height = '28px';
-              avatar.style.width = '28px';
-              avatar.classList.remove('h-10', 'w-10');
-              avatar.classList.add('h-7', 'w-7');
+              avatar.style.height = '24px';
+              avatar.style.width = '24px';
+              avatar.style.minWidth = '24px'; // Evita que o avatar comprima
+              avatar.classList.remove('h-10', 'w-10', 'h-7', 'w-7');
+              avatar.classList.add('h-6', 'w-6');
+              
+              // Ajustar a gap entre o avatar e o nome
+              const playerDiv = cells[1].querySelector('.flex.items-center.gap-3');
+              if (playerDiv) {
+                (playerDiv as HTMLElement).classList.remove('gap-3');
+                (playerDiv as HTMLElement).classList.add('gap-2');
+                (playerDiv as HTMLElement).style.gap = '6px'; // Reduz o espaço entre avatar e nome
+              }
             }
           }
           
-          // Jogos
+          // Jogos - Ainda mais compacto
           if (cells[2]) {
-            (cells[2] as HTMLElement).style.width = '50px';
-            (cells[2] as HTMLElement).style.maxWidth = '50px';
+            (cells[2] as HTMLElement).style.width = '40px';
+            (cells[2] as HTMLElement).style.maxWidth = '40px';
             (cells[2] as HTMLElement).style.textAlign = 'center';
           }
           
-          // Pontos
+          // Pontos - Ainda mais compacto
           if (cells[3]) {
-            (cells[3] as HTMLElement).style.width = '60px';
-            (cells[3] as HTMLElement).style.maxWidth = '60px';
+            (cells[3] as HTMLElement).style.width = '50px';
+            (cells[3] as HTMLElement).style.maxWidth = '50px';
             (cells[3] as HTMLElement).style.textAlign = 'center';
           }
         }
