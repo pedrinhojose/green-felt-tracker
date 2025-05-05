@@ -73,7 +73,7 @@ export function useGameManagement() {
       setIsExporting(true);
       
       const { exportGameReport } = await import("@/lib/utils/exportUtils");
-      // Corrigido: Passando apenas o ID do jogo e a lista de jogadores
+      // Passando apenas o ID do jogo e a lista de jogadores, conforme esperado pela função
       const pdfUrl = await exportGameReport(game.id, players);
       
       // Open the PDF in a new tab
