@@ -1,0 +1,32 @@
+
+import { Player, Season, Game, RankingEntry } from '../lib/db/models';
+
+export interface PokerContextProps {
+  // Players
+  players: Player[];
+  getPlayer: (id: string) => Promise<Player | undefined>;
+  savePlayer: (player: Partial<Player>) => Promise<string>;
+  deletePlayer: (id: string) => Promise<void>;
+  
+  // Seasons
+  seasons: Season[];
+  activeSeason: Season | null;
+  createSeason: (seasonData: Partial<Season>) => Promise<string>;
+  updateSeason: (seasonData: Partial<Season>) => Promise<void>;
+  endSeason: (seasonId: string) => Promise<void>;
+  
+  // Games
+  games: Game[];
+  lastGame: Game | null;
+  createGame: (seasonId: string) => Promise<string>;
+  updateGame: (gameData: Partial<Game>) => Promise<void>;
+  finishGame: (gameId: string) => Promise<void>;
+  
+  // Rankings
+  rankings: RankingEntry[];
+  
+  // Utilities
+  isLoading: boolean;
+  exportBackup: () => Promise<void>;
+  getGameNumber: (seasonId: string) => Promise<number>;
+}
