@@ -94,9 +94,9 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
       // Calculate prizes
       const updatedPlayers = [...game.players];
       
-      // Deduzir a contribuição do jackpot do prêmio total a ser distribuído
-      const jackpotContribution = updatedPlayers.filter(p => p.buyIn).length * activeSeason.financialParams.jackpotContribution;
-      const distributablePrize = game.totalPrizePool - jackpotContribution;
+      // Não precisamos deduzir novamente a contribuição do jackpot, pois isso já foi feito
+      // no cálculo inicial do totalPrizePool em usePlayerStatsActions.ts
+      const distributablePrize = game.totalPrizePool;
       
       // Apply prize schema
       for (const player of updatedPlayers) {
@@ -105,7 +105,7 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
         // Find matching prize entry
         const prizeEntry = prizeSchema.find(entry => entry.position === player.position);
         if (prizeEntry) {
-          // Calculate prize using the distributablePrize instead of totalPrizePool
+          // Calculate prize using the distributablePrize
           player.prize = (distributablePrize * prizeEntry.percentage) / 100;
         } else {
           // No prize for positions outside schema
