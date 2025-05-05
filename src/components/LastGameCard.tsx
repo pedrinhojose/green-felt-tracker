@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
-import { exportGameReport, exportGameReportAsImage } from "@/lib/utils/exportUtils";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { FileImage, Image } from "lucide-react";
@@ -22,6 +21,10 @@ export default function LastGameCard() {
     
     try {
       setIsExporting(true);
+      
+      // Importa a função de forma dinâmica
+      const { exportGameReport } = await import("@/lib/utils/exportUtils");
+      
       // Estamos passando apenas o ID do jogo, já que o exportGameReport
       // buscará o jogo completo diretamente do banco de dados
       const pdfUrl = await exportGameReport(lastGame.id, players);
@@ -50,6 +53,10 @@ export default function LastGameCard() {
     
     try {
       setIsExportingImage(true);
+      
+      // Importa a função de forma dinâmica
+      const { exportGameReportAsImage } = await import("@/lib/utils/exportUtils");
+      
       const imageUrl = await exportGameReportAsImage(lastGame.id, players);
       
       // Criar link de download

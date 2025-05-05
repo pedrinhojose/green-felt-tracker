@@ -16,6 +16,7 @@ export function useGameManagement() {
   const [dinnerCost, setDinnerCost] = useState<number>(0);
   const [isSelectingPlayers, setIsSelectingPlayers] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingImage, setIsExportingImage] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   
   // Load game data
@@ -73,7 +74,7 @@ export function useGameManagement() {
       setIsExporting(true);
       
       const { exportGameReport } = await import("@/lib/utils/exportUtils");
-      // Passando apenas o ID do jogo e a lista de jogadores, conforme esperado pela função
+      // Passando apenas o ID do jogo e a lista de jogadores
       const pdfUrl = await exportGameReport(game.id, players);
       
       // Open the PDF in a new tab
@@ -92,6 +93,40 @@ export function useGameManagement() {
       });
     } finally {
       setIsExporting(false);
+    }
+  };
+  
+  // Game report export as image functionality
+  const handleExportReportAsImage = async () => {
+    if (!game) return;
+    
+    try {
+      setIsExportingImage(true);
+      
+      const { exportGameReportAsImage } = await import("@/lib/utils/exportUtils");
+      const imageUrl = await exportGameReportAsImage(game.id, players);
+      
+      // Criar link de download
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `poker-report-${game.number}-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Imagem gerada com sucesso",
+        description: "A imagem do relatório foi baixada.",
+      });
+    } catch (error) {
+      console.error("Error exporting game report as image:", error);
+      toast({
+        title: "Erro ao gerar imagem",
+        description: "Não foi possível gerar a imagem do relatório.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExportingImage(false);
     }
   };
   
@@ -140,8 +175,10 @@ export function useGameManagement() {
     isSelectingPlayers,
     setIsSelectingPlayers,
     isExporting,
-    isFinishing,
+    isExportingImage,
     handleExportReport,
+    handleExportReportAsImage,
+    isFinishing,
     handleFinishGame,
   };
 }

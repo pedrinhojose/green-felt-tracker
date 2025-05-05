@@ -1,17 +1,10 @@
-
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { Game, Player } from '../db/models';
 import { formatDate, formatCurrency } from './dateUtils';
 import { pokerDB } from '../db/database';
 import { createGameReport } from './gameReportGenerator';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 export const exportGameReport = async (gameId: string, players: Player[]): Promise<string> => {
   try {
@@ -22,6 +15,9 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
     }
     
     const doc = new jsPDF();
+    
+    // Adiciona o plugin autoTable ao jsPDF
+    autoTable(doc, {});
 
     // Add title
     doc.setFontSize(18);
@@ -56,7 +52,8 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
       return posA - posB;
     });
     
-    doc.autoTable({
+    // Usar autoTable como função independente ao invés de método do doc
+    autoTable(doc, {
       head: [['Pos.', 'Nome', 'Buy-in', 'Rebuys', 'Add-ons', 'Janta', 'Prêmio', 'Pontos', 'Saldo']],
       body: tableData,
       startY: 45,
