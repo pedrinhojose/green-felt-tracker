@@ -48,7 +48,6 @@ export interface FinancialParams {
   buyIn: number;
   rebuy: number;
   addon: number;
-  ante: number;
   jackpotContribution: number;
 }
 

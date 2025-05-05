@@ -55,7 +55,6 @@ export default function SeasonConfig() {
       setValue('buyIn', activeSeason.financialParams.buyIn);
       setValue('rebuy', activeSeason.financialParams.rebuy);
       setValue('addon', activeSeason.financialParams.addon);
-      setValue('ante', activeSeason.financialParams.ante);
       setValue('jackpotContribution', activeSeason.financialParams.jackpotContribution);
       
       setScoreEntries([...activeSeason.scoreSchema]);
@@ -70,7 +69,6 @@ export default function SeasonConfig() {
       setValue('buyIn', 30);
       setValue('rebuy', 30);
       setValue('addon', 30);
-      setValue('ante', 5);
       setValue('jackpotContribution', 5);
       
       setScoreEntries([
@@ -164,7 +162,6 @@ export default function SeasonConfig() {
           buyIn: Number(data.buyIn),
           rebuy: Number(data.rebuy),
           addon: Number(data.addon),
-          ante: Number(data.ante),
           jackpotContribution: Number(data.jackpotContribution)
         }
       };
@@ -599,18 +596,6 @@ export default function SeasonConfig() {
                   {...register("addon", { required: "Add-on é obrigatório" })}
                 />
                 {errors.addon && <p className="text-red-500 text-sm">{errors.addon.message}</p>}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="ante">Ante (R$)</Label>
-                <Input 
-                  id="ante" 
-                  type="number" 
-                  min="0"
-                  step="any" 
-                  {...register("ante", { required: "Ante é obrigatório" })}
-                />
-                {errors.ante && <p className="text-red-500 text-sm">{errors.ante.message}</p>}
               </div>
               
               <div className="space-y-2">

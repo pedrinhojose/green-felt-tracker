@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Season, FinancialParams, BlindLevel } from '../lib/db/models';
@@ -24,7 +23,6 @@ export function useSeasonFunctions() {
       buyIn: 30,
       rebuy: 30,
       addon: 30,
-      ante: 5,
       jackpotContribution: 5,
     };
     
