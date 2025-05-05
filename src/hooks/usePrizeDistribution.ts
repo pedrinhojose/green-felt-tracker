@@ -6,6 +6,7 @@ import { Game } from "@/lib/db/models";
 export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame } = usePoker();
   const { toast } = useToast();
+  const { activeSeason } = usePoker(); // Move this hook call to the top level
 
   // Dinner cost calculation
   const calculateDinnerCosts = async (dinnerCostValue: number) => {
@@ -59,8 +60,6 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
     if (!game) return;
     
     try {
-      const { activeSeason } = usePoker();
-      
       if (!activeSeason) {
         toast({
           title: "Erro",
@@ -170,3 +169,4 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
     distributeWinningsByPrize
   };
 }
+
