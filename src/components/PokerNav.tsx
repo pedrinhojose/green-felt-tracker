@@ -21,10 +21,10 @@ export default function PokerNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-poker-black border-b border-poker-dark-green">
+    <header className="sticky top-0 z-50 w-full bg-poker-black/80 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-4 flex h-16 justify-between">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-poker-gold">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent">
             APA POKER
           </h1>
         </div>
@@ -70,14 +70,14 @@ export default function PokerNav() {
       
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <nav className="md:hidden bg-poker-dark-green">
+        <nav className="md:hidden bg-poker-navy/90 backdrop-blur-md">
           <ul className="flex flex-col">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   className={cn(
-                    "block py-3 px-4 border-b border-poker-green",
+                    "block py-3 px-4 border-b border-white/5",
                     location.pathname === item.path ? "text-poker-gold" : "text-white"
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}

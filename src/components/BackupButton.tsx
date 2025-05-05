@@ -20,7 +20,7 @@ export default function BackupButton() {
     <Button
       onClick={handleBackup}
       disabled={isExporting}
-      className="w-full bg-poker-navy hover:bg-poker-navy/80"
+      className="w-full bg-poker-navy/80 backdrop-blur-sm hover:bg-poker-navy border border-white/10 rounded-xl"
     >
       {isExporting ? (
         <>

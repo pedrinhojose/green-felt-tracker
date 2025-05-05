@@ -7,25 +7,25 @@
 
 @layer base {
   :root {
-    --background: 240 17% 12%;
-    --foreground: 0 0% 95%;
+    --background: 240 17% 9%;
+    --foreground: 0 0% 98%;
 
-    --card: 160 70% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 160 90% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 160 70% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 160 90% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 45 65% 52%;
+    --primary: 45 70% 60%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 160 60% 15%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 160 70% 10%;
+    --secondary-foreground: 0 0% 98%;
 
     --muted: 210 20% 25%;
-    --muted-foreground: 215 20% 65%;
+    --muted-foreground: 215 20% 75%;
 
-    --accent: 160 50% 20%;
+    --accent: 160 60% 15%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 48%;
@@ -33,9 +33,9 @@
 
     --border: 214 20% 25%;
     --input: 214 20% 25%;
-    --ring: 45 65% 52%;
+    --ring: 45 70% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   * {
@@ -49,15 +49,35 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-poppins font-medium;
   }
+
+  /* Estilizar a barra de rolagem para o estilo Apple */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
 }
 
 @layer components {
   .card-dashboard {
-    @apply bg-poker-green border border-poker-dark-green rounded-lg p-5 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col;
+    @apply bg-card backdrop-blur-sm border border-opacity-20 border-white/5 rounded-xl p-6 shadow-apple hover:shadow-apple-hover transition-all duration-300 flex flex-col;
   }
   
   .card-dashboard-header {
-    @apply text-xl font-medium text-poker-gold mb-3 border-b border-poker-dark-green pb-2;
+    @apply text-xl font-medium text-poker-gold mb-4 border-b border-white/10 pb-3;
   }
   
   .nav-tab {
@@ -71,12 +91,16 @@
   .nav-tab-inactive {
     @apply border-b-2 border-transparent text-muted-foreground;
   }
+
+  .glass-effect {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl;
+  }
 }
 
 .font-inter {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .font-poppins {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
 }

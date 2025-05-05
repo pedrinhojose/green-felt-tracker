@@ -24,9 +24,9 @@ const App = () => (
         <BrowserRouter>
           <Toaster />
           <Sonner />
-          <div className="min-h-screen flex flex-col bg-poker-black text-white">
+          <div className="min-h-screen flex flex-col bg-gradient-to-br from-poker-black to-poker-navy/90 text-white">
             <PokerNav />
-            <main className="flex-1">
+            <main className="flex-1 container py-6">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/temporada" element={<SeasonConfig />} />

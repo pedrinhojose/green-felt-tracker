@@ -26,14 +26,14 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				poker: {
-					"green": "#0A3B23",
-					"dark-green": "#072818",
-					"navy": "#0C1B33",
-					"dark-navy": "#060E1A",
-					"black": "#121212",
-					"gold": "#D4AF37",
-					"red": "#C53030",
-					"blue": "#3182CE"
+					"green": "#1A4D33",
+					"dark-green": "#0F2B1D",
+					"navy": "#1A2B48",
+					"dark-navy": "#0F1A2B",
+					"black": "#111111",
+					"gold": "#DFC661",
+					"red": "#D64545",
+					"blue": "#4299E1"
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
@@ -109,7 +109,16 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'card-float': 'card-float 3s ease-in-out infinite'
-			}
+			},
+			fontFamily: {
+				'sans': ['SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],
+				'inter': ['Inter', 'system-ui', 'sans-serif'],
+				'poppins': ['Poppins', 'system-ui', 'sans-serif']
+			},
+			boxShadow: {
+				'apple': '0 4px 12px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.04)',
+				'apple-hover': '0 8px 20px rgba(0,0,0,0.12), 0 0 1px rgba(0,0,0,0.05)'
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

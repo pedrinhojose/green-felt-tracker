@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,7 +61,7 @@ export default function RankingCard() {
             disabled={isExporting}
             size="sm" 
             variant="outline" 
-            className="h-8 px-2 text-xs"
+            className="h-8 px-2 text-xs bg-transparent border border-white/20 hover:bg-white/5"
           >
             <Download className="h-3 w-3 mr-1" />
             Exportar
@@ -69,14 +70,14 @@ export default function RankingCard() {
       </div>
       
       {topPlayers.length > 0 ? (
-        <div className="flex flex-col divide-y divide-poker-dark-green">
+        <div className="flex flex-col divide-y divide-white/5">
           {topPlayers.map((player, index) => (
-            <div key={player.playerId} className="py-2 flex items-center">
+            <div key={player.playerId} className="py-3 flex items-center">
               <div className="w-8 text-center font-semibold">
-                {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                {getMedalEmoji(index)}
               </div>
               
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 border border-white/10">
                 {player.photoUrl ? (
                   <AvatarImage src={player.photoUrl} alt={player.playerName} />
                 ) : null}
@@ -86,7 +87,7 @@ export default function RankingCard() {
               </Avatar>
               
               <div className="ml-3 flex-1">
-                <div className="font-medium">{player.playerName}</div>
+                <div className="font-medium text-white">{player.playerName}</div>
               </div>
               
               <div className="font-semibold text-poker-gold">{player.totalPoints} pts</div>
