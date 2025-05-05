@@ -1,3 +1,4 @@
+
 import { Game } from '../../db/models';
 import { formatDate } from '../dateUtils';
 
@@ -13,9 +14,9 @@ export const createReportHeader = (game: Game, seasonName: string) => {
   header.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
   header.style.paddingBottom = '12px';
   
-  // Title
+  // Title - Modificado para "Resultado/Ranking"
   const title = document.createElement('h2');
-  title.textContent = 'Resultados do Poker';
+  title.textContent = 'Resultado/Ranking';
   title.style.fontSize = '20px';
   title.style.fontWeight = 'bold';
   title.style.margin = '0 0 8px 0';

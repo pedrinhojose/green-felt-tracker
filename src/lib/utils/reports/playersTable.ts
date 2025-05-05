@@ -15,20 +15,20 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Ajustando o grid para dar mais espaço à coluna do nome e removendo a coluna de valor do add-on
-  tableHeader.style.gridTemplateColumns = '20px 1fr repeat(4, auto)';
+  // Ajustando o grid para dar mais espaço à coluna do nome e incluir a foto
+  tableHeader.style.gridTemplateColumns = '20px 40px 1fr repeat(4, auto)';
   tableHeader.style.gap = '8px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '6px 0';
   tableHeader.style.fontSize = '12px';
   tableHeader.style.color = '#8E9196';
   
-  // Header columns - removendo a coluna de valor do add-on
-  const headers = ['#', 'Jogador', 'Rebuys', '+Ons', 'Janta', 'Saldo'];
+  // Header columns
+  const headers = ['#', '', 'Jogador', 'Rebuys', '+Ons', 'Janta', 'Saldo'];
   headers.forEach((header, index) => {
     const headerCell = document.createElement('div');
     headerCell.textContent = header;
-    headerCell.style.textAlign = index === 1 ? 'left' : 'center';
+    headerCell.style.textAlign = index === 2 ? 'left' : 'center';
     tableHeader.appendChild(headerCell);
   });
   
@@ -58,11 +58,11 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     // Player row
     const row = document.createElement('div');
     row.style.display = 'grid';
-    // Ajustando o grid para dar mais espaço à coluna do nome e removendo a coluna de valor do add-on
-    row.style.gridTemplateColumns = '20px 1fr repeat(4, auto)';
+    // Ajustando o grid para dar mais espaço à coluna do nome e incluir a foto
+    row.style.gridTemplateColumns = '20px 40px 1fr repeat(4, auto)';
     row.style.gap = '8px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
-    row.style.padding = '10px 0';
+    row.style.padding = '12px 0'; // Altura um pouco maior para acomodar a foto
     row.style.fontSize = '14px';
     
     // Position
@@ -71,14 +71,47 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     posCell.style.textAlign = 'center';
     posCell.style.fontWeight = 'bold';
     
+    // Player photo
+    const photoCell = document.createElement('div');
+    photoCell.style.display = 'flex';
+    photoCell.style.justifyContent = 'center';
+    photoCell.style.alignItems = 'center';
+    
+    const photoImg = document.createElement('div');
+    photoImg.style.width = '32px';
+    photoImg.style.height = '32px';
+    photoImg.style.borderRadius = '50%';
+    photoImg.style.overflow = 'hidden';
+    photoImg.style.backgroundColor = '#2A2A2A';
+    
+    if (player.photoUrl) {
+      const img = document.createElement('img');
+      img.src = player.photoUrl;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      photoImg.appendChild(img);
+    } else {
+      // Placeholder for players without photo
+      photoImg.style.display = 'flex';
+      photoImg.style.justifyContent = 'center';
+      photoImg.style.alignItems = 'center';
+      photoImg.style.color = '#FFFFFF';
+      photoImg.style.backgroundColor = '#8E9196';
+      photoImg.textContent = player.name.charAt(0).toUpperCase();
+      photoImg.style.fontSize = '16px';
+      photoImg.style.fontWeight = 'bold';
+    }
+    
+    photoCell.appendChild(photoImg);
+    
     // Player name
     const nameCell = document.createElement('div');
     nameCell.textContent = player.name;
     nameCell.style.fontWeight = 'bold';
-    // Remover o texto em ellipsis para evitar cortar nomes longos
     nameCell.style.overflow = 'visible';
-    // nameCell.style.textOverflow = 'ellipsis';
-    // nameCell.style.whiteSpace = 'nowrap';
+    nameCell.style.display = 'flex';
+    nameCell.style.alignItems = 'center';
     
     // Rebuys
     const rebuysCell = document.createElement('div');
@@ -95,8 +128,6 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     dinnerCell.textContent = gamePlayer.joinedDinner ? 'Sim' : 'Não';
     dinnerCell.style.textAlign = 'center';
     
-    // Removendo a coluna de valor da janta
-    
     // Balance
     const balanceCell = document.createElement('div');
     balanceCell.textContent = formatCurrency(gamePlayer.balance);
@@ -107,6 +138,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     balanceCell.style.paddingLeft = '8px';
     
     row.appendChild(posCell);
+    row.appendChild(photoCell);
     row.appendChild(nameCell);
     row.appendChild(rebuysCell);
     row.appendChild(addonsCell);
