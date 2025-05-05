@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
+import { FileText } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,25 +56,38 @@ export default function GamesList() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h2 className="text-2xl font-bold text-white">Partidas</h2>
         
-        {activeSeason ? (
-          <Button 
-            onClick={handleCreateGame} 
-            disabled={isCreating}
-            className="bg-poker-gold hover:bg-poker-gold/80 text-black"
-          >
-            {isCreating ? "Criando..." : "Nova Partida"}
-          </Button>
-        ) : (
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/temporada')}
-          >
-            Criar Temporada
-          </Button>
-        )}
+        <div className="flex gap-2 mt-4 sm:mt-0">
+          {activeSeason && sortedGames.length > 0 && (
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/relatorio-temporada')}
+              className="mr-2"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Relatório da Temporada
+            </Button>
+          )}
+          
+          {activeSeason ? (
+            <Button 
+              onClick={handleCreateGame} 
+              disabled={isCreating}
+              className="bg-poker-gold hover:bg-poker-gold/80 text-black"
+            >
+              {isCreating ? "Criando..." : "Nova Partida"}
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/temporada')}
+            >
+              Criar Temporada
+            </Button>
+          )}
+        </div>
       </div>
       
       {sortedGames.length > 0 ? (

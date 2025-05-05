@@ -12,6 +12,7 @@ import GamesList from "@/pages/GamesList";
 import GameManagement from "@/pages/GameManagement";
 import PlayersManagement from "@/pages/PlayersManagement";
 import RankingPage from "@/pages/RankingPage";
+import SeasonReport from "@/pages/SeasonReport";
 import NotFound from "./pages/NotFound";
 
 // Create a client for react-query
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/partidas/:gameId" element={<GameManagement />} />
                 <Route path="/jogadores" element={<PlayersManagement />} />
                 <Route path="/ranking" element={<RankingPage />} />
+                <Route path="/relatorio-temporada" element={<SeasonReport />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
