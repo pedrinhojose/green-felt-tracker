@@ -5,6 +5,7 @@ import { Game, Player, GamePlayer } from "@/lib/db/models";
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { exportGameReport } from "@/lib/utils/exportUtils";
+import { Button } from "@/components/ui/button"; // Add Button import
 
 // Componentes refatorados
 import BlindTimer from "@/components/game/BlindTimer";
