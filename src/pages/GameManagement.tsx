@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
+import { Label } from "@/components/ui/label";
 import { 
   Dialog,
   DialogContent,
@@ -36,7 +36,7 @@ export default function GameManagement() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { players, activeSeason, getGame, updateGame, finishGame } = usePoker();
+  const { players, activeSeason, games, updateGame, finishGame } = usePoker();
   
   const [game, setGame] = useState<Game | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,13 +56,15 @@ export default function GameManagement() {
       
       try {
         setIsLoading(true);
-        const gameData = await getGame(gameId);
-        if (gameData) {
-          setGame(gameData);
+        // Find the game in the games array from context
+        const foundGame = games.find(g => g.id === gameId);
+        
+        if (foundGame) {
+          setGame(foundGame);
           
           // Initialize selected players if game has players
-          if (gameData.players.length > 0) {
-            const selected = new Set(gameData.players.map(p => p.playerId));
+          if (foundGame.players.length > 0) {
+            const selected = new Set<string>(foundGame.players.map(p => p.playerId));
             setSelectedPlayers(selected);
             setIsSelectingPlayers(false);
           } else {
@@ -70,8 +72,8 @@ export default function GameManagement() {
           }
           
           // Set dinner cost if it exists
-          if (gameData.dinnerCost) {
-            setDinnerCost(gameData.dinnerCost);
+          if (foundGame.dinnerCost) {
+            setDinnerCost(foundGame.dinnerCost);
           }
         } else {
           toast({
@@ -94,7 +96,7 @@ export default function GameManagement() {
     };
     
     loadGame();
-  }, [gameId, getGame, navigate, toast]);
+  }, [gameId, games, navigate, toast]);
   
   // Blind timer
   useEffect(() => {
