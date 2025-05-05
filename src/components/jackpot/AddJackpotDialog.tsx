@@ -9,6 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -25,14 +26,10 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle, MinusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface AddJackpotDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) {
+export function AddJackpotDialog() {
   const { activeSeason, updateJackpot } = usePoker();
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [isAddition, setIsAddition] = useState(true);
@@ -47,7 +44,7 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
     
     await updateJackpot(activeSeason.id, valueToAdd);
     setConfirmOpen(false);
-    onOpenChange(false);
+    setOpen(false);
     setAmount("");
     setIsAddition(true);
     
@@ -66,7 +63,10 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <span className="sr-only">Adicionar ao Jackpot</span>
+        </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Atualizar Jackpot</DialogTitle>
