@@ -8,6 +8,22 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
   const { toast } = useToast();
   const { activeSeason } = usePoker(); // Move this hook call to the top level
 
+  // Calcular saldo do jogador (função duplicada de usePlayerStatsActions para manter a consistência)
+  const calculatePlayerBalance = (player, dinnerCost, dinnerParticipants) => {
+    if (!activeSeason) return 0;
+    
+    const buyInCost = player.buyIn ? activeSeason.financialParams.buyIn : 0;
+    const rebuysCost = player.rebuys * activeSeason.financialParams.rebuy;
+    const addonsCost = player.addons * activeSeason.financialParams.addon;
+    
+    // Calcular custo da janta
+    const dinnerCostShare = player.joinedDinner && dinnerCost && dinnerParticipants > 0 ? 
+      dinnerCost / dinnerParticipants : 0;
+    
+    // Calcular saldo (prêmio - custos)
+    return player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare);
+  };
+
   // Dinner cost calculation
   const calculateDinnerCosts = async (dinnerCostValue: number) => {
     if (!game) return;
@@ -25,11 +41,14 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
     
     // Update players with dinner cost in their balance
     const updatedPlayers = game.players.map(player => {
-      if (player.joinedDinner) {
-        // Add dinner cost to their balance calculation
-        return { ...player };
-      }
-      return player;
+      // Atualizar o saldo com o novo custo da janta
+      const balance = calculatePlayerBalance(
+        player, 
+        dinnerCostValue, 
+        dinnerParticipants.length
+      );
+      
+      return { ...player, balance };
     });
     
     // Update game
@@ -126,16 +145,16 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
         }
       }
       
+      // Contar participantes da janta para calcular o custo por pessoa
+      const dinnerParticipants = updatedPlayers.filter(p => p.joinedDinner).length;
+      
       // Calculate balances
       for (const player of updatedPlayers) {
-        const buyInCost = player.buyIn ? activeSeason.financialParams.buyIn : 0;
-        const rebuysCost = player.rebuys * activeSeason.financialParams.rebuy;
-        const addonsCost = player.addons * activeSeason.financialParams.addon;
-        const dinnerCostShare = player.joinedDinner && game.dinnerCost ? 
-          game.dinnerCost / game.players.filter(p => p.joinedDinner).length : 0;
-        
-        // Calculate balance (prize - costs)
-        player.balance = player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare);
+        player.balance = calculatePlayerBalance(
+          player,
+          game.dinnerCost,
+          dinnerParticipants
+        );
       }
       
       // Update game

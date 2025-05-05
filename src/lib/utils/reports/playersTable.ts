@@ -15,7 +15,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  tableHeader.style.gridTemplateColumns = '20px 1fr repeat(4, auto)';
+  tableHeader.style.gridTemplateColumns = '20px 1fr repeat(5, auto)';
   tableHeader.style.gap = '8px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '6px 0';
@@ -23,7 +23,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   tableHeader.style.color = '#8E9196';
   
   // Header columns
-  const headers = ['#', 'Jogador', 'Rebuys', '+Ons', 'Janta', 'Saldo'];
+  const headers = ['#', 'Jogador', 'Rebuys', '+Ons', 'Janta', 'Valor Janta', 'Saldo'];
   headers.forEach((header, index) => {
     const headerCell = document.createElement('div');
     headerCell.textContent = header;
@@ -45,18 +45,19 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Add row for each player
   const playerMap = new Map(players.map(player => [player.id, player]));
   
+  // Calcular custo da janta por jogador
+  const dinnerParticipants = sortedPlayers.filter(p => p.joinedDinner).length;
+  const dinnerSharePerPlayer = game.dinnerCost && dinnerParticipants > 0 ? 
+    game.dinnerCost / dinnerParticipants : 0;
+  
   sortedPlayers.forEach(gamePlayer => {
     const player = playerMap.get(gamePlayer.playerId);
     if (!player) return;
     
-    // Calculate dinner share per player
-    const dinnerShare = gamePlayer.joinedDinner && game.dinnerCost ? 
-      game.dinnerCost / game.players.filter(p => p.joinedDinner).length : 0;
-    
     // Player row
     const row = document.createElement('div');
     row.style.display = 'grid';
-    row.style.gridTemplateColumns = '20px 1fr repeat(4, auto)';
+    row.style.gridTemplateColumns = '20px 1fr repeat(5, auto)';
     row.style.gap = '8px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
     row.style.padding = '10px 0';
@@ -88,8 +89,13 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     
     // Dinner
     const dinnerCell = document.createElement('div');
-    dinnerCell.textContent = gamePlayer.joinedDinner ? formatCurrency(dinnerShare) : '-';
+    dinnerCell.textContent = gamePlayer.joinedDinner ? 'Sim' : 'Não';
     dinnerCell.style.textAlign = 'center';
+    
+    // Dinner value
+    const dinnerValueCell = document.createElement('div');
+    dinnerValueCell.textContent = gamePlayer.joinedDinner ? formatCurrency(dinnerSharePerPlayer) : '-';
+    dinnerValueCell.style.textAlign = 'center';
     
     // Balance
     const balanceCell = document.createElement('div');
@@ -105,6 +111,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     row.appendChild(rebuysCell);
     row.appendChild(addonsCell);
     row.appendChild(dinnerCell);
+    row.appendChild(dinnerValueCell);
     row.appendChild(balanceCell);
     
     table.appendChild(row);

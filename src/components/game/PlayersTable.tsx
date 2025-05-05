@@ -36,6 +36,16 @@ export default function PlayersTable({
       .substring(0, 2);
   };
   
+  // Calcular o valor individual da janta
+  const calculateDinnerShare = () => {
+    if (!game.dinnerCost) return 0;
+    const dinnerParticipants = game.players.filter(p => p.joinedDinner).length;
+    if (dinnerParticipants === 0) return 0;
+    return game.dinnerCost / dinnerParticipants;
+  };
+  
+  const dinnerSharePerPlayer = calculateDinnerShare();
+  
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -64,6 +74,7 @@ export default function PlayersTable({
                   </div>
                 </th>
                 <th className="text-center p-2">Janta</th>
+                <th className="text-center p-2">Valor Janta</th>
                 <th className="text-center p-2">Prêmio</th>
                 <th className="text-center p-2">Pontos</th>
                 <th className="text-center p-2">Saldo</th>
@@ -185,6 +196,10 @@ export default function PlayersTable({
                         onCheckedChange={(checked) => onUpdatePlayerStats(gamePlayer.playerId, 'joinedDinner', !!checked)}
                         disabled={game.isFinished}
                       />
+                    </td>
+                    
+                    <td className="p-2 text-center">
+                      {gamePlayer.joinedDinner ? formatCurrency(dinnerSharePerPlayer) : '-'}
                     </td>
                     
                     <td className="p-2 text-center font-medium">

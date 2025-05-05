@@ -8,6 +8,22 @@ export function usePlayerStatsActions(game: Game | null, setGame: React.Dispatch
   const { toast } = useToast();
   const { activeSeason } = usePoker();
   
+  // Calcular saldo do jogador
+  const calculatePlayerBalance = (player: GamePlayer, dinnerCost: number | undefined, dinnerParticipants: number): number => {
+    if (!activeSeason) return 0;
+    
+    const buyInCost = player.buyIn ? activeSeason.financialParams.buyIn : 0;
+    const rebuysCost = player.rebuys * activeSeason.financialParams.rebuy;
+    const addonsCost = player.addons * activeSeason.financialParams.addon;
+    
+    // Calcular custo da janta
+    const dinnerCostShare = player.joinedDinner && dinnerCost && dinnerParticipants > 0 ? 
+      dinnerCost / dinnerParticipants : 0;
+    
+    // Calcular saldo (prêmio - custos)
+    return player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare);
+  };
+  
   // Update player stats
   const updatePlayerStats = async (playerId: string, field: keyof GamePlayer, value: any) => {
     if (!game) return;
@@ -34,6 +50,13 @@ export function usePlayerStatsActions(game: Game | null, setGame: React.Dispatch
           totalPrizePool += rebuy * player.rebuys;
           totalPrizePool += addon * player.addons;
         }
+      }
+      
+      // Calcular os saldos atualizados
+      const dinnerParticipants = updatedPlayers.filter(p => p.joinedDinner).length;
+      for (const player of updatedPlayers) {
+        // Apenas atualizar o saldo, mantendo o prêmio e pontos inalterados
+        player.balance = calculatePlayerBalance(player, game.dinnerCost, dinnerParticipants);
       }
       
       // Update game
