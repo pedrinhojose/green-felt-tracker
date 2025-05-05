@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 export default function JackpotCard() {
   const { activeSeason } = usePoker();
   const [jackpotValue, setJackpotValue] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   useEffect(() => {
     // Atualiza o valor do jackpot diretamente do banco de dados
@@ -39,9 +40,10 @@ export default function JackpotCard() {
             variant="ghost" 
             size="icon" 
             className="hover:bg-poker-dark-green/20 text-white h-7 w-7"
+            onClick={() => setDialogOpen(true)}
           >
             <Plus className="h-5 w-5" />
-            <AddJackpotDialog />
+            <span className="sr-only">Adicionar ao Jackpot</span>
           </Button>
         )}
       </div>
@@ -87,6 +89,9 @@ export default function JackpotCard() {
           </div>
         </div>
       </div>
+      
+      {/* Diálogo de adicionar ao jackpot */}
+      <AddJackpotDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }
