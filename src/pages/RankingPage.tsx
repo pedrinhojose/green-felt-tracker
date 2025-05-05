@@ -58,7 +58,6 @@ export default function RankingPage() {
                     <th className="text-left py-2 px-4">#</th>
                     <th className="text-left py-2 px-4">Jogador</th>
                     <th className="text-center py-2 px-4">Jogos</th>
-                    <th className="text-center py-2 px-4">Melhor Posição</th>
                     <th className="text-center py-2 px-4">Pontos</th>
                   </tr>
                 </thead>
@@ -86,10 +85,6 @@ export default function RankingPage() {
                       </td>
                       
                       <td className="py-3 px-4 text-center">{ranking.gamesPlayed}</td>
-                      
-                      <td className="py-3 px-4 text-center">
-                        {ranking.bestPosition ? `${ranking.bestPosition}º lugar` : '-'}
-                      </td>
                       
                       <td className="py-3 px-4 text-center font-bold text-poker-gold">{ranking.totalPoints}</td>
                     </tr>

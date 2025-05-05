@@ -20,7 +20,9 @@ export default function LastGameCard() {
     
     try {
       setIsExporting(true);
-      const pdfUrl = await exportGameReport(lastGame.id, lastGame, players);
+      // Estamos passando apenas o ID do jogo, já que o exportGameReport
+      // buscará o jogo completo diretamente do banco de dados
+      const pdfUrl = await exportGameReport(lastGame.id, players);
       
       // Open the PDF in a new tab
       window.open(pdfUrl, '_blank');

@@ -1,8 +1,10 @@
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { Game, Player } from '../db/models';
 import { formatDate, formatCurrency } from './dateUtils';
+import { pokerDB } from '../db/database';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -10,8 +12,14 @@ declare module 'jspdf' {
   }
 }
 
-export const exportGameReport = async (gameId: string, game: Game, players: Player[]): Promise<string> => {
+export const exportGameReport = async (gameId: string, players: Player[]): Promise<string> => {
   try {
+    // Buscar o jogo diretamente do banco de dados usando o ID
+    const game = await pokerDB.getGame(gameId);
+    if (!game) {
+      throw new Error("Jogo não encontrado");
+    }
+    
     const doc = new jsPDF();
 
     // Add title
