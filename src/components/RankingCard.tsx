@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -78,7 +77,7 @@ export default function RankingCard() {
       <div className="flex flex-col">
         {/* First place position (top center) */}
         {firstPlace && (
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-1">
             <div className="relative flex flex-col items-center">
               <Avatar className="h-16 w-16 border-2 border-poker-gold">
                 {firstPlace.photoUrl ? (
@@ -93,14 +92,13 @@ export default function RankingCard() {
                 <div className="font-bold text-poker-gold">{firstPlace.totalPoints} pts</div>
                 <div className="text-xs text-muted-foreground">{firstPlace.gamesPlayed} jogos</div>
               </div>
-              <div className="h-4 w-16 bg-poker-gold/30 mt-1 rounded-t-md"></div>
               <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
             </div>
           </div>
         )}
 
-        {/* Second and Third places (bottom row) */}
-        <div className="flex justify-center gap-12 mt-2">
+        {/* Second and Third places (positioned closer to first place) */}
+        <div className="flex justify-center gap-12 mt-0">
           {/* Second place */}
           {secondPlace && (
             <div className="flex flex-col items-center">
@@ -117,7 +115,6 @@ export default function RankingCard() {
                 <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
                 <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
               </div>
-              <div className="h-3 w-14 bg-gray-400/30 mt-1 rounded-t-md"></div>
               <div className="mt-1 text-base font-bold text-gray-400">🥈</div>
             </div>
           )}
@@ -138,7 +135,6 @@ export default function RankingCard() {
                 <div className="font-bold text-amber-700">{thirdPlace.totalPoints} pts</div>
                 <div className="text-xs text-muted-foreground">{thirdPlace.gamesPlayed} jogos</div>
               </div>
-              <div className="h-2 w-12 bg-amber-700/30 mt-1 rounded-t-md"></div>
               <div className="mt-1 text-base font-bold text-amber-700">🥉</div>
             </div>
           )}
