@@ -40,7 +40,9 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
       
       // Calculate initial prize pool (buy-ins)
       const buyInAmount = activeSeason?.financialParams.buyIn || 0;
-      const initialPrizePool = buyInAmount * gamePlayers.length;
+      const jackpotContribution = activeSeason?.financialParams.jackpotContribution || 0;
+      // Desconta a contribuição do jackpot do prêmio total
+      const initialPrizePool = (buyInAmount - jackpotContribution) * gamePlayers.length;
       
       // Update game with players and prize pool
       await updateGame({
@@ -82,6 +84,9 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
     
     try {
       const buyInAmount = activeSeason?.financialParams.buyIn || 0;
+      const jackpotContribution = activeSeason?.financialParams.jackpotContribution || 0;
+      // Desconta a contribuição do jackpot do prêmio adicionado
+      const prizeContribution = buyInAmount - jackpotContribution;
       
       // Criar novo jogador
       const newGamePlayer: GamePlayer = {
@@ -100,7 +105,7 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
       
       // Adicionar jogador à lista e atualizar prize pool
       const updatedPlayers = [...game.players, newGamePlayer];
-      const updatedPrizePool = game.totalPrizePool + buyInAmount;
+      const updatedPrizePool = game.totalPrizePool + prizeContribution;
       
       // Atualizar jogo no banco de dados
       await updateGame({
@@ -152,12 +157,12 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
       let totalPrizePool = 0;
       
       if (activeSeason) {
-        const { buyIn, rebuy, addon } = activeSeason.financialParams;
+        const { buyIn, rebuy, addon, jackpotContribution } = activeSeason.financialParams;
         
         // Add up all buy-ins, rebuys, and add-ons
         for (const player of updatedPlayers) {
           if (player.buyIn) {
-            totalPrizePool += buyIn;
+            totalPrizePool += (buyIn - jackpotContribution); // Desconta a contribuição do jackpot
           }
           totalPrizePool += rebuy * player.rebuys;
           totalPrizePool += addon * player.addons;
