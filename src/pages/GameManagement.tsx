@@ -286,10 +286,19 @@ export default function GameManagement() {
     }
   };
   
-  const eliminatePlayer = async (playerId: string, position: number) => {
+  // Modificada a função de eliminação do jogador para calcular posição automaticamente
+  const eliminatePlayer = async (playerId: string) => {
     if (!game) return;
     
     try {
+      // Contar jogadores já eliminados para determinar a posição atual
+      const eliminatedPlayersCount = game.players.filter(p => p.isEliminated).length;
+      const totalPlayers = game.players.length;
+      
+      // Calcular automaticamente a posição (totalPlayers - eliminatedPlayersCount)
+      // Exemplo: em 7 jogadores, primeiro eliminado fica em 7º lugar
+      const position = totalPlayers - eliminatedPlayersCount;
+      
       // Update player position and elimination status
       const updatedPlayers = game.players.map(player => {
         if (player.playerId === playerId) {
@@ -320,12 +329,36 @@ export default function GameManagement() {
       
       // Check if only one player remains (not eliminated)
       const remainingPlayers = updatedPlayers.filter(p => !p.isEliminated);
+      
+      // Se restarem exatamente dois jogadores e um está sendo eliminado,
+      // automaticamente defina o último jogador como vencedor (1º lugar)
       if (remainingPlayers.length === 1) {
         // Auto-set the last player as winner (position 1)
         const winner = remainingPlayers[0];
-        await updatePlayerStats(winner.playerId, 'position', 1);
         
-        // Show completion dialog
+        // Cria uma nova lista de jogadores com o vencedor definido como 1º lugar
+        const finalPlayers = updatedPlayers.map(player => {
+          if (player.playerId === winner.playerId) {
+            return { ...player, position: 1, isEliminated: true };
+          }
+          return player;
+        });
+        
+        // Atualiza o jogo com o vencedor definido
+        await updateGame({
+          id: game.id,
+          players: finalPlayers,
+        });
+        
+        // Atualiza o estado local
+        setGame(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            players: finalPlayers,
+          };
+        });
+        
         toast({
           title: "Partida finalizada!",
           description: "Um vencedor foi determinado. Você pode encerrar a partida.",
@@ -945,38 +978,13 @@ export default function GameManagement() {
                           
                           <td className="p-2 text-right">
                             {!gamePlayer.isEliminated && !game.isFinished && (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="destructive">Eliminar</Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Eliminar Jogador</DialogTitle>
-                                    <DialogDescription>
-                                      Qual a posição final de {getPlayerName(gamePlayer.playerId)}?
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  
-                                  <div className="py-4">
-                                    <div className="grid grid-cols-5 gap-2">
-                                      {[...Array(10)].map((_, i) => (
-                                        <Button
-                                          key={i}
-                                          variant="outline"
-                                          onClick={() => {
-                                            eliminatePlayer(gamePlayer.playerId, i + 1);
-                                            document.querySelector('[data-state="open"]')?.dispatchEvent(
-                                              new KeyboardEvent('keydown', { key: 'Escape' })
-                                            );
-                                          }}
-                                        >
-                                          {i + 1}º
-                                        </Button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                onClick={() => eliminatePlayer(gamePlayer.playerId)}
+                              >
+                                Eliminar
+                              </Button>
                             )}
                           </td>
                         </tr>
