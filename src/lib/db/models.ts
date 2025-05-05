@@ -1,8 +1,9 @@
-
 export interface Player {
   id: string;
   name: string;
   photoUrl?: string;
+  phone?: string;
+  city?: string;
   createdAt: Date;
 }
 

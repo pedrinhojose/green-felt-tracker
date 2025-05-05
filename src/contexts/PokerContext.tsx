@@ -103,6 +103,8 @@ export function PokerProvider({ children }: { children: ReactNode }) {
         id: uuidv4(),
         name: playerData.name || 'Jogador sem nome',
         photoUrl: playerData.photoUrl,
+        phone: playerData.phone,
+        city: playerData.city,
         createdAt: now,
       };
     }

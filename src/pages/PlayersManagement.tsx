@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Camera, ImageIcon, X } from "lucide-react";
 import { Player } from "@/lib/db/models";
 
 export default function PlayersManagement() {
@@ -29,11 +30,20 @@ export default function PlayersManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
-  const [newPlayer, setNewPlayer] = useState<{ name: string; photoUrl?: string }>({
+  const [newPlayer, setNewPlayer] = useState<{ 
+    name: string; 
+    photoUrl?: string;
+    phone?: string;
+    city?: string;
+  }>({
     name: ""
   });
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const filteredPlayers = searchQuery
     ? players.filter(player => 
         player.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -43,6 +53,88 @@ export default function PlayersManagement() {
   const sortedPlayers = [...filteredPlayers].sort((a, b) => 
     a.name.localeCompare(b.name)
   );
+  
+  // Camera functions
+  const startCamera = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: "Erro",
+          description: "Seu navegador não suporta acesso à câmera.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setIsCameraActive(true);
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      toast({
+        title: "Acesso negado",
+        description: "Não foi possível acessar a câmera.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setIsCameraActive(false);
+    }
+  };
+  
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const imageDataUrl = canvas.toDataURL('image/jpeg');
+        
+        if (editingPlayer) {
+          setEditingPlayer({ ...editingPlayer, photoUrl: imageDataUrl });
+        } else {
+          setNewPlayer({ ...newPlayer, photoUrl: imageDataUrl });
+        }
+        
+        stopCamera();
+      }
+    }
+  };
+  
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        if (editingPlayer) {
+          setEditingPlayer({ ...editingPlayer, photoUrl: imageDataUrl });
+        } else {
+          setNewPlayer({ ...newPlayer, photoUrl: imageDataUrl });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const clearPhoto = () => {
+    if (editingPlayer) {
+      setEditingPlayer({ ...editingPlayer, photoUrl: undefined });
+    } else {
+      setNewPlayer({ ...newPlayer, photoUrl: undefined });
+    }
+  };
 
   const handleAddPlayer = async () => {
     if (!newPlayer.name.trim()) {
@@ -72,6 +164,7 @@ export default function PlayersManagement() {
       });
     } finally {
       setIsSaving(false);
+      stopCamera();
     }
   };
 
@@ -102,6 +195,7 @@ export default function PlayersManagement() {
       });
     } finally {
       setIsSaving(false);
+      stopCamera();
     }
   };
 
@@ -133,6 +227,13 @@ export default function PlayersManagement() {
       .toUpperCase()
       .substring(0, 2);
   };
+  
+  // Cleanup camera on unmount
+  useState(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -171,9 +272,11 @@ export default function PlayersManagement() {
                 
                 <div className="flex-1">
                   <h3 className="font-medium text-lg">{player.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Cadastrado em {new Date(player.createdAt).toLocaleDateString()}
-                  </p>
+                  <div className="text-sm text-muted-foreground">
+                    {player.city && <p>{player.city}</p>}
+                    {player.phone && <p>{player.phone}</p>}
+                    <p>Cadastrado em {new Date(player.createdAt).toLocaleDateString()}</p>
+                  </div>
                 </div>
                 
                 <div className="flex gap-2">
@@ -233,8 +336,11 @@ export default function PlayersManagement() {
       )}
       
       {/* Add Player Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        if (!open) stopCamera();
+        setIsAddDialogOpen(open);
+      }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Jogador</DialogTitle>
           </DialogHeader>
@@ -251,13 +357,96 @@ export default function PlayersManagement() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="photoUrl">URL da Foto (opcional)</Label>
+              <Label htmlFor="playerPhone">Telefone</Label>
               <Input
-                id="photoUrl"
-                value={newPlayer.photoUrl || ""}
-                onChange={(e) => setNewPlayer({ ...newPlayer, photoUrl: e.target.value })}
-                placeholder="https://exemplo.com/foto.jpg"
+                id="playerPhone"
+                value={newPlayer.phone || ""}
+                onChange={(e) => setNewPlayer({ ...newPlayer, phone: e.target.value })}
+                placeholder="(00) 00000-0000"
               />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="playerCity">Cidade</Label>
+              <Input
+                id="playerCity"
+                value={newPlayer.city || ""}
+                onChange={(e) => setNewPlayer({ ...newPlayer, city: e.target.value })}
+                placeholder="Cidade do jogador"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Foto do Jogador</Label>
+              
+              {isCameraActive ? (
+                <div className="space-y-2">
+                  <div className="relative rounded-lg overflow-hidden bg-black">
+                    <video 
+                      ref={videoRef} 
+                      autoPlay 
+                      playsInline 
+                      className="w-full"
+                    />
+                    <Button 
+                      onClick={() => stopCamera()}
+                      variant="destructive" 
+                      size="icon" 
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button 
+                    onClick={capturePhoto} 
+                    className="w-full bg-poker-gold hover:bg-poker-gold/80 text-black"
+                  >
+                    Tirar Foto
+                  </Button>
+                </div>
+              ) : newPlayer.photoUrl ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <img 
+                      src={newPlayer.photoUrl} 
+                      alt="Foto do jogador" 
+                      className="w-full h-auto rounded-lg"
+                    />
+                    <Button 
+                      onClick={clearPhoto}
+                      variant="destructive" 
+                      size="icon" 
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={startCamera} 
+                    variant="outline" 
+                    className="flex-1"
+                  >
+                    <Camera className="mr-2 h-4 w-4" /> Usar Câmera
+                  </Button>
+                  <Button 
+                    onClick={() => fileInputRef.current?.click()} 
+                    variant="outline" 
+                    className="flex-1"
+                  >
+                    <ImageIcon className="mr-2 h-4 w-4" /> Escolher Arquivo
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/jpeg,image/png"
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
+                  />
+                </div>
+              )}
             </div>
           </div>
           
@@ -274,8 +463,14 @@ export default function PlayersManagement() {
       </Dialog>
       
       {/* Edit Player Dialog */}
-      <Dialog open={!!editingPlayer} onOpenChange={(open) => !open && setEditingPlayer(null)}>
-        <DialogContent>
+      <Dialog 
+        open={!!editingPlayer} 
+        onOpenChange={(open) => {
+          if (!open) stopCamera();
+          if (!open) setEditingPlayer(null);
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Jogador</DialogTitle>
           </DialogHeader>
@@ -293,13 +488,96 @@ export default function PlayersManagement() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="editPhotoUrl">URL da Foto (opcional)</Label>
+                <Label htmlFor="editPlayerPhone">Telefone</Label>
                 <Input
-                  id="editPhotoUrl"
-                  value={editingPlayer.photoUrl || ""}
-                  onChange={(e) => setEditingPlayer({ ...editingPlayer, photoUrl: e.target.value })}
-                  placeholder="https://exemplo.com/foto.jpg"
+                  id="editPlayerPhone"
+                  value={editingPlayer.phone || ""}
+                  onChange={(e) => setEditingPlayer({ ...editingPlayer, phone: e.target.value })}
+                  placeholder="(00) 00000-0000"
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editPlayerCity">Cidade</Label>
+                <Input
+                  id="editPlayerCity"
+                  value={editingPlayer.city || ""}
+                  onChange={(e) => setEditingPlayer({ ...editingPlayer, city: e.target.value })}
+                  placeholder="Cidade do jogador"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Foto do Jogador</Label>
+                
+                {isCameraActive ? (
+                  <div className="space-y-2">
+                    <div className="relative rounded-lg overflow-hidden bg-black">
+                      <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        playsInline 
+                        className="w-full"
+                      />
+                      <Button 
+                        onClick={() => stopCamera()}
+                        variant="destructive" 
+                        size="icon" 
+                        className="absolute top-2 right-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button 
+                      onClick={capturePhoto} 
+                      className="w-full bg-poker-gold hover:bg-poker-gold/80 text-black"
+                    >
+                      Tirar Foto
+                    </Button>
+                  </div>
+                ) : editingPlayer.photoUrl ? (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <img 
+                        src={editingPlayer.photoUrl} 
+                        alt="Foto do jogador" 
+                        className="w-full h-auto rounded-lg"
+                      />
+                      <Button 
+                        onClick={clearPhoto}
+                        variant="destructive" 
+                        size="icon" 
+                        className="absolute top-2 right-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={startCamera} 
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      <Camera className="mr-2 h-4 w-4" /> Usar Câmera
+                    </Button>
+                    <Button 
+                      onClick={() => fileInputRef.current?.click()} 
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      <ImageIcon className="mr-2 h-4 w-4" /> Escolher Arquivo
+                    </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/jpeg,image/png"
+                      style={{ display: 'none' }}
+                      onChange={handleFileUpload}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
