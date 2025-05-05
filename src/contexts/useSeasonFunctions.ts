@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Season, FinancialParams, BlindLevel } from '../lib/db/models';
-import { pokerDB } from '../lib/db/database';
+import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
 
 export function useSeasonFunctions() {

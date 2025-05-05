@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { RankingEntry } from '../lib/db/models';
-import { pokerDB } from '../lib/db/database';
+import { pokerDB } from '../lib/db';
 
 export function useRankingFunctions() {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);

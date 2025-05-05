@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { useEffect, useState } from "react";
-import { pokerDB } from "@/lib/db/database";
+import { pokerDB } from "@/lib/db";
 
 export default function JackpotCard() {
   const { activeSeason } = usePoker();

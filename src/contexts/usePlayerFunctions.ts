@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Player } from '../lib/db/models';
-import { pokerDB } from '../lib/db/database';
+import { pokerDB } from '../lib/db';
 
 export function usePlayerFunctions() {
   const [players, setPlayers] = useState<Player[]>([]);

@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, ReactNode } from 'react';
-import { pokerDB } from '../lib/db/database';
+import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
 import { PokerContextProps } from './types';
 import { usePlayerFunctions } from './usePlayerFunctions';

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { pokerDB } from '../lib/db/database';
+import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
 
 export function usePokerUtils() {
