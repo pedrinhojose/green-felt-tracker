@@ -1,7 +1,7 @@
 
 import html2canvas from 'html2canvas';
 import { RankingEntry, Season } from '../db/models';
-import { createRankingContainer, createRankingHeader } from './rankingHtmlGenerator';
+import { createRankingContainer, createRankingHeader, createRankingFooter } from './rankingHtmlGenerator';
 import { createRankingTable } from './rankingTableGenerator';
 
 /**
@@ -9,14 +9,12 @@ import { createRankingTable } from './rankingTableGenerator';
  * @param sortedRankings Lista ordenada de jogadores no ranking
  * @param activeSeason Temporada ativa atual
  * @param getInitials Função para obter as iniciais de um nome
- * @param getMedalEmoji Função para obter o emoji correspondente à posição
  * @returns Promise resolvida com a URL da imagem gerada
  */
 export const exportRankingAsImage = async (
   sortedRankings: RankingEntry[],
   activeSeason: Season | null,
-  getInitials: (name: string) => string,
-  getMedalEmoji: (position: number) => string,
+  getInitials: (name: string) => string
 ): Promise<string> => {
   try {
     // Cria um elemento temporário para renderizar o ranking
@@ -27,8 +25,12 @@ export const exportRankingAsImage = async (
     exportDiv.appendChild(header);
     
     // Criar a tabela de ranking
-    const tableElement = createRankingTable(sortedRankings, getInitials, getMedalEmoji);
+    const tableElement = createRankingTable(sortedRankings, getInitials);
     exportDiv.appendChild(tableElement);
+    
+    // Adiciona rodapé
+    const footer = createRankingFooter();
+    exportDiv.appendChild(footer);
     
     // Adiciona ao DOM temporariamente para captura
     document.body.appendChild(exportDiv);
@@ -36,7 +38,7 @@ export const exportRankingAsImage = async (
     // Captura a imagem
     const canvas = await html2canvas(exportDiv, {
       scale: 2, // Escala maior para melhor qualidade
-      backgroundColor: '#0A3B23',
+      backgroundColor: '#111827',
       logging: false,
       useCORS: true,
       allowTaint: true

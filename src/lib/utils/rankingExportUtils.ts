@@ -12,16 +12,15 @@ export const useRankingExport = () => {
   const downloadRankingAsImage = async (
     sortedRankings: RankingEntry[],
     activeSeason: Season | null,
-    getInitials: (name: string) => string,
-    getMedalEmoji: (position: number) => string
+    getInitials: (name: string) => string
   ) => {
     try {
-      const imageUrl = await exportRankingAsImage(sortedRankings, activeSeason, getInitials, getMedalEmoji);
+      const imageUrl = await exportRankingAsImage(sortedRankings, activeSeason, getInitials);
       
       // Criar link de download
       const link = document.createElement('a');
       link.href = imageUrl;
-      link.download = `poker-ranking-${new Date().toISOString().split('T')[0]}.png`;
+      link.download = `ranking-pontos-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

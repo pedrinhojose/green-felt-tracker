@@ -11,37 +11,28 @@
 export const createRankingHeader = (activeSeason: any | null) => {
   // Create header container
   const header = document.createElement('div');
-  (header as HTMLElement).style.display = 'flex';
-  (header as HTMLElement).style.justifyContent = 'space-between';
-  (header as HTMLElement).style.alignItems = 'center';
-  (header as HTMLElement).style.marginBottom = '10px';
-  (header as HTMLElement).style.padding = '6px 10px';
-  (header as HTMLElement).style.borderBottom = '2px solid #072818';
+  header.style.display = 'flex';
+  header.style.flexDirection = 'column';
+  header.style.alignItems = 'center';
+  header.style.marginBottom = '20px';
+  header.style.padding = '10px';
   
+  // Título principal "Ranking de Pontos"
   const title = document.createElement('h2');
-  (title as HTMLElement).textContent = 'Ranking do Poker';
-  (title as HTMLElement).style.fontSize = '18px';
-  (title as HTMLElement).style.fontWeight = 'bold';
-  (title as HTMLElement).style.color = '#ffffff';
+  title.textContent = 'Ranking de Pontos';
+  title.style.fontSize = '26px';
+  title.style.fontWeight = 'bold';
+  title.style.color = '#D4AF37'; // Cor dourada
+  title.style.margin = '0 0 10px 0';
   
-  const subtitle = document.createElement('p');
-  (subtitle as HTMLElement).textContent = activeSeason ? activeSeason.name : 'Temporada Ativa';
-  (subtitle as HTMLElement).style.color = '#D4AF37';
-  (subtitle as HTMLElement).style.fontSize = '12px';
+  // Data atual
+  const dateElement = document.createElement('div');
+  dateElement.textContent = new Date().toLocaleDateString('pt-BR');
+  dateElement.style.color = '#ffffff';
+  dateElement.style.fontSize = '16px';
   
-  const titleContainer = document.createElement('div');
-  titleContainer.appendChild(title);
-  titleContainer.appendChild(subtitle);
-  
-  header.appendChild(titleContainer);
-  
-  // Adicionar a data da exportação
-  const dateContainer = document.createElement('div');
-  (dateContainer as HTMLElement).textContent = new Date().toLocaleDateString('pt-BR');
-  (dateContainer as HTMLElement).style.color = '#ffffff';
-  (dateContainer as HTMLElement).style.fontSize = '11px';
-  
-  header.appendChild(dateContainer);
+  header.appendChild(title);
+  header.appendChild(dateElement);
   
   return header;
 };
@@ -53,13 +44,14 @@ export const createRankingHeader = (activeSeason: any | null) => {
 export const createRankingContainer = () => {
   const exportDiv = document.createElement('div');
   exportDiv.id = 'ranking-export';
-  (exportDiv as HTMLElement).style.padding = '15px';
-  (exportDiv as HTMLElement).style.backgroundColor = '#0A3B23';
-  (exportDiv as HTMLElement).style.borderRadius = '12px';
-  (exportDiv as HTMLElement).style.width = '100%';
-  (exportDiv as HTMLElement).style.maxWidth = '400px';  // Largura ideal para visualização
-  (exportDiv as HTMLElement).style.margin = '0 auto';
-  (exportDiv as HTMLElement).style.overflow = 'visible';
+  exportDiv.style.padding = '20px';
+  exportDiv.style.backgroundColor = '#111827'; // Fundo escuro como na imagem
+  exportDiv.style.borderRadius = '12px';
+  exportDiv.style.width = '100%';
+  exportDiv.style.maxWidth = '500px';  // Largura ideal para visualização
+  exportDiv.style.margin = '0 auto';
+  exportDiv.style.overflow = 'hidden';
+  exportDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
   
   return exportDiv;
 };
@@ -71,18 +63,29 @@ export const createRankingContainer = () => {
 export const createTableHeader = () => {
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
-  headerRow.style.borderBottom = '1px solid #072818';
+  headerRow.style.borderBottom = '1px solid #2D3748';
   
-  const headers = ['#', 'Jogador', 'Jogos', 'Pontos'];
-  const headerWidths = ['36px', '140px', '40px', '50px'];
+  // Cabeçalhos conforme a imagem: Pos., Jogador, Pontos, Partidas
+  const headers = ['Pos.', 'Jogador', 'Pontos', 'Partidas'];
+  const columnWidths = ['60px', '1fr', '100px', '100px'];
   
   headers.forEach((headerText, index) => {
     const th = document.createElement('th');
     th.textContent = headerText;
-    th.style.padding = '4px 6px';
-    th.style.textAlign = index === 0 || index === 1 ? 'left' : 'center';
-    th.style.width = headerWidths[index];
+    th.style.padding = '8px 16px';
+    th.style.textAlign = index === 1 ? 'left' : 'center';
+    th.style.fontSize = '16px';
+    th.style.fontWeight = 'bold';
     th.style.color = '#ffffff';
+    
+    if (index === 0) {
+      th.style.width = columnWidths[0];
+    } else if (index === 1) {
+      th.style.width = columnWidths[1];
+    } else {
+      th.style.width = columnWidths[index];
+    }
+    
     headerRow.appendChild(th);
   });
   
@@ -98,17 +101,18 @@ export const createTableHeader = () => {
  */
 export const createPlayerAvatar = (ranking: any, getInitials: (name: string) => string) => {
   const avatarDiv = document.createElement('div');
-  avatarDiv.style.width = '20px';
-  avatarDiv.style.height = '20px';
+  avatarDiv.style.width = '32px';
+  avatarDiv.style.height = '32px';
   avatarDiv.style.borderRadius = '50%';
   avatarDiv.style.backgroundColor = '#1e3a8a';
   avatarDiv.style.color = 'white';
   avatarDiv.style.display = 'flex';
   avatarDiv.style.alignItems = 'center';
   avatarDiv.style.justifyContent = 'center';
-  avatarDiv.style.fontSize = '9px';
+  avatarDiv.style.fontSize = '14px';
   avatarDiv.style.fontWeight = 'bold';
   avatarDiv.style.flexShrink = '0';
+  avatarDiv.style.border = '1px solid #2D3748';
   
   if (ranking.photoUrl) {
     const img = document.createElement('img');
@@ -126,22 +130,32 @@ export const createPlayerAvatar = (ranking: any, getInitials: (name: string) => 
 };
 
 /**
- * Creates a medal position element for ranking display
+ * Creates a position number element for ranking display
  * @param index The player's position in the ranking (zero-based)
- * @param getMedalEmoji Function to get medal emoji for position
- * @returns A styled span element with position indicator
+ * @returns A styled span element with position number
  */
-export const createPositionMedal = (index: number, getMedalEmoji: (position: number) => string) => {
-  const medalSpan = document.createElement('span');
-  medalSpan.textContent = getMedalEmoji(index);
-  medalSpan.style.display = 'inline-flex';
-  medalSpan.style.alignItems = 'center';
-  medalSpan.style.justifyContent = 'center';
-  medalSpan.style.width = '24px';
-  medalSpan.style.height = '24px';
-  medalSpan.style.backgroundColor = '#072818';
-  medalSpan.style.borderRadius = '50%';
-  medalSpan.style.textAlign = 'center';
+export const createPositionNumber = (index: number) => {
+  const position = document.createElement('div');
+  position.textContent = (index + 1).toString();
+  position.style.fontSize = '18px';
+  position.style.fontWeight = 'bold';
+  position.style.color = '#ffffff';
+  position.style.textAlign = 'center';
   
-  return medalSpan;
+  return position;
+};
+
+/**
+ * Creates a footer element for the ranking export
+ * @returns A div element with footer text
+ */
+export const createRankingFooter = () => {
+  const footer = document.createElement('div');
+  footer.style.marginTop = '20px';
+  footer.style.textAlign = 'center';
+  footer.style.color = '#718096';
+  footer.style.fontSize = '14px';
+  footer.textContent = 'Gerado por APA Poker Gestão';
+  
+  return footer;
 };

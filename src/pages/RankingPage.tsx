@@ -1,8 +1,6 @@
 
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
 import RankingTable from "@/components/ranking/RankingTable";
 import RankingExporter from "@/components/ranking/RankingExporter";
 import EmptyRanking from "@/components/ranking/EmptyRanking";
