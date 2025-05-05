@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { exportScreenshot } from "@/lib/utils/exportUtils";
+import html2canvas from "html2canvas";
 
 export default function RankingPage() {
   const { rankings, activeSeason, players } = usePoker();
@@ -74,7 +74,7 @@ export default function RankingPage() {
       title.style.color = '#ffffff';
       
       const subtitle = document.createElement('p');
-      subtitle.textContent = activeSeason ? activeSeason.name : 'Temporada Atual';
+      subtitle.textContent = activeSeason ? activeSeason.name : 'Temporada Ativa';
       subtitle.style.color = '#D4AF37';
       subtitle.style.fontSize = '16px';
       
