@@ -76,31 +76,11 @@ export default function RankingCard() {
 
     return (
       <div className="flex flex-col items-center">
-        {/* Nova estrutura do pódio com 1º no centro e 2º e 3º em lados opostos */}
-        <div className="flex items-end justify-center gap-4 w-full">
-          {/* Second place (left side) */}
-          {secondPlace && (
-            <div className="flex flex-col items-center mb-2">
-              <Avatar className="h-12 w-12 border-2 border-gray-400">
-                {secondPlace.photoUrl ? (
-                  <AvatarImage src={secondPlace.photoUrl} alt={secondPlace.playerName} />
-                ) : null}
-                <AvatarFallback className="bg-poker-navy text-white">
-                  {getInitials(secondPlace.playerName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="mt-1 text-base font-bold text-gray-400">🥈</div>
-              <div className="mt-1 text-center">
-                <div className="font-medium text-white truncate max-w-[80px]">{secondPlace.playerName}</div>
-                <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
-                <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
-              </div>
-            </div>
-          )}
-
-          {/* First place (center) */}
+        {/* Nova estrutura do pódio com 1º no centro e mais alto, e 2º e 3º em lados opostos */}
+        <div className="flex items-end justify-center gap-4 w-full relative mt-4">
+          {/* First place (center and elevated) */}
           {firstPlace && (
-            <div className="flex flex-col items-center z-10">
+            <div className="flex flex-col items-center z-10 absolute top-[-30px]">
               <Avatar className="h-16 w-16 border-2 border-poker-gold">
                 {firstPlace.photoUrl ? (
                   <AvatarImage src={firstPlace.photoUrl} alt={firstPlace.playerName} />
@@ -118,9 +98,29 @@ export default function RankingCard() {
             </div>
           )}
 
+          {/* Second place (left side) */}
+          {secondPlace && (
+            <div className="flex flex-col items-center mb-2 mr-24">
+              <Avatar className="h-12 w-12 border-2 border-gray-400">
+                {secondPlace.photoUrl ? (
+                  <AvatarImage src={secondPlace.photoUrl} alt={secondPlace.playerName} />
+                ) : null}
+                <AvatarFallback className="bg-poker-navy text-white">
+                  {getInitials(secondPlace.playerName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="mt-1 text-base font-bold text-gray-400">🥈</div>
+              <div className="mt-1 text-center">
+                <div className="font-medium text-white truncate max-w-[80px]">{secondPlace.playerName}</div>
+                <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
+                <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
+              </div>
+            </div>
+          )}
+
           {/* Third place (right side) */}
           {thirdPlace && (
-            <div className="flex flex-col items-center mb-4">
+            <div className="flex flex-col items-center mb-4 ml-24">
               <Avatar className="h-11 w-11 border-2 border-amber-700">
                 {thirdPlace.photoUrl ? (
                   <AvatarImage src={thirdPlace.photoUrl} alt={thirdPlace.playerName} />
