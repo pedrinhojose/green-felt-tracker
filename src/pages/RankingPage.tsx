@@ -12,7 +12,11 @@ export default function RankingPage() {
     // Sort rankings by total points in descending order
     const sorted = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
     setSortedRankings(sorted);
-  }, [rankings]);
+    
+    // Debug para verificar os dados
+    console.log("Rankings atualizados:", rankings);
+    console.log("Temporada ativa:", activeSeason?.id);
+  }, [rankings, activeSeason]); // Adicionar activeSeason como dependência
   
   const getInitials = (name: string) => {
     return name

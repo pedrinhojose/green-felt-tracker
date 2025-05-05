@@ -1,14 +1,23 @@
 
+import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function RankingCard() {
   const { rankings, players } = usePoker();
+  const [topPlayers, setTopPlayers] = useState([]);
   
-  // Get top 3 players from ranking
-  const topPlayers = rankings
-    .sort((a, b) => b.totalPoints - a.totalPoints)
-    .slice(0, 3);
+  useEffect(() => {
+    // Get top 3 players from ranking
+    const sorted = [...rankings]
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .slice(0, 3);
+    
+    setTopPlayers(sorted);
+    
+    // Debug para verificar os dados
+    console.log("Top players atualizados:", sorted);
+  }, [rankings]);
   
   const getInitials = (name: string) => {
     return name
