@@ -2,10 +2,15 @@
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { useRankingExport } from "@/lib/utils/rankingExportUtils";
 
 export default function RankingCard() {
   const { rankings, players } = usePoker();
   const [topPlayers, setTopPlayers] = useState([]);
+  const [isExporting, setIsExporting] = useState(false);
+  const { downloadRankingAsImage } = useRankingExport();
   
   useEffect(() => {
     // Get top 3 players from ranking
@@ -28,9 +33,44 @@ export default function RankingCard() {
       .substring(0, 2);
   };
 
+  const getMedalEmoji = (position: number) => {
+    switch (position) {
+      case 0: return '🥇';
+      case 1: return '🥈';
+      case 2: return '🥉';
+      default: return (position + 1).toString();
+    }
+  };
+  
+  const handleExportTop3 = async () => {
+    try {
+      setIsExporting(true);
+      const { activeSeason } = usePoker();
+      await downloadRankingAsImage(topPlayers, activeSeason, getInitials, getMedalEmoji);
+    } catch (error) {
+      console.error("Erro ao exportar top 3:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="card-dashboard">
-      <h3 className="card-dashboard-header">Top 3 Provisório</h3>
+      <div className="card-dashboard-header flex justify-between items-center">
+        <h3>Top 3 Provisório</h3>
+        {topPlayers.length > 0 && (
+          <Button 
+            onClick={handleExportTop3}
+            disabled={isExporting}
+            size="sm" 
+            variant="outline" 
+            className="h-8 px-2 text-xs"
+          >
+            <Download className="h-3 w-3 mr-1" />
+            Exportar
+          </Button>
+        )}
+      </div>
       
       {topPlayers.length > 0 ? (
         <div className="flex flex-col divide-y divide-poker-dark-green">
