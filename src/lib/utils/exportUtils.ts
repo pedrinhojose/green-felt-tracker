@@ -11,54 +11,58 @@ declare module 'jspdf' {
 }
 
 export const exportGameReport = async (gameId: string, game: Game, players: Player[]): Promise<string> => {
-  const doc = new jsPDF();
+  try {
+    const doc = new jsPDF();
 
-  // Add title
-  doc.setFontSize(18);
-  doc.text(`Relatório de Partida #${game.number.toString().padStart(3, '0')}`, 14, 22);
-  
-  // Add date
-  doc.setFontSize(12);
-  doc.text(`Data: ${formatDate(game.date)}`, 14, 30);
-  
-  // Add prize pool
-  doc.text(`Premiação Total: ${formatCurrency(game.totalPrizePool)}`, 14, 37);
-  
-  // Create players table
-  const playerMap = new Map(players.map(player => [player.id, player]));
-  
-  const tableData = game.players.map(gamePlayer => {
-    const player = playerMap.get(gamePlayer.playerId);
-    return [
-      gamePlayer.position ? gamePlayer.position.toString() : '-',
-      player?.name || 'Jogador Desconhecido',
-      gamePlayer.buyIn ? 'Sim' : 'Não',
-      gamePlayer.rebuys.toString(),
-      gamePlayer.addons.toString(),
-      gamePlayer.joinedDinner ? 'Sim' : 'Não',
-      formatCurrency(gamePlayer.prize),
-      gamePlayer.points.toString(),
-      formatCurrency(gamePlayer.balance),
-    ];
-  }).sort((a, b) => {
-    const posA = a[0] === '-' ? 999 : parseInt(a[0]);
-    const posB = b[0] === '-' ? 999 : parseInt(b[0]);
-    return posA - posB;
-  });
-  
-  doc.autoTable({
-    head: [['Pos.', 'Nome', 'Buy-in', 'Rebuys', 'Add-ons', 'Janta', 'Prêmio', 'Pontos', 'Saldo']],
-    body: tableData,
-    startY: 45,
-    styles: { fontSize: 10, cellPadding: 3 },
-    headStyles: { fillColor: [10, 59, 35] },
-    alternateRowStyles: { fillColor: [240, 240, 240] },
-  });
-  
-  // Save the PDF as a blob URL and explicitly convert to string
-  const blobURL = doc.output('bloburl');
-  // Using String() to safely convert the URL to a string
-  return String(blobURL);
+    // Add title
+    doc.setFontSize(18);
+    doc.text(`Relatório de Partida #${game.number.toString().padStart(3, '0')}`, 14, 22);
+    
+    // Add date
+    doc.setFontSize(12);
+    doc.text(`Data: ${formatDate(game.date)}`, 14, 30);
+    
+    // Add prize pool
+    doc.text(`Premiação Total: ${formatCurrency(game.totalPrizePool)}`, 14, 37);
+    
+    // Create players table
+    const playerMap = new Map(players.map(player => [player.id, player]));
+    
+    const tableData = game.players.map(gamePlayer => {
+      const player = playerMap.get(gamePlayer.playerId);
+      return [
+        gamePlayer.position ? gamePlayer.position.toString() : '-',
+        player?.name || 'Jogador Desconhecido',
+        gamePlayer.buyIn ? 'Sim' : 'Não',
+        gamePlayer.rebuys.toString(),
+        gamePlayer.addons.toString(),
+        gamePlayer.joinedDinner ? 'Sim' : 'Não',
+        formatCurrency(gamePlayer.prize),
+        gamePlayer.points.toString(),
+        formatCurrency(gamePlayer.balance),
+      ];
+    }).sort((a, b) => {
+      const posA = a[0] === '-' ? 999 : parseInt(a[0]);
+      const posB = b[0] === '-' ? 999 : parseInt(b[0]);
+      return posA - posB;
+    });
+    
+    doc.autoTable({
+      head: [['Pos.', 'Nome', 'Buy-in', 'Rebuys', 'Add-ons', 'Janta', 'Prêmio', 'Pontos', 'Saldo']],
+      body: tableData,
+      startY: 45,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [10, 59, 35] },
+      alternateRowStyles: { fillColor: [240, 240, 240] },
+    });
+    
+    // Salva e retorna o PDF como URL de blob
+    const blobURL = doc.output('bloburl');
+    return blobURL.toString();
+  } catch (error) {
+    console.error("Erro ao gerar relatório:", error);
+    throw new Error("Falha ao gerar o relatório do jogo");
+  }
 };
 
 export const exportScreenshot = async (elementId: string): Promise<string> => {

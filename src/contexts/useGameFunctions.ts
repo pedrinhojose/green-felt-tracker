@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Game } from '../lib/db/models';
@@ -78,83 +77,104 @@ export function useGameFunctions(updateRankings: () => Promise<void>) {
   };
 
   const finishGame = async (gameId: string) => {
-    const game = await pokerDB.getGame(gameId);
-    if (!game) {
-      throw new Error('Game not found');
-    }
-    
-    const season = await pokerDB.getSeason(game.seasonId);
-    if (!season) {
-      throw new Error('Season not found');
-    }
-    
-    // Calculate jackpot contribution
-    const playerCount = game.players.filter(p => p.buyIn).length;
-    const jackpotContribution = playerCount * season.financialParams.jackpotContribution;
-    
-    // Update the season with the new jackpot amount
-    const updatedSeason = {
-      ...season,
-      jackpot: season.jackpot + jackpotContribution
-    };
-    await pokerDB.saveSeason(updatedSeason);
-    
-    // Mark the game as finished
-    const updatedGame = {
-      ...game,
-      isFinished: true
-    };
-    await pokerDB.saveGame(updatedGame);
-    
-    // Update rankings
-    for (const gamePlayer of game.players) {
-      const existingRankings = await pokerDB.getRankings(game.seasonId);
-      const playerRanking = existingRankings.find(r => r.playerId === gamePlayer.playerId);
-      
-      let rankingEntry;
-      const player = await pokerDB.getPlayer(gamePlayer.playerId);
-      
-      if (playerRanking) {
-        // Update existing ranking
-        rankingEntry = {
-          ...playerRanking,
-          totalPoints: playerRanking.totalPoints + gamePlayer.points,
-          gamesPlayed: playerRanking.gamesPlayed + 1,
-          bestPosition: gamePlayer.position && (playerRanking.bestPosition > gamePlayer.position || playerRanking.bestPosition === 0)
-            ? gamePlayer.position
-            : playerRanking.bestPosition
-        };
-      } else {
-        // Create new ranking entry
-        rankingEntry = {
-          id: uuidv4(),
-          playerId: gamePlayer.playerId,
-          playerName: player ? player.name : 'Unknown Player',
-          photoUrl: player?.photoUrl,
-          totalPoints: gamePlayer.points,
-          gamesPlayed: 1,
-          bestPosition: gamePlayer.position || 0
-        };
+    try {
+      const game = await pokerDB.getGame(gameId);
+      if (!game) {
+        throw new Error('Game not found');
       }
       
-      await pokerDB.saveRanking(rankingEntry);
+      const season = await pokerDB.getSeason(game.seasonId);
+      if (!season) {
+        throw new Error('Season not found');
+      }
+      
+      // Calculate jackpot contribution
+      const playerCount = game.players.filter(p => p.buyIn).length;
+      const jackpotContribution = playerCount * season.financialParams.jackpotContribution;
+      
+      // Update the season with the new jackpot amount
+      const updatedSeason = {
+        ...season,
+        jackpot: season.jackpot + jackpotContribution
+      };
+      await pokerDB.saveSeason(updatedSeason);
+      
+      // Mark the game as finished
+      const updatedGame = {
+        ...game,
+        isFinished: true
+      };
+      await pokerDB.saveGame(updatedGame);
+      
+      // Update rankings
+      for (const gamePlayer of game.players) {
+        // Buscar rankings existentes
+        const existingRankings = await pokerDB.getRankings(game.seasonId);
+        
+        // Buscar o ranking atual do jogador, se existir
+        const playerRanking = existingRankings.find(r => r.playerId === gamePlayer.playerId);
+        
+        // Buscar dados do jogador
+        const player = await pokerDB.getPlayer(gamePlayer.playerId);
+        if (!player) continue; // Pular se o jogador não for encontrado
+        
+        let rankingEntry;
+        
+        if (playerRanking) {
+          // Update existing ranking
+          rankingEntry = {
+            ...playerRanking,
+            totalPoints: playerRanking.totalPoints + gamePlayer.points,
+            gamesPlayed: playerRanking.gamesPlayed + 1,
+            bestPosition: gamePlayer.position && (playerRanking.bestPosition > gamePlayer.position || playerRanking.bestPosition === 0)
+              ? gamePlayer.position
+              : playerRanking.bestPosition,
+            seasonId: game.seasonId // Adicionar o seasonId explicitamente
+          };
+        } else {
+          // Create new ranking entry
+          rankingEntry = {
+            id: uuidv4(),
+            playerId: gamePlayer.playerId,
+            playerName: player.name,
+            photoUrl: player.photoUrl,
+            totalPoints: gamePlayer.points,
+            gamesPlayed: 1,
+            bestPosition: gamePlayer.position || 0,
+            seasonId: game.seasonId // Adicionar o seasonId explicitamente
+          };
+        }
+        
+        // Salvar entrada do ranking
+        await pokerDB.saveRanking(rankingEntry);
+      }
+      
+      // Update local state
+      setGames(prev => {
+        const index = prev.findIndex(g => g.id === updatedGame.id);
+        if (index >= 0) {
+          return [...prev.slice(0, index), updatedGame, ...prev.slice(index + 1)];
+        }
+        return prev;
+      });
+      
+      setLastGame(updatedGame);
+      
+      // Forçar atualização do ranking chamando a função de atualização
+      await updateRankings();
+      
+      toast({
+        title: "Partida Finalizada",
+        description: "A partida foi finalizada e o ranking atualizado.",
+      });
+    } catch (error) {
+      console.error("Erro ao finalizar partida:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível finalizar a partida.",
+        variant: "destructive",
+      });
     }
-    
-    // Update local state
-    setGames(prev => {
-      const index = prev.findIndex(g => g.id === updatedGame.id);
-      return [...prev.slice(0, index), updatedGame, ...prev.slice(index + 1)];
-    });
-    
-    setLastGame(updatedGame);
-    
-    // Reload rankings
-    await updateRankings();
-    
-    toast({
-      title: "Partida Finalizada",
-      description: "A partida foi finalizada e o ranking atualizado.",
-    });
   };
 
   return {

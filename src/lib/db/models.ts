@@ -86,4 +86,5 @@ export interface RankingEntry {
   totalPoints: number;
   gamesPlayed: number;
   bestPosition: number;
+  seasonId: string; // Adicionando o campo seasonId obrigatório
 }

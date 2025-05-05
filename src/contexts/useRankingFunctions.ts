@@ -9,9 +9,16 @@ export function useRankingFunctions() {
   const updateRankings = async (seasonId?: string) => {
     if (!seasonId) return;
     
-    const rankingsData = await pokerDB.getRankings(seasonId);
-    setRankings(rankingsData);
-    return rankingsData;
+    try {
+      console.log("Atualizando rankings para temporada:", seasonId);
+      const rankingsData = await pokerDB.getRankings(seasonId);
+      console.log("Rankings recuperados:", rankingsData.length);
+      setRankings(rankingsData);
+      return rankingsData;
+    } catch (error) {
+      console.error("Erro ao atualizar rankings:", error);
+      return [];
+    }
   };
   
   return {
