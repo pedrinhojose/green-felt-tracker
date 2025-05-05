@@ -20,9 +20,9 @@ export function useSeasonFunctions() {
     
     // Create default financial parameters if not provided
     const financialParams: FinancialParams = seasonData.financialParams || {
-      buyIn: 30,
-      rebuy: 30,
-      addon: 30,
+      buyIn: 15,
+      rebuy: 15,
+      addon: 15,
       jackpotContribution: 5,
     };
     

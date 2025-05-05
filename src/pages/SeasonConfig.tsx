@@ -66,9 +66,9 @@ export default function SeasonConfig() {
       const today = new Date().toISOString().split('T')[0];
       setValue('startDate', today);
       setValue('gamesPerWeek', 1);
-      setValue('buyIn', 30);
-      setValue('rebuy', 30);
-      setValue('addon', 30);
+      setValue('buyIn', 15);
+      setValue('rebuy', 15);
+      setValue('addon', 15);
       setValue('jackpotContribution', 5);
       
       setScoreEntries([
