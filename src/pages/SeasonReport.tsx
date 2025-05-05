@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
@@ -22,20 +22,18 @@ export default function SeasonReport() {
   } = useSeasonReport();
   
   const handleExportPdf = async () => {
-    setIsExporting(true);
     try {
       await exportReportAsPdf();
-    } finally {
-      setIsExporting(false);
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
     }
   };
   
   const handleExportImage = async () => {
-    setIsExportingImage(true);
     try {
       await exportReportAsImage();
-    } finally {
-      setIsExportingImage(false);
+    } catch (error) {
+      console.error("Error exporting image:", error);
     }
   };
   
