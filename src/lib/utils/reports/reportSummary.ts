@@ -38,8 +38,8 @@ export const createReportSummary = (game: Game, players = []) => {
     winnersTable.style.gap = '6px';
     
     for (const player of top3Players) {
-      const playerInfo = players.find(p => p.id === player.playerId);
-      const playerName = playerInfo?.name || 'Desconhecido';
+      const playerData = players.find(p => p.id === player.playerId);
+      const playerName = playerData?.name || 'Desconhecido';
       const position = player.position || 0;
       const prize = player.prize || 0;
       
@@ -50,9 +50,9 @@ export const createReportSummary = (game: Game, players = []) => {
       playerRow.style.alignItems = 'center';
       
       // Position and name
-      const playerInfo = document.createElement('div');
-      playerInfo.style.display = 'flex';
-      playerInfo.style.alignItems = 'center';
+      const playerInfoContainer = document.createElement('div');
+      playerInfoContainer.style.display = 'flex';
+      playerInfoContainer.style.alignItems = 'center';
       
       const positionSpan = document.createElement('span');
       positionSpan.textContent = `${position}º`;
@@ -70,8 +70,8 @@ export const createReportSummary = (game: Game, players = []) => {
       const nameSpan = document.createElement('span');
       nameSpan.textContent = playerName;
       
-      playerInfo.appendChild(positionSpan);
-      playerInfo.appendChild(nameSpan);
+      playerInfoContainer.appendChild(positionSpan);
+      playerInfoContainer.appendChild(nameSpan);
       
       // Prize
       const prizeSpan = document.createElement('span');
@@ -82,7 +82,7 @@ export const createReportSummary = (game: Game, players = []) => {
         prizeSpan.style.color = '#FFD700'; // Gold
       }
       
-      playerRow.appendChild(playerInfo);
+      playerRow.appendChild(playerInfoContainer);
       playerRow.appendChild(prizeSpan);
       
       winnersTable.appendChild(playerRow);
