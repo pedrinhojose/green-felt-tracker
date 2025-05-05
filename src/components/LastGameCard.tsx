@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { FileImage, Image } from "lucide-react";
 
 export default function LastGameCard() {
-  const { lastGame, players } = usePoker();
+  const { lastGame, players, seasons } = usePoker();
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const { toast } = useToast();
@@ -15,6 +15,9 @@ export default function LastGameCard() {
   // Get winner of the last game
   const winner = lastGame?.players.find(player => player.position === 1);
   const winnerName = winner ? players.find(p => p.id === winner.playerId)?.name || 'Desconhecido' : 'Não finalizado';
+  
+  // Get season name
+  const seasonName = lastGame ? seasons.find(s => s.id === lastGame.seasonId)?.name || 'Desconhecida' : '';
   
   const handleExportReport = async () => {
     if (!lastGame) return;
@@ -91,6 +94,7 @@ export default function LastGameCard() {
         <div className="flex flex-col">
           <div className="mb-4">
             <div className="text-sm text-muted-foreground">Partida #{lastGame.number.toString().padStart(3, '0')}</div>
+            {seasonName && <div className="text-sm text-muted-foreground">Temporada {seasonName}</div>}
             <div className="text-sm">{formatDate(lastGame.date)}</div>
             <div className="mt-2 font-medium">Vencedor: {winnerName}</div>
             <div className="mt-1">Prêmio: {winner ? formatCurrency(winner.prize) : 'N/A'}</div>

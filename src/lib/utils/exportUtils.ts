@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -14,6 +15,12 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
       throw new Error("Jogo não encontrado");
     }
     
+    // Buscar informações da temporada
+    const season = await pokerDB.getSeason(game.seasonId);
+    if (!season) {
+      throw new Error("Temporada não encontrada");
+    }
+    
     const doc = new jsPDF();
     
     // Adiciona o plugin autoTable ao jsPDF
@@ -23,12 +30,16 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
     doc.setFontSize(18);
     doc.text(`Relatório de Partida #${game.number.toString().padStart(3, '0')}`, 14, 22);
     
+    // Add season name
+    doc.setFontSize(14);
+    doc.text(`Temporada: ${season.name}`, 14, 30);
+    
     // Add date
     doc.setFontSize(12);
-    doc.text(`Data: ${formatDate(game.date)}`, 14, 30);
+    doc.text(`Data: ${formatDate(game.date)}`, 14, 38);
     
     // Add prize pool
-    doc.text(`Premiação Total: ${formatCurrency(game.totalPrizePool)}`, 14, 37);
+    doc.text(`Premiação Total: ${formatCurrency(game.totalPrizePool)}`, 14, 45);
     
     // Create players table
     const playerMap = new Map(players.map(player => [player.id, player]));
@@ -56,7 +67,7 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
     autoTable(doc, {
       head: [['Pos.', 'Nome', 'Buy-in', 'Rebuys', 'Add-ons', 'Janta', 'Prêmio', 'Pontos', 'Saldo']],
       body: tableData,
-      startY: 45,
+      startY: 53, // Ajustado para acomodar a linha adicional da temporada
       styles: { fontSize: 10, cellPadding: 3 },
       headStyles: { fillColor: [10, 59, 35] },
       alternateRowStyles: { fillColor: [240, 240, 240] },
@@ -85,8 +96,14 @@ export const exportGameReportAsImage = async (gameId: string, players: Player[])
       throw new Error("Jogo não encontrado");
     }
     
+    // Buscar informações da temporada
+    const season = await pokerDB.getSeason(game.seasonId);
+    if (!season) {
+      throw new Error("Temporada não encontrada");
+    }
+    
     // Criar o elemento HTML do relatório
-    const reportElement = createGameReport(game, players);
+    const reportElement = createGameReport(game, players, season.name);
     
     // Adicionar ao DOM temporariamente para captura
     document.body.appendChild(reportElement);

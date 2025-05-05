@@ -21,9 +21,10 @@ export const createReportContainer = () => {
 /**
  * Cria o cabeçalho do relatório com título e data
  * @param game O objeto do jogo
+ * @param seasonName Nome da temporada
  * @returns Um elemento div com o cabeçalho do relatório
  */
-export const createReportHeader = (game: Game) => {
+export const createReportHeader = (game: Game, seasonName: string) => {
   const header = document.createElement('div');
   header.style.marginBottom = '16px';
   header.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
@@ -37,14 +38,22 @@ export const createReportHeader = (game: Game) => {
   title.style.margin = '0 0 8px 0';
   title.style.color = '#9b87f5';
   
-  // Subtítulo com número do jogo e data
+  // Subtítulo com número do jogo, temporada e data
   const subtitle = document.createElement('div');
-  subtitle.textContent = `Partida #${game.number.toString().padStart(3, '0')} - ${formatDate(game.date)}`;
+  subtitle.textContent = `Partida #${game.number.toString().padStart(3, '0')} - ${seasonName}`;
   subtitle.style.fontSize = '14px';
   subtitle.style.color = '#8E9196';
   
+  // Data
+  const dateText = document.createElement('div');
+  dateText.textContent = formatDate(game.date);
+  dateText.style.fontSize = '14px';
+  dateText.style.color = '#8E9196';
+  dateText.style.marginTop = '4px';
+  
   header.appendChild(title);
   header.appendChild(subtitle);
+  header.appendChild(dateText);
   return header;
 };
 
@@ -233,13 +242,14 @@ export const createReportFooter = () => {
  * Gera o relatório de jogo completo
  * @param game O objeto do jogo
  * @param players Array com todos os jogadores
+ * @param seasonName Nome da temporada
  * @returns Um elemento HTML completo para o relatório
  */
-export const createGameReport = (game: Game, players: Player[]) => {
+export const createGameReport = (game: Game, players: Player[], seasonName: string) => {
   const container = createReportContainer();
   
   // Adicionar cabeçalho
-  container.appendChild(createReportHeader(game));
+  container.appendChild(createReportHeader(game, seasonName));
   
   // Adicionar tabela de jogadores
   container.appendChild(createPlayersTable(game, players));
