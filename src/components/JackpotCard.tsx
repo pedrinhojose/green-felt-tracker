@@ -3,7 +3,7 @@ import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { useEffect, useState } from "react";
 import { pokerDB } from "@/lib/db";
-import { DollarSign, PlusCircle } from "lucide-react";
+import { DollarSign, Plus } from "lucide-react";
 import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
 import { Button } from "@/components/ui/button";
 
@@ -36,12 +36,11 @@ export default function JackpotCard() {
         <h3 className="card-dashboard-header">Jackpot Atual</h3>
         {activeSeason && (
           <Button 
-            variant="outline" 
-            size="sm" 
-            className="bg-poker-dark-green hover:bg-poker-green text-white border-poker-gold flex items-center gap-1"
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-poker-dark-green/20 text-white h-7 w-7"
           >
-            <PlusCircle className="h-4 w-4" />
-            <span>Adicionar</span>
+            <Plus className="h-5 w-5" />
             <AddJackpotDialog />
           </Button>
         )}
