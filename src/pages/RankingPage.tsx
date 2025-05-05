@@ -6,10 +6,13 @@ import { Download } from "lucide-react";
 import RankingTable from "@/components/ranking/RankingTable";
 import RankingExporter from "@/components/ranking/RankingExporter";
 import EmptyRanking from "@/components/ranking/EmptyRanking";
+import { RankingPagination } from "@/components/ranking/RankingPagination";
 
 export default function RankingPage() {
   const { rankings, activeSeason } = usePoker();
   const [sortedRankings, setSortedRankings] = useState(rankings);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   
   useEffect(() => {
     // Sort rankings by total points in descending order
@@ -39,6 +42,14 @@ export default function RankingPage() {
     }
   };
 
+  // Calcular o número total de páginas
+  const totalPages = Math.ceil(sortedRankings.length / pageSize);
+
+  // Função para mudar de página
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6 flex justify-between items-center">
@@ -58,11 +69,23 @@ export default function RankingPage() {
       </div>
       
       {sortedRankings.length > 0 ? (
-        <RankingTable
-          sortedRankings={sortedRankings}
-          getInitials={getInitials}
-          getMedalEmoji={getMedalEmoji}
-        />
+        <>
+          <RankingTable
+            sortedRankings={sortedRankings}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            getInitials={getInitials}
+            getMedalEmoji={getMedalEmoji}
+          />
+          
+          {totalPages > 1 && (
+            <RankingPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </>
       ) : (
         <EmptyRanking activeSeason={!!activeSeason} />
       )}
