@@ -6,14 +6,22 @@ import { Game, GamePlayer } from "@/lib/db/models";
 export function usePlayerActions(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame } = usePoker();
   const { toast } = useToast();
+  const { activeSeason } = usePoker(); // Movido para o nível superior do hook
 
   // Player selection handlers
   const handleStartGame = async (selectedPlayers: Set<string>) => {
     if (!game || selectedPlayers.size === 0) return;
     
     try {
-      // Get active season from game
-      const { activeSeason } = usePoker();
+      // Usamos o activeSeason que já foi obtido no nível superior
+      if (!activeSeason) {
+        toast({
+          title: "Erro",
+          description: "Não há temporada ativa. Configure uma temporada antes de iniciar uma partida.",
+          variant: "destructive",
+        });
+        return false;
+      }
       
       // Create game players array from selected player IDs
       const gamePlayers: GamePlayer[] = Array.from(selectedPlayers).map(playerId => ({
