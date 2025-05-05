@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useGameManagement } from "@/hooks/useGameManagement";
 import { usePlayerActions } from "@/hooks/usePlayerActions";
 import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
+import { useState } from "react";
 
 // Component imports
 import BlindTimer from "@/components/game/BlindTimer";
@@ -11,9 +12,13 @@ import PlayerSelection from "@/components/game/PlayerSelection";
 import PrizePoolManager from "@/components/game/PrizePoolManager";
 import PlayersTable from "@/components/game/PlayersTable";
 import GameHeader from "@/components/game/GameHeader";
+import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
+import { UserPlus } from "lucide-react";
 
 export default function GameManagement() {
   const navigate = useNavigate();
+  const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
+  const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   
   // Custom hooks for game management
   const {
@@ -35,7 +40,8 @@ export default function GameManagement() {
   const {
     handleStartGame,
     updatePlayerStats,
-    eliminatePlayer
+    eliminatePlayer,
+    addLatePlayer
   } = usePlayerActions(game, setGame);
   
   // Prize distribution hook
@@ -43,6 +49,24 @@ export default function GameManagement() {
     calculateDinnerCosts,
     distributeWinningsByPrize
   } = usePrizeDistribution(game, setGame);
+  
+  // Filtrar jogadores que ainda não estão na partida
+  const getAvailablePlayers = () => {
+    if (!game || !players) return [];
+    
+    const currentPlayerIds = new Set(game.players.map(p => p.playerId));
+    return players.filter(player => !currentPlayerIds.has(player.id));
+  };
+  
+  // Handler para adicionar jogador tardio
+  const handleAddLatePlayer = async (playerId: string) => {
+    setIsAddingPlayer(true);
+    try {
+      await addLatePlayer(playerId);
+    } finally {
+      setIsAddingPlayer(false);
+    }
+  };
   
   if (isLoading) {
     return (
@@ -95,12 +119,27 @@ export default function GameManagement() {
           <BlindTimer />
           
           {/* Prize Pool */}
-          <PrizePoolManager 
-            totalPrizePool={game.totalPrizePool}
-            onCalculateDinner={calculateDinnerCosts}
-            onDistributePrizes={distributeWinningsByPrize}
-            initialDinnerCost={dinnerCost}
-          />
+          <div className="flex justify-between items-center">
+            <PrizePoolManager 
+              totalPrizePool={game.totalPrizePool}
+              onCalculateDinner={calculateDinnerCosts}
+              onDistributePrizes={distributeWinningsByPrize}
+              initialDinnerCost={dinnerCost}
+            />
+            
+            {/* Botão para adicionar jogador tardio */}
+            {!game.isFinished && (
+              <Button 
+                onClick={() => setIsAddPlayerDialogOpen(true)}
+                disabled={getAvailablePlayers().length === 0}
+                className="ml-2"
+                variant="outline"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Adicionar Jogador
+              </Button>
+            )}
+          </div>
           
           {/* Players table */}
           <PlayersTable
@@ -109,6 +148,15 @@ export default function GameManagement() {
             activeSeason={activeSeason}
             onEliminatePlayer={eliminatePlayer}
             onUpdatePlayerStats={updatePlayerStats}
+          />
+          
+          {/* Dialog para adicionar jogador tardio */}
+          <AddLatePlayerDialog
+            isOpen={isAddPlayerDialogOpen}
+            onClose={() => setIsAddPlayerDialogOpen(false)}
+            onAddPlayer={handleAddLatePlayer}
+            availablePlayers={getAvailablePlayers()}
+            isLoading={isAddingPlayer}
           />
         </div>
       )}

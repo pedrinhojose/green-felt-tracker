@@ -76,6 +76,66 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
     }
   };
   
+  // Adicionar jogador tardio à partida
+  const addLatePlayer = async (playerId: string) => {
+    if (!game || !activeSeason) return false;
+    
+    try {
+      const buyInAmount = activeSeason?.financialParams.buyIn || 0;
+      
+      // Criar novo jogador
+      const newGamePlayer: GamePlayer = {
+        id: `${playerId}-${Date.now()}`,
+        playerId,
+        position: null,
+        buyIn: true,
+        rebuys: 0,
+        addons: 0,
+        joinedDinner: false,
+        isEliminated: false,
+        prize: 0,
+        points: 0,
+        balance: 0,
+      };
+      
+      // Adicionar jogador à lista e atualizar prize pool
+      const updatedPlayers = [...game.players, newGamePlayer];
+      const updatedPrizePool = game.totalPrizePool + buyInAmount;
+      
+      // Atualizar jogo no banco de dados
+      await updateGame({
+        id: game.id,
+        players: updatedPlayers,
+        totalPrizePool: updatedPrizePool,
+      });
+      
+      // Atualizar estado local
+      setGame(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          players: updatedPlayers,
+          totalPrizePool: updatedPrizePool,
+        };
+      });
+      
+      toast({
+        title: "Jogador adicionado",
+        description: "Jogador adicionado com sucesso à partida",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error adding late player:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o jogador à partida.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
   // Update player stats
   const updatePlayerStats = async (playerId: string, field: keyof GamePlayer, value: any) => {
     if (!game) return;
@@ -221,6 +281,7 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
   return {
     handleStartGame,
     updatePlayerStats,
-    eliminatePlayer
+    eliminatePlayer,
+    addLatePlayer
   };
 }

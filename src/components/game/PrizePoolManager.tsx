@@ -26,13 +26,13 @@ export default function PrizePoolManager({
   };
   
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex-1">
       <div>
         <h3 className="text-xl font-medium text-white">Prêmio Total</h3>
         <p className="text-2xl font-bold text-poker-gold">{formatCurrency(totalPrizePool)}</p>
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-2">
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline">Gerenciar Janta</Button>
