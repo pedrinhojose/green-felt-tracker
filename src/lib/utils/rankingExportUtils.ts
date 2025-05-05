@@ -12,10 +12,11 @@ export const useRankingExport = () => {
   const downloadRankingAsImage = async (
     sortedRankings: RankingEntry[],
     activeSeason: Season | null,
-    getInitials: (name: string) => string
+    getInitials: (name: string) => string,
+    getMedalEmoji?: (position: number) => string
   ) => {
     try {
-      const imageUrl = await exportRankingAsImage(sortedRankings, activeSeason, getInitials);
+      const imageUrl = await exportRankingAsImage(sortedRankings, activeSeason, getInitials, getMedalEmoji);
       
       // Criar link de download
       const link = document.createElement('a');

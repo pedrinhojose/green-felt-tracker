@@ -13,14 +13,14 @@ interface RankingExporterProps {
   getMedalEmoji: (position: number) => string;
 }
 
-export default function RankingExporter({ sortedRankings, activeSeason, getInitials }: RankingExporterProps) {
+export default function RankingExporter({ sortedRankings, activeSeason, getInitials, getMedalEmoji }: RankingExporterProps) {
   const [isExporting, setIsExporting] = useState(false);
   const { downloadRankingAsImage } = useRankingExport();
 
   const handleExportRanking = async () => {
     try {
       setIsExporting(true);
-      await downloadRankingAsImage(sortedRankings, activeSeason, getInitials);
+      await downloadRankingAsImage(sortedRankings, activeSeason, getInitials, getMedalEmoji);
     } catch (error) {
       console.error("Erro ao exportar ranking:", error);
     } finally {

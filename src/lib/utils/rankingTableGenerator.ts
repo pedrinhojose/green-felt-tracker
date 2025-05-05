@@ -11,12 +11,14 @@ import {
  * @param ranking The ranking entry for the player
  * @param index The index position in the ranking list
  * @param getInitials Function to get player initials from name
+ * @param getMedalEmoji Optional function to get medal emoji based on position
  * @returns A styled tr element with player ranking data
  */
 export const createPlayerRow = (
   ranking: RankingEntry,
   index: number,
-  getInitials: (name: string) => string
+  getInitials: (name: string) => string,
+  getMedalEmoji?: (position: number) => string
 ) => {
   const row = document.createElement('tr');
   row.style.borderBottom = '1px solid #2D3748';
@@ -26,8 +28,18 @@ export const createPlayerRow = (
   const positionCell = document.createElement('td');
   positionCell.style.padding = '8px 16px';
   positionCell.style.textAlign = 'center';
-  const positionElement = createPositionNumber(index);
-  positionCell.appendChild(positionElement);
+  
+  // Use getMedalEmoji if provided, otherwise use default position number
+  if (getMedalEmoji && index < 3) {
+    const medalSpan = document.createElement('span');
+    medalSpan.textContent = getMedalEmoji(index);
+    medalSpan.style.fontSize = '20px';
+    positionCell.appendChild(medalSpan);
+  } else {
+    const positionElement = createPositionNumber(index);
+    positionCell.appendChild(positionElement);
+  }
+  
   row.appendChild(positionCell);
   
   // Coluna do jogador com avatar
@@ -81,11 +93,13 @@ export const createPlayerRow = (
  * Creates a complete ranking table with all players
  * @param sortedRankings Array of sorted ranking entries
  * @param getInitials Function to get player initials from name
+ * @param getMedalEmoji Optional function to get medal emoji based on position
  * @returns A styled table element with all player rankings
  */
 export const createRankingTable = (
   sortedRankings: RankingEntry[],
-  getInitials: (name: string) => string
+  getInitials: (name: string) => string,
+  getMedalEmoji?: (position: number) => string
 ) => {
   const tableElement = document.createElement('table');
   tableElement.style.width = '100%';
@@ -100,7 +114,7 @@ export const createRankingTable = (
   const tbody = document.createElement('tbody');
   
   sortedRankings.forEach((ranking, index) => {
-    const row = createPlayerRow(ranking, index, getInitials);
+    const row = createPlayerRow(ranking, index, getInitials, getMedalEmoji);
     tbody.appendChild(row);
   });
   

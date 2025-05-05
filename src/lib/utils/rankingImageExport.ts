@@ -9,12 +9,14 @@ import { createRankingTable } from './rankingTableGenerator';
  * @param sortedRankings Lista ordenada de jogadores no ranking
  * @param activeSeason Temporada ativa atual
  * @param getInitials Função para obter as iniciais de um nome
+ * @param getMedalEmoji Função opcional para obter emoji de medalha baseado na posição
  * @returns Promise resolvida com a URL da imagem gerada
  */
 export const exportRankingAsImage = async (
   sortedRankings: RankingEntry[],
   activeSeason: Season | null,
-  getInitials: (name: string) => string
+  getInitials: (name: string) => string,
+  getMedalEmoji?: (position: number) => string
 ): Promise<string> => {
   try {
     // Cria um elemento temporário para renderizar o ranking
@@ -25,7 +27,7 @@ export const exportRankingAsImage = async (
     exportDiv.appendChild(header);
     
     // Criar a tabela de ranking
-    const tableElement = createRankingTable(sortedRankings, getInitials);
+    const tableElement = createRankingTable(sortedRankings, getInitials, getMedalEmoji);
     exportDiv.appendChild(tableElement);
     
     // Adiciona rodapé
