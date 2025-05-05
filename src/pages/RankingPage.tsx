@@ -49,13 +49,78 @@ export default function RankingPage() {
     try {
       setIsExporting(true);
       
-      // Exporta o elemento como imagem
-      const imageUrl = await exportScreenshot('ranking-table');
+      // Cria um elemento temporário para renderizar o ranking com estilo otimizado para exportação
+      const exportDiv = document.createElement('div');
+      exportDiv.id = 'ranking-export';
+      exportDiv.style.padding = '20px';
+      exportDiv.style.backgroundColor = '#0A3B23'; // Cor de fundo do poker green
+      exportDiv.style.borderRadius = '12px';
+      exportDiv.style.maxWidth = '800px';
+      exportDiv.style.margin = '0 auto';
       
-      // Cria um link temporário para download
+      // Adiciona cabeçalho
+      const header = document.createElement('div');
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      header.style.alignItems = 'center';
+      header.style.marginBottom = '20px';
+      header.style.padding = '10px 20px';
+      header.style.borderBottom = '2px solid #072818';
+      
+      const title = document.createElement('h2');
+      title.textContent = 'Ranking do Poker';
+      title.style.fontSize = '24px';
+      title.style.fontWeight = 'bold';
+      title.style.color = '#ffffff';
+      
+      const subtitle = document.createElement('p');
+      subtitle.textContent = activeSeason ? activeSeason.name : 'Temporada Atual';
+      subtitle.style.color = '#D4AF37';
+      subtitle.style.fontSize = '16px';
+      
+      const titleContainer = document.createElement('div');
+      titleContainer.appendChild(title);
+      titleContainer.appendChild(subtitle);
+      
+      header.appendChild(titleContainer);
+      
+      // Adicionar a data da exportação
+      const dateContainer = document.createElement('div');
+      dateContainer.textContent = new Date().toLocaleDateString('pt-BR');
+      dateContainer.style.color = '#ffffff';
+      dateContainer.style.fontSize = '14px';
+      
+      header.appendChild(dateContainer);
+      
+      exportDiv.appendChild(header);
+      
+      // Clona a tabela de ranking
+      const tableClone = rankingTableRef.current.cloneNode(true) as HTMLElement;
+      tableClone.style.width = '100%';
+      tableClone.style.borderCollapse = 'collapse';
+      
+      // Aplicar estilos para melhor visualização em dispositivos móveis
+      exportDiv.appendChild(tableClone);
+      
+      // Adiciona ao DOM temporariamente para captura
+      document.body.appendChild(exportDiv);
+      
+      // Captura a imagem
+      const canvas = await html2canvas(exportDiv, {
+        scale: 2, // Escala maior para melhor qualidade
+        backgroundColor: '#0A3B23',
+        logging: false,
+        useCORS: true,
+      });
+      
+      // Remove o elemento temporário
+      document.body.removeChild(exportDiv);
+      
+      // Converte para URL e faz o download
+      const imageUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = imageUrl;
-      link.download = `ranking-${new Date().toISOString().split('T')[0]}.png`;
+      link.download = `poker-ranking-${new Date().toISOString().split('T')[0]}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
