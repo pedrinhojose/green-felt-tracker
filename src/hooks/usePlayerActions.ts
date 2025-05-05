@@ -90,7 +90,6 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
       
       // Calculate new prize pool
       let totalPrizePool = 0;
-      const { activeSeason } = usePoker();
       
       if (activeSeason) {
         const { buyIn, rebuy, addon } = activeSeason.financialParams;
