@@ -59,12 +59,24 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
       
       const valueToAdd = isAddition ? numericAmount : -numericAmount;
       
+      // Atualiza o jackpot
       await updateJackpot(activeSeason.id, valueToAdd);
       
       toast({
         title: "Jackpot atualizado",
         description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
       });
+      
+      // Limpar estados
+      setAmount("");
+      setIsAddition(true);
+      setConfirmOpen(false);
+      
+      // Fecha o diálogo principal depois de processar
+      setTimeout(() => {
+        setIsProcessing(false);
+        onOpenChange(false);
+      }, 100);
     } catch (error) {
       console.error("Erro ao atualizar jackpot:", error);
       toast({
@@ -72,17 +84,7 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
         description: "Ocorreu um erro ao atualizar o jackpot.",
         variant: "destructive",
       });
-    } finally {
-      // Limpar estados
-      setAmount("");
-      setIsAddition(true);
-      setConfirmOpen(false);
       setIsProcessing(false);
-      
-      // Fechar o diálogo principal com um pequeno atraso
-      setTimeout(() => {
-        onOpenChange(false);
-      }, 100);
     }
   };
 

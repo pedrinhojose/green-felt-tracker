@@ -13,8 +13,7 @@ export default function JackpotCard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   
   useEffect(() => {
-    // Atualiza o valor do jackpot diretamente do banco de dados
-    // para garantir que temos o valor mais recente
+    // Atualiza o valor do jackpot quando o diálogo é fechado ou quando muda a temporada ativa
     if (activeSeason) {
       const updateJackpot = async () => {
         const freshSeason = await pokerDB.getSeason(activeSeason.id);
@@ -25,7 +24,7 @@ export default function JackpotCard() {
       
       updateJackpot();
     }
-  }, [activeSeason]);
+  }, [activeSeason, dialogOpen]); // Adicionado dialogOpen como dependência para atualizar quando o diálogo fechar
   
   const jackpotAmount = jackpotValue !== null 
     ? jackpotValue 
