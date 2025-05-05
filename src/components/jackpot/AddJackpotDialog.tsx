@@ -36,37 +36,62 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [isAddition, setIsAddition] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleConfirm = async () => {
     if (!activeSeason) return;
     
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) return;
-    
-    const valueToAdd = isAddition ? numericAmount : -numericAmount;
-    
-    await updateJackpot(activeSeason.id, valueToAdd);
-    setConfirmOpen(false);
-    onOpenChange(false);
-    setAmount("");
-    setIsAddition(true);
-    
-    toast({
-      title: "Jackpot atualizado",
-      description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
-    });
+    try {
+      setIsProcessing(true);
+      const numericAmount = parseFloat(amount);
+      if (isNaN(numericAmount) || numericAmount <= 0) return;
+      
+      const valueToAdd = isAddition ? numericAmount : -numericAmount;
+      
+      await updateJackpot(activeSeason.id, valueToAdd);
+      
+      toast({
+        title: "Jackpot atualizado",
+        description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar jackpot:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao atualizar o jackpot.",
+        variant: "destructive",
+      });
+    } finally {
+      // Limpar estados e fechar diálogos
+      setConfirmOpen(false);
+      setAmount("");
+      setIsAddition(true);
+      setIsProcessing(false);
+      
+      // Importante: fechar o diálogo principal por último
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 100);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setConfirmOpen(true);
   };
+  
+  const handleDialogClose = () => {
+    // Só permitir fechar se não estiver processando
+    if (!isProcessing) {
+      onOpenChange(false);
+    }
+  };
 
   if (!activeSeason) return null;
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Atualizar Jackpot</DialogTitle>
@@ -82,6 +107,7 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
                   variant={isAddition ? "default" : "outline"} 
                   onClick={() => setIsAddition(true)}
                   className="w-1/2"
+                  disabled={isProcessing}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Adicionar
@@ -91,6 +117,7 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
                   variant={!isAddition ? "default" : "outline"}
                   onClick={() => setIsAddition(false)}
                   className="w-1/2"
+                  disabled={isProcessing}
                 >
                   <MinusCircle className="mr-2 h-4 w-4" />
                   Remover
@@ -108,12 +135,13 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
                   placeholder="0,00"
                   className="col-span-3"
                   required
+                  disabled={isProcessing}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">
-                {isAddition ? "Adicionar ao Jackpot" : "Remover do Jackpot"}
+              <Button type="submit" disabled={isProcessing}>
+                {isProcessing ? "Processando..." : isAddition ? "Adicionar ao Jackpot" : "Remover do Jackpot"}
               </Button>
             </DialogFooter>
           </form>
@@ -132,8 +160,10 @@ export function AddJackpotDialog({ open, onOpenChange }: AddJackpotDialogProps) 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm}>Confirmar</AlertDialogAction>
+            <AlertDialogCancel disabled={isProcessing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm} disabled={isProcessing}>
+              {isProcessing ? "Processando..." : "Confirmar"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

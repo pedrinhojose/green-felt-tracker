@@ -31,6 +31,13 @@ export default function JackpotCard() {
     ? jackpotValue 
     : (activeSeason?.jackpot || 0);
 
+  // Handler para abrir o diálogo
+  const handleOpenDialog = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDialogOpen(true);
+  };
+
   return (
     <div className="card-dashboard animate-card-float relative">
       <div className="flex justify-between items-center mb-2">
@@ -40,7 +47,7 @@ export default function JackpotCard() {
             variant="ghost" 
             size="icon" 
             className="hover:bg-poker-dark-green/20 text-white h-7 w-7"
-            onClick={() => setDialogOpen(true)}
+            onClick={handleOpenDialog}
           >
             <Plus className="h-5 w-5" />
             <span className="sr-only">Adicionar ao Jackpot</span>
@@ -91,7 +98,10 @@ export default function JackpotCard() {
       </div>
       
       {/* Diálogo de adicionar ao jackpot */}
-      <AddJackpotDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <AddJackpotDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen} 
+      />
     </div>
   );
 }
