@@ -13,7 +13,8 @@ export default function JackpotCard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   
   useEffect(() => {
-    // Atualiza o valor do jackpot quando o diálogo é fechado ou quando muda a temporada ativa
+    // Atualiza o valor do jackpot diretamente do banco de dados
+    // para garantir que temos o valor mais recente
     if (activeSeason) {
       const updateJackpot = async () => {
         const freshSeason = await pokerDB.getSeason(activeSeason.id);
@@ -24,19 +25,11 @@ export default function JackpotCard() {
       
       updateJackpot();
     }
-  }, [activeSeason, dialogOpen]); // Adicionado dialogOpen como dependência para atualizar quando o diálogo fechar
+  }, [activeSeason]);
   
   const jackpotAmount = jackpotValue !== null 
     ? jackpotValue 
     : (activeSeason?.jackpot || 0);
-
-  // Handler para abrir o diálogo com prevenção de propagação
-  const handleOpenDialog = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Impedir a propagação do evento para garantir que não afete outros elementos
-    e.preventDefault();
-    e.stopPropagation();
-    setDialogOpen(true);
-  };
 
   return (
     <div className="card-dashboard animate-card-float relative">
@@ -47,7 +40,7 @@ export default function JackpotCard() {
             variant="ghost" 
             size="icon" 
             className="hover:bg-poker-dark-green/20 text-white h-7 w-7"
-            onClick={handleOpenDialog}
+            onClick={() => setDialogOpen(true)}
           >
             <Plus className="h-5 w-5" />
             <span className="sr-only">Adicionar ao Jackpot</span>
@@ -98,12 +91,7 @@ export default function JackpotCard() {
       </div>
       
       {/* Diálogo de adicionar ao jackpot */}
-      <AddJackpotDialog 
-        open={dialogOpen} 
-        onOpenChange={(open) => {
-          setDialogOpen(open);
-        }} 
-      />
+      <AddJackpotDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }
