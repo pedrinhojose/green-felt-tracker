@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
@@ -12,22 +11,22 @@ import { useSeasonReport } from "@/hooks/useSeasonReport";
 export default function SeasonReport() {
   const navigate = useNavigate();
   const { activeSeason } = usePoker();
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [isExportingImage, setIsExportingImage] = useState(false);
   
   const { 
     playerStats, 
     seasonSummary,
+    isExporting,
+    isExportingImage,
     exportReportAsPdf,
     exportReportAsImage
   } = useSeasonReport();
   
   const handleExportPdf = async () => {
-    setIsExportingPdf(true);
+    setIsExporting(true);
     try {
       await exportReportAsPdf();
     } finally {
-      setIsExportingPdf(false);
+      setIsExporting(false);
     }
   };
   
@@ -71,11 +70,11 @@ export default function SeasonReport() {
           <div className="flex gap-2 mt-4 sm:mt-0">
             <Button
               onClick={handleExportPdf}
-              disabled={isExportingPdf}
+              disabled={isExporting}
               variant="outline"
               size="sm"
             >
-              {isExportingPdf ? "Exportando..." : "Exportar PDF"}
+              {isExporting ? "Exportando..." : "Exportar PDF"}
               <FileText className="ml-2 h-4 w-4" />
             </Button>
             
