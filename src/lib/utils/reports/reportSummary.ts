@@ -116,6 +116,7 @@ export const createReportSummary = (game: Game, players = []) => {
   const prizeRow = document.createElement('div');
   prizeRow.style.display = 'flex';
   prizeRow.style.justifyContent = 'space-between';
+  prizeRow.style.marginBottom = '12px'; // Add margin to separate from jackpot
   
   const prizeLabel = document.createElement('div');
   prizeLabel.textContent = 'Prêmio Total:';
@@ -130,6 +131,34 @@ export const createReportSummary = (game: Game, players = []) => {
   prizeRow.appendChild(prizeLabel);
   prizeRow.appendChild(prizeValue);
   summary.appendChild(prizeRow);
+  
+  // Jackpot value (new)
+  if (game.seasonId) {
+    const jackpotRow = document.createElement('div');
+    jackpotRow.style.display = 'flex';
+    jackpotRow.style.justifyContent = 'space-between';
+    jackpotRow.style.marginTop = '4px';
+    jackpotRow.style.paddingTop = '8px';
+    jackpotRow.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
+    
+    const jackpotLabel = document.createElement('div');
+    jackpotLabel.textContent = 'Jackpot Acumulado:';
+    jackpotLabel.style.color = '#8E9196';
+    
+    const jackpotValue = document.createElement('div');
+    
+    // Use a data attribute to be populated by the gameReportGenerator
+    // which will have access to the actual season object
+    jackpotValue.setAttribute('data-jackpot-placeholder', 'true');
+    jackpotValue.textContent = 'Carregando...';
+    jackpotValue.style.fontWeight = 'bold';
+    jackpotValue.style.color = '#FFD700'; // Gold color for jackpot
+    jackpotValue.style.fontSize = '14px';
+    
+    jackpotRow.appendChild(jackpotLabel);
+    jackpotRow.appendChild(jackpotValue);
+    summary.appendChild(jackpotRow);
+  }
   
   return summary;
 };

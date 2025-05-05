@@ -1,4 +1,3 @@
-
 import { Game } from '../../db/models';
 import { formatDate } from '../dateUtils';
 

@@ -102,8 +102,8 @@ export const exportGameReportAsImage = async (gameId: string, players: Player[])
       throw new Error("Temporada não encontrada");
     }
     
-    // Criar o elemento HTML do relatório
-    const reportElement = createGameReport(game, players, season.name);
+    // Criar o elemento HTML do relatório (agora assíncrono)
+    const reportElement = await createGameReport(game, players, season.name);
     
     // Adicionar ao DOM temporariamente para captura
     document.body.appendChild(reportElement);

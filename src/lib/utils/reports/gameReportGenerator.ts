@@ -5,6 +5,8 @@ import { createReportHeader } from './reportHeader';
 import { createPlayersTable } from './playersTable';
 import { createReportSummary } from './reportSummary';
 import { createReportFooter } from './reportFooter';
+import { pokerDB } from '../../db';
+import { formatCurrency } from '../dateUtils';
 
 /**
  * Generates the complete game report
@@ -13,7 +15,7 @@ import { createReportFooter } from './reportFooter';
  * @param seasonName Name of the season
  * @returns A complete HTML element for the report
  */
-export const createGameReport = (game: Game, players: Player[], seasonName: string) => {
+export const createGameReport = async (game: Game, players: Player[], seasonName: string) => {
   const container = createReportContainer();
   
   // Add header
@@ -23,10 +25,27 @@ export const createGameReport = (game: Game, players: Player[], seasonName: stri
   container.appendChild(createPlayersTable(game, players));
   
   // Add summary with players for winner info
-  container.appendChild(createReportSummary(game, players));
+  const summarySection = createReportSummary(game, players);
+  container.appendChild(summarySection);
   
   // Add footer
   container.appendChild(createReportFooter());
+  
+  // Get current jackpot value from season
+  if (game.seasonId) {
+    try {
+      const season = await pokerDB.getSeason(game.seasonId);
+      if (season) {
+        // Find the jackpot placeholder and update it
+        const jackpotElement = summarySection.querySelector('[data-jackpot-placeholder="true"]');
+        if (jackpotElement) {
+          jackpotElement.textContent = formatCurrency(season.jackpot || 0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching season data for jackpot:', error);
+    }
+  }
   
   return container;
 };
