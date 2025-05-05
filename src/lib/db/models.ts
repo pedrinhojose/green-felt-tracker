@@ -1,3 +1,4 @@
+
 export interface Player {
   id: string;
   name: string;
@@ -18,8 +19,19 @@ export interface Season {
   weeklyPrizeSchema: PrizeEntry[];
   seasonPrizeSchema: PrizeEntry[];
   financialParams: FinancialParams;
+  blindStructure: BlindLevel[];
   jackpot: number;
   createdAt: Date;
+}
+
+export interface BlindLevel {
+  id: string;
+  level: number;
+  smallBlind: number;
+  bigBlind: number;
+  ante: number;
+  duration: number; // in minutes
+  isBreak: boolean;
 }
 
 export interface ScoreEntry {

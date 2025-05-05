@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
+import { BlindLevelConfig } from "@/components/season/BlindLevelConfig";
+import { v4 as uuidv4 } from "uuid";
+import { BlindLevel } from "@/lib/db/models";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +42,7 @@ export default function SeasonConfig() {
   const [scoreEntries, setScoreEntries] = useState<{ position: number; points: number }[]>([]);
   const [weeklyPrizeEntries, setWeeklyPrizeEntries] = useState<{ position: number; percentage: number }[]>([]);
   const [seasonPrizeEntries, setSeasonPrizeEntries] = useState<{ position: number; percentage: number }[]>([]);
+  const [blindLevels, setBlindLevels] = useState<BlindLevel[]>([]);
   
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>();
 
@@ -58,6 +61,7 @@ export default function SeasonConfig() {
       setScoreEntries([...activeSeason.scoreSchema]);
       setWeeklyPrizeEntries([...activeSeason.weeklyPrizeSchema]);
       setSeasonPrizeEntries([...activeSeason.seasonPrizeSchema]);
+      setBlindLevels(activeSeason.blindStructure || []);
     } else {
       // Default values for new season
       const today = new Date().toISOString().split('T')[0];
@@ -88,6 +92,28 @@ export default function SeasonConfig() {
         { position: 2, percentage: 30 },
         { position: 3, percentage: 20 }
       ]);
+      
+      // Default blind structure
+      setBlindLevels([
+        {
+          id: uuidv4(),
+          level: 1,
+          smallBlind: 25,
+          bigBlind: 50,
+          ante: 0,
+          duration: 20,
+          isBreak: false
+        },
+        {
+          id: uuidv4(),
+          level: 2,
+          smallBlind: 50,
+          bigBlind: 100,
+          ante: 0,
+          duration: 20,
+          isBreak: false
+        }
+      ]);
     }
   }, [activeSeason, isCreating, setValue]);
 
@@ -117,6 +143,15 @@ export default function SeasonConfig() {
         return;
       }
       
+      if (blindLevels.length === 0) {
+        toast({
+          title: "Erro de validação",
+          description: "É necessário configurar pelo menos um nível de blind.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const seasonData = {
         name: data.name,
         startDate: new Date(data.startDate),
@@ -124,6 +159,7 @@ export default function SeasonConfig() {
         scoreSchema: scoreEntries,
         weeklyPrizeSchema: weeklyPrizeEntries,
         seasonPrizeSchema: seasonPrizeEntries,
+        blindStructure: blindLevels,
         financialParams: {
           buyIn: Number(data.buyIn),
           rebuy: Number(data.rebuy),
@@ -317,10 +353,11 @@ export default function SeasonConfig() {
         </Card>
         
         <Tabs defaultValue="scores">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="scores">Pontuação</TabsTrigger>
             <TabsTrigger value="weekly">Premiação Semanal</TabsTrigger>
             <TabsTrigger value="season">Premiação Final</TabsTrigger>
+            <TabsTrigger value="blinds">Estrutura de Blinds</TabsTrigger>
           </TabsList>
           
           <TabsContent value="scores">
@@ -515,6 +552,10 @@ export default function SeasonConfig() {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="blinds">
+            <BlindLevelConfig blindLevels={blindLevels} onChange={setBlindLevels} />
           </TabsContent>
         </Tabs>
         
