@@ -60,7 +60,8 @@ export function useSeasonFunctions() {
         { position: 2, points: 7 },
         { position: 3, points: 5 },
         { position: 4, points: 3 },
-        { position: 5, points: 1 }
+        { position: 5, points: 2 },
+        { position: 6, points: 1 }
       ],
       weeklyPrizeSchema: seasonData.weeklyPrizeSchema || [
         { position: 1, percentage: 50 },
