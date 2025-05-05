@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for generating HTML elements for the ranking export
  */
@@ -25,13 +24,35 @@ export const createRankingHeader = (activeSeason: any | null) => {
   title.style.color = '#D4AF37'; // Cor dourada
   title.style.margin = '0 0 10px 0';
   
+  // Season information
+  if (activeSeason) {
+    const seasonInfo = document.createElement('div');
+    seasonInfo.textContent = `Temporada: ${activeSeason.name}`;
+    seasonInfo.style.color = '#ffffff';
+    seasonInfo.style.fontSize = '14px';
+    seasonInfo.style.margin = '2px 0';
+    header.appendChild(seasonInfo);
+    
+    // Game number info if available
+    if (activeSeason.currentGameNumber) {
+      const gameInfo = document.createElement('div');
+      gameInfo.textContent = `Partida #${activeSeason.currentGameNumber}`;
+      gameInfo.style.color = '#ffffff';
+      gameInfo.style.fontSize = '14px';
+      gameInfo.style.margin = '2px 0';
+      header.appendChild(gameInfo);
+    }
+  }
+  
   // Data atual
   const dateElement = document.createElement('div');
   dateElement.textContent = new Date().toLocaleDateString('pt-BR');
   dateElement.style.color = '#ffffff';
   dateElement.style.fontSize = '16px';
+  dateElement.style.marginTop = '5px';
   
   header.appendChild(title);
+  // Date is now appended after the season/game info
   header.appendChild(dateElement);
   
   return header;
