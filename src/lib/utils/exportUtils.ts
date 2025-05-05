@@ -1,9 +1,10 @@
+
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { Game, Player } from '../db/models';
 import { formatDate, formatCurrency } from './dateUtils';
-import { pokerDB } from '../db/database';
+import { pokerDB } from '../db'; // Updated import path
 import { createGameReport } from './reports/gameReportGenerator';
 
 export const exportGameReport = async (gameId: string, players: Player[]): Promise<string> => {
