@@ -1,12 +1,19 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { exportScreenshot } from "@/lib/utils/exportUtils";
 
 export default function RankingPage() {
   const { rankings, activeSeason, players } = usePoker();
   const [sortedRankings, setSortedRankings] = useState(rankings);
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
+  const rankingTableRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     // Sort rankings by total points in descending order
@@ -16,7 +23,7 @@ export default function RankingPage() {
     // Debug para verificar os dados
     console.log("Rankings atualizados:", rankings);
     console.log("Temporada ativa:", activeSeason?.id);
-  }, [rankings, activeSeason]); // Adicionar activeSeason como dependência
+  }, [rankings, activeSeason]);
   
   const getInitials = (name: string) => {
     return name
@@ -36,13 +43,57 @@ export default function RankingPage() {
     }
   };
 
+  const handleExportRanking = async () => {
+    if (!rankingTableRef.current) return;
+    
+    try {
+      setIsExporting(true);
+      
+      // Exporta o elemento como imagem
+      const imageUrl = await exportScreenshot('ranking-table');
+      
+      // Cria um link temporário para download
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `ranking-${new Date().toISOString().split('T')[0]}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Ranking exportado",
+        description: "O ranking foi exportado como imagem com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao exportar ranking:", error);
+      toast({
+        title: "Erro ao exportar",
+        description: "Não foi possível exportar o ranking como imagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Ranking</h2>
-        <p className="text-muted-foreground">
-          {activeSeason ? activeSeason.name : 'Nenhuma temporada ativa'}
-        </p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Ranking</h2>
+          <p className="text-muted-foreground">
+            {activeSeason ? activeSeason.name : 'Nenhuma temporada ativa'}
+          </p>
+        </div>
+        
+        <Button 
+          onClick={handleExportRanking} 
+          disabled={isExporting || sortedRankings.length === 0}
+          className="bg-poker-gold hover:bg-poker-gold/80 text-black"
+        >
+          {isExporting ? "Exportando..." : "Exportar Ranking"}
+          <Download className="ml-2" size={18} />
+        </Button>
       </div>
       
       {sortedRankings.length > 0 ? (
@@ -51,7 +102,7 @@ export default function RankingPage() {
             <CardTitle>Classificação</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div id="ranking-table" ref={rankingTableRef} className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-poker-dark-green">
