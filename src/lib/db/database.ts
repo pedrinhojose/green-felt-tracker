@@ -1,4 +1,3 @@
-
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Player, Season, Game, RankingEntry } from './models';
 
@@ -11,7 +10,7 @@ interface PokerDB extends DBSchema {
   seasons: {
     key: string;
     value: Season;
-    indexes: { 'by-active': boolean };
+    indexes: { 'by-active': number }; // Changed to number (0/1) instead of boolean
   };
   games: {
     key: string;

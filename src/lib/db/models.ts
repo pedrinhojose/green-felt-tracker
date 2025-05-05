@@ -66,6 +66,7 @@ export interface GamePlayer {
 }
 
 export interface RankingEntry {
+  id: string;
   playerId: string;
   playerName: string;
   photoUrl?: string;

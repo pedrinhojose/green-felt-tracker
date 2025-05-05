@@ -56,7 +56,7 @@ export const exportGameReport = async (gameId: string, game: Game, players: Play
     alternateRowStyles: { fillColor: [240, 240, 240] },
   });
   
-  // Save the PDF as a blob URL
+  // Save the PDF as a blob URL and convert it to string explicitly
   const blobURL = doc.output('bloburl');
   return blobURL as string;
 };
