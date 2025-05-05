@@ -95,7 +95,8 @@ class PokerDatabase {
   }
   
   async getActiveSeason(): Promise<Season | undefined> {
-    return (await this.db).getFromIndex('seasons', 'by-active', true);
+    // Updated to use 1 instead of true for the active status
+    return (await this.db).getFromIndex('seasons', 'by-active', 1);
   }
 
   async getSeason(id: string): Promise<Season | undefined> {

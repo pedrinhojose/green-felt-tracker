@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -56,9 +55,10 @@ export const exportGameReport = async (gameId: string, game: Game, players: Play
     alternateRowStyles: { fillColor: [240, 240, 240] },
   });
   
-  // Save the PDF as a blob URL and convert it to string explicitly
+  // Save the PDF as a blob URL and explicitly convert to string
   const blobURL = doc.output('bloburl');
-  return blobURL as string;
+  // Using String() to safely convert the URL to a string
+  return String(blobURL);
 };
 
 export const exportScreenshot = async (elementId: string): Promise<string> => {
