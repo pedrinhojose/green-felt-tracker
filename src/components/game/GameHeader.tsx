@@ -13,14 +13,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
+import { FileImage, Image } from "lucide-react";
 
 interface GameHeaderProps {
   gameNumber: number;
   gameDate: Date;
   isFinished: boolean;
   isExporting: boolean;
+  isExportingImage: boolean;
   isFinishing: boolean;
   onExportReport: () => void;
+  onExportReportAsImage: () => void;
   onFinishGame: () => void;
 }
 
@@ -29,8 +32,10 @@ export default function GameHeader({
   gameDate,
   isFinished,
   isExporting,
+  isExportingImage,
   isFinishing,
   onExportReport,
+  onExportReportAsImage,
   onFinishGame,
 }: GameHeaderProps) {
   const navigate = useNavigate();
@@ -52,6 +57,17 @@ export default function GameHeader({
           size="sm"
         >
           {isExporting ? "Exportando..." : "Exportar Relatório"}
+          <FileImage className="ml-2 h-4 w-4" />
+        </Button>
+        
+        <Button
+          onClick={onExportReportAsImage}
+          disabled={isExportingImage}
+          variant="outline"
+          size="sm"
+        >
+          {isExportingImage ? "Exportando..." : "Exportar Imagem"}
+          <Image className="ml-2 h-4 w-4" />
         </Button>
         
         {isFinished ? (

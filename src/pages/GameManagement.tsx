@@ -31,8 +31,10 @@ export default function GameManagement() {
     isSelectingPlayers,
     setIsSelectingPlayers,
     isExporting,
+    isExportingImage,
     isFinishing,
     handleExportReport,
+    handleExportReportAsImage,
     handleFinishGame,
   } = useGameManagement();
   
@@ -96,8 +98,10 @@ export default function GameManagement() {
           gameDate={game.date}
           isFinished={game.isFinished}
           isExporting={isExporting}
+          isExportingImage={isExportingImage}
           isFinishing={isFinishing}
           onExportReport={handleExportReport}
+          onExportReportAsImage={handleExportReportAsImage}
           onFinishGame={handleFinishGame}
         />
       )}
