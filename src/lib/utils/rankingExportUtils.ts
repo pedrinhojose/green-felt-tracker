@@ -70,7 +70,7 @@ export const exportRankingAsImage = async (
     tableElement.style.width = '100%';
     tableElement.style.borderCollapse = 'collapse';
     tableElement.style.tableLayout = 'fixed';
-    tableElement.style.fontSize = '13px';
+    tableElement.style.fontSize = '12px'; // Diminuimos o tamanho da fonte para 12px
     
     // Cabeçalho da tabela
     const thead = document.createElement('thead');
@@ -78,7 +78,8 @@ export const exportRankingAsImage = async (
     headerRow.style.borderBottom = '1px solid #072818';
     
     const headers = ['#', 'Jogador', 'Jogos', 'Pontos'];
-    const headerWidths = ['36px', '200px', '40px', '50px'];
+    // Reduzir a largura da coluna "Jogador" em 30%
+    const headerWidths = ['36px', '140px', '40px', '50px']; // Alterado de 200px para 140px
     
     headers.forEach((headerText, index) => {
       const th = document.createElement('th');
@@ -99,6 +100,8 @@ export const exportRankingAsImage = async (
     sortedRankings.forEach((ranking, index) => {
       const row = document.createElement('tr');
       row.style.borderBottom = '1px solid #072818';
+      // Aumentamos a altura da linha
+      row.style.height = '28px'; // Aumentado de ~20px para 28px
       
       // Coluna de posição
       const positionCell = document.createElement('td');
@@ -116,10 +119,10 @@ export const exportRankingAsImage = async (
       positionCell.appendChild(medalSpan);
       row.appendChild(positionCell);
       
-      // Coluna do jogador (otimizada para ocupar menos espaço)
+      // Coluna do jogador (com largura reduzida)
       const playerCell = document.createElement('td');
       playerCell.style.padding = '4px 6px';
-      playerCell.style.maxWidth = '200px';
+      playerCell.style.maxWidth = '140px'; // Reduzido de 200px para 140px
       playerCell.style.overflow = 'hidden';
       playerCell.style.whiteSpace = 'nowrap';
       playerCell.style.textOverflow = 'ellipsis';
