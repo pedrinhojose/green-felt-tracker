@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,33 +52,33 @@ export default function RankingPage() {
       // Cria um elemento temporário para renderizar o ranking com estilo otimizado para exportação
       const exportDiv = document.createElement('div');
       exportDiv.id = 'ranking-export';
-      exportDiv.style.padding = '20px';
+      exportDiv.style.padding = '15px';  // Reduz o padding para economizar espaço
       exportDiv.style.backgroundColor = '#0A3B23'; // Cor de fundo do poker green
       exportDiv.style.borderRadius = '12px';
       exportDiv.style.width = '100%';
-      exportDiv.style.maxWidth = '800px';
+      exportDiv.style.maxWidth = '500px';  // Reduz a largura máxima para mobile
       exportDiv.style.margin = '0 auto';
       exportDiv.style.overflow = 'visible'; // Garante que o conteúdo não seja cortado
       
-      // Adiciona cabeçalho
+      // Adiciona cabeçalho - mais compacto
       const header = document.createElement('div');
       header.style.display = 'flex';
       header.style.justifyContent = 'space-between';
       header.style.alignItems = 'center';
-      header.style.marginBottom = '20px';
-      header.style.padding = '10px 20px';
+      header.style.marginBottom = '12px';  // Reduz o espaço
+      header.style.padding = '8px 12px';  // Reduz o padding
       header.style.borderBottom = '2px solid #072818';
       
       const title = document.createElement('h2');
       title.textContent = 'Ranking do Poker';
-      title.style.fontSize = '24px';
+      title.style.fontSize = '20px';  // Fonte menor
       title.style.fontWeight = 'bold';
       title.style.color = '#ffffff';
       
       const subtitle = document.createElement('p');
       subtitle.textContent = activeSeason ? activeSeason.name : 'Temporada Ativa';
       subtitle.style.color = '#D4AF37';
-      subtitle.style.fontSize = '16px';
+      subtitle.style.fontSize = '14px';  // Fonte menor
       
       const titleContainer = document.createElement('div');
       titleContainer.appendChild(title);
@@ -91,7 +90,7 @@ export default function RankingPage() {
       const dateContainer = document.createElement('div');
       dateContainer.textContent = new Date().toLocaleDateString('pt-BR');
       dateContainer.style.color = '#ffffff';
-      dateContainer.style.fontSize = '14px';
+      dateContainer.style.fontSize = '12px';  // Fonte menor
       
       header.appendChild(dateContainer);
       
@@ -100,24 +99,59 @@ export default function RankingPage() {
       // Clona a tabela de ranking
       const tableClone = rankingTableRef.current.cloneNode(true) as HTMLElement;
       
-      // Ajusta o estilo da tabela para garantir que tudo seja visível
+      // Ajusta o estilo da tabela para telas menores
       tableClone.style.width = '100%';
       tableClone.style.borderCollapse = 'collapse';
-      tableClone.style.tableLayout = 'fixed'; // Força coluna de tamanho fixo
+      tableClone.style.tableLayout = 'fixed';
+      tableClone.style.fontSize = '14px'; // Fonte menor para caber melhor
       
-      // Ajusta o estilo das células para garantir que tudo seja visível
+      // Ajusta o estilo das células para otimizar espaço
       const cells = tableClone.querySelectorAll('td, th');
       cells.forEach((cell: HTMLElement) => {
-        cell.style.whiteSpace = 'nowrap'; // Evita quebra de linha
-        cell.style.padding = '8px 12px';
+        cell.style.whiteSpace = 'nowrap';
+        cell.style.padding = '6px 8px'; // Padding menor
         cell.style.overflow = 'visible';
       });
       
-      // Garanta que as células de pontos tenham espaço suficiente
-      const pointCells = tableClone.querySelectorAll('td:last-child, th:last-child');
-      pointCells.forEach((cell: HTMLElement) => {
-        cell.style.textAlign = 'right';
-        cell.style.minWidth = '80px'; // Garante espaço mínimo para os pontos
+      // Configurando larguras específicas para cada coluna
+      const columns = tableClone.querySelectorAll('tr');
+      columns.forEach((row: HTMLElement) => {
+        const cells = row.querySelectorAll('td, th');
+        if (cells.length > 0) {
+          // Posição (# com medalha)
+          if (cells[0]) {
+            cells[0].style.width = '40px';
+            cells[0].style.maxWidth = '40px';
+          }
+          
+          // Nome do jogador
+          if (cells[1]) {
+            cells[1].style.maxWidth = '180px';
+            
+            // Tenta reduzir o tamanho do Avatar, se existir
+            const avatar = cells[1].querySelector('.h-10.w-10') as HTMLElement;
+            if (avatar) {
+              avatar.style.height = '28px';
+              avatar.style.width = '28px';
+              avatar.classList.remove('h-10', 'w-10');
+              avatar.classList.add('h-7', 'w-7');
+            }
+          }
+          
+          // Jogos
+          if (cells[2]) {
+            cells[2].style.width = '50px';
+            cells[2].style.maxWidth = '50px';
+            cells[2].style.textAlign = 'center';
+          }
+          
+          // Pontos
+          if (cells[3]) {
+            cells[3].style.width = '60px';
+            cells[3].style.maxWidth = '60px';
+            cells[3].style.textAlign = 'center';
+          }
+        }
       });
       
       exportDiv.appendChild(tableClone);
