@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -74,11 +75,12 @@ export default function RankingCard() {
     const thirdPlace = topPlayers[2] || null;
 
     return (
-      <div className="flex flex-col">
-        {/* First place position (top center) */}
-        {firstPlace && (
-          <div className="flex justify-center mb-1">
-            <div className="relative flex flex-col items-center">
+      <div className="flex flex-col items-center">
+        {/* Remodelando o pódio - 1º colocado à esquerda, 2º e 3º alinhados à direita */}
+        <div className="flex items-start justify-center gap-8 w-full">
+          {/* First place position (left) */}
+          {firstPlace && (
+            <div className="flex flex-col items-center">
               <Avatar className="h-16 w-16 border-2 border-poker-gold">
                 {firstPlace.photoUrl ? (
                   <AvatarImage src={firstPlace.photoUrl} alt={firstPlace.playerName} />
@@ -87,57 +89,57 @@ export default function RankingCard() {
                   {getInitials(firstPlace.playerName)}
                 </AvatarFallback>
               </Avatar>
+              <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[100px]">{firstPlace.playerName}</div>
                 <div className="font-bold text-poker-gold">{firstPlace.totalPoints} pts</div>
                 <div className="text-xs text-muted-foreground">{firstPlace.gamesPlayed} jogos</div>
               </div>
-              <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
             </div>
+          )}
+
+          {/* Right column for Second and Third places (aligned with the name of first place) */}
+          <div className="flex flex-col gap-4">
+            {/* Second place */}
+            {secondPlace && (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 border-2 border-gray-400">
+                  {secondPlace.photoUrl ? (
+                    <AvatarImage src={secondPlace.photoUrl} alt={secondPlace.playerName} />
+                  ) : null}
+                  <AvatarFallback className="bg-poker-navy text-white">
+                    {getInitials(secondPlace.playerName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <div className="font-medium text-white truncate max-w-[80px]">{secondPlace.playerName}</div>
+                  <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
+                  <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
+                </div>
+                <div className="text-base font-bold text-gray-400">🥈</div>
+              </div>
+            )}
+
+            {/* Third place */}
+            {thirdPlace && (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-11 w-11 border-2 border-amber-700">
+                  {thirdPlace.photoUrl ? (
+                    <AvatarImage src={thirdPlace.photoUrl} alt={thirdPlace.playerName} />
+                  ) : null}
+                  <AvatarFallback className="bg-poker-navy text-white">
+                    {getInitials(thirdPlace.playerName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <div className="font-medium text-white truncate max-w-[80px]">{thirdPlace.playerName}</div>
+                  <div className="font-bold text-amber-700">{thirdPlace.totalPoints} pts</div>
+                  <div className="text-xs text-muted-foreground">{thirdPlace.gamesPlayed} jogos</div>
+                </div>
+                <div className="text-base font-bold text-amber-700">🥉</div>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Second and Third places (positioned closer to first place) */}
-        <div className="flex justify-center gap-12 mt-0">
-          {/* Second place */}
-          {secondPlace && (
-            <div className="flex flex-col items-center">
-              <Avatar className="h-14 w-14 border-2 border-gray-400">
-                {secondPlace.photoUrl ? (
-                  <AvatarImage src={secondPlace.photoUrl} alt={secondPlace.playerName} />
-                ) : null}
-                <AvatarFallback className="bg-poker-navy text-white">
-                  {getInitials(secondPlace.playerName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="mt-1 text-center">
-                <div className="font-medium text-white truncate max-w-[80px]">{secondPlace.playerName}</div>
-                <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
-                <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
-              </div>
-              <div className="mt-1 text-base font-bold text-gray-400">🥈</div>
-            </div>
-          )}
-
-          {/* Third place */}
-          {thirdPlace && (
-            <div className="flex flex-col items-center">
-              <Avatar className="h-12 w-12 border-2 border-amber-700">
-                {thirdPlace.photoUrl ? (
-                  <AvatarImage src={thirdPlace.photoUrl} alt={thirdPlace.playerName} />
-                ) : null}
-                <AvatarFallback className="bg-poker-navy text-white">
-                  {getInitials(thirdPlace.playerName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="mt-1 text-center">
-                <div className="font-medium text-white truncate max-w-[80px]">{thirdPlace.playerName}</div>
-                <div className="font-bold text-amber-700">{thirdPlace.totalPoints} pts</div>
-                <div className="text-xs text-muted-foreground">{thirdPlace.gamesPlayed} jogos</div>
-              </div>
-              <div className="mt-1 text-base font-bold text-amber-700">🥉</div>
-            </div>
-          )}
         </div>
       </div>
     );
