@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,7 +6,7 @@ import { Download } from "lucide-react";
 import { useRankingExport } from "@/lib/utils/rankingExportUtils";
 
 export default function RankingCard() {
-  const { rankings, players } = usePoker();
+  const { rankings, players, activeSeason } = usePoker();
   const [topPlayers, setTopPlayers] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
   const { downloadRankingAsImage } = useRankingExport();
@@ -19,9 +18,6 @@ export default function RankingCard() {
       .slice(0, 3);
     
     setTopPlayers(sorted);
-    
-    // Debug para verificar os dados
-    console.log("Top players atualizados:", sorted);
   }, [rankings]);
   
   const getInitials = (name: string) => {
@@ -45,7 +41,7 @@ export default function RankingCard() {
   const handleExportTop3 = async () => {
     try {
       setIsExporting(true);
-      const { activeSeason } = usePoker();
+      // Fixed: Using activeSeason from context instead of calling usePoker() again
       await downloadRankingAsImage(topPlayers, activeSeason, getInitials, getMedalEmoji);
     } catch (error) {
       console.error("Erro ao exportar top 3:", error);
