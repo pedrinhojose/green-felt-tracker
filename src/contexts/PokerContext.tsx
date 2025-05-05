@@ -38,11 +38,14 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     games, setGames, 
     lastGame, setLastGame, 
     getGameNumber, createGame, updateGame, finishGame
-  } = useGameFunctions(async () => {
-    if (activeSeason) {
-      await updateRankings(activeSeason.id);
-    }
-  });
+  } = useGameFunctions(
+    async () => {
+      if (activeSeason) {
+        await updateRankings(activeSeason.id);
+      }
+    },
+    setActiveSeason // Passando setActiveSeason para useGameFunctions
+  );
 
   // Load initial data
   useEffect(() => {

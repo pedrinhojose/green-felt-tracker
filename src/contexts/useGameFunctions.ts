@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Game } from '../lib/db/models';
+import { Game, Season } from '../lib/db/models';
 import { pokerDB } from '../lib/db/database';
 import { useToast } from "@/components/ui/use-toast";
 
-export function useGameFunctions(updateRankings: () => Promise<void>) {
+export function useGameFunctions(
+  updateRankings: () => Promise<void>,
+  setActiveSeason?: React.Dispatch<React.SetStateAction<Season | null>>
+) {
   const { toast } = useToast();
   const [games, setGames] = useState<Game[]>([]);
   const [lastGame, setLastGame] = useState<Game | null>(null);
@@ -92,12 +95,20 @@ export function useGameFunctions(updateRankings: () => Promise<void>) {
       const playerCount = game.players.filter(p => p.buyIn).length;
       const jackpotContribution = playerCount * season.financialParams.jackpotContribution;
       
+      console.log(`Atualizando jackpot: ${season.jackpot} + ${jackpotContribution} = ${season.jackpot + jackpotContribution}`);
+      
       // Update the season with the new jackpot amount
       const updatedSeason = {
         ...season,
         jackpot: season.jackpot + jackpotContribution
       };
       await pokerDB.saveSeason(updatedSeason);
+      
+      // IMPORTANTE: Atualizar o estado global da temporada ativa se esta for a temporada ativa
+      if (season.isActive && setActiveSeason) {
+        console.log("Atualizando temporada ativa no contexto");
+        setActiveSeason(updatedSeason);
+      }
       
       // Mark the game as finished
       const updatedGame = {
