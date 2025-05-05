@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,8 +56,10 @@ export default function RankingPage() {
       exportDiv.style.padding = '20px';
       exportDiv.style.backgroundColor = '#0A3B23'; // Cor de fundo do poker green
       exportDiv.style.borderRadius = '12px';
+      exportDiv.style.width = '100%';
       exportDiv.style.maxWidth = '800px';
       exportDiv.style.margin = '0 auto';
+      exportDiv.style.overflow = 'visible'; // Garante que o conteúdo não seja cortado
       
       // Adiciona cabeçalho
       const header = document.createElement('div');
@@ -96,10 +99,27 @@ export default function RankingPage() {
       
       // Clona a tabela de ranking
       const tableClone = rankingTableRef.current.cloneNode(true) as HTMLElement;
+      
+      // Ajusta o estilo da tabela para garantir que tudo seja visível
       tableClone.style.width = '100%';
       tableClone.style.borderCollapse = 'collapse';
+      tableClone.style.tableLayout = 'fixed'; // Força coluna de tamanho fixo
       
-      // Aplicar estilos para melhor visualização em dispositivos móveis
+      // Ajusta o estilo das células para garantir que tudo seja visível
+      const cells = tableClone.querySelectorAll('td, th');
+      cells.forEach((cell: HTMLElement) => {
+        cell.style.whiteSpace = 'nowrap'; // Evita quebra de linha
+        cell.style.padding = '8px 12px';
+        cell.style.overflow = 'visible';
+      });
+      
+      // Garanta que as células de pontos tenham espaço suficiente
+      const pointCells = tableClone.querySelectorAll('td:last-child, th:last-child');
+      pointCells.forEach((cell: HTMLElement) => {
+        cell.style.textAlign = 'right';
+        cell.style.minWidth = '80px'; // Garante espaço mínimo para os pontos
+      });
+      
       exportDiv.appendChild(tableClone);
       
       // Adiciona ao DOM temporariamente para captura
@@ -111,6 +131,13 @@ export default function RankingPage() {
         backgroundColor: '#0A3B23',
         logging: false,
         useCORS: true,
+        allowTaint: true,
+        width: exportDiv.offsetWidth,
+        height: exportDiv.offsetHeight,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight,
+        x: 0,
+        y: 0,
       });
       
       // Remove o elemento temporário
