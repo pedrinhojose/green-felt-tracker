@@ -2,7 +2,8 @@
 import { RankingEntry } from '../db/models';
 import { 
   createPlayerAvatar, 
-  createPositionMedal
+  createPositionMedal,
+  createTableHeader
 } from './rankingHtmlGenerator';
 
 /**
@@ -97,8 +98,7 @@ export const createRankingTable = (
   tableElement.style.tableLayout = 'fixed';
   tableElement.style.fontSize = '12px';
   
-  // Import the table header from the HTML generator
-  const { createTableHeader } = require('./rankingHtmlGenerator');
+  // Usar o createTableHeader importado diretamente
   tableElement.appendChild(createTableHeader());
   
   // Create table body
