@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Player, Season, Game, RankingEntry, FinancialParams } from '../lib/db/models';
+import { Player, Season, Game, RankingEntry, FinancialParams, BlindLevel } from '../lib/db/models';
 import { pokerDB } from '../lib/db/database';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -146,6 +146,28 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       jackpotContribution: 5,
     };
     
+    // Create default blind structure if not provided
+    const blindStructure: BlindLevel[] = seasonData.blindStructure || [
+      {
+        id: uuidv4(),
+        level: 1,
+        smallBlind: 25,
+        bigBlind: 50,
+        ante: 0,
+        duration: 20,
+        isBreak: false
+      },
+      {
+        id: uuidv4(),
+        level: 2,
+        smallBlind: 50,
+        bigBlind: 100,
+        ante: 0,
+        duration: 20,
+        isBreak: false
+      }
+    ];
+    
     // Create new season
     const newSeason: Season = {
       id: uuidv4(),
@@ -171,6 +193,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
         { position: 3, percentage: 20 }
       ],
       financialParams: financialParams,
+      blindStructure: blindStructure,
       jackpot: 0,
       createdAt: now,
     };
