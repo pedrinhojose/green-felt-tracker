@@ -27,4 +27,22 @@ export class SeasonRepository {
   async deleteSeason(id: string): Promise<void> {
     await (await this.db).delete('seasons', id);
   }
+  
+  async updateJackpot(seasonId: string, amount: number): Promise<void> {
+    const season = await this.getSeason(seasonId);
+    if (!season) {
+      throw new Error('Temporada não encontrada');
+    }
+    
+    // Adiciona o valor ao jackpot atual
+    season.jackpot += amount;
+    
+    // Garante que o jackpot não seja negativo
+    if (season.jackpot < 0) {
+      season.jackpot = 0;
+    }
+    
+    // Salva a temporada atualizada
+    await this.saveSeason(season);
+  }
 }

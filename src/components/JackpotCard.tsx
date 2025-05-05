@@ -4,6 +4,7 @@ import { formatCurrency } from "@/lib/utils/dateUtils";
 import { useEffect, useState } from "react";
 import { pokerDB } from "@/lib/db";
 import { DollarSign } from "lucide-react";
+import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
 
 export default function JackpotCard() {
   const { activeSeason } = usePoker();
@@ -29,8 +30,9 @@ export default function JackpotCard() {
     : (activeSeason?.jackpot || 0);
 
   return (
-    <div className="card-dashboard animate-card-float">
+    <div className="card-dashboard animate-card-float relative">
       <h3 className="card-dashboard-header">Jackpot Atual</h3>
+      <AddJackpotDialog />
       <div className="flex-1 flex items-center justify-center">
         <div className="relative w-full max-w-[240px] h-[140px]">
           {/* Poker table surface */}

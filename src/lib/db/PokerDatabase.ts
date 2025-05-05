@@ -1,4 +1,3 @@
-
 import { DatabaseCore } from './core/DatabaseCore';
 import { PlayerRepository } from './repositories/PlayerRepository';
 import { SeasonRepository } from './repositories/SeasonRepository';
@@ -68,6 +67,10 @@ class PokerDatabase extends DatabaseCore {
 
   async deleteSeason(id: string): Promise<void> {
     return this.seasonRepository.deleteSeason(id);
+  }
+
+  async updateJackpot(seasonId: string, amount: number): Promise<void> {
+    return this.seasonRepository.updateJackpot(seasonId, amount);
   }
 
   // Game methods

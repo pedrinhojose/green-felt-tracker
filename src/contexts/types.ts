@@ -14,6 +14,7 @@ export interface PokerContextProps {
   createSeason: (seasonData: Partial<Season>) => Promise<string>;
   updateSeason: (seasonData: Partial<Season>) => Promise<void>;
   endSeason: (seasonId: string) => Promise<void>;
+  updateJackpot: (seasonId: string, amount: number) => Promise<void>;
   
   // Games
   games: Game[];
