@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,9 +34,17 @@ export function AddJackpotDialog() {
   const [amount, setAmount] = useState("");
   const [isAddition, setIsAddition] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [operationCompleted, setOperationCompleted] = useState(false);
+
+  // Reset operationCompleted when dialog is opened
+  useEffect(() => {
+    if (open) {
+      setOperationCompleted(false);
+    }
+  }, [open]);
 
   const handleConfirm = async () => {
-    if (!activeSeason || isSubmitting || !amount) return;
+    if (!activeSeason || isSubmitting || !amount || operationCompleted) return;
     
     try {
       setIsSubmitting(true);
@@ -53,27 +61,28 @@ export function AddJackpotDialog() {
       
       const valueToAdd = isAddition ? numericAmount : -numericAmount;
       
-      // Adicione um pequeno atraso antes da operação principal para evitar problemas de UI
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      // Execute the update operation
       await updateJackpot(activeSeason.id, valueToAdd);
+      
+      // Mark operation as completed to prevent duplicate submissions
+      setOperationCompleted(true);
       
       toast({
         title: "Jackpot atualizado",
         description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
       });
       
-      // Limpa o formulário
-      setAmount("");
-      setIsAddition(true);
-      
-      // Fecha os diálogos com um pequeno atraso para evitar problemas de UI
+      // Delay closing dialogs to avoid UI jank
       setTimeout(() => {
         setConfirmOpen(false);
+        
         setTimeout(() => {
+          // Reset form state
+          setAmount("");
+          setIsAddition(true);
           setOpen(false);
-        }, 100);
-      }, 100);
+        }, 300);
+      }, 300);
       
     } catch (error) {
       console.error("Erro ao atualizar jackpot:", error);
@@ -83,39 +92,41 @@ export function AddJackpotDialog() {
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      // Delay resetting submission state to prevent UI jank
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 500);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isSubmitting) {
+    if (!isSubmitting && !operationCompleted) {
       setConfirmOpen(true);
     }
   };
 
-  // Se não tiver temporada ativa, não renderiza o diálogo
+  // If no active season, don't render the dialog
   if (!activeSeason) return null;
 
   return (
     <>
       <Dialog open={open} onOpenChange={(newOpen) => {
-        // Não permitir fechamento durante submissão
+        // Don't allow closing during submission
         if (isSubmitting) return;
         setOpen(newOpen);
         
-        // Se estiver fechando, redefinir o formulário
+        // Reset form when closing
         if (!newOpen) {
-          setAmount("");
-          setIsAddition(true);
+          setTimeout(() => {
+            setAmount("");
+            setIsAddition(true);
+          }, 300);
         }
       }}>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex gap-2">
-            {isAddition ? 
-              <PlusCircle className="h-4 w-4" /> : 
-              <MinusCircle className="h-4 w-4" />
-            }
+            <PlusCircle className="h-4 w-4" />
             Atualizar Jackpot
           </Button>
         </DialogTrigger>
@@ -167,7 +178,11 @@ export function AddJackpotDialog() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={isSubmitting || !amount}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || !amount || operationCompleted}
+                className={isSubmitting ? "opacity-70 cursor-not-allowed" : ""}
+              >
                 {isSubmitting ? "Processando..." : (isAddition ? "Adicionar ao Jackpot" : "Remover do Jackpot")}
               </Button>
             </DialogFooter>
@@ -178,7 +193,7 @@ export function AddJackpotDialog() {
       <AlertDialog 
         open={confirmOpen} 
         onOpenChange={(newOpen) => {
-          // Não permitir fechamento durante submissão
+          // Don't allow closing during submission
           if (isSubmitting) return;
           setConfirmOpen(newOpen);
         }}
@@ -197,7 +212,8 @@ export function AddJackpotDialog() {
             <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirm} 
-              disabled={isSubmitting}
+              disabled={isSubmitting || operationCompleted}
+              className={isSubmitting ? "opacity-70 cursor-not-allowed" : ""}
             >
               {isSubmitting ? "Processando..." : "Confirmar"}
             </AlertDialogAction>

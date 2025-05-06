@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { AddJackpotDialog } from "@/components/jackpot/AddJackpotDialog";
+import { memo } from "react";
 
 interface JackpotCardProps {
   activeSeason: Season;
 }
 
-export function JackpotCard({ activeSeason }: JackpotCardProps) {
-  // Usar o valor do jackpot diretamente do objeto activeSeason
+// Using memo to prevent unnecessary re-renders
+export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCardProps) {
+  // Get jackpot amount from active season
   const jackpotAmount = activeSeason?.jackpot || 0;
 
   return (
@@ -30,4 +32,4 @@ export function JackpotCard({ activeSeason }: JackpotCardProps) {
       </CardContent>
     </Card>
   );
-}
+});

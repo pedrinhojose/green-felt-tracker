@@ -2,13 +2,14 @@
 import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { DollarSign } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { memo } from "react";
 import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
 
-export default function JackpotCard() {
+// Using memo to prevent unnecessary re-renders
+const JackpotCard = memo(function JackpotCard() {
   const { activeSeason } = usePoker();
   
-  // Usar o valor do jackpot diretamente do objeto activeSeason
+  // Get jackpot amount from active season
   const jackpotAmount = activeSeason?.jackpot || 0;
 
   return (
@@ -65,4 +66,6 @@ export default function JackpotCard() {
       </div>
     </div>
   );
-}
+});
+
+export default JackpotCard;
