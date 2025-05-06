@@ -6,7 +6,7 @@ import { useTimerControls } from "./useTimerControls";
 import { useTimerUtils } from "./useTimerUtils";
 import { TimerDisplay } from "./TimerDisplay";
 import { TimerControls } from "./TimerControls";
-import { VolumeX, VolumeOff } from "lucide-react";
+import { VolumeX, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BlindTimerProps {
@@ -87,16 +87,16 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
         <div className="absolute top-0 left-0 right-0 h-1 bg-poker-gold"></div>
       )}
       
-      {/* Botão de mudo */}
+      {/* Botão de mudo - Agora em uma posição mais visível */}
       <div className="absolute top-4 right-4 z-10">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={toggleMute} 
-          className="text-white/70 hover:text-white hover:bg-black/20"
+          className="bg-poker-dark-green/60 text-white hover:text-white hover:bg-poker-dark-green/90"
           title={isMuted ? "Ativar som" : "Desativar som"}
         >
-          {isMuted ? <VolumeX size={20} /> : <VolumeOff size={20} />}
+          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
         </Button>
       </div>
       
