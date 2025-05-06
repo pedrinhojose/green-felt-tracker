@@ -7,7 +7,7 @@ import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useState } from "react";
 
 // Component imports
-import BlindTimer from "@/components/game/BlindTimer";
+import BlindTimer from "@/components/game/blindTimer/BlindTimer"; // Fixed import path
 import PlayerSelection from "@/components/game/PlayerSelection";
 import PrizePoolManager from "@/components/game/PrizePoolManager";
 import PlayersTable from "@/components/game/PlayersTable";
