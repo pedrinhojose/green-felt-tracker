@@ -27,12 +27,14 @@ export function usePlayerStats() {
       game.players.forEach(gamePlayer => {
         // Buscar ou criar estatísticas do jogador
         let playerStat = playerStatsMap.get(gamePlayer.playerId);
+        const player = players.find(p => p.id === gamePlayer.playerId);
         const playerName = getPlayerName(gamePlayer.playerId, players);
         
         if (!playerStat) {
           playerStat = {
             playerId: gamePlayer.playerId,
             playerName,
+            photoUrl: player?.photoUrl, // Add the player's photoUrl
             gamesPlayed: 0,
             victories: 0,
             averagePosition: 0,
@@ -40,7 +42,7 @@ export function usePlayerStats() {
             totalInvestment: 0,
             balance: 0,
             totalPoints: 0,
-            totalRebuys: 0 // Adicionamos o campo para número total de rebuys
+            totalRebuys: 0
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
         }

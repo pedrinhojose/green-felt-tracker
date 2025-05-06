@@ -11,7 +11,8 @@ export interface PlayerPerformanceStats {
   totalInvestment: number;
   balance: number;
   totalPoints: number; 
-  totalRebuys: number; // Adicionado campo para total de rebuys
+  totalRebuys: number;
+  photoUrl?: string; // Add the photoUrl property as optional
 }
 
 export interface SeasonSummary {
