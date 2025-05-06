@@ -34,12 +34,8 @@ export function TimerDisplay({
     <div className="flex flex-col items-center p-6">
       {/* Layout reorganizado - Três colunas */}
       <div className="w-full grid grid-cols-3 mb-6">
-        {/* Coluna da Esquerda - Nível atual */}
+        {/* Coluna da Esquerda - Informações de blind */}
         <div className="text-left">
-          <div className={`text-xl text-gray-300 uppercase font-medium transition-all ${showLevelChange ? 'scale-110' : ''}`}>
-            {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex]?.level || 1}`}
-          </div>
-          
           {/* Valores de SB e BB - Agora maiores e em amarelo mais forte */}
           {!isCurrentLevelBreak && blindLevels[currentLevelIndex] && (
             <div className={`text-5xl md:text-6xl font-bold text-yellow-500 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)] transition-all ${showLevelChange ? 'scale-110' : ''}`}>
@@ -49,12 +45,14 @@ export function TimerDisplay({
           )}
         </div>
         
-        {/* Coluna Central - Vazia para balanço */}
-        <div className="flex justify-center">
-          {/* Deixar vazio para balanço */}
+        {/* Coluna Central - Nível atual (movido para o centro) */}
+        <div className="flex flex-col items-center justify-center">
+          <div className={`text-xl text-gray-300 uppercase font-medium transition-all ${showLevelChange ? 'scale-110' : ''}`}>
+            {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex]?.level || 1}`}
+          </div>
         </div>
         
-        {/* Coluna da Direita - Próximo intervalo */}
+        {/* Coluna da Direita - Intervalo em */}
         <div className="text-right">
           <div className="text-xl text-gray-300 uppercase">INTERVALO EM</div>
           <div className="text-4xl font-bold text-gray-200 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]">
