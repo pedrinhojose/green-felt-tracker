@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Image, ArrowLeft } from "lucide-react";
 import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
 import SeasonPrizePoolSummary from "@/components/reports/SeasonPrizePoolSummary";
+import JackpotWinnersCard from "@/components/reports/JackpotWinnersCard";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
 
 export default function SeasonReport() {
@@ -15,6 +16,8 @@ export default function SeasonReport() {
   const { 
     playerStats, 
     seasonSummary,
+    jackpotWinners,
+    totalJackpot,
     isExporting,
     isExportingImage,
     exportReportAsPdf,
@@ -115,6 +118,14 @@ export default function SeasonReport() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* Card de Ganhadores do Jackpot */}
+          {jackpotWinners.length > 0 && (
+            <JackpotWinnersCard 
+              jackpotWinners={jackpotWinners} 
+              totalJackpot={totalJackpot}
+            />
+          )}
           
           {/* Resumo financeiro da temporada */}
           <SeasonPrizePoolSummary seasonSummary={seasonSummary} />
