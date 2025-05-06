@@ -54,25 +54,25 @@ export default function PrizeWinnerCard({ position, playerName, photoUrl, prize,
     <Card className={`overflow-hidden border ${getPositionColor()} w-full`}>
       <CardContent className="p-4">
         <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Avatar className="h-12 w-12 border-2 border-poker-dark-green">
-              {photoUrl ? (
-                <AvatarImage src={photoUrl} alt={playerName} />
-              ) : (
-                <AvatarFallback className="bg-poker-dark-green text-white">
-                  {getInitials(playerName)}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            {/* Movido o ícone para fora do avatar, agora aparece ao lado */}
-            <div className="absolute -top-2 -right-6 bg-card p-1 rounded-full">
+          <Avatar className="h-12 w-12 border-2 border-poker-dark-green">
+            {photoUrl ? (
+              <AvatarImage src={photoUrl} alt={playerName} />
+            ) : (
+              <AvatarFallback className="bg-poker-dark-green text-white">
+                {getInitials(playerName)}
+              </AvatarFallback>
+            )}
+          </Avatar>
+          
+          <div className="flex flex-1 items-center space-x-2">
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm truncate">{playerName}</div>
+              <div className="text-poker-gold font-bold">{formatCurrency(prize)}</div>
+            </div>
+            
+            <div className="flex-shrink-0">
               {getPositionIcon()}
             </div>
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-sm truncate">{playerName}</div>
-            <div className="text-poker-gold font-bold">{formatCurrency(prize)}</div>
           </div>
         </div>
       </CardContent>

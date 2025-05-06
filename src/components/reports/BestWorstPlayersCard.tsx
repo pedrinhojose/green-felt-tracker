@@ -51,32 +51,30 @@ export default function BestWorstPlayersCard({ playerStats }: BestWorstPlayersCa
             </div>
             
             <div className="flex items-center gap-4 mt-4">
-              <div className="relative">
-                <Avatar className="h-16 w-16 border-2 border-poker-gold">
-                  <AvatarImage src={bestPlayer.photoUrl} />
-                  <AvatarFallback className="bg-blue-800 text-white text-lg">
-                    {getInitials(bestPlayer.playerName)}
-                  </AvatarFallback>
-                </Avatar>
-                {/* Movido o ícone para fora do avatar, agora aparece ao lado */}
-                <div className="absolute -top-2 -right-8 bg-card p-1 rounded-full">
-                  <Trophy className="h-5 w-5 text-poker-gold" />
-                </div>
-              </div>
+              <Avatar className="h-16 w-16 border-2 border-poker-gold">
+                <AvatarImage src={bestPlayer.photoUrl} />
+                <AvatarFallback className="bg-blue-800 text-white text-lg">
+                  {getInitials(bestPlayer.playerName)}
+                </AvatarFallback>
+              </Avatar>
               
-              <div>
-                <h4 className="text-lg font-bold">{bestPlayer.playerName}</h4>
-                <div className="flex flex-col gap-1 mt-1 text-sm">
-                  <div><span className="text-gray-300">Saldo: </span> 
-                    <span className="font-semibold text-green-400">{formatCurrency(bestPlayer.balance)}</span>
-                  </div>
-                  <div><span className="text-gray-300">Vitórias: </span> 
-                    <span className="font-semibold">{bestPlayer.victories}</span>
-                  </div>
-                  <div><span className="text-gray-300">Pontos: </span> 
-                    <span className="font-semibold text-blue-400">{bestPlayer.totalPoints}</span>
+              <div className="flex flex-1 items-center space-x-2">
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold">{bestPlayer.playerName}</h4>
+                  <div className="flex flex-col gap-1 mt-1 text-sm">
+                    <div><span className="text-gray-300">Saldo: </span> 
+                      <span className="font-semibold text-green-400">{formatCurrency(bestPlayer.balance)}</span>
+                    </div>
+                    <div><span className="text-gray-300">Vitórias: </span> 
+                      <span className="font-semibold">{bestPlayer.victories}</span>
+                    </div>
+                    <div><span className="text-gray-300">Pontos: </span> 
+                      <span className="font-semibold text-blue-400">{bestPlayer.totalPoints}</span>
+                    </div>
                   </div>
                 </div>
+                
+                <Trophy className="h-5 w-5 text-poker-gold flex-shrink-0" />
               </div>
             </div>
           </div>
@@ -91,32 +89,30 @@ export default function BestWorstPlayersCard({ playerStats }: BestWorstPlayersCa
             </div>
             
             <div className="flex items-center gap-4 mt-4">
-              <div className="relative">
-                <Avatar className="h-16 w-16 border-2 border-red-500">
-                  <AvatarImage src={reyDoRebuy.photoUrl} />
-                  <AvatarFallback className="bg-red-900 text-white text-lg">
-                    {getInitials(reyDoRebuy.playerName)}
-                  </AvatarFallback>
-                </Avatar>
-                {/* Movido o ícone para fora do avatar, agora aparece ao lado */}
-                <div className="absolute -top-2 -right-8 bg-card p-1 rounded-full">
-                  <Crown className="h-5 w-5 text-yellow-500" />
-                </div>
-              </div>
+              <Avatar className="h-16 w-16 border-2 border-red-500">
+                <AvatarImage src={reyDoRebuy.photoUrl} />
+                <AvatarFallback className="bg-red-900 text-white text-lg">
+                  {getInitials(reyDoRebuy.playerName)}
+                </AvatarFallback>
+              </Avatar>
               
-              <div>
-                <h4 className="text-lg font-bold">{reyDoRebuy.playerName}</h4>
-                <div className="flex flex-col gap-1 mt-1 text-sm">
-                  <div><span className="text-gray-300">Total Rebuys: </span> 
-                    <span className="font-semibold text-red-400">{reyDoRebuy.totalRebuys}</span>
-                  </div>
-                  <div><span className="text-gray-300">Saldo: </span> 
-                    <span className="font-semibold">{formatCurrency(reyDoRebuy.balance)}</span>
-                  </div>
-                  <div><span className="text-gray-300">Jogos: </span> 
-                    <span className="font-semibold">{reyDoRebuy.gamesPlayed}</span>
+              <div className="flex flex-1 items-center space-x-2">
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold">{reyDoRebuy.playerName}</h4>
+                  <div className="flex flex-col gap-1 mt-1 text-sm">
+                    <div><span className="text-gray-300">Total Rebuys: </span> 
+                      <span className="font-semibold text-red-400">{reyDoRebuy.totalRebuys}</span>
+                    </div>
+                    <div><span className="text-gray-300">Saldo: </span> 
+                      <span className="font-semibold">{formatCurrency(reyDoRebuy.balance)}</span>
+                    </div>
+                    <div><span className="text-gray-300">Jogos: </span> 
+                      <span className="font-semibold">{reyDoRebuy.gamesPlayed}</span>
+                    </div>
                   </div>
                 </div>
+                
+                <Crown className="h-5 w-5 text-yellow-500 flex-shrink-0" />
               </div>
             </div>
           </div>
