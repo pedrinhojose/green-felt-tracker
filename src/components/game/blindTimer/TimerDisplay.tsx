@@ -56,7 +56,7 @@ export function TimerDisplay({
         
         {/* Coluna da Direita - Próximo intervalo */}
         <div className="text-right">
-          <div className="text-xl text-gray-300 uppercase">PRÓXIMO INTERVALO</div>
+          <div className="text-xl text-gray-300 uppercase">INTERVALO EM</div>
           <div className="text-4xl font-bold text-gray-200 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]">
             {calculateTimeToBreak()}
           </div>

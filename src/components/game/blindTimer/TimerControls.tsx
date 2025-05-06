@@ -41,7 +41,7 @@ export function TimerControls({
       <div className="bg-poker-dark-green p-4 flex flex-wrap justify-between">
         {/* Informações do jogo */}
         <div className="flex flex-col items-center px-4">
-          <div className="text-xs text-gray-400 uppercase">PRÓXIMO INTERVALO</div>
+          <div className="text-xs text-gray-400 uppercase">INTERVALO EM</div>
           <div className="text-base font-medium text-gray-200">
             {calculateTimeToBreak()}
           </div>
