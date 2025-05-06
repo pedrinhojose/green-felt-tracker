@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -64,7 +65,11 @@ export function TimerDisplay({
       
       {/* Barra de progresso - Preenchendo gradualmente com a cor amarela */}
       <div ref={progressRef} className="w-4/5 mx-auto mb-8 cursor-pointer" onClick={handleProgressBarClick}>
-        <Progress value={progress} className="h-3 bg-blue-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]" barClassName="bg-yellow-500 shadow-[0_0_10px_rgba(255,204,0,0.5)]" />
+        <Progress 
+          value={progress} 
+          className="h-3 bg-blue-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]" 
+          barClassName="bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-[0_0_10px_rgba(255,204,0,0.5)]" 
+        />
       </div>
     </div>;
 }

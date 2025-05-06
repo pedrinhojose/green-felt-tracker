@@ -25,8 +25,11 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className={cn("h-full w-full flex-1 transition-all", barClassName)}
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      className={cn("h-full flex-1 transition-all", barClassName)}
+      style={{ 
+        width: `${value || 0}%`,
+        transform: 'none'  // Removendo a transformação que estava invertendo a barra
+      }}
     />
   </ProgressPrimitive.Root>
 ))
