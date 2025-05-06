@@ -78,7 +78,7 @@ export function TimerDisplay({
         {formatTime(currentTime)}
       </div>
       
-      {/* Barra de progresso - Agora com cores dinâmicas */}
+      {/* Barra de progresso - Com cores dinâmicas */}
       <div 
         ref={progressRef}
         className="w-4/5 mx-auto mb-8 cursor-pointer" 
