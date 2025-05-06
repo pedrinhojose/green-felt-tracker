@@ -30,6 +30,18 @@ export function TimerDisplay({
   progressRef,
   handleProgressBarClick
 }: TimerDisplayProps) {
+  // Calculate the progress percentage for color determination
+  const progress = calculateProgress();
+  
+  // Determine the color of the progress bar based on remaining time
+  const getProgressBarColor = () => {
+    if (currentTime <= 60) { // Red when 1 minute or less remains
+      return "bg-red-600 shadow-[0_0_10px_rgba(234,56,76,0.5)]";
+    } else {
+      return "bg-yellow-500 shadow-[0_0_10px_rgba(255,204,0,0.5)]";
+    }
+  };
+
   return (
     <div className="flex flex-col items-center p-6">
       {/* Layout reorganizado - Três colunas */}
@@ -47,7 +59,7 @@ export function TimerDisplay({
         
         {/* Coluna Central - Nível atual (movido para o centro) */}
         <div className="flex flex-col items-center justify-center">
-          <div className={`text-xl text-gray-300 uppercase font-medium transition-all ${showLevelChange ? 'scale-110' : ''}`}>
+          <div className={`text-2xl md:text-3xl text-gray-300 uppercase font-medium transition-all ${showLevelChange ? 'scale-110' : ''}`}>
             {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex]?.level || 1}`}
           </div>
         </div>
@@ -66,16 +78,16 @@ export function TimerDisplay({
         {formatTime(currentTime)}
       </div>
       
-      {/* Barra de progresso - Agora amarela, mais curta e mais larga */}
+      {/* Barra de progresso - Agora com cores dinâmicas */}
       <div 
         ref={progressRef}
         className="w-4/5 mx-auto mb-8 cursor-pointer" 
         onClick={handleProgressBarClick}
       >
         <Progress 
-          value={calculateProgress()} 
+          value={progress} 
           className="h-2 bg-gray-800 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]"
-          barClassName="bg-yellow-500 shadow-[0_0_10px_rgba(255,204,0,0.5)]"
+          barClassName={getProgressBarColor()}
           heightClassName="h-3"
         />
       </div>
