@@ -12,6 +12,7 @@ interface TimerControlsProps {
   blindLevels: BlindLevel[];
   setShowLevelChange: React.Dispatch<React.SetStateAction<boolean>>;
   countdownSoundStarted: React.MutableRefObject<boolean>;
+  isMuted: boolean;
 }
 
 export function useTimerControls({
@@ -23,7 +24,8 @@ export function useTimerControls({
   setCurrentLevelIndex,
   blindLevels,
   setShowLevelChange,
-  countdownSoundStarted
+  countdownSoundStarted,
+  isMuted
 }: TimerControlsProps) {
   
   const [isFinishing, setIsFinishing] = useState(false);
@@ -31,6 +33,8 @@ export function useTimerControls({
   // Reproduzir som suave de contagem regressiva nos últimos 5 segundos
   const playCountdownSound = () => {
     try {
+      if (isMuted) return;
+      
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       // Tocar um som suave para cada segundo restante
@@ -61,9 +65,11 @@ export function useTimerControls({
     }
   };
   
-  // Som específico para mudança de nível
+  // Som específico para a mudança de nível
   const playLevelChangeSound = () => {
     try {
+      if (isMuted) return;
+      
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       // Som mais suave para mudança de nível
@@ -90,6 +96,42 @@ export function useTimerControls({
     }
   };
   
+  // Som de alarme para o último segundo
+  const playLastSecondAlarm = () => {
+    try {
+      if (isMuted) return;
+      
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Criar um som mais destacado para o último segundo
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Configurar um som mais chamativo, mas não irritante
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 800; // Frequência mais alta para chamar atenção
+      
+      // Criar um padrão de beep mais longo
+      gainNode.gain.value = 0.2; // Volume moderado
+      
+      oscillator.start();
+      
+      // Criar um beep mais longo (800ms)
+      setTimeout(() => {
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+        setTimeout(() => {
+          oscillator.stop();
+        }, 200);
+      }, 600);
+      
+    } catch (e) {
+      console.error("Erro ao reproduzir som de último segundo:", e);
+    }
+  };
+  
   // Controle principal do timer
   useEffect(() => {
     let interval: number | undefined;
@@ -98,9 +140,14 @@ export function useTimerControls({
       interval = window.setInterval(() => {
         setCurrentTime(prev => {
           // Verificar os últimos 5 segundos para tocar som
-          if (prev <= 5 && prev > 0 && !countdownSoundStarted.current) {
+          if (prev <= 5 && prev > 1 && !countdownSoundStarted.current) {
             countdownSoundStarted.current = true;
             playCountdownSound();
+          }
+          
+          // Tocar som de alarme no último segundo
+          if (prev === 2) { // Chamamos em 2 para garantir que toque quando estiver em 1 segundo
+            playLastSecondAlarm();
           }
           
           if (prev <= 1) {
@@ -126,7 +173,7 @@ export function useTimerControls({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerRunning, currentLevelIndex, blindLevels, countdownSoundStarted]);
+  }, [timerRunning, currentLevelIndex, blindLevels, countdownSoundStarted, isMuted]);
   
   // Efeito de animação quando muda de nível
   useEffect(() => {
@@ -140,7 +187,7 @@ export function useTimerControls({
       
       return () => clearTimeout(timeout);
     }
-  }, [setShowLevelChange]);
+  }, [setShowLevelChange, isMuted]);
   
   // Avançar para o próximo nível
   const handleNextLevel = () => {

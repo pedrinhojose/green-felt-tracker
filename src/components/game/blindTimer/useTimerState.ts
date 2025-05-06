@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { BlindLevel } from "@/lib/db/models";
@@ -12,6 +13,8 @@ interface TimerState {
   currentGameTime: number;
   showLevelChange: boolean;
   countdownSoundStarted: React.MutableRefObject<boolean>;
+  isMuted: boolean;
+  setIsMuted: React.Dispatch<React.SetStateAction<boolean>>;
   
   // Progress calculation methods
   calculateProgress: () => number;
@@ -30,6 +33,7 @@ export function useTimerState(initialTime = 15 * 60): TimerState {
   const [gameStartTime, setGameStartTime] = useState<Date>(new Date());
   const [currentGameTime, setCurrentGameTime] = useState<number>(0);
   const [showLevelChange, setShowLevelChange] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const countdownSoundStarted = useRef<boolean>(false);
   
   // Inicializar estrutura de blinds da temporada ativa
@@ -126,6 +130,8 @@ export function useTimerState(initialTime = 15 * 60): TimerState {
     currentGameTime,
     showLevelChange,
     countdownSoundStarted,
+    isMuted,
+    setIsMuted,
     calculateProgress,
     isNextLevelBreak,
     calculateTimeToBreak,
