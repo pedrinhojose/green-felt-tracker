@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -32,6 +33,7 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
   const [breakDuration, setBreakDuration] = useState<number>(15);
 
   const addLevel = () => {
+    // Ensure we have a valid ID and level number
     const newLevel: BlindLevel = {
       id: uuidv4(),
       level: blindLevels.length + 1,
@@ -41,11 +43,21 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
       duration: 20,
       isBreak: false,
     };
-    onChange([...blindLevels, newLevel]);
+    
+    console.log("Adding new blind level:", newLevel);
+    
+    // Create a new array to ensure React detects the change
+    const updatedLevels = [...blindLevels, newLevel];
+    onChange(updatedLevels);
   };
 
   const addBreak = () => {
     const selectedLevelIndex = parseInt(breakAfterLevel);
+    
+    if (isNaN(selectedLevelIndex)) {
+      console.error("Invalid level index for break");
+      return;
+    }
     
     // Create the new break
     const newBreak: BlindLevel = {
@@ -80,6 +92,11 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
   };
 
   const updateLevel = (index: number, field: keyof BlindLevel, value: any) => {
+    if (index < 0 || index >= blindLevels.length) {
+      console.error("Invalid index for updating blind level:", index);
+      return;
+    }
+    
     const updatedLevels = [...blindLevels];
     updatedLevels[index] = { ...updatedLevels[index], [field]: value };
     onChange(updatedLevels);
@@ -103,11 +120,20 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
       <CardContent>
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <Button onClick={addLevel} className="flex items-center gap-1">
+            <Button 
+              onClick={addLevel} 
+              className="flex items-center gap-1"
+              type="button"
+            >
               <Plus size={16} />
               Adicionar Nível
             </Button>
-            <Button onClick={() => setIsBreakDialogOpen(true)} variant="outline" className="flex items-center gap-1">
+            <Button 
+              onClick={() => setIsBreakDialogOpen(true)} 
+              variant="outline" 
+              className="flex items-center gap-1"
+              type="button"
+            >
               <Plus size={16} />
               Adicionar Intervalo
             </Button>
@@ -192,6 +218,7 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
                       <Button
                         variant="ghost"
                         size="icon"
+                        type="button"
                         onClick={() => removeLevel(index)}
                         className="h-8 w-8 text-destructive"
                       >
@@ -211,6 +238,9 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Adicionar Intervalo</DialogTitle>
+            <DialogDescription>
+              Configure o intervalo a ser adicionado na estrutura de blinds.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -221,7 +251,7 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
                 value={breakAfterLevel}
                 onValueChange={setBreakAfterLevel}
               >
-                <SelectTrigger>
+                <SelectTrigger id="level-select">
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>
                 <SelectContent>
@@ -247,10 +277,10 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsBreakDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsBreakDialogOpen(false)} type="button">
               Cancelar
             </Button>
-            <Button onClick={addBreak}>
+            <Button onClick={addBreak} type="button">
               Adicionar
             </Button>
           </DialogFooter>

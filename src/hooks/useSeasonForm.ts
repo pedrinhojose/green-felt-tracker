@@ -35,7 +35,17 @@ export function useSeasonForm(
       setScoreEntries([...activeSeason.scoreSchema]);
       setWeeklyPrizeEntries([...activeSeason.weeklyPrizeSchema]);
       setSeasonPrizeEntries([...activeSeason.seasonPrizeSchema]);
-      setBlindLevels(activeSeason.blindStructure || []);
+      
+      // Ensure each blind level has a valid ID
+      const blindStructureWithIds = activeSeason.blindStructure.map(level => {
+        if (!level.id) {
+          return { ...level, id: uuidv4() };
+        }
+        return level;
+      });
+      
+      setBlindLevels(blindStructureWithIds || []);
+      console.log("Loaded blind levels:", blindStructureWithIds);
     } else {
       // Default values for new season
       const today = new Date().toISOString().split('T')[0];
@@ -96,6 +106,8 @@ export function useSeasonForm(
     try {
       setIsSubmitting(true);
       
+      console.log("Submitting form with blind levels:", blindLevels);
+      
       // Validate total percentages
       const totalWeeklyPercentage = weeklyPrizeEntries.reduce((sum, entry) => sum + entry.percentage, 0);
       const totalSeasonPercentage = seasonPrizeEntries.reduce((sum, entry) => sum + entry.percentage, 0);
@@ -127,6 +139,14 @@ export function useSeasonForm(
         return;
       }
       
+      // Ensure all blind levels have an ID
+      const validatedBlindLevels = blindLevels.map(level => {
+        if (!level.id) {
+          return { ...level, id: uuidv4() };
+        }
+        return level;
+      });
+      
       const seasonData = {
         name: data.name,
         startDate: new Date(data.startDate),
@@ -134,7 +154,7 @@ export function useSeasonForm(
         scoreSchema: scoreEntries,
         weeklyPrizeSchema: weeklyPrizeEntries,
         seasonPrizeSchema: seasonPrizeEntries,
-        blindStructure: blindLevels,
+        blindStructure: validatedBlindLevels,
         financialParams: {
           buyIn: Number(data.buyIn),
           rebuy: Number(data.rebuy),
