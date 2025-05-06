@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Season, FinancialParams, BlindLevel } from '../lib/db/models';
@@ -48,7 +49,7 @@ export function useSeasonFunctions() {
       }
     ];
     
-    // Create new season
+    // Create new season with updated default score schema (6 positions)
     const newSeason: Season = {
       id: uuidv4(),
       name: seasonData.name || `Temporada ${seasons.length + 1}`,
