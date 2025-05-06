@@ -29,20 +29,33 @@ export class SeasonRepository {
   }
   
   async updateJackpot(seasonId: string, amount: number): Promise<void> {
-    const season = await this.getSeason(seasonId);
-    if (!season) {
-      throw new Error('Temporada não encontrada');
+    // Obtém uma transação para garantir operações atômicas
+    const db = await this.db;
+    const tx = db.transaction('seasons', 'readwrite');
+    
+    try {
+      // Obter a temporada atual
+      const season = await tx.store.get(seasonId);
+      if (!season) {
+        throw new Error('Temporada não encontrada');
+      }
+      
+      // Calcular novo valor do jackpot (garantindo que não seja negativo)
+      const newJackpot = Math.max(0, (season.jackpot || 0) + amount);
+      
+      // Atualizar temporada
+      season.jackpot = newJackpot;
+      
+      // Salvar temporada atualizada
+      await tx.store.put(season);
+      
+      // Confirmar transação
+      await tx.done;
+      
+    } catch (error) {
+      // Qualquer erro cancela a transação automaticamente
+      console.error('Erro na transação:', error);
+      throw error;
     }
-    
-    // Adiciona o valor ao jackpot atual
-    season.jackpot += amount;
-    
-    // Garante que o jackpot não seja negativo
-    if (season.jackpot < 0) {
-      season.jackpot = 0;
-    }
-    
-    // Salva a temporada atualizada
-    await this.saveSeason(season);
   }
 }

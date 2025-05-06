@@ -42,8 +42,7 @@ export function JackpotConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmação</AlertDialogTitle>
           <AlertDialogDescription>
-            Você está prestes a {isAddition ? "adicionar" : "remover"} manualmente R$ {amount} {isAddition ? "ao" : "do"} jackpot acumulado. 
-            Esta ação é usada para ajustes manuais no jackpot.
+            Você está prestes a {isAddition ? "adicionar" : "remover"} R$ {amount} {isAddition ? "ao" : "do"} jackpot acumulado.
             <br /><br />
             Tem certeza que deseja continuar?
           </AlertDialogDescription>
@@ -53,7 +52,6 @@ export function JackpotConfirmDialog({
           <AlertDialogAction 
             onClick={onConfirm} 
             disabled={isSubmitting || operationCompleted}
-            className={isSubmitting ? "opacity-70 cursor-not-allowed" : ""}
           >
             {isSubmitting ? "Processando..." : "Confirmar"}
           </AlertDialogAction>
