@@ -3,7 +3,9 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Player } from "@/lib/db/models";
 
 interface PlayerCardProps {
@@ -24,61 +26,63 @@ export function PlayerCard({ player, onEdit, onDelete, isDeleting }: PlayerCardP
   };
 
   return (
-    <Card className="bg-poker-green">
+    <Card className="overflow-hidden border border-white/10 bg-poker-navy/40 hover:bg-poker-navy/60 transition-colors">
       <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 border-2 border-poker-gold/50">
             {player.photoUrl ? (
               <AvatarImage src={player.photoUrl} alt={player.name} />
             ) : null}
-            <AvatarFallback className="bg-poker-navy text-white">
+            <AvatarFallback className="bg-poker-gold/20 text-white font-medium">
               {getInitials(player.name)}
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-1">
-            <h3 className="font-medium text-lg">{player.name}</h3>
-            <div className="text-sm text-muted-foreground">
-              {player.city && <p>{player.city}</p>}
-              {player.phone && <p>{player.phone}</p>}
-              <p>Cadastrado em {new Date(player.createdAt).toLocaleDateString()}</p>
-            </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-white truncate">{player.name}</h3>
+            {player.city && <p className="text-sm text-white/60 truncate">{player.city}</p>}
           </div>
           
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onEdit(player)}
-            >
-              Editar
-            </Button>
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive">
-                  Excluir
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir Jogador</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja excluir {player.name}? Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(player.id)}
-                    disabled={isDeleting}
-                  >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Abrir menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              <DropdownMenuItem onClick={() => onEdit(player)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+              </DropdownMenuItem>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
                     Excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Jogador</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir {player.name}? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(player.id)}
+                      disabled={isDeleting}
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardContent>
     </Card>

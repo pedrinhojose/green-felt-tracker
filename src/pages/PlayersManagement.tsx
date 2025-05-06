@@ -9,6 +9,7 @@ import { PlayerCard } from "@/components/players/PlayerCard";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { EditPlayerDialog } from "@/components/players/EditPlayerDialog";
 import { usePlayerPhoto } from "@/hooks/usePlayerPhoto";
+import { Search } from "lucide-react";
 
 export default function PlayersManagement() {
   const { players, savePlayer, deletePlayer } = usePoker();
@@ -171,7 +172,7 @@ export default function PlayersManagement() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-white">Jogadores</h2>
         <Button
@@ -182,16 +183,19 @@ export default function PlayersManagement() {
         </Button>
       </div>
       
-      <div className="mb-6">
-        <Input
-          placeholder="Buscar jogadores..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-md"
-        />
+      <div className="mb-6 relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar jogadores..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 max-w-md"
+          />
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {sortedPlayers.map(player => (
           <PlayerCard
             key={player.id}
