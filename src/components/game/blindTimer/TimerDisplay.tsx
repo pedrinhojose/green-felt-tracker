@@ -77,9 +77,8 @@ export function TimerDisplay({
       >
         <Progress 
           value={progress} 
-          className="h-2 bg-blue-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]"
+          className="h-3 bg-blue-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]"
           barClassName="bg-yellow-500 shadow-[0_0_10px_rgba(255,204,0,0.5)]"
-          heightClassName="h-3"
         />
       </div>
     </div>
