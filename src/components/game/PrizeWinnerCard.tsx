@@ -64,7 +64,8 @@ export default function PrizeWinnerCard({ position, playerName, photoUrl, prize,
                 </AvatarFallback>
               )}
             </Avatar>
-            <div className="absolute -top-1 -right-1 rounded-full bg-card p-0.5">
+            {/* Movido o ícone para fora do avatar, agora aparece ao lado */}
+            <div className="absolute -top-2 -right-6 bg-card p-1 rounded-full">
               {getPositionIcon()}
             </div>
           </div>

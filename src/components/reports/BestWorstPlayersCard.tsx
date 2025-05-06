@@ -51,12 +51,18 @@ export default function BestWorstPlayersCard({ playerStats }: BestWorstPlayersCa
             </div>
             
             <div className="flex items-center gap-4 mt-4">
-              <Avatar className="h-16 w-16 border-2 border-poker-gold">
-                <AvatarImage src={bestPlayer.photoUrl} />
-                <AvatarFallback className="bg-blue-800 text-white text-lg">
-                  {getInitials(bestPlayer.playerName)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-16 w-16 border-2 border-poker-gold">
+                  <AvatarImage src={bestPlayer.photoUrl} />
+                  <AvatarFallback className="bg-blue-800 text-white text-lg">
+                    {getInitials(bestPlayer.playerName)}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Movido o ícone para fora do avatar, agora aparece ao lado */}
+                <div className="absolute -top-2 -right-8 bg-card p-1 rounded-full">
+                  <Trophy className="h-5 w-5 text-poker-gold" />
+                </div>
+              </div>
               
               <div>
                 <h4 className="text-lg font-bold">{bestPlayer.playerName}</h4>
@@ -85,12 +91,18 @@ export default function BestWorstPlayersCard({ playerStats }: BestWorstPlayersCa
             </div>
             
             <div className="flex items-center gap-4 mt-4">
-              <Avatar className="h-16 w-16 border-2 border-red-500">
-                <AvatarImage src={reyDoRebuy.photoUrl} />
-                <AvatarFallback className="bg-red-900 text-white text-lg">
-                  {getInitials(reyDoRebuy.playerName)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-16 w-16 border-2 border-red-500">
+                  <AvatarImage src={reyDoRebuy.photoUrl} />
+                  <AvatarFallback className="bg-red-900 text-white text-lg">
+                    {getInitials(reyDoRebuy.playerName)}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Movido o ícone para fora do avatar, agora aparece ao lado */}
+                <div className="absolute -top-2 -right-8 bg-card p-1 rounded-full">
+                  <Crown className="h-5 w-5 text-yellow-500" />
+                </div>
+              </div>
               
               <div>
                 <h4 className="text-lg font-bold">{reyDoRebuy.playerName}</h4>
