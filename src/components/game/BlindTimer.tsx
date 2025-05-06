@@ -24,7 +24,9 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
   const [currentGameTime, setCurrentGameTime] = useState<number>(0);
   const [showLevelChange, setShowLevelChange] = useState<boolean>(false);
   const timerRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const countdownSoundStarted = useRef<boolean>(false);
   
   // Calcular a porcentagem de progresso
   const calculateProgress = () => {
@@ -112,14 +114,16 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
     if (timerRunning) {
       interval = window.setInterval(() => {
         setCurrentTime(prev => {
-          // Verificar quando resta 1 minuto
-          if (prev === 60) {
-            playAlertSound(800, 0.5);
+          // Verificar os últimos 5 segundos para tocar som
+          if (prev <= 5 && prev > 0 && !countdownSoundStarted.current) {
+            countdownSoundStarted.current = true;
+            playCountdownSound();
           }
           
           if (prev <= 1) {
             // Quando o tempo acaba, avançar para o próximo nível
             handleNextLevel();
+            countdownSoundStarted.current = false;
             // Se ainda houver níveis, retornar o tempo do próximo nível
             const nextIndex = currentLevelIndex + 1;
             if (nextIndex < blindLevels.length) {
@@ -132,6 +136,8 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
           return prev - 1;
         });
       }, 1000);
+    } else {
+      countdownSoundStarted.current = false;
     }
     
     return () => {
@@ -168,27 +174,36 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
-  // Reproduzir som de alerta
-  const playAlertSound = (frequency: number = 800, volume: number = 0.5) => {
+  // Reproduzir som suave de contagem regressiva nos últimos 5 segundos
+  const playCountdownSound = () => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.type = 'sine';
-      oscillator.frequency.value = frequency;
-      gainNode.gain.value = volume;
-      
-      oscillator.start();
-      
-      setTimeout(() => {
-        oscillator.stop();
-      }, 500);
+      // Tocar um som suave para cada segundo restante
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.value = 600; // Frequência mais suave
+          gainNode.gain.value = 0.2; // Volume mais baixo
+          
+          oscillator.start();
+          
+          // Diminuir gradualmente o som
+          gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+          
+          setTimeout(() => {
+            oscillator.stop();
+          }, 300);
+        }, i * 1000);
+      }
     } catch (e) {
-      console.error("Erro ao reproduzir som:", e);
+      console.error("Erro ao reproduzir som de contagem regressiva:", e);
     }
   };
   
@@ -197,48 +212,25 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
-      // Primeiro beep (alto)
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-      osc1.connect(gain1);
-      gain1.connect(audioContext.destination);
-      osc1.type = 'sine';
-      osc1.frequency.value = 1000;
-      gain1.gain.value = 0.7;
-      osc1.start();
-      setTimeout(() => {
-        osc1.stop();
-      }, 300);
+      // Som mais suave para mudança de nível
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
       
-      // Segundo beep (médio) após 400ms
-      setTimeout(() => {
-        const osc2 = audioContext.createOscillator();
-        const gain2 = audioContext.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioContext.destination);
-        osc2.type = 'sine';
-        osc2.frequency.value = 1000;
-        gain2.gain.value = 0.7;
-        osc2.start();
-        setTimeout(() => {
-          osc2.stop();
-        }, 300);
-      }, 400);
+      osc.type = 'sine';
+      osc.frequency.value = 800;
+      gain.gain.value = 0.3;
       
-      // Terceiro beep (longo) após 800ms
+      osc.start();
+      
+      // Desenhar a forma de onda para criar um som mais agradável
+      gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
       setTimeout(() => {
-        const osc3 = audioContext.createOscillator();
-        const gain3 = audioContext.createGain();
-        osc3.connect(gain3);
-        gain3.connect(audioContext.destination);
-        osc3.type = 'sine';
-        osc3.frequency.value = 1200;
-        gain3.gain.value = 0.8;
-        osc3.start();
-        setTimeout(() => {
-          osc3.stop();
-        }, 800);
-      }, 800);
+        osc.stop();
+      }, 500);
     } catch (e) {
       console.error("Erro ao reproduzir som de mudança de nível:", e);
     }
@@ -267,11 +259,20 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
     setTimerRunning(prev => !prev);
   };
   
-  // Resetar o timer para o início do nível atual
-  const resetCurrentLevel = () => {
-    if (blindLevels[currentLevelIndex]) {
-      setCurrentTime(blindLevels[currentLevelIndex].duration * 60);
-    }
+  // Permitir posicionar o tempo clicando na barra de progresso
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressRef.current || !blindLevels[currentLevelIndex]) return;
+    
+    const rect = progressRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+    
+    // Calcular o novo tempo baseado na porcentagem clicada
+    const totalLevelTime = blindLevels[currentLevelIndex].duration * 60;
+    const newTime = Math.round(totalLevelTime - (totalLevelTime * percentage));
+    
+    // Atualizar o tempo atual
+    setCurrentTime(Math.max(1, newTime)); // Evitar que chegue a 0
   };
   
   // Alternar modo tela cheia
@@ -289,8 +290,11 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
   const isCurrentLevelBreak = blindLevels[currentLevelIndex]?.isBreak || false;
   
   return (
-    <Card ref={timerRef} className={`${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}`}>
-      <CardHeader className="pb-2">
+    <Card 
+      ref={timerRef} 
+      className={`${isFullscreen ? 'fixed inset-0 z-50 rounded-none flex flex-col' : ''}`}
+    >
+      <CardHeader className={`pb-2 ${isFullscreen ? 'flex-shrink-0' : ''}`}>
         <CardTitle className="flex justify-between items-center">
           <span>Cronômetro de Blinds</span>
           <Button
@@ -303,17 +307,17 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-center">
+      <CardContent className={`${isFullscreen ? 'flex-grow flex flex-col justify-center' : ''}`}>
+        <div className={`flex flex-col items-center ${isFullscreen ? 'h-full justify-center' : ''}`}>
           {/* Nível atual e valores */}
-          <div className={`text-center mb-4 transition-all duration-300 ${showLevelChange ? 'scale-125 animate-pulse' : ''}`}>
+          <div className={`text-center mb-4 transition-all duration-300 ${showLevelChange ? 'scale-150 animate-pulse' : ''}`}>
             {blindLevels[currentLevelIndex] && (
               <>
                 <div className="text-sm text-muted-foreground">
                   {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex].level}`}
                 </div>
                 {!isCurrentLevelBreak && (
-                  <div className="text-xl font-bold">
+                  <div className="text-2xl md:text-3xl font-bold text-yellow-400">
                     SB: {blindLevels[currentLevelIndex].smallBlind} / 
                     BB: {blindLevels[currentLevelIndex].bigBlind}
                     {blindLevels[currentLevelIndex].ante > 0 && ` / Ante: ${blindLevels[currentLevelIndex].ante}`}
@@ -324,17 +328,21 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
           </div>
           
           {/* Timer grande */}
-          <div className="text-6xl md:text-8xl font-bold tabular-nums mb-4">
+          <div className="text-6xl md:text-8xl font-bold tabular-nums mb-6">
             {formatTime(currentTime)}
           </div>
           
-          {/* Barra de progresso */}
-          <div className="w-full mb-4">
-            <Progress value={calculateProgress()} className="h-3" />
+          {/* Barra de progresso clicável */}
+          <div 
+            ref={progressRef}
+            className="w-full mb-6 cursor-pointer" 
+            onClick={handleProgressBarClick}
+          >
+            <Progress value={calculateProgress()} className="h-4" />
           </div>
           
           {/* Informações adicionais */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-6 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-8 text-center">
             <div>
               <div className="text-xs text-muted-foreground">HORA ATUAL</div>
               <div className="text-base font-medium">
