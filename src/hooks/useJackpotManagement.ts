@@ -14,32 +14,26 @@ export function useJackpotManagement(
    */
   const updateJackpot = async (seasonId: string, amount: number): Promise<void> => {
     try {
-      // Atualizar o jackpot no banco de dados
+      // Atualizar o jackpot no banco de dados diretamente
+      // Esta operação é atômica e menos propensa a problemas de concorrência
       await pokerDB.updateJackpot(seasonId, amount);
       
-      // Buscar a temporada atualizada
+      // Buscar a temporada atualizada depois da operação de banco de dados
       const updatedSeason = await pokerDB.getSeason(seasonId);
       
       if (!updatedSeason) {
         throw new Error('Temporada não encontrada após atualização');
       }
       
-      // Atualizar o estado local de forma segura
-      setSeasons(prev => {
-        return prev.map(season => {
-          if (season.id === seasonId) {
-            return updatedSeason;
-          }
-          return season;
-        });
-      });
+      // Atualizar os estados de forma segura
+      setSeasons(prev => prev.map(season => 
+        season.id === seasonId ? updatedSeason : season
+      ));
       
       // Se for a temporada ativa, atualizar também
       if (activeSeason?.id === seasonId) {
         setActiveSeason(updatedSeason);
       }
-      
-      // Não retornamos mais a temporada atualizada
     } catch (error) {
       console.error('Erro ao atualizar jackpot:', error);
       throw error;

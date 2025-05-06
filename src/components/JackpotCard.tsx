@@ -1,48 +1,24 @@
 
 import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
-import { useEffect, useState } from "react";
-import { pokerDB } from "@/lib/db";
-import { DollarSign, Plus } from "lucide-react";
-import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
+import { DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
 
 export default function JackpotCard() {
   const { activeSeason } = usePoker();
-  const [jackpotValue, setJackpotValue] = useState<number | null>(null);
   
-  useEffect(() => {
-    // Atualiza o valor do jackpot diretamente do banco de dados
-    // para garantir que temos o valor mais recente
-    if (activeSeason) {
-      const updateJackpot = async () => {
-        const freshSeason = await pokerDB.getSeason(activeSeason.id);
-        if (freshSeason) {
-          setJackpotValue(freshSeason.jackpot);
-        }
-      };
-      
-      updateJackpot();
-    }
-  }, [activeSeason]);
-  
-  const jackpotAmount = jackpotValue !== null 
-    ? jackpotValue 
-    : (activeSeason?.jackpot || 0);
+  // Usar o valor do jackpot diretamente do objeto activeSeason
+  const jackpotAmount = activeSeason?.jackpot || 0;
 
   return (
     <div className="card-dashboard animate-card-float relative">
       <div className="flex justify-between items-center mb-2">
         <h3 className="card-dashboard-header">Jackpot Atual</h3>
         {activeSeason && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-poker-dark-green/20 text-white h-7 w-7"
-          >
-            <Plus className="h-5 w-5" />
+          <div className="flex">
             <AddJackpotDialog />
-          </Button>
+          </div>
         )}
       </div>
       

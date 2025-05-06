@@ -36,7 +36,7 @@ export function AddJackpotDialog() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirm = async () => {
-    if (!activeSeason || isSubmitting) return;
+    if (!activeSeason || isSubmitting || !amount) return;
     
     try {
       setIsSubmitting(true);
@@ -53,6 +53,9 @@ export function AddJackpotDialog() {
       
       const valueToAdd = isAddition ? numericAmount : -numericAmount;
       
+      // Adicione um pequeno atraso antes da operação principal para evitar problemas de UI
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
       await updateJackpot(activeSeason.id, valueToAdd);
       
       toast({
@@ -60,11 +63,18 @@ export function AddJackpotDialog() {
         description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
       });
       
-      // Limpa o formulário e fecha os diálogos
+      // Limpa o formulário
       setAmount("");
       setIsAddition(true);
-      setConfirmOpen(false);
-      setOpen(false);
+      
+      // Fecha os diálogos com um pequeno atraso para evitar problemas de UI
+      setTimeout(() => {
+        setConfirmOpen(false);
+        setTimeout(() => {
+          setOpen(false);
+        }, 100);
+      }, 100);
+      
     } catch (error) {
       console.error("Erro ao atualizar jackpot:", error);
       toast({
@@ -79,9 +89,12 @@ export function AddJackpotDialog() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setConfirmOpen(true);
+    if (!isSubmitting) {
+      setConfirmOpen(true);
+    }
   };
 
+  // Se não tiver temporada ativa, não renderiza o diálogo
   if (!activeSeason) return null;
 
   return (
@@ -90,6 +103,12 @@ export function AddJackpotDialog() {
         // Não permitir fechamento durante submissão
         if (isSubmitting) return;
         setOpen(newOpen);
+        
+        // Se estiver fechando, redefinir o formulário
+        if (!newOpen) {
+          setAmount("");
+          setIsAddition(true);
+        }
       }}>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex gap-2">
@@ -113,7 +132,7 @@ export function AddJackpotDialog() {
                 <Button
                   type="button"
                   variant={isAddition ? "default" : "outline"} 
-                  onClick={() => setIsAddition(true)}
+                  onClick={() => !isSubmitting && setIsAddition(true)}
                   className="w-1/2"
                   disabled={isSubmitting}
                 >
@@ -123,7 +142,7 @@ export function AddJackpotDialog() {
                 <Button
                   type="button"
                   variant={!isAddition ? "default" : "outline"}
-                  onClick={() => setIsAddition(false)}
+                  onClick={() => !isSubmitting && setIsAddition(false)}
                   className="w-1/2"
                   disabled={isSubmitting}
                 >
@@ -137,9 +156,9 @@ export function AddJackpotDialog() {
                   id="amount"
                   type="number"
                   step="0.01"
-                  min="0"
+                  min="0.01"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => !isSubmitting && setAmount(e.target.value)}
                   placeholder="0,00"
                   className="col-span-3"
                   required
@@ -148,7 +167,7 @@ export function AddJackpotDialog() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || !amount}>
                 {isSubmitting ? "Processando..." : (isAddition ? "Adicionar ao Jackpot" : "Remover do Jackpot")}
               </Button>
             </DialogFooter>
