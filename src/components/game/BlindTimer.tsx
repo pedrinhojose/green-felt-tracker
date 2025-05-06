@@ -1,11 +1,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { usePoker } from "@/contexts/PokerContext";
 import { BlindLevel } from "@/lib/db/models";
-import { Maximize, Minimize, SkipBack, SkipForward, Pause, Play } from "lucide-react";
+import { SkipBack, SkipForward, Pause, Play, Maximize, Minimize } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -25,7 +25,6 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
   const [showLevelChange, setShowLevelChange] = useState<boolean>(false);
   const timerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const countdownSoundStarted = useRef<boolean>(false);
   
   // Calcular a porcentagem de progresso
@@ -189,8 +188,8 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
           gainNode.connect(audioContext.destination);
           
           oscillator.type = 'sine';
-          oscillator.frequency.value = 600; // Frequência mais suave
-          gainNode.gain.value = 0.2; // Volume mais baixo
+          oscillator.frequency.value = 500; // Frequência mais suave
+          gainNode.gain.value = 0.15; // Volume mais baixo
           
           oscillator.start();
           
@@ -219,13 +218,13 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
       gain.connect(audioContext.destination);
       
       osc.type = 'sine';
-      osc.frequency.value = 800;
-      gain.gain.value = 0.3;
+      osc.frequency.value = 600;
+      gain.gain.value = 0.2;
       
       osc.start();
       
       // Desenhar a forma de onda para criar um som mais agradável
-      gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gain.gain.setValueAtTime(0.2, audioContext.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
       
       setTimeout(() => {
@@ -292,78 +291,93 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
   return (
     <Card 
       ref={timerRef} 
-      className={`${isFullscreen ? 'fixed inset-0 z-50 rounded-none flex flex-col' : ''}`}
+      className={`${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''} bg-poker-dark-green border-0 overflow-hidden`}
     >
-      <CardHeader className={`pb-2 ${isFullscreen ? 'flex-shrink-0' : ''}`}>
-        <CardTitle className="flex justify-between items-center">
-          <span>Cronômetro de Blinds</span>
-          <Button
-            onClick={toggleFullscreen}
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-          >
-            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className={`${isFullscreen ? 'flex-grow flex flex-col justify-center' : ''}`}>
-        <div className={`flex flex-col items-center ${isFullscreen ? 'h-full justify-center' : ''}`}>
-          {/* Nível atual e valores */}
-          <div className={`text-center mb-4 transition-all duration-300 ${showLevelChange ? 'scale-150 animate-pulse' : ''}`}>
-            {blindLevels[currentLevelIndex] && (
-              <>
-                <div className="text-sm text-muted-foreground">
-                  {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex].level}`}
-                </div>
-                {!isCurrentLevelBreak && (
-                  <div className="text-2xl md:text-3xl font-bold text-yellow-400">
-                    SB: {blindLevels[currentLevelIndex].smallBlind} / 
-                    BB: {blindLevels[currentLevelIndex].bigBlind}
-                    {blindLevels[currentLevelIndex].ante > 0 && ` / Ante: ${blindLevels[currentLevelIndex].ante}`}
-                  </div>
-                )}
-              </>
+      {/* Barra de ouro na parte superior em modo tela cheia */}
+      {isFullscreen && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-poker-gold"></div>
+      )}
+      
+      <CardContent className={`p-0 ${isFullscreen ? 'h-screen flex flex-col justify-between' : ''}`}>
+        <div className="flex flex-col items-center p-6">
+          {/* Nível atual */}
+          <div className="text-center mb-6">
+            <div className={`text-xl text-gray-300 uppercase font-medium transition-all ${showLevelChange ? 'scale-110' : ''}`}>
+              {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex]?.level || 1}`}
+            </div>
+            
+            {/* Valores de SB e BB */}
+            {!isCurrentLevelBreak && blindLevels[currentLevelIndex] && (
+              <div className={`text-4xl md:text-5xl font-bold text-poker-gold transition-all ${showLevelChange ? 'scale-110' : ''}`}>
+                SB: {blindLevels[currentLevelIndex].smallBlind} / BB: {blindLevels[currentLevelIndex].bigBlind}
+                {blindLevels[currentLevelIndex].ante > 0 && ` / ANTE: ${blindLevels[currentLevelIndex].ante}`}
+              </div>
             )}
           </div>
           
           {/* Timer grande */}
-          <div className="text-6xl md:text-8xl font-bold tabular-nums mb-6">
+          <div className="text-7xl md:text-9xl font-bold tabular-nums mb-8 text-white">
             {formatTime(currentTime)}
           </div>
           
-          {/* Barra de progresso clicável */}
+          {/* Barra de progresso (agora é uma linha amarela) */}
           <div 
             ref={progressRef}
-            className="w-full mb-6 cursor-pointer" 
+            className="w-full mb-8 cursor-pointer" 
             onClick={handleProgressBarClick}
           >
-            <Progress value={calculateProgress()} className="h-4" />
+            <Progress value={calculateProgress()} className="h-1 bg-gray-800" barClassName="bg-poker-gold" />
           </div>
+        </div>
+        
+        {/* Barra de informações inferiores e controles */}
+        <div className={`flex flex-col ${isFullscreen ? 'mt-auto' : ''}`}>
+          {/* Barra de ouro separadora */}
+          <div className="h-1 w-full bg-poker-gold"></div>
           
-          {/* Informações adicionais */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-8 text-center">
-            <div>
-              <div className="text-xs text-muted-foreground">HORA ATUAL</div>
-              <div className="text-base font-medium">
-                {format(new Date(), 'HH:mm', { locale: ptBR })}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">TEMPO DE JOGO</div>
-              <div className="text-base font-medium">
-                {formatElapsedTime(currentGameTime)}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">PRÓXIMO INTERVALO</div>
-              <div className="text-base font-medium">
+          <div className="bg-poker-dark-green p-4 flex flex-wrap justify-between">
+            {/* Informações do jogo */}
+            <div className="flex flex-col items-center px-4">
+              <div className="text-xs text-gray-400 uppercase">PRÓXIMO INTERVALO</div>
+              <div className="text-base font-medium text-gray-200">
                 {calculateTimeToBreak()}
               </div>
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground">PRÓXIMO NÍVEL</div>
-              <div className="text-base font-medium">
+            
+            {/* Controles do timer */}
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                onClick={handlePreviousLevel}
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 bg-transparent border-gray-700 hover:bg-gray-800"
+                disabled={currentLevelIndex === 0}
+              >
+                <SkipBack size={18} className="text-gray-300" />
+              </Button>
+              
+              <Button
+                onClick={toggleTimer}
+                className={`h-12 w-12 rounded-full ${timerRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+              >
+                {timerRunning ? <Pause size={22} /> : <Play size={22} />}
+              </Button>
+              
+              <Button
+                onClick={handleNextLevel}
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 bg-transparent border-gray-700 hover:bg-gray-800"
+                disabled={currentLevelIndex >= blindLevels.length - 1}
+              >
+                <SkipForward size={18} className="text-gray-300" />
+              </Button>
+            </div>
+            
+            {/* Informações do tempo */}
+            <div className="flex flex-col items-center px-4">
+              <div className="text-xs text-gray-400 uppercase">PRÓXIMO NÍVEL</div>
+              <div className="text-base font-medium text-gray-200">
                 {currentLevelIndex + 1 < blindLevels.length ? 
                   (blindLevels[currentLevelIndex + 1].isBreak ? 
                     "INTERVALO" : 
@@ -373,34 +387,29 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
             </div>
           </div>
           
-          {/* Controles do timer */}
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              onClick={handlePreviousLevel}
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              disabled={currentLevelIndex === 0}
-            >
-              <SkipBack size={20} />
-            </Button>
+          <div className="bg-poker-black px-4 py-3 flex justify-between items-center">
+            <div className="flex flex-col">
+              <div className="text-xs text-gray-400 uppercase">TEMPO DE JOGO</div>
+              <div className="text-base font-medium text-gray-200">
+                {formatElapsedTime(currentGameTime)}
+              </div>
+            </div>
             
             <Button
-              onClick={toggleTimer}
-              className={`h-12 w-12 rounded-full ${timerRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+              onClick={toggleFullscreen}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-400 hover:text-white"
             >
-              {timerRunning ? <Pause size={24} /> : <Play size={24} />}
+              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
             </Button>
             
-            <Button
-              onClick={handleNextLevel}
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              disabled={currentLevelIndex >= blindLevels.length - 1}
-            >
-              <SkipForward size={20} />
-            </Button>
+            <div className="flex flex-col items-end">
+              <div className="text-xs text-gray-400 uppercase">HORA ATUAL</div>
+              <div className="text-base font-medium text-gray-200">
+                {format(new Date(), 'HH:mm', { locale: ptBR })}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
