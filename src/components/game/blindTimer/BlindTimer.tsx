@@ -87,19 +87,6 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
         <div className="absolute top-0 left-0 right-0 h-1 bg-poker-gold"></div>
       )}
       
-      {/* Botão de mudo - Agora em uma posição mais visível */}
-      <div className="absolute top-4 right-4 z-10">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={toggleMute} 
-          className="bg-poker-dark-green/60 text-white hover:text-white hover:bg-poker-dark-green/90"
-          title={isMuted ? "Ativar som" : "Desativar som"}
-        >
-          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-        </Button>
-      </div>
-      
       <CardContent className={`p-0 ${isFullscreen ? 'h-screen flex flex-col justify-between' : ''}`}>
         <TimerDisplay
           currentTime={currentTime}
@@ -113,6 +100,19 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
           progressRef={progressRef}
           handleProgressBarClick={handleProgressBarClick}
         />
+        
+        {/* Área do botão mudo abaixo do timer, antes dos controles */}
+        <div className="w-full flex justify-center py-2 bg-poker-dark-green/80 border-t border-poker-gold/10">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleMute} 
+            className="text-white/80 hover:text-poker-gold hover:bg-poker-dark-green/90 transition-colors"
+            title={isMuted ? "Ativar som" : "Desativar som"}
+          >
+            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </Button>
+        </div>
         
         {/* Barra de informações inferiores e controles */}
         <TimerControls
