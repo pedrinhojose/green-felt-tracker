@@ -26,7 +26,8 @@ export const createPlayerRow = (
   
   // Coluna de posição
   const positionCell = document.createElement('td');
-  positionCell.style.padding = '8px 16px';
+  positionCell.style.padding = '8px 8px 8px 16px';
+  positionCell.style.width = '50px';
   positionCell.style.textAlign = 'center';
   
   // Use getMedalEmoji if provided, otherwise use default position number
@@ -44,12 +45,12 @@ export const createPlayerRow = (
   
   // Coluna do jogador com avatar
   const playerCell = document.createElement('td');
-  playerCell.style.padding = '8px 16px';
+  playerCell.style.padding = '8px 4px';
   
   const playerDiv = document.createElement('div');
   playerDiv.style.display = 'flex';
   playerDiv.style.alignItems = 'center';
-  playerDiv.style.gap = '12px';
+  playerDiv.style.gap = '8px';
   
   // Avatar
   const avatarDiv = createPlayerAvatar(ranking, getInitials);
@@ -72,18 +73,20 @@ export const createPlayerRow = (
   pointsCell.textContent = ranking.totalPoints.toString();
   pointsCell.style.textAlign = 'center';
   pointsCell.style.fontWeight = 'bold';
-  pointsCell.style.padding = '8px 16px';
+  pointsCell.style.padding = '8px 4px';
   pointsCell.style.fontSize = '18px';
   pointsCell.style.color = '#D4AF37'; // Cor dourada
+  pointsCell.style.width = '80px';
   row.appendChild(pointsCell);
   
   // Partidas
   const gamesCell = document.createElement('td');
   gamesCell.textContent = ranking.gamesPlayed.toString();
   gamesCell.style.textAlign = 'center';
-  gamesCell.style.padding = '8px 16px';
+  gamesCell.style.padding = '8px 4px';
   gamesCell.style.fontSize = '18px';
   gamesCell.style.color = '#ffffff';
+  gamesCell.style.width = '80px';
   row.appendChild(gamesCell);
   
   return row;

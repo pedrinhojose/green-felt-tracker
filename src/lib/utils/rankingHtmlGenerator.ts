@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for generating HTML elements for the ranking export
  */
@@ -87,25 +88,19 @@ export const createTableHeader = () => {
   headerRow.style.borderBottom = '1px solid #2D3748';
   
   // Cabeçalhos conforme a imagem: Pos., Jogador, Pontos, Partidas
-  const headers = ['Pos.', 'Jogador', 'Pontos', 'Partidas'];
-  const columnWidths = ['60px', '1fr', '100px', '100px'];
+  const headers = ['#', 'Jogador', 'Jogos', 'Pontos'];
+  const columnWidths = ['50px', 'auto', '80px', '80px'];
+  const textAligns = ['center', 'left', 'center', 'center'];
   
   headers.forEach((headerText, index) => {
     const th = document.createElement('th');
     th.textContent = headerText;
-    th.style.padding = '8px 16px';
-    th.style.textAlign = index === 1 ? 'left' : 'center';
+    th.style.padding = index === 0 ? '8px 8px 8px 16px' : '8px 4px';
+    th.style.textAlign = textAligns[index];
     th.style.fontSize = '16px';
     th.style.fontWeight = 'bold';
     th.style.color = '#ffffff';
-    
-    if (index === 0) {
-      th.style.width = columnWidths[0];
-    } else if (index === 1) {
-      th.style.width = columnWidths[1];
-    } else {
-      th.style.width = columnWidths[index];
-    }
+    th.style.width = columnWidths[index];
     
     headerRow.appendChild(th);
   });

@@ -3,6 +3,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RankingEntry } from "@/lib/db/models";
 import { useRef } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface RankingTableProps {
   sortedRankings: RankingEntry[];
@@ -32,28 +40,31 @@ export default function RankingTable({
       <CardHeader className="pb-2">
         <CardTitle>Classificação</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4">
         <div id="ranking-table" ref={rankingTableRef} className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-poker-dark-green">
-                <th className="text-left py-2 px-4">#</th>
-                <th className="text-left py-2 px-4">Jogador</th>
-                <th className="text-center py-2 px-4">Jogos</th>
-                <th className="text-center py-2 px-4">Pontos</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-poker-dark-green">
+                <TableHead className="w-12 pr-0 py-2">#</TableHead>
+                <TableHead className="px-1 py-2">Jogador</TableHead>
+                <TableHead className="text-center w-20 py-2">Jogos</TableHead>
+                <TableHead className="text-center w-20 py-2">Pontos</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {currentPageRankings.map((ranking, index) => (
-                <tr key={ranking.playerId} className="border-b border-poker-dark-green hover:bg-poker-dark-green/30">
-                  <td className="py-3 px-4 font-semibold">
+                <TableRow 
+                  key={ranking.playerId} 
+                  className="border-b border-poker-dark-green hover:bg-poker-dark-green/30"
+                >
+                  <TableCell className="py-3 pr-1 pl-2 font-semibold w-12">
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-poker-dark-green text-center">
                       {getMedalEmoji(startIndex + index)}
                     </span>
-                  </td>
+                  </TableCell>
                   
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
+                  <TableCell className="py-3 px-1">
+                    <div className="flex items-center gap-2">
                       <Avatar className="h-10 w-10">
                         {ranking.photoUrl ? (
                           <AvatarImage src={ranking.photoUrl} alt={ranking.playerName} />
@@ -64,15 +75,17 @@ export default function RankingTable({
                       </Avatar>
                       <div className="font-medium">{ranking.playerName}</div>
                     </div>
-                  </td>
+                  </TableCell>
                   
-                  <td className="py-3 px-4 text-center">{ranking.gamesPlayed}</td>
+                  <TableCell className="py-3 px-2 text-center w-20">{ranking.gamesPlayed}</TableCell>
                   
-                  <td className="py-3 px-4 text-center font-bold text-poker-gold">{ranking.totalPoints}</td>
-                </tr>
+                  <TableCell className="py-3 px-2 text-center font-bold text-poker-gold w-20">
+                    {ranking.totalPoints}
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
