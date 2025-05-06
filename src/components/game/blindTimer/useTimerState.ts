@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { BlindLevel } from "@/lib/db/models";
@@ -85,7 +84,9 @@ export function useTimerState(initialTime = 15 * 60): TimerState {
   const calculateProgress = () => {
     if (!blindLevels[currentLevelIndex]) return 0;
     const totalTime = blindLevels[currentLevelIndex].duration * 60;
-    return ((totalTime - currentTime) / totalTime) * 100;
+    // Certifica que retorna um valor entre 0 e 100
+    const calculatedProgress = ((totalTime - currentTime) / totalTime) * 100;
+    return Math.max(0, Math.min(100, calculatedProgress));
   };
   
   // Verificar se o próximo nível é um intervalo
