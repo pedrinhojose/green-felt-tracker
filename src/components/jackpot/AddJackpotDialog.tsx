@@ -65,7 +65,13 @@ export function AddJackpotDialog() {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <span className="sr-only">Adicionar ao Jackpot</span>
+          <Button variant="outline" className="flex gap-2">
+            {isAddition ? 
+              <PlusCircle className="h-4 w-4" /> : 
+              <MinusCircle className="h-4 w-4" />
+            }
+            Atualizar Jackpot
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

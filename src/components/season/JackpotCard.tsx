@@ -2,6 +2,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
+import { Button } from "@/components/ui/button";
+import { AddJackpotDialog } from "@/components/jackpot/AddJackpotDialog";
+import { PlusCircle } from "lucide-react";
 
 interface JackpotCardProps {
   activeSeason: Season;
@@ -10,8 +13,9 @@ interface JackpotCardProps {
 export function JackpotCard({ activeSeason }: JackpotCardProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Jackpot Final</CardTitle>
+        <AddJackpotDialog />
       </CardHeader>
       <CardContent>
         <div className="text-center">
