@@ -5,9 +5,21 @@ import { BlindLevel } from "@/lib/db/models";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BlindLevelConfigProps {
   blindLevels: BlindLevel[];
@@ -15,6 +27,10 @@ interface BlindLevelConfigProps {
 }
 
 export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProps) {
+  const [isBreakDialogOpen, setIsBreakDialogOpen] = useState(false);
+  const [breakAfterLevel, setBreakAfterLevel] = useState<string>("1");
+  const [breakDuration, setBreakDuration] = useState<number>(15);
+
   const addLevel = () => {
     const newLevel: BlindLevel = {
       id: uuidv4(),
@@ -29,16 +45,38 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
   };
 
   const addBreak = () => {
+    const selectedLevelIndex = parseInt(breakAfterLevel);
+    
+    // Create the new break
     const newBreak: BlindLevel = {
       id: uuidv4(),
-      level: blindLevels.length + 1,
+      level: selectedLevelIndex + 1,
       smallBlind: 0,
       bigBlind: 0,
       ante: 0,
-      duration: 15,
+      duration: breakDuration,
       isBreak: true,
     };
-    onChange([...blindLevels, newBreak]);
+    
+    // Get the levels before and after the selected index
+    const levelsBeforeBreak = blindLevels.slice(0, selectedLevelIndex);
+    const levelsAfterBreak = blindLevels.slice(selectedLevelIndex);
+    
+    // Insert the break and update subsequent level numbers
+    const updatedLevelsAfterBreak = levelsAfterBreak.map(level => ({
+      ...level,
+      level: level.level + 1
+    }));
+    
+    // Combine all levels with the break inserted
+    const updatedLevels = [
+      ...levelsBeforeBreak,
+      newBreak,
+      ...updatedLevelsAfterBreak
+    ];
+    
+    onChange(updatedLevels);
+    setIsBreakDialogOpen(false);
   };
 
   const updateLevel = (index: number, field: keyof BlindLevel, value: any) => {
@@ -69,7 +107,7 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
               <Plus size={16} />
               Adicionar Nível
             </Button>
-            <Button onClick={addBreak} variant="outline" className="flex items-center gap-1">
+            <Button onClick={() => setIsBreakDialogOpen(true)} variant="outline" className="flex items-center gap-1">
               <Plus size={16} />
               Adicionar Intervalo
             </Button>
@@ -81,74 +119,143 @@ export function BlindLevelConfig({ blindLevels, onChange }: BlindLevelConfigProp
             </div>
           )}
 
-          <div className="space-y-4">
-            {blindLevels.map((level, index) => (
-              <div key={level.id} className={`p-4 rounded-lg border ${level.isBreak ? 'bg-muted/50 border-dashed' : ''}`}>
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-medium">
-                    {level.isBreak ? 'Intervalo' : `Nível ${level.level}`}
-                  </h4>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeLevel(index)}
-                    className="h-8 w-8 text-destructive"
+          {/* Tabela de níveis de blind */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-poker-dark-green bg-poker-navy/20">
+                  <th className="text-left py-2 pl-3 w-20">Nível</th>
+                  <th className="text-left py-2 pl-2 w-28">Small Blind</th>
+                  <th className="text-left py-2 pl-2 w-28">Big Blind</th>
+                  <th className="text-left py-2 pl-2 w-28">Ante</th>
+                  <th className="text-left py-2 pl-2 w-28">Duração (min)</th>
+                  <th className="w-10"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {blindLevels.map((level, index) => (
+                  <tr 
+                    key={level.id} 
+                    className={`border-b ${level.isBreak ? 'bg-muted/30' : ''}`}
                   >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {!level.isBreak && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor={`small-blind-${index}`}>Small Blind</Label>
-                        <Input
-                          id={`small-blind-${index}`}
-                          type="number"
-                          min="0"
-                          value={level.smallBlind}
-                          onChange={(e) => updateLevel(index, 'smallBlind', Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`big-blind-${index}`}>Big Blind</Label>
-                        <Input
-                          id={`big-blind-${index}`}
-                          type="number"
-                          min="0"
-                          value={level.bigBlind}
-                          onChange={(e) => updateLevel(index, 'bigBlind', Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`ante-${index}`}>Ante</Label>
-                        <Input
-                          id={`ante-${index}`}
-                          type="number"
-                          min="0"
-                          value={level.ante}
-                          onChange={(e) => updateLevel(index, 'ante', Number(e.target.value))}
-                        />
-                      </div>
-                    </>
-                  )}
-                  <div className="space-y-2">
-                    <Label htmlFor={`duration-${index}`}>Duração (minutos)</Label>
-                    <Input
-                      id={`duration-${index}`}
-                      type="number"
-                      min="1"
-                      value={level.duration}
-                      onChange={(e) => updateLevel(index, 'duration', Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+                    <td className="py-3 pl-3 font-medium">
+                      {level.isBreak ? `Intervalo ${level.level}` : `Nível ${level.level}`}
+                    </td>
+                    
+                    {level.isBreak ? (
+                      <td className="py-3 pl-2" colSpan={3}>
+                        Pausa para descanso
+                      </td>
+                    ) : (
+                      <>
+                        <td className="py-3 pl-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={level.smallBlind}
+                            onChange={(e) => updateLevel(index, 'smallBlind', Number(e.target.value))}
+                            className="h-8 w-full"
+                          />
+                        </td>
+                        <td className="py-3 pl-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={level.bigBlind}
+                            onChange={(e) => updateLevel(index, 'bigBlind', Number(e.target.value))}
+                            className="h-8 w-full"
+                          />
+                        </td>
+                        <td className="py-3 pl-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={level.ante}
+                            onChange={(e) => updateLevel(index, 'ante', Number(e.target.value))}
+                            className="h-8 w-full"
+                          />
+                        </td>
+                      </>
+                    )}
+                    
+                    <td className="py-3 pl-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={level.duration}
+                        onChange={(e) => updateLevel(index, 'duration', Number(e.target.value))}
+                        className="h-8 w-full"
+                      />
+                    </td>
+                    
+                    <td className="py-3 pl-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeLevel(index)}
+                        className="h-8 w-8 text-destructive"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </CardContent>
+
+      {/* Diálogo para adicionar intervalo */}
+      <Dialog open={isBreakDialogOpen} onOpenChange={setIsBreakDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Intervalo</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="level-select" className="text-sm font-medium">
+                Adicionar intervalo após o nível:
+              </label>
+              <Select
+                value={breakAfterLevel}
+                onValueChange={setBreakAfterLevel}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o nível" />
+                </SelectTrigger>
+                <SelectContent>
+                  {blindLevels.filter(level => !level.isBreak).map((level, index) => (
+                    <SelectItem key={level.id} value={String(index)}>
+                      Nível {level.level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="break-duration" className="text-sm font-medium">
+                Duração do intervalo (minutos):
+              </label>
+              <Input
+                id="break-duration"
+                type="number"
+                min="1"
+                value={breakDuration}
+                onChange={(e) => setBreakDuration(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBreakDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={addBreak}>
+              Adicionar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
