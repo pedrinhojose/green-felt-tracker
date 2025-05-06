@@ -2,7 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
-import { AddJackpotDialog } from "@/components/jackpot/AddJackpotDialog";
 import { memo, useMemo } from "react";
 
 interface JackpotCardProps {
@@ -20,7 +19,6 @@ export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCa
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Jackpot Final</CardTitle>
-        <AddJackpotDialog />
       </CardHeader>
       <CardContent>
         <div className="text-center">

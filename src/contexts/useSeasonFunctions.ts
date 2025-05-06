@@ -1,6 +1,5 @@
 
 import { useSeasonCrud } from '../hooks/useSeasonCrud';
-import { useJackpotManagement } from '../hooks/useJackpotManagement';
 import { useSeasonFinalization } from '../hooks/useSeasonFinalization';
 
 export function useSeasonFunctions() {
@@ -12,12 +11,6 @@ export function useSeasonFunctions() {
     createSeason, 
     updateSeason 
   } = useSeasonCrud();
-  
-  const { updateJackpot } = useJackpotManagement(
-    setSeasons, 
-    activeSeason, 
-    setActiveSeason
-  );
   
   const { endSeason } = useSeasonFinalization(
     setSeasons, 
@@ -31,7 +24,6 @@ export function useSeasonFunctions() {
     setActiveSeason,
     createSeason,
     updateSeason,
-    endSeason,
-    updateJackpot
+    endSeason
   };
 }

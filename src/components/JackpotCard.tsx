@@ -3,7 +3,6 @@ import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { DollarSign } from "lucide-react";
 import { memo, useMemo } from "react";
-import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
 
 // Usando memo com uma função de comparação personalizada
 const JackpotCard = memo(function JackpotCard() {
@@ -19,11 +18,6 @@ const JackpotCard = memo(function JackpotCard() {
     <div className="card-dashboard animate-card-float relative">
       <div className="flex justify-between items-center mb-2">
         <h3 className="card-dashboard-header">Jackpot Atual</h3>
-        {activeSeason && (
-          <div className="flex">
-            <AddJackpotDialog />
-          </div>
-        )}
       </div>
       
       <div className="flex-1 flex items-center justify-center">
