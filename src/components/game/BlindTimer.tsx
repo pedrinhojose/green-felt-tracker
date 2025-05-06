@@ -323,60 +323,10 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
             <Progress value={calculateProgress()} className="h-1 bg-gray-800" barClassName="bg-poker-gold" />
           </div>
           
-          {/* Timer grande com informações laterais */}
-          <div className="bg-poker-dark-green grid grid-cols-3 py-8 md:py-12">
-            {/* Coluna esquerda - Níveis */}
-            <div className="flex flex-col justify-center items-center">
-              <div className="text-lg text-gray-400 uppercase mb-2">NÍVEL ATUAL</div>
-              <div className="text-4xl font-bold text-poker-gold">
-                {isCurrentLevelBreak ? "INTERVALO" : `${blindLevels[currentLevelIndex]?.level || 1}`}
-              </div>
-              
-              <div className="mt-4 text-lg text-gray-400 uppercase mb-2">PRÓXIMO NÍVEL</div>
-              <div className="text-3xl font-bold text-white">
-                {currentLevelIndex + 1 < blindLevels.length ? 
-                  (blindLevels[currentLevelIndex + 1].isBreak ? 
-                    "INTERVALO" : 
-                    `${blindLevels[currentLevelIndex + 1].level}`) : 
-                  "Final"}
-              </div>
-              
-              <div className="mt-4 text-lg text-gray-400 uppercase mb-2">BLINDS</div>
-              <div className="text-3xl font-bold text-poker-gold">
-                {!isCurrentLevelBreak && blindLevels[currentLevelIndex] && (
-                  <>
-                    {blindLevels[currentLevelIndex].smallBlind}/{blindLevels[currentLevelIndex].bigBlind}
-                    {blindLevels[currentLevelIndex].ante > 0 && `/${blindLevels[currentLevelIndex].ante}`}
-                  </>
-                )}
-              </div>
-            </div>
-            
-            {/* Coluna central - Timer */}
-            <div className="flex justify-center items-center">
-              <div className="text-7xl md:text-9xl font-bold tabular-nums text-white">
-                {formatTime(currentTime)}
-              </div>
-            </div>
-            
-            {/* Coluna direita - Informações de intervalo */}
-            <div className="flex flex-col justify-center items-center">
-              <div className="text-lg text-gray-400 uppercase mb-2">PRÓXIMO INTERVALO</div>
-              <div className="text-4xl font-bold text-poker-gold">
-                {calculateTimeToBreak()}
-              </div>
-              
-              <div className="mt-4 text-lg text-gray-400 uppercase mb-2">PRÓXIMOS BLINDS</div>
-              <div className="text-3xl font-bold text-white">
-                {currentLevelIndex + 1 < blindLevels.length && !blindLevels[currentLevelIndex + 1].isBreak ? 
-                  `${blindLevels[currentLevelIndex + 1].smallBlind}/${blindLevels[currentLevelIndex + 1].bigBlind}` : 
-                  "-"}
-              </div>
-              
-              <div className="mt-4 text-lg text-gray-400 uppercase mb-2">HORA ATUAL</div>
-              <div className="text-3xl font-bold text-poker-gold">
-                {format(new Date(), 'HH:mm', { locale: ptBR })}
-              </div>
+          {/* Timer grande */}
+          <div className="bg-poker-dark-green text-center py-8 md:py-12">
+            <div className="text-7xl md:text-9xl font-bold tabular-nums text-white">
+              {formatTime(currentTime)}
             </div>
           </div>
           
@@ -408,6 +358,34 @@ export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
             >
               <SkipForward size={20} className="text-gray-300" />
             </Button>
+          </div>
+          
+          {/* Barra de informações */}
+          <div className="grid grid-cols-3 gap-4 items-center bg-poker-dark-green px-4 py-4 border-t border-gray-800">
+            <div className="flex flex-col justify-center text-center">
+              <div className="text-xs text-gray-400 uppercase">PRÓXIMO NÍVEL</div>
+              <div className="text-sm font-medium text-poker-gold">
+                {currentLevelIndex + 1 < blindLevels.length ? 
+                  (blindLevels[currentLevelIndex + 1].isBreak ? 
+                    "INTERVALO" : 
+                    `${blindLevels[currentLevelIndex + 1].smallBlind}/${blindLevels[currentLevelIndex + 1].bigBlind}`) : 
+                  "Final"}
+              </div>
+            </div>
+            
+            <div className="flex flex-col justify-center text-center">
+              <div className="text-xs text-gray-400 uppercase">HORA ATUAL</div>
+              <div className="text-sm font-medium text-white">
+                {format(new Date(), 'HH:mm', { locale: ptBR })}
+              </div>
+            </div>
+            
+            <div className="flex flex-col justify-center text-center">
+              <div className="text-xs text-gray-400 uppercase">PRÓXIMO INTERVALO</div>
+              <div className="text-sm font-medium text-poker-gold">
+                {calculateTimeToBreak()}
+              </div>
+            </div>
           </div>
           
           {/* Barra de rodapé */}
