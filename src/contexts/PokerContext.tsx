@@ -24,7 +24,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   const { 
     seasons, setSeasons, 
     activeSeason, setActiveSeason, 
-    createSeason, updateSeason, endSeason, updateJackpot 
+    createSeason, updateSeason, endSeason 
   } = useSeasonFunctions();
   
   const { 
@@ -101,7 +101,6 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     createSeason,
     updateSeason,
     endSeason,
-    updateJackpot,
     
     // Games
     games,
