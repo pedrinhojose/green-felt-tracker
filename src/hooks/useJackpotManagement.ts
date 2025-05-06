@@ -12,7 +12,7 @@ export function useJackpotManagement(
   /**
    * Updates the jackpot amount for a season
    */
-  const updateJackpot = async (seasonId: string, amount: number) => {
+  const updateJackpot = async (seasonId: string, amount: number): Promise<void> => {
     try {
       // Atualizar o jackpot no banco de dados
       await pokerDB.updateJackpot(seasonId, amount);
@@ -39,7 +39,7 @@ export function useJackpotManagement(
         setActiveSeason(updatedSeason);
       }
       
-      return updatedSeason;
+      // Não retornamos mais a temporada atualizada
     } catch (error) {
       console.error('Erro ao atualizar jackpot:', error);
       throw error;
