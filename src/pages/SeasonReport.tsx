@@ -7,6 +7,7 @@ import { FileText, Image, ArrowLeft } from "lucide-react";
 import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
 import SeasonPrizePoolSummary from "@/components/reports/SeasonPrizePoolSummary";
 import JackpotWinnersCard from "@/components/reports/JackpotWinnersCard";
+import BestWorstPlayersCard from "@/components/reports/BestWorstPlayersCard";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
 
 export default function SeasonReport() {
@@ -118,6 +119,11 @@ export default function SeasonReport() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* Card de Destaques (Melhor Jogador e Rey do Rebuy) */}
+          {playerStats.length > 0 && (
+            <BestWorstPlayersCard playerStats={playerStats} />
+          )}
           
           {/* Card de Ganhadores do Jackpot */}
           {jackpotWinners.length > 0 && (

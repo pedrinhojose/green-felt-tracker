@@ -10,7 +10,8 @@ export interface PlayerPerformanceStats {
   totalWinnings: number;
   totalInvestment: number;
   balance: number;
-  totalPoints: number; // Adicionando o campo para pontos totais
+  totalPoints: number; 
+  totalRebuys: number; // Adicionado campo para total de rebuys
 }
 
 export interface SeasonSummary {

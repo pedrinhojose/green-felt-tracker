@@ -39,7 +39,8 @@ export function usePlayerStats() {
             totalWinnings: 0,
             totalInvestment: 0,
             balance: 0,
-            totalPoints: 0
+            totalPoints: 0,
+            totalRebuys: 0 // Adicionamos o campo para número total de rebuys
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
         }
@@ -75,6 +76,9 @@ export function usePlayerStats() {
         
         // Adicionar pontos
         playerStat.totalPoints += gamePlayer.points || 0;
+        
+        // Adicionar rebuys
+        playerStat.totalRebuys += gamePlayer.rebuys || 0;
       });
     });
     
