@@ -104,3 +104,9 @@
 .font-poppins {
   font-family: 'Poppins', system-ui, sans-serif;
 }
+
+/* Tamanho de texto personalizado para o nível (30% maior que text-3xl) */
+.text-3\.9xl {
+  font-size: 2.6rem; /* text-3xl é 1.875rem, aumentado em 30% */
+  line-height: 2.9rem; /* ajustado proporcionalmente */
+}
