@@ -3,16 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { AddJackpotDialog } from "@/components/jackpot/AddJackpotDialog";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 
 interface JackpotCardProps {
   activeSeason: Season;
 }
 
-// Using memo to prevent unnecessary re-renders
+// Usando memo com uma função de comparação explícita para prevenir re-renderizações desnecessárias
 export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCardProps) {
-  // Get jackpot amount from active season
-  const jackpotAmount = activeSeason?.jackpot || 0;
+  // Usa useMemo para evitar recálculos do valor formatado a cada renderização
+  const formattedJackpot = useMemo(() => {
+    return formatCurrency(activeSeason?.jackpot || 0);
+  }, [activeSeason?.jackpot]);
 
   return (
     <Card>
@@ -23,7 +25,7 @@ export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCa
       <CardContent>
         <div className="text-center">
           <div className="text-3xl font-bold text-poker-gold mb-2">
-            {formatCurrency(jackpotAmount)}
+            {formattedJackpot}
           </div>
           <p className="text-muted-foreground">
             O jackpot será distribuído ao encerrar a temporada conforme a configuração de premiação final.
@@ -32,4 +34,7 @@ export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCa
       </CardContent>
     </Card>
   );
+}, (prevProps, nextProps) => {
+  // Comparação personalizada: só re-renderiza se o valor do jackpot realmente mudar
+  return prevProps.activeSeason?.jackpot === nextProps.activeSeason?.jackpot;
 });

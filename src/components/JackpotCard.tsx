@@ -2,15 +2,18 @@
 import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { DollarSign } from "lucide-react";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { AddJackpotDialog } from "./jackpot/AddJackpotDialog";
 
-// Using memo to prevent unnecessary re-renders
+// Usando memo com uma função de comparação personalizada
 const JackpotCard = memo(function JackpotCard() {
   const { activeSeason } = usePoker();
   
-  // Get jackpot amount from active season
+  // Usa useMemo para evitar recálculos do valor formatado a cada renderização
   const jackpotAmount = activeSeason?.jackpot || 0;
+  const formattedJackpot = useMemo(() => {
+    return formatCurrency(jackpotAmount);
+  }, [jackpotAmount]);
 
   return (
     <div className="card-dashboard animate-card-float relative">
@@ -55,7 +58,7 @@ const JackpotCard = memo(function JackpotCard() {
             <div className="mt-6 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent drop-shadow-md">
                 {activeSeason ? (
-                  formatCurrency(jackpotAmount)
+                  formattedJackpot
                 ) : (
                   "Sem temporada ativa"
                 )}
@@ -66,6 +69,9 @@ const JackpotCard = memo(function JackpotCard() {
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Como isso é um componente sem props, sempre retornamos true quando não há mudanças no contexto
+  return true;
 });
 
 export default JackpotCard;
