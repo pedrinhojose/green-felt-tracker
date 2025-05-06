@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -71,12 +72,14 @@ export default function SeasonConfig() {
       setValue('addon', 15);
       setValue('jackpotContribution', 5);
       
+      // Updated default score schema matching the image (6 positions)
       setScoreEntries([
         { position: 1, points: 10 },
         { position: 2, points: 7 },
         { position: 3, points: 5 },
         { position: 4, points: 3 },
-        { position: 5, points: 1 }
+        { position: 5, points: 2 },
+        { position: 6, points: 1 }
       ]);
       
       setWeeklyPrizeEntries([

@@ -49,7 +49,7 @@ export function useSeasonFunctions() {
       }
     ];
     
-    // Create new season with updated default score schema (6 positions)
+    // Create new season with default score schema (6 positions) exactly as shown in the image
     const newSeason: Season = {
       id: uuidv4(),
       name: seasonData.name || `Temporada ${seasons.length + 1}`,
