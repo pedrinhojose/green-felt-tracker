@@ -38,7 +38,8 @@ export function usePlayerStats() {
             averagePosition: 0,
             totalWinnings: 0,
             totalInvestment: 0,
-            balance: 0
+            balance: 0,
+            totalPoints: 0
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
         }
@@ -71,6 +72,9 @@ export function usePlayerStats() {
         
         // Atualizar saldo
         playerStat.balance = playerStat.totalWinnings - playerStat.totalInvestment;
+        
+        // Adicionar pontos
+        playerStat.totalPoints += gamePlayer.points || 0;
       });
     });
     

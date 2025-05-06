@@ -31,6 +31,7 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
               <TableHead className="text-center">Jogos</TableHead>
               <TableHead className="text-center">Vitórias</TableHead>
               <TableHead className="text-center">Posição Média</TableHead>
+              <TableHead className="text-center">Pontos</TableHead>
               <TableHead className="text-right">Total Ganhos</TableHead>
               <TableHead className="text-right">Total Perdas</TableHead>
               <TableHead className="text-right">Balanço</TableHead>
@@ -46,6 +47,9 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
                   {player.averagePosition > 0 
                     ? player.averagePosition.toFixed(1) 
                     : "-"}
+                </TableCell>
+                <TableCell className="text-center font-semibold">
+                  {player.totalPoints || 0}
                 </TableCell>
                 <TableCell className="text-right text-green-400">
                   {formatCurrency(player.totalWinnings)}
