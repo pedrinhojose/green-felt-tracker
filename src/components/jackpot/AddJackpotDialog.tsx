@@ -33,25 +33,48 @@ export function AddJackpotDialog() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [isAddition, setIsAddition] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirm = async () => {
-    if (!activeSeason) return;
+    if (!activeSeason || isSubmitting) return;
     
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) return;
-    
-    const valueToAdd = isAddition ? numericAmount : -numericAmount;
-    
-    await updateJackpot(activeSeason.id, valueToAdd);
-    setConfirmOpen(false);
-    setOpen(false);
-    setAmount("");
-    setIsAddition(true);
-    
-    toast({
-      title: "Jackpot atualizado",
-      description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
-    });
+    try {
+      setIsSubmitting(true);
+      
+      const numericAmount = parseFloat(amount);
+      if (isNaN(numericAmount) || numericAmount <= 0) {
+        toast({
+          title: "Valor inválido",
+          description: "Por favor, insira um valor numérico maior que zero.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const valueToAdd = isAddition ? numericAmount : -numericAmount;
+      
+      await updateJackpot(activeSeason.id, valueToAdd);
+      
+      toast({
+        title: "Jackpot atualizado",
+        description: `Valor ${isAddition ? "adicionado" : "removido"} com sucesso.`,
+      });
+      
+      // Limpa o formulário e fecha os diálogos
+      setAmount("");
+      setIsAddition(true);
+      setConfirmOpen(false);
+      setOpen(false);
+    } catch (error) {
+      console.error("Erro ao atualizar jackpot:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o jackpot. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,7 +86,11 @@ export function AddJackpotDialog() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(newOpen) => {
+        // Não permitir fechamento durante submissão
+        if (isSubmitting) return;
+        setOpen(newOpen);
+      }}>
         <DialogTrigger asChild>
           <Button variant="outline" className="flex gap-2">
             {isAddition ? 
@@ -88,6 +115,7 @@ export function AddJackpotDialog() {
                   variant={isAddition ? "default" : "outline"} 
                   onClick={() => setIsAddition(true)}
                   className="w-1/2"
+                  disabled={isSubmitting}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Adicionar
@@ -97,6 +125,7 @@ export function AddJackpotDialog() {
                   variant={!isAddition ? "default" : "outline"}
                   onClick={() => setIsAddition(false)}
                   className="w-1/2"
+                  disabled={isSubmitting}
                 >
                   <MinusCircle className="mr-2 h-4 w-4" />
                   Remover
@@ -114,19 +143,27 @@ export function AddJackpotDialog() {
                   placeholder="0,00"
                   className="col-span-3"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">
-                {isAddition ? "Adicionar ao Jackpot" : "Remover do Jackpot"}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Processando..." : (isAddition ? "Adicionar ao Jackpot" : "Remover do Jackpot")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog 
+        open={confirmOpen} 
+        onOpenChange={(newOpen) => {
+          // Não permitir fechamento durante submissão
+          if (isSubmitting) return;
+          setConfirmOpen(newOpen);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmação</AlertDialogTitle>
@@ -138,8 +175,13 @@ export function AddJackpotDialog() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm}>Confirmar</AlertDialogAction>
+            <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirm} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Processando..." : "Confirmar"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -1,5 +1,5 @@
 
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { pokerDB } from '../lib/db';
 
 export function useJackpotManagement(
@@ -14,38 +14,35 @@ export function useJackpotManagement(
    */
   const updateJackpot = async (seasonId: string, amount: number) => {
     try {
+      // Atualizar o jackpot no banco de dados
       await pokerDB.updateJackpot(seasonId, amount);
       
-      // Fetch the updated season
+      // Buscar a temporada atualizada
       const updatedSeason = await pokerDB.getSeason(seasonId);
       
-      if (updatedSeason) {
-        // Update local state
-        setSeasons(prev => {
-          const index = prev.findIndex(s => s.id === seasonId);
-          if (index >= 0) {
-            return [...prev.slice(0, index), updatedSeason, ...prev.slice(index + 1)];
-          }
-          return prev;
-        });
-        
-        // If active season, update it too
-        if (activeSeason?.id === seasonId) {
-          setActiveSeason(updatedSeason);
-        }
-        
-        toast({
-          title: amount >= 0 ? "Jackpot Aumentado" : "Jackpot Reduzido",
-          description: `O valor de ${Math.abs(amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} foi ${amount >= 0 ? 'adicionado ao' : 'removido do'} jackpot.`,
-        });
+      if (!updatedSeason) {
+        throw new Error('Temporada não encontrada após atualização');
       }
+      
+      // Atualizar o estado local de forma segura
+      setSeasons(prev => {
+        return prev.map(season => {
+          if (season.id === seasonId) {
+            return updatedSeason;
+          }
+          return season;
+        });
+      });
+      
+      // Se for a temporada ativa, atualizar também
+      if (activeSeason?.id === seasonId) {
+        setActiveSeason(updatedSeason);
+      }
+      
+      return updatedSeason;
     } catch (error) {
       console.error('Erro ao atualizar jackpot:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o jackpot. Tente novamente.",
-        variant: "destructive",
-      });
+      throw error;
     }
   };
 
