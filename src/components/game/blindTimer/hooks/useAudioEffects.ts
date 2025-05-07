@@ -15,37 +15,31 @@ export function useAudioEffects() {
   // Flag for audio loading state
   const audioLoadedRef = useRef<boolean>(false);
 
-  // Initialize audio references
+  // Initialize audio references with correct paths
   useEffect(() => {
     if (audioLoadedRef.current) return;
     
     try {
-      alertAudioRef.current = new Audio("/alert.mp3");
-      countdownAudioRef.current = new Audio("/countdown.mp3");
-      levelCompleteAudioRef.current = new Audio("/level-complete.mp3");
+      // Usar caminhos absolutos para os arquivos de áudio
+      alertAudioRef.current = new Audio("/sounds/alert.mp3");
+      countdownAudioRef.current = new Audio("/sounds/countdown.mp3");
+      levelCompleteAudioRef.current = new Audio("/sounds/level-complete.mp3");
 
       // Preload audio files
       const preloadAudio = async () => {
         try {
           if (alertAudioRef.current) {
             alertAudioRef.current.load();
-            await alertAudioRef.current.play();
-            alertAudioRef.current.pause();
-            alertAudioRef.current.currentTime = 0;
+            // Não vamos tentar reproduzir durante o carregamento para evitar erros
+            // apenas carregamos o áudio
           }
           
           if (countdownAudioRef.current) {
             countdownAudioRef.current.load();
-            await countdownAudioRef.current.play();
-            countdownAudioRef.current.pause();
-            countdownAudioRef.current.currentTime = 0;
           }
           
           if (levelCompleteAudioRef.current) {
             levelCompleteAudioRef.current.load();
-            await levelCompleteAudioRef.current.play();
-            levelCompleteAudioRef.current.pause();
-            levelCompleteAudioRef.current.currentTime = 0;
           }
           
           audioLoadedRef.current = true;
@@ -67,7 +61,15 @@ export function useAudioEffects() {
     
     try {
       audioRef.current.currentTime = 0; // Reset audio
-      await audioRef.current.play();
+      const playPromise = audioRef.current.play();
+      
+      // Handle the play promise to catch any errors
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error("Auto-play prevented:", error);
+          // Podemos tentar reproduzir novamente em resposta a uma interação do usuário
+        });
+      }
     } catch (error) {
       console.error("Error playing audio:", error);
     }

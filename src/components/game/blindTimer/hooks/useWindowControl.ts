@@ -24,8 +24,14 @@ export function useWindowControl() {
       return;
     }
     
+    // Corrigir a URL para usar o caminho completo com base na URL atual
+    const baseUrl = window.location.origin;
+    const timerUrl = `${baseUrl}/partidas/${gameId}/timer`;
+    
+    console.log("Opening timer in new window:", timerUrl);
+    
     window.open(
-      `/partidas/${gameId}/timer`, 
+      timerUrl, 
       "PokerTimer",
       `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
     );

@@ -62,7 +62,7 @@ export default function TimerDisplay({
     ? 'animate-pulse scale-105 text-red-500'
     : '';
   
-  // Efeito de alerta para blinds
+  // Efeito de alerta para blinds - aumentamos o tamanho e garantimos a cor amarela
   const blindsClass = showAlert && timeRemainingInLevel === 0
     ? 'animate-pulse scale-110 text-poker-gold'
     : 'text-poker-gold';
@@ -105,14 +105,14 @@ export default function TimerDisplay({
         </h2>
       </div>
       
-      {/* Blinds atuais */}
+      {/* Blinds atuais - Aumentamos o tamanho da fonte para 4xl e garantimos cor amarela */}
       {!currentLevel.isBreak ? (
-        <div className={`text-3xl font-bold ${blindsClass} transition-all`}>
+        <div className={`text-4xl md:text-5xl font-bold ${blindsClass} transition-all`}>
           SB: {currentLevel.smallBlind} / BB: {currentLevel.bigBlind}
           {currentLevel.ante > 0 && ` / Ante: ${currentLevel.ante}`}
         </div>
       ) : (
-        <div className="text-2xl text-poker-gold font-bold">
+        <div className="text-3xl text-poker-gold font-bold">
           Pausa para Descanso
         </div>
       )}

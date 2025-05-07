@@ -12,17 +12,21 @@ export function useSoundEffects(
 ) {
   // Handle sound effects based on timer state
   useEffect(() => {
-    if (!state.soundEnabled) return;
+    let alertTimeout: number;
     
     if (timeRemainingInLevel === 60 && state.isRunning) {
       // Alert for 1 minute remaining
       setState(prev => ({ ...prev, showAlert: true }));
-      playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
       
-      // Clear alert after 2 seconds
-      setTimeout(() => {
+      // Tocar o alerta apenas se o som estiver habilitado
+      if (state.soundEnabled) {
+        playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
+      }
+      
+      // Clear alert after 3 seconds
+      alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
-      }, 2000);
+      }, 3000); // Aumentado para 3 segundos conforme solicitado
     } else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
       // Countdown sounds
       playAudioSafely(audioRefs.countdownAudioRef, state.soundEnabled);
@@ -30,21 +34,23 @@ export function useSoundEffects(
       // Level completion sound
       playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
       
-      // Highlight new blinds for 2 seconds
+      // Highlight new blinds for 3 seconds
       setState(prev => ({ ...prev, showAlert: true }));
-      setTimeout(() => {
+      alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
-      }, 2000);
+      }, 3000); // Aumentado para 3 segundos
     }
+    
+    // Limpar o timeout quando o componente for desmontado
+    return () => {
+      if (alertTimeout) {
+        clearTimeout(alertTimeout);
+      }
+    };
   }, [timeRemainingInLevel, state.isRunning, state.soundEnabled]);
 
   const toggleSound = () => {
     setState(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));
-    
-    // Test if sound works when enabled
-    if (!state.soundEnabled) {
-      playAudioSafely(audioRefs.alertAudioRef, true);
-    }
   };
 
   const playLevelCompleteSound = () => {
