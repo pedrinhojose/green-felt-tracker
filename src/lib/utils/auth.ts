@@ -82,7 +82,7 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
 export const configureSupabaseClient = () => {
   // Configurar interceptor para redirecionamento quando a sessão expirar
   supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+    if (event === 'SIGNED_OUT') {
       // Limpar tokens e redirecionar
       cleanupAuthState();
       
