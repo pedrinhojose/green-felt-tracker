@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import TimerDisplay from "./TimerDisplay";
@@ -10,7 +9,7 @@ import { useTimerControls } from "./useTimerControls";
 export default function BlindTimer() {
   const { activeSeason } = usePoker();
   
-  // Se não houver temporada ativa, exibe um componente de fallback
+  // Se não houver temporada ativa ou estrutura de blinds, exibe um componente de fallback
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
     return (
       <Card className="bg-poker-dark-green border border-poker-gold/20">
