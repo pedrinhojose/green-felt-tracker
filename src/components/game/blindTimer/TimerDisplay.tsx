@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "./useTimerUtils";
@@ -13,6 +12,7 @@ interface TimerDisplayProps {
   levelsUntilBreak: number | null;
   showAlert: boolean;
   onProgressClick: (percentage: number) => void;
+  blindLevels?: BlindLevel[]; // Adicionamos esta prop para passar os níveis de blind
 }
 
 export default function TimerDisplay({ 
@@ -23,7 +23,8 @@ export default function TimerDisplay({
   nextBreak,
   levelsUntilBreak,
   showAlert,
-  onProgressClick
+  onProgressClick,
+  blindLevels = [] // Valor padrão como array vazio
 }: TimerDisplayProps) {
   const { formatTime, formatTotalTime, getCurrentTime, getTimeUntilBreak } = useTimerUtils();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -83,17 +84,12 @@ export default function TimerDisplay({
         const elapsedTimeInCurrentLevel = currentLevel.duration * 60 - timeRemainingInLevel;
         const nextBreakIndex = nextBreak.level - 1;
         
-        // Obter todos os níveis disponíveis (assumindo que estamos usando a estrutura da temporada ativa)
-        const allLevels = Array.isArray(nextBreak) 
-          ? [...nextBreak] 
-          : window.blindLevels || []; // Fallback para uma variável global se disponível
-        
-        // Calcular o tempo até o próximo intervalo apenas se tivermos dados válidos
-        if (allLevels && allLevels.length > 0) {
+        // Usar a prop blindLevels ao invés de window.blindLevels
+        if (blindLevels && blindLevels.length > 0) {
           return getTimeUntilBreak(
             currentLevelIndex,
             elapsedTimeInCurrentLevel,
-            allLevels,
+            blindLevels,
             nextBreakIndex
           );
         }

@@ -65,6 +65,7 @@ export default function BlindTimer() {
             levelsUntilBreak={levelsUntilBreak}
             showAlert={state.showAlert}
             onProgressClick={setLevelProgress}
+            blindLevels={blindLevels} // Passamos os blindLevels para o TimerDisplay
           />
           
           <TimerControls
