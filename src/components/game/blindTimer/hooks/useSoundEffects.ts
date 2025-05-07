@@ -54,6 +54,28 @@ export function useSoundEffects(
     };
   }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel]);
 
+  // Função para tentar desbloquear o áudio
+  const attemptToUnlockAudio = (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+    if (!audioRef.current) return;
+    
+    const audio = audioRef.current;
+    const originalVolume = audio.volume;
+    
+    // Tentativa de reprodução silenciosa para desbloquear
+    audio.volume = 0.01;
+    audio.play()
+      .then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = originalVolume;
+        console.log("Áudio desbloqueado com sucesso");
+      })
+      .catch(error => {
+        console.warn("Erro ao desbloquear áudio:", error);
+        audio.volume = originalVolume;
+      });
+  };
+
   const toggleSound = () => {
     // Adiciona um log para verificar quando o usuário alterna o som
     const newSoundState = !state.soundEnabled;
@@ -62,8 +84,14 @@ export function useSoundEffects(
     
     // Tentativa de reproduzir um som curto para "desbloquear" o áudio do navegador
     if (newSoundState) {
+      // Tentar desbloquear todos os áudios após a interação do usuário
       setTimeout(() => {
         console.log("Tentativa de desbloqueio de áudio após interação do usuário");
+        attemptToUnlockAudio(audioRefs.alertAudioRef);
+        attemptToUnlockAudio(audioRefs.countdownAudioRef);
+        attemptToUnlockAudio(audioRefs.levelCompleteAudioRef);
+        
+        // Reproduzir um som muito curto e silencioso para confirmar o desbloqueio
         playAudioSafely(audioRefs.alertAudioRef, true);
       }, 100);
     }

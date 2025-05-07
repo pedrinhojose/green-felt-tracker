@@ -15,7 +15,7 @@ export function useTimerControls(
   timeRemainingInLevel: number
 ) {
   // Audio setup
-  const { audioRefs, playAudioSafely } = useAudioEffects();
+  const { audioRefs, playAudioSafely, unlockAudio } = useAudioEffects();
   
   // Sound effects
   const { toggleSound, playLevelCompleteSound } = useSoundEffects(
@@ -44,12 +44,33 @@ export function useTimerControls(
   // Window control
   const { openInNewWindow, toggleFullScreen } = useWindowControl();
   
+  // Tenta desbloquear o áudio quando o componente é montado
+  useEffect(() => {
+    // Tenta desbloquear o áudio na montagem do componente
+    const unblockAudioOnUserAction = () => {
+      unlockAudio();
+      // Remove os event listeners após a primeira interação
+      document.removeEventListener('click', unblockAudioOnUserAction);
+      document.removeEventListener('touchstart', unblockAudioOnUserAction);
+    };
+    
+    // Adiciona event listeners para desbloquear áudio na primeira interação
+    document.addEventListener('click', unblockAudioOnUserAction);
+    document.addEventListener('touchstart', unblockAudioOnUserAction);
+    
+    return () => {
+      // Remove os event listeners se o componente for desmontado
+      document.removeEventListener('click', unblockAudioOnUserAction);
+      document.removeEventListener('touchstart', unblockAudioOnUserAction);
+    };
+  }, [unlockAudio]);
+  
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupTimer();
     };
-  }, []);
+  }, [cleanupTimer]);
 
   return {
     startTimer,

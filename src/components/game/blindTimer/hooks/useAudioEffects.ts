@@ -14,8 +14,8 @@ export function useAudioEffects() {
   
   // Flag para controlar o carregamento do áudio
   const audioLoadedRef = useRef<boolean>(false);
-
-  // Inicializar referências de áudio com caminhos corretos
+  
+  // Inicializar referências de áudio
   useEffect(() => {
     if (audioLoadedRef.current) return;
     
@@ -23,34 +23,61 @@ export function useAudioEffects() {
       // Verificar se estamos no navegador
       if (typeof window === 'undefined') return;
       
-      // Criar elementos de áudio para cada som com caminhos absolutos
-      alertAudioRef.current = new Audio();
-      alertAudioRef.current.src = "/sounds/alert.mp3";
-      alertAudioRef.current.preload = "auto";
+      console.log("Inicializando elementos de áudio");
       
-      countdownAudioRef.current = new Audio();
-      countdownAudioRef.current.src = "/sounds/countdown.mp3";
-      countdownAudioRef.current.preload = "auto";
+      // Usar o construtor de Audio em vez de new Audio()
+      const alertAudio = new Audio();
+      alertAudio.src = "/sounds/alert.mp3";
+      alertAudio.preload = "auto";
+      alertAudioRef.current = alertAudio;
       
-      levelCompleteAudioRef.current = new Audio();
-      levelCompleteAudioRef.current.src = "/sounds/level-complete.mp3";
-      levelCompleteAudioRef.current.preload = "auto";
+      const countdownAudio = new Audio();
+      countdownAudio.src = "/sounds/countdown.mp3";
+      countdownAudio.preload = "auto";
+      countdownAudioRef.current = countdownAudio;
+      
+      const levelCompleteAudio = new Audio();
+      levelCompleteAudio.src = "/sounds/level-complete.mp3";
+      levelCompleteAudio.preload = "auto";
+      levelCompleteAudioRef.current = levelCompleteAudio;
+
+      // Verificar se os arquivos existem
+      const checkAudioFiles = async () => {
+        try {
+          const files = [
+            "/sounds/alert.mp3",
+            "/sounds/countdown.mp3",
+            "/sounds/level-complete.mp3"
+          ];
+          
+          for (const file of files) {
+            const response = await fetch(file, { method: 'HEAD' });
+            if (!response.ok) {
+              console.error(`Erro: Arquivo de áudio não encontrado: ${file}`);
+            } else {
+              console.log(`Arquivo de áudio encontrado: ${file}`);
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao verificar arquivos de áudio:", error);
+        }
+      };
+      
+      checkAudioFiles();
+      
+      // Adicionar event listeners para debugging
+      const addAudioEventListeners = (audio: HTMLAudioElement, name: string) => {
+        audio.addEventListener('canplaythrough', () => console.log(`Áudio ${name} carregado e pronto para reprodução`));
+        audio.addEventListener('error', (e) => console.error(`Erro ao carregar áudio ${name}:`, e));
+      };
+      
+      if (alertAudioRef.current) addAudioEventListeners(alertAudioRef.current, 'alerta');
+      if (countdownAudioRef.current) addAudioEventListeners(countdownAudioRef.current, 'contagem regressiva');
+      if (levelCompleteAudioRef.current) addAudioEventListeners(levelCompleteAudioRef.current, 'conclusão de nível');
 
       // Marcar áudios como carregados
       audioLoadedRef.current = true;
       console.log("Áudios preparados para reprodução");
-      
-      // Tentar pré-carregar os arquivos de áudio
-      const preloadPromises = [
-        alertAudioRef.current.load(),
-        countdownAudioRef.current.load(),
-        levelCompleteAudioRef.current.load()
-      ];
-      
-      // Registrar quando os áudios estiverem prontos
-      Promise.all(preloadPromises)
-        .then(() => console.log("Todos os áudios pré-carregados com sucesso"))
-        .catch(error => console.error("Erro no pré-carregamento de áudio:", error));
       
     } catch (e) {
       console.error("Erro ao inicializar arquivos de áudio:", e);
@@ -58,6 +85,7 @@ export function useAudioEffects() {
 
     // Função de limpeza ao desmontar componente
     return () => {
+      console.log("Limpando referências de áudio");
       if (alertAudioRef.current) {
         alertAudioRef.current.pause();
         alertAudioRef.current = null;
@@ -73,19 +101,50 @@ export function useAudioEffects() {
     };
   }, []);
 
+  // Função para desbloquear áudio em iOS/Safari
+  const unlockAudio = () => {
+    console.log("Tentando desbloquear áudio...");
+    // Criando áudio temporário para desbloquear
+    const silentAudio = new Audio();
+    silentAudio.play().then(() => {
+      console.log("Áudio desbloqueado com sucesso");
+    }).catch(error => {
+      console.warn("Não foi possível desbloquear o áudio automaticamente:", error);
+    });
+    
+    // Tentativa de desbloquear cada referência de áudio
+    [alertAudioRef, countdownAudioRef, levelCompleteAudioRef].forEach(ref => {
+      if (ref.current) {
+        const tempVolume = ref.current.volume;
+        ref.current.volume = 0;
+        ref.current.play().then(() => {
+          ref.current!.pause();
+          ref.current!.currentTime = 0;
+          ref.current!.volume = tempVolume;
+        }).catch(e => {
+          console.warn("Tentativa de desbloquear áudio falhou:", e);
+        });
+      }
+    });
+  };
+
   // Função para reproduzir áudio com segurança
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
-    if (!soundEnabled || !audioRef.current) return;
+    if (!soundEnabled || !audioRef.current) {
+      console.log("Som desabilitado ou referência de áudio não disponível");
+      return;
+    }
     
     try {
       // Debug para verificar se o áudio está disponível
-      console.log("Tentando reproduzir áudio:", audioRef.current.src);
+      console.log("Tentando reproduzir áudio:", audioRef.current.src, "Estado atual:", audioRef.current.readyState);
       
-      // Reset do áudio e tentativa de reprodução
+      // Reset do áudio
       audioRef.current.currentTime = 0;
-      
-      // Garantir que o volume esteja adequado
       audioRef.current.volume = 1.0;
+      
+      // Tentando desbloquear áudio primeiro
+      unlockAudio();
       
       // Usar o método play() e tratar a promise resultante
       await audioRef.current.play()
@@ -93,10 +152,9 @@ export function useAudioEffects() {
         .catch((error) => {
           console.error("Erro na reprodução de áudio:", error);
           
-          // Se for um erro de interação do usuário, podemos tentar reproduzir novamente
-          // após um evento de interação do usuário
           if (error.name === "NotAllowedError") {
             console.warn("Reprodução automática bloqueada. O usuário precisa interagir primeiro.");
+            unlockAudio();
           }
         });
     } catch (error) {
@@ -110,6 +168,7 @@ export function useAudioEffects() {
       countdownAudioRef,
       levelCompleteAudioRef
     },
-    playAudioSafely
+    playAudioSafely,
+    unlockAudio
   };
 }
