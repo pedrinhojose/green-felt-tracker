@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import ProfileDropdown from './ProfileDropdown';
 
 interface NavItem {
   name: string;
@@ -18,6 +20,7 @@ const navItems: NavItem[] = [
 
 export default function PokerNav() {
   const location = useLocation();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -65,6 +68,20 @@ export default function PokerNav() {
               </li>
             ))}
           </ul>
+          
+          {/* Perfil do Usuário */}
+          {user ? (
+            <div className="ml-4">
+              <ProfileDropdown />
+            </div>
+          ) : (
+            <Link 
+              to="/auth"
+              className="ml-4 text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded"
+            >
+              Entrar
+            </Link>
+          )}
         </nav>
       </div>
       
@@ -86,6 +103,19 @@ export default function PokerNav() {
                 </Link>
               </li>
             ))}
+            
+            {/* Link de autenticação para mobile */}
+            {!user && (
+              <li>
+                <Link
+                  to="/auth"
+                  className="block py-3 px-4 text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Entrar
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
       )}
