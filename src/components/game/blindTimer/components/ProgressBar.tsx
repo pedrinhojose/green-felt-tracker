@@ -17,9 +17,11 @@ export function ProgressBar({ progressPercentage, onProgressClick }: ProgressBar
 
   // Handler para clique na barra de progresso
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    console.log("Progress bar clicked");
     const rect = e.currentTarget.getBoundingClientRect();
     const clickPosition = e.clientX - rect.left;
     const percentage = (clickPosition / rect.width) * 100;
+    console.log(`Setting progress to ${percentage.toFixed(2)}%`);
     onProgressClick(percentage);
   };
   
@@ -27,6 +29,7 @@ export function ProgressBar({ progressPercentage, onProgressClick }: ProgressBar
     <div 
       className="w-full bg-gray-700 rounded-full h-6 mt-4 cursor-pointer relative"
       onClick={handleProgressClick}
+      data-testid="progress-bar"
     >
       <Progress 
         value={progressPercentage} 

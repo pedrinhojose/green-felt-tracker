@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { TimerState } from "./useTimerState";
 import { useAudioEffects } from "./hooks/useAudioEffects";
@@ -31,7 +31,7 @@ export function useTimerControls(
     blindLevels,
     state,
     setState,
-    () => playLevelCompleteSound()
+    playLevelCompleteSound
   );
   
   // Level navigation
@@ -46,8 +46,11 @@ export function useTimerControls(
   
   // Tenta desbloquear o áudio quando o componente é montado
   useEffect(() => {
+    console.log("Configurando manipuladores de eventos para desbloquear áudio");
+    
     // Tenta desbloquear o áudio na montagem do componente
     const unblockAudioOnUserAction = () => {
+      console.log("Interação do usuário detectada, tentando desbloquear áudio");
       unlockAudio();
       // Remove os event listeners após a primeira interação
       document.removeEventListener('click', unblockAudioOnUserAction);
@@ -67,19 +70,46 @@ export function useTimerControls(
   
   // Cleanup on unmount
   useEffect(() => {
+    console.log("Configurando limpeza do timer");
     return () => {
       cleanupTimer();
     };
   }, [cleanupTimer]);
 
+  // Wrappers para funções que precisam de memoização
+  const handleStartTimer = useCallback(() => {
+    console.log("Iniciar timer chamado");
+    startTimer();
+  }, [startTimer]);
+
+  const handlePauseTimer = useCallback(() => {
+    console.log("Pausar timer chamado");
+    pauseTimer();
+  }, [pauseTimer]);
+
+  const handleNextLevel = useCallback(() => {
+    console.log("Próximo nível chamado");
+    nextLevel();
+  }, [nextLevel]);
+
+  const handlePreviousLevel = useCallback(() => {
+    console.log("Nível anterior chamado");
+    previousLevel();
+  }, [previousLevel]);
+
+  const handleLevelProgress = useCallback((percentage: number) => {
+    console.log(`Progresso do nível ajustado para ${percentage}%`);
+    setLevelProgress(percentage);
+  }, [setLevelProgress]);
+
   return {
-    startTimer,
-    pauseTimer,
-    nextLevel,
-    previousLevel,
+    startTimer: handleStartTimer,
+    pauseTimer: handlePauseTimer,
+    nextLevel: handleNextLevel,
+    previousLevel: handlePreviousLevel,
     toggleSound,
     openInNewWindow,
-    setLevelProgress,
+    setLevelProgress: handleLevelProgress,
     toggleFullScreen,
   };
 }
