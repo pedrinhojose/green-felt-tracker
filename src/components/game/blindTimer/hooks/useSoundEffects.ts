@@ -20,6 +20,7 @@ export function useSoundEffects(
       
       // Tocar o alerta apenas se o som estiver habilitado
       if (state.soundEnabled) {
+        console.log("Tocando som de alerta (1 minuto restante)");
         playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
       }
       
@@ -30,10 +31,12 @@ export function useSoundEffects(
     } 
     else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
       // Sons de contagem regressiva
+      console.log(`Tocando som de contagem regressiva: ${timeRemainingInLevel}`);
       playAudioSafely(audioRefs.countdownAudioRef, state.soundEnabled);
     } 
     else if (timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel === 0) {
       // Som de conclusão de nível - ajustado para tocar apenas uma vez
+      console.log("Tocando som de conclusão de nível");
       playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
       
       // Destacar novos blinds por 3 segundos
@@ -52,10 +55,22 @@ export function useSoundEffects(
   }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel]);
 
   const toggleSound = () => {
-    setState(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));
+    // Adiciona um log para verificar quando o usuário alterna o som
+    const newSoundState = !state.soundEnabled;
+    console.log(`Som ${newSoundState ? 'ativado' : 'desativado'} pelo usuário`);
+    setState(prev => ({ ...prev, soundEnabled: newSoundState }));
+    
+    // Tentativa de reproduzir um som curto para "desbloquear" o áudio do navegador
+    if (newSoundState) {
+      setTimeout(() => {
+        console.log("Tentativa de desbloqueio de áudio após interação do usuário");
+        playAudioSafely(audioRefs.alertAudioRef, true);
+      }, 100);
+    }
   };
 
   const playLevelCompleteSound = () => {
+    console.log("Chamada para reproduzir som de conclusão de nível");
     playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
   };
 
