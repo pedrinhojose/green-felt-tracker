@@ -14,6 +14,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { FileImage, Image } from "lucide-react";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface GameHeaderProps {
   gameNumber: number;
@@ -39,6 +56,13 @@ export default function GameHeader({
   onFinishGame,
 }: GameHeaderProps) {
   const navigate = useNavigate();
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  
+  // Função para finalizar o jogo e mostrar o diálogo de relatório
+  const handleFinishGame = async () => {
+    await onFinishGame();
+    setShowReportDialog(true);
+  };
   
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
@@ -98,7 +122,7 @@ export default function GameHeader({
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={onFinishGame}
+                  onClick={handleFinishGame}
                   disabled={isFinishing}
                 >
                   {isFinishing ? "Encerrando..." : "Encerrar"}
@@ -107,6 +131,65 @@ export default function GameHeader({
             </AlertDialogContent>
           </AlertDialog>
         )}
+        
+        {/* Diálogo de confirmação para exportar relatório após finalização da partida */}
+        <Sheet open={showReportDialog} onOpenChange={setShowReportDialog}>
+          <SheetContent className="sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle>Partida Encerrada</SheetTitle>
+              <SheetDescription>
+                Partida #{gameNumber.toString().padStart(3, '0')} finalizada com sucesso! Deseja obter o relatório detalhado da partida?
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-6 flex flex-col space-y-3">
+              <Button 
+                onClick={() => {
+                  onExportReport();
+                  setShowReportDialog(false);
+                }}
+                disabled={isExporting}
+                variant="default"
+                className="w-full"
+              >
+                {isExporting ? "Exportando..." : "Exportar como PDF"}
+                <FileImage className="ml-2 h-4 w-4" />
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  onExportReportAsImage();
+                  setShowReportDialog(false);
+                }}
+                disabled={isExportingImage}
+                variant="outline"
+                className="w-full"
+              >
+                {isExportingImage ? "Exportando..." : "Exportar como Imagem"}
+                <Image className="ml-2 h-4 w-4" />
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  setShowReportDialog(false);
+                  navigate('/partidas');
+                }}
+                variant="ghost"
+                className="w-full"
+              >
+                Voltar à Lista de Partidas
+              </Button>
+            </div>
+            <SheetFooter className="pt-4">
+              <Button 
+                onClick={() => setShowReportDialog(false)} 
+                variant="ghost"
+                size="sm"
+              >
+                Fechar
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
