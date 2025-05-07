@@ -88,6 +88,17 @@ export function useTimerControls(
     }
   };
 
+  const previousLevel = () => {
+    if (state.currentLevelIndex > 0) {
+      setState(prev => ({
+        ...prev,
+        currentLevelIndex: prev.currentLevelIndex - 1,
+        elapsedTimeInLevel: 0,
+        showAlert: false,
+      }));
+    }
+  };
+
   const toggleSound = () => {
     setState(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));
   };
@@ -99,10 +110,25 @@ export function useTimerControls(
     const top = (window.innerHeight - height) / 2;
     
     window.open(
-      `/timer-popup`, 
+      `/timer`, 
       "PokerTimer",
       `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
     );
+  };
+
+  // Função para avançar para um ponto específico do nível atual
+  const setLevelProgress = (percentage: number) => {
+    const currentLevel = blindLevels[state.currentLevelIndex];
+    if (currentLevel) {
+      const totalLevelTimeInSeconds = currentLevel.duration * 60;
+      const newElapsedTime = Math.floor(totalLevelTimeInSeconds * (percentage / 100));
+      
+      setState(prev => ({
+        ...prev,
+        elapsedTimeInLevel: newElapsedTime,
+        showAlert: false,
+      }));
+    }
   };
 
   // Efeitos para sons e alertas
@@ -135,7 +161,9 @@ export function useTimerControls(
     startTimer,
     pauseTimer,
     nextLevel,
+    previousLevel,
     toggleSound,
     openInNewWindow,
+    setLevelProgress,
   };
 }

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "./useTimerUtils";
+import { Progress } from "@/components/ui/progress";
 
 interface TimerDisplayProps {
   currentLevel: BlindLevel | undefined;
@@ -11,6 +12,7 @@ interface TimerDisplayProps {
   nextBreak: BlindLevel | null;
   levelsUntilBreak: number | null;
   showAlert: boolean;
+  onProgressClick: (percentage: number) => void;
 }
 
 export default function TimerDisplay({ 
@@ -20,7 +22,8 @@ export default function TimerDisplay({
   totalElapsedTime,
   nextBreak,
   levelsUntilBreak,
-  showAlert
+  showAlert,
+  onProgressClick
 }: TimerDisplayProps) {
   const { formatTime, formatTotalTime, getCurrentTime } = useTimerUtils();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -44,6 +47,14 @@ export default function TimerDisplay({
     if (progressPercentage >= 85) return 'bg-red-500';
     if (progressPercentage >= 50) return 'bg-yellow-500';
     return 'bg-green-500';
+  };
+
+  // Handler para clique na barra de progresso
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickPosition = e.clientX - rect.left;
+    const percentage = (clickPosition / rect.width) * 100;
+    onProgressClick(percentage);
   };
 
   // Efeito de alerta para o tempo restante
@@ -86,12 +97,16 @@ export default function TimerDisplay({
         {formatTime(timeRemainingInLevel)}
       </div>
       
-      {/* Barra de progresso */}
-      <div className="w-full bg-gray-700 rounded-full h-3 mt-4">
-        <div 
-          className={`h-3 rounded-full transition-all ${getProgressColor()}`}
-          style={{ width: `${progressPercentage}%` }}
-        ></div>
+      {/* Barra de progresso clicável */}
+      <div 
+        className="w-full bg-gray-700 rounded-full h-6 mt-4 cursor-pointer relative"
+        onClick={handleProgressClick}
+      >
+        <Progress 
+          value={progressPercentage} 
+          className="h-6 rounded-full bg-gray-700" 
+          barClassName={getProgressColor()}
+        />
       </div>
       
       {/* Informações adicionais */}
@@ -99,22 +114,22 @@ export default function TimerDisplay({
         <div>
           <div className="text-xs text-gray-400">Próximo Nível</div>
           {nextLevel ? (
-            <div className="text-sm">
+            <div className="text-sm text-poker-gold">
               {nextLevel.isBreak ? 'INTERVALO' : `${nextLevel.smallBlind} / ${nextLevel.bigBlind}`}
             </div>
           ) : (
-            <div className="text-sm">Último Nível</div>
+            <div className="text-sm text-poker-gold">Último Nível</div>
           )}
         </div>
         
         <div>
           <div className="text-xs text-gray-400">Tempo de Jogo</div>
-          <div className="text-sm">{formatTotalTime(totalElapsedTime)}</div>
+          <div className="text-sm text-poker-gold">{formatTotalTime(totalElapsedTime)}</div>
         </div>
         
         <div>
           <div className="text-xs text-gray-400">Hora Atual</div>
-          <div className="text-sm">{currentTime}</div>
+          <div className="text-sm text-poker-gold">{currentTime}</div>
         </div>
       </div>
       

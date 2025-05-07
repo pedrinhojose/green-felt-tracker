@@ -39,8 +39,10 @@ export default function BlindTimer() {
     startTimer,
     pauseTimer,
     nextLevel: goToNextLevel,
+    previousLevel: goToPreviousLevel,
     toggleSound,
     openInNewWindow,
+    setLevelProgress,
   } = useTimerControls(
     blindLevels,
     state,
@@ -60,6 +62,7 @@ export default function BlindTimer() {
             nextBreak={nextBreak}
             levelsUntilBreak={levelsUntilBreak}
             showAlert={state.showAlert}
+            onProgressClick={setLevelProgress}
           />
           
           <TimerControls
@@ -68,6 +71,7 @@ export default function BlindTimer() {
             onStart={startTimer}
             onPause={pauseTimer}
             onNext={goToNextLevel}
+            onPrevious={goToPreviousLevel}
             onToggleSound={toggleSound}
             onOpenNewWindow={openInNewWindow}
           />

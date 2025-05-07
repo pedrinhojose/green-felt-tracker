@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BellOff, Bell, Play, Pause, SkipForward } from "lucide-react";
+import { BellOff, Bell, Play, Pause, SkipForward, SkipBack } from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
@@ -9,6 +9,7 @@ interface TimerControlsProps {
   onStart: () => void;
   onPause: () => void;
   onNext: () => void;
+  onPrevious: () => void;
   onToggleSound: () => void;
   onOpenNewWindow: () => void;
 }
@@ -19,6 +20,7 @@ export default function TimerControls({
   onStart,
   onPause,
   onNext,
+  onPrevious,
   onToggleSound,
   onOpenNewWindow
 }: TimerControlsProps) {
@@ -41,6 +43,13 @@ export default function TimerControls({
       )}
       
       <Button 
+        onClick={onPrevious}
+        variant="secondary"
+      >
+        <SkipBack className="mr-2 h-4 w-4" /> Nível Anterior
+      </Button>
+      
+      <Button 
         onClick={onNext}
         variant="secondary"
       >
@@ -50,15 +59,13 @@ export default function TimerControls({
       <Button 
         onClick={onToggleSound}
         variant="outline"
+        size="sm"
+        className="px-2"
       >
         {soundEnabled ? (
-          <>
-            <Bell className="mr-2 h-4 w-4" /> Som Ligado
-          </>
+          <Bell className="h-4 w-4" />
         ) : (
-          <>
-            <BellOff className="mr-2 h-4 w-4" /> Som Desligado
-          </>
+          <BellOff className="h-4 w-4" />
         )}
       </Button>
       
