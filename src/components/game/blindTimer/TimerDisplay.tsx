@@ -69,6 +69,33 @@ export default function TimerDisplay({
     
   if (!currentLevel) return null;
 
+  // Função de segurança para obter o tempo até o próximo intervalo
+  const getTimeUntilBreakSafely = () => {
+    if (!currentLevel || !nextBreak) return "";
+    
+    try {
+      // Preparar os dados para a função getTimeUntilBreak
+      const currentLevelIndex = currentLevel.level - 1;
+      const elapsedTimeInCurrentLevel = currentLevel.duration * 60 - timeRemainingInLevel;
+      const allLevels = Array.isArray(nextBreak) ? [...nextBreak] : [nextBreak];
+      const nextBreakIndex = nextBreak.level - 1;
+      
+      // Certificar que temos dados válidos antes de chamar a função
+      if (currentLevelIndex >= 0 && allLevels.length > 0) {
+        return getTimeUntilBreak(
+          currentLevelIndex,
+          elapsedTimeInCurrentLevel,
+          allLevels,
+          nextBreakIndex
+        );
+      }
+      return "";
+    } catch (error) {
+      console.error("Erro ao calcular tempo até o intervalo:", error);
+      return "";
+    }
+  };
+
   return (
     <div className="text-center space-y-4">
       {/* Nível atual */}
@@ -143,12 +170,7 @@ export default function TimerDisplay({
                 Faltam {levelsUntilBreak} níveis (Nível {nextBreak.level})
                 {' - '}
                 <span className="text-poker-gold font-medium">
-                  {getTimeUntilBreak(
-                    currentLevel.level - 1, 
-                    currentLevel.duration * 60 - timeRemainingInLevel,
-                    Array.isArray(nextBreak) ? nextBreak : [nextBreak],
-                    nextBreak.level - 1
-                  )}
+                  {getTimeUntilBreakSafely()}
                 </span>
               </>
             ) : (

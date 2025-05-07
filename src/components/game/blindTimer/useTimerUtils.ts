@@ -31,19 +31,32 @@ export function useTimerUtils() {
     blindLevels: BlindLevel[],
     nextBreakIndex: number
   ): string => {
-    if (nextBreakIndex === -1) return "Não há intervalo programado";
+    // Verificar se os índices são válidos e se temos níveis suficientes
+    if (nextBreakIndex === -1 || !blindLevels || blindLevels.length === 0) {
+      return "Não há intervalo programado";
+    }
+    
+    // Verificar se o índice atual é válido
+    if (currentLevelIndex < 0 || currentLevelIndex >= blindLevels.length) {
+      return "Índice de nível inválido";
+    }
     
     let timeUntilBreak = 0;
     
     // Tempo restante no nível atual
     const currentLevel = blindLevels[currentLevelIndex];
-    const remainingInCurrentLevel = (currentLevel.duration * 60) - elapsedTimeInLevel;
+    if (!currentLevel || typeof currentLevel.duration !== 'number') {
+      return "Configuração de nível inválida";
+    }
     
+    const remainingInCurrentLevel = (currentLevel.duration * 60) - elapsedTimeInLevel;
     timeUntilBreak += remainingInCurrentLevel;
     
     // Somar o tempo dos níveis intermediários
     for (let i = currentLevelIndex + 1; i < nextBreakIndex; i++) {
-      timeUntilBreak += blindLevels[i].duration * 60;
+      if (i < blindLevels.length && blindLevels[i] && typeof blindLevels[i].duration === 'number') {
+        timeUntilBreak += blindLevels[i].duration * 60;
+      }
     }
     
     const minutes = Math.floor(timeUntilBreak / 60);

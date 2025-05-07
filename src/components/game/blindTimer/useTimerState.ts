@@ -38,10 +38,13 @@ export function useTimerState(blindLevels: BlindLevel[]) {
   // Verifica se o nível acabou de terminar
   const isLevelJustCompleted = timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel % 60 === 0;
 
-  // Encontra o próximo intervalo
-  const nextBreakIndex = blindLevels.findIndex((level, index) => 
-    index > state.currentLevelIndex && level.isBreak
-  );
+  // Encontra o próximo intervalo - com verificações de segurança
+  let nextBreakIndex = -1;
+  if (Array.isArray(blindLevels) && blindLevels.length > 0) {
+    nextBreakIndex = blindLevels.findIndex((level, index) => 
+      index > state.currentLevelIndex && level && level.isBreak
+    );
+  }
   
   const nextBreak = nextBreakIndex !== -1 ? blindLevels[nextBreakIndex] : null;
   const levelsUntilBreak = nextBreakIndex !== -1 ? nextBreakIndex - state.currentLevelIndex : null;

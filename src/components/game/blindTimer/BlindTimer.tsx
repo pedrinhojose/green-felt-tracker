@@ -31,6 +31,9 @@ export default function BlindTimer() {
     currentLevel,
     nextLevel,
     timeRemainingInLevel,
+    isAlertTime,
+    isFinalCountdown,
+    isLevelJustCompleted,
     nextBreak,
     levelsUntilBreak,
   } = useTimerState(blindLevels);
