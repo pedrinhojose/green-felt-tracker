@@ -15,7 +15,7 @@ export function useSoundEffects(
     let alertTimeout: number;
     
     if (timeRemainingInLevel === 60 && state.isRunning) {
-      // Alert for 1 minute remaining
+      // Alerta para 1 minuto restante
       setState(prev => ({ ...prev, showAlert: true }));
       
       // Tocar o alerta apenas se o som estiver habilitado
@@ -23,22 +23,24 @@ export function useSoundEffects(
         playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
       }
       
-      // Clear alert after 3 seconds
+      // Limpar alerta após 3 segundos
       alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
-      }, 3000); // Aumentado para 3 segundos conforme solicitado
-    } else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
-      // Countdown sounds
+      }, 3000); 
+    } 
+    else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
+      // Sons de contagem regressiva
       playAudioSafely(audioRefs.countdownAudioRef, state.soundEnabled);
-    } else if (timeRemainingInLevel === 0 && state.isRunning) {
-      // Level completion sound
+    } 
+    else if (timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel === 0) {
+      // Som de conclusão de nível - ajustado para tocar apenas uma vez
       playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
       
-      // Highlight new blinds for 3 seconds
+      // Destacar novos blinds por 3 segundos
       setState(prev => ({ ...prev, showAlert: true }));
       alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
-      }, 3000); // Aumentado para 3 segundos
+      }, 3000);
     }
     
     // Limpar o timeout quando o componente for desmontado
@@ -47,7 +49,7 @@ export function useSoundEffects(
         clearTimeout(alertTimeout);
       }
     };
-  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled]);
+  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel]);
 
   const toggleSound = () => {
     setState(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));

@@ -8,8 +8,7 @@ interface BlindDisplayProps {
 }
 
 export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProps) {
-  // Efeito de alerta para blinds - aumentamos o tamanho e garantimos a cor amarela
-  // Agora só aplicamos a animação quando for um novo blind
+  // Efeito de alerta para blinds - aplicamos apenas nos primeiros 3 segundos
   const blindsClass = isNewBlindAlert
     ? 'animate-pulse scale-110 text-poker-gold'
     : 'text-poker-gold';

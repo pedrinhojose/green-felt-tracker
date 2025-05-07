@@ -16,7 +16,8 @@ export function TimeRemaining({
   const { formatTime } = useTimerUtils();
   
   // Efeito de alerta para o tempo restante
-  // Aplicar apenas quando showAlert = true, mas não é um alerta de novo blind
+  // Aplicar apenas quando showAlert = true E NÃO for um alerta de novo blind
+  // Isso garante que o tempo não fique vermelho durante o alerta de novo blind
   const timeRemainingClass = showAlert && !isNewBlindAlert
     ? 'animate-pulse scale-105 text-red-500'
     : '';

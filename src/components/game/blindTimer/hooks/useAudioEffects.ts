@@ -12,66 +12,83 @@ export function useAudioEffects() {
   const countdownAudioRef = useRef<HTMLAudioElement | null>(null);
   const levelCompleteAudioRef = useRef<HTMLAudioElement | null>(null);
   
-  // Flag for audio loading state
+  // Flag para controlar o carregamento do áudio
   const audioLoadedRef = useRef<boolean>(false);
 
-  // Initialize audio references with correct paths
+  // Inicializar referências de áudio com caminhos corretos
   useEffect(() => {
     if (audioLoadedRef.current) return;
     
     try {
-      // Usar caminhos absolutos para os arquivos de áudio
-      alertAudioRef.current = new Audio("/sounds/alert.mp3");
-      countdownAudioRef.current = new Audio("/sounds/countdown.mp3");
-      levelCompleteAudioRef.current = new Audio("/sounds/level-complete.mp3");
+      // Criar elementos de áudio para cada som
+      alertAudioRef.current = new Audio();
+      alertAudioRef.current.src = "/sounds/alert.mp3";
+      alertAudioRef.current.preload = "auto";
+      
+      countdownAudioRef.current = new Audio();
+      countdownAudioRef.current.src = "/sounds/countdown.mp3";
+      countdownAudioRef.current.preload = "auto";
+      
+      levelCompleteAudioRef.current = new Audio();
+      levelCompleteAudioRef.current.src = "/sounds/level-complete.mp3";
+      levelCompleteAudioRef.current.preload = "auto";
 
-      // Preload audio files
+      // Pré-carregar arquivos de áudio
       const preloadAudio = async () => {
         try {
-          if (alertAudioRef.current) {
-            alertAudioRef.current.load();
-            // Não vamos tentar reproduzir durante o carregamento para evitar erros
-            // apenas carregamos o áudio
-          }
-          
-          if (countdownAudioRef.current) {
-            countdownAudioRef.current.load();
-          }
-          
-          if (levelCompleteAudioRef.current) {
-            levelCompleteAudioRef.current.load();
-          }
-          
+          // Tentar pré-carregar áudio após uma interação do usuário para evitar restrições do navegador
           audioLoadedRef.current = true;
-          console.log("Audio files preloaded successfully");
+          console.log("Áudios preparados para reprodução");
         } catch (e) {
-          console.error("Error preloading audio:", e);
+          console.error("Erro ao pré-carregar áudio:", e);
         }
       };
       
       preloadAudio();
     } catch (e) {
-      console.error("Error initializing audio files:", e);
+      console.error("Erro ao inicializar arquivos de áudio:", e);
     }
+
+    // Função de limpeza ao desmontar componente
+    return () => {
+      if (alertAudioRef.current) {
+        alertAudioRef.current.pause();
+        alertAudioRef.current = null;
+      }
+      if (countdownAudioRef.current) {
+        countdownAudioRef.current.pause();
+        countdownAudioRef.current = null;
+      }
+      if (levelCompleteAudioRef.current) {
+        levelCompleteAudioRef.current.pause();
+        levelCompleteAudioRef.current = null;
+      }
+    };
   }, []);
 
-  // Function to safely play audio
+  // Função para reproduzir áudio com segurança
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
     if (!soundEnabled || !audioRef.current) return;
     
     try {
-      audioRef.current.currentTime = 0; // Reset audio
+      // Reset do áudio e tentativa de reprodução
+      audioRef.current.currentTime = 0;
+      
+      // Garantir que o volume esteja adequado
+      audioRef.current.volume = 1.0;
+      
       const playPromise = audioRef.current.play();
       
-      // Handle the play promise to catch any errors
+      // Tratar a promise de reprodução para capturar erros
       if (playPromise !== undefined) {
         playPromise.catch((error) => {
-          console.error("Auto-play prevented:", error);
-          // Podemos tentar reproduzir novamente em resposta a uma interação do usuário
+          console.error("Reprodução automática impedida:", error);
+          // Registramos o erro mas não tentamos reproduzir novamente
+          // A reprodução deve ocorrer após interação do usuário
         });
       }
     } catch (error) {
-      console.error("Error playing audio:", error);
+      console.error("Erro ao reproduzir áudio:", error);
     }
   };
 

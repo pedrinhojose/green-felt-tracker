@@ -25,13 +25,15 @@ export function useTimerAlerts(
   const isLevelJustCompleted = timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel % 60 === 0;
 
   // Novo alerta específico para quando um novo blind acaba de iniciar (primeiros 3 segundos)
-  // Modificamos esta lógica para garantir que seja apenas durante os primeiros 3 segundos exatos
+  // Modificado para ser independente do estado showAlert, usando apenas o elapsedTimeInLevel
   const isNewBlindAlert = state.isRunning && 
-    state.elapsedTimeInLevel <= 3 && 
-    state.currentLevelIndex > 0 && 
-    timeRemainingInLevel > 0 && 
+    state.elapsedTimeInLevel < 3 && 
+    state.currentLevelIndex >= 0 && 
     currentLevel && 
     !currentLevel.isBreak;
+
+  // Separamos a lógica visual do showAlert da lógica de detecção isNewBlindAlert
+  // showAlert continua vindo do state para outras funções poderem controlá-lo
 
   return {
     isAlertTime,
