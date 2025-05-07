@@ -58,14 +58,15 @@ export default function TimerControls({
       
       <Button 
         onClick={onToggleSound}
-        variant="outline"
-        size="sm"
-        className="px-2"
+        variant={soundEnabled ? "outline" : "ghost"}
+        size="icon"
+        className="w-10 h-10 rounded-full"
+        title={soundEnabled ? "Som Ativado" : "Som Desativado"}
       >
         {soundEnabled ? (
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4 text-poker-gold" />
         ) : (
-          <BellOff className="h-4 w-4" />
+          <BellOff className="h-4 w-4 text-gray-400" />
         )}
       </Button>
       

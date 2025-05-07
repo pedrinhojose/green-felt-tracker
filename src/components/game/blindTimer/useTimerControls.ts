@@ -16,9 +16,18 @@ export function useTimerControls(
 
   // Inicializar referências de áudio
   useEffect(() => {
-    alertAudioRef.current = new Audio("/alert.mp3");
-    countdownAudioRef.current = new Audio("/countdown.mp3");
-    levelCompleteAudioRef.current = new Audio("/level-complete.mp3");
+    try {
+      alertAudioRef.current = new Audio("/alert.mp3");
+      countdownAudioRef.current = new Audio("/countdown.mp3");
+      levelCompleteAudioRef.current = new Audio("/level-complete.mp3");
+
+      // Pré-carregar os arquivos de áudio
+      alertAudioRef.current.load();
+      countdownAudioRef.current.load();
+      levelCompleteAudioRef.current.load();
+    } catch (e) {
+      console.error("Erro ao carregar arquivos de áudio:", e);
+    }
 
     return () => {
       if (timerRef.current) {
@@ -41,12 +50,19 @@ export function useTimerControls(
         if (currentLevel && newElapsedTimeInLevel >= currentLevel.duration * 60) {
           // Verificar se há próximo nível
           if (prev.currentLevelIndex < blindLevels.length - 1) {
+            // Tocar som de conclusão do nível se o som estiver ativado
+            if (prev.soundEnabled && levelCompleteAudioRef.current) {
+              levelCompleteAudioRef.current.play().catch(e => 
+                console.error("Erro ao reproduzir som de conclusão:", e)
+              );
+            }
+            
             return {
               ...prev,
               currentLevelIndex: prev.currentLevelIndex + 1,
               elapsedTimeInLevel: 0,
               totalElapsedTime: prev.totalElapsedTime + 1,
-              showAlert: false,
+              showAlert: true, // Mostrar alerta ao mudar de nível
             };
           } else {
             // Fim de todos os níveis
@@ -101,6 +117,14 @@ export function useTimerControls(
 
   const toggleSound = () => {
     setState(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }));
+    
+    // Testar se o som está funcionando ao ativar
+    if (!state.soundEnabled && alertAudioRef.current) {
+      alertAudioRef.current.volume = 0.5; // Reduzir o volume para não assustar
+      alertAudioRef.current.play().catch(e => 
+        console.error("Erro ao testar reprodução de áudio:", e)
+      );
+    }
   };
 
   const openInNewWindow = () => {
@@ -110,7 +134,7 @@ export function useTimerControls(
     const top = (window.innerHeight - height) / 2;
     
     window.open(
-      `/timer`, 
+      `/timer?gameId=${window.location.pathname.split('/').pop()}`, 
       "PokerTimer",
       `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
     );
@@ -133,21 +157,39 @@ export function useTimerControls(
 
   // Efeitos para sons e alertas
   useEffect(() => {
-    if (timeRemainingInLevel === 60 && state.isRunning && state.soundEnabled) {
+    if (!state.soundEnabled) return; // Não reproduzir sons se estiver desativado
+    
+    if (timeRemainingInLevel === 60 && state.isRunning) {
       // Alerta para 1 minuto restante
       setState(prev => ({ ...prev, showAlert: true }));
-      alertAudioRef.current?.play();
+      
+      if (alertAudioRef.current) {
+        alertAudioRef.current.currentTime = 0; // Reinicia o áudio
+        alertAudioRef.current.play().catch(e => 
+          console.error("Erro ao reproduzir alerta de 1 minuto:", e)
+        );
+      }
       
       // Limpar alerta após 2 segundos
       setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
       }, 2000);
-    } else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning && state.soundEnabled) {
+    } else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
       // Sons de contagem regressiva
-      countdownAudioRef.current?.play();
-    } else if (timeRemainingInLevel === 0 && state.isRunning && state.soundEnabled) {
+      if (countdownAudioRef.current) {
+        countdownAudioRef.current.currentTime = 0; // Reinicia o áudio
+        countdownAudioRef.current.play().catch(e => 
+          console.error("Erro ao reproduzir contagem regressiva:", e)
+        );
+      }
+    } else if (timeRemainingInLevel === 0 && state.isRunning) {
       // Som de conclusão do nível
-      levelCompleteAudioRef.current?.play();
+      if (levelCompleteAudioRef.current) {
+        levelCompleteAudioRef.current.currentTime = 0; // Reinicia o áudio
+        levelCompleteAudioRef.current.play().catch(e => 
+          console.error("Erro ao reproduzir conclusão de nível:", e)
+        );
+      }
       
       // Destacar novos blinds por 2 segundos
       setState(prev => ({ ...prev, showAlert: true }));

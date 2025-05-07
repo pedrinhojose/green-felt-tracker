@@ -25,7 +25,7 @@ export default function TimerDisplay({
   showAlert,
   onProgressClick
 }: TimerDisplayProps) {
-  const { formatTime, formatTotalTime, getCurrentTime } = useTimerUtils();
+  const { formatTime, formatTotalTime, getCurrentTime, getTimeUntilBreak } = useTimerUtils();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   
   // Atualiza o relógio do sistema a cada minuto
@@ -138,10 +138,22 @@ export default function TimerDisplay({
         <div className="bg-poker-navy/30 rounded-lg p-2 mt-2 text-sm">
           <div className="text-gray-400">Próximo Intervalo</div>
           <div className="text-white">
-            {levelsUntilBreak && levelsUntilBreak > 0
-              ? `Faltam ${levelsUntilBreak} níveis (Nível ${nextBreak.level})`
-              : 'Próximo nível'
-            }
+            {levelsUntilBreak && levelsUntilBreak > 0 ? (
+              <>
+                Faltam {levelsUntilBreak} níveis (Nível {nextBreak.level})
+                {' - '}
+                <span className="text-poker-gold font-medium">
+                  {getTimeUntilBreak(
+                    currentLevel.level - 1, 
+                    currentLevel.duration * 60 - timeRemainingInLevel,
+                    Array.isArray(nextBreak) ? nextBreak : [nextBreak],
+                    nextBreak.level - 1
+                  )}
+                </span>
+              </>
+            ) : (
+              'Próximo nível'
+            )}
           </div>
         </div>
       )}
