@@ -31,7 +31,7 @@ export function useTimerState(blindLevels: BlindLevel[]) {
     state.elapsedTimeInLevel
   );
   
-  const { isAlertTime, isFinalCountdown, isLevelJustCompleted } = useTimerAlerts(
+  const { isAlertTime, isFinalCountdown, isLevelJustCompleted, isNewBlindAlert } = useTimerAlerts(
     currentLevel,
     timeRemainingInLevel,
     state
@@ -51,6 +51,7 @@ export function useTimerState(blindLevels: BlindLevel[]) {
     isAlertTime,
     isFinalCountdown,
     isLevelJustCompleted,
+    isNewBlindAlert,
     nextBreak,
     levelsUntilBreak,
   };

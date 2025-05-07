@@ -42,7 +42,7 @@ export function useTimerControls(
   );
   
   // Window control
-  const { openInNewWindow } = useWindowControl();
+  const { openInNewWindow, toggleFullScreen } = useWindowControl();
   
   // Cleanup on unmount
   useEffect(() => {
@@ -59,5 +59,6 @@ export function useTimerControls(
     toggleSound,
     openInNewWindow,
     setLevelProgress,
+    toggleFullScreen,
   };
 }

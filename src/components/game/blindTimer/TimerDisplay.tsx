@@ -1,7 +1,9 @@
+
 import { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "./useTimerUtils";
 import { Progress } from "@/components/ui/progress";
+import { Maximize2 } from "lucide-react";
 
 interface TimerDisplayProps {
   currentLevel: BlindLevel | undefined;
@@ -11,8 +13,10 @@ interface TimerDisplayProps {
   nextBreak: BlindLevel | null;
   levelsUntilBreak: number | null;
   showAlert: boolean;
+  isNewBlindAlert: boolean;
   onProgressClick: (percentage: number) => void;
-  blindLevels?: BlindLevel[]; // Adicionamos esta prop para passar os níveis de blind
+  onToggleFullScreen: () => void;
+  blindLevels?: BlindLevel[];
 }
 
 export default function TimerDisplay({ 
@@ -23,8 +27,10 @@ export default function TimerDisplay({
   nextBreak,
   levelsUntilBreak,
   showAlert,
+  isNewBlindAlert,
   onProgressClick,
-  blindLevels = [] // Valor padrão como array vazio
+  onToggleFullScreen,
+  blindLevels = []
 }: TimerDisplayProps) {
   const { formatTime, formatTotalTime, getCurrentTime, getTimeUntilBreak } = useTimerUtils();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -59,12 +65,14 @@ export default function TimerDisplay({
   };
 
   // Efeito de alerta para o tempo restante
-  const timeRemainingClass = showAlert 
+  // Aplicar apenas quando showAlert = true, mas não é um alerta de novo blind
+  const timeRemainingClass = showAlert && !isNewBlindAlert
     ? 'animate-pulse scale-105 text-red-500'
     : '';
   
   // Efeito de alerta para blinds - aumentamos o tamanho e garantimos a cor amarela
-  const blindsClass = showAlert && timeRemainingInLevel === 0
+  // Agora só aplicamos a animação quando for um novo blind
+  const blindsClass = isNewBlindAlert
     ? 'animate-pulse scale-110 text-poker-gold'
     : 'text-poker-gold';
     
@@ -102,7 +110,16 @@ export default function TimerDisplay({
   };
 
   return (
-    <div className="text-center space-y-4">
+    <div className="text-center space-y-4 timer-container relative">
+      {/* Ícone sutil para tela cheia no canto superior direito */}
+      <div 
+        className="absolute top-0 right-0 p-2 opacity-50 hover:opacity-100 cursor-pointer transition-opacity"
+        onClick={onToggleFullScreen}
+        title="Alternar tela cheia"
+      >
+        <Maximize2 size={18} className="text-white" />
+      </div>
+      
       {/* Nível atual */}
       <div className="mb-2">
         <h2 className="text-xl text-white font-medium">
@@ -110,7 +127,7 @@ export default function TimerDisplay({
         </h2>
       </div>
       
-      {/* Blinds atuais - Aumentamos o tamanho da fonte para 4xl e garantimos cor amarela */}
+      {/* Blinds atuais - Aumentamos o tamanho da fonte para 4xl e aplicamos a classe de animação apenas quando for um novo blind */}
       {!currentLevel.isBreak ? (
         <div className={`text-4xl md:text-5xl font-bold ${blindsClass} transition-all`}>
           SB: {currentLevel.smallBlind} / BB: {currentLevel.bigBlind}
@@ -122,7 +139,7 @@ export default function TimerDisplay({
         </div>
       )}
       
-      {/* Tempo restante */}
+      {/* Tempo restante - Aplicar a classe de animação apenas quando showAlert for true e não for um novo blind */}
       <div 
         className={`text-5xl md:text-7xl font-bold text-white ${timeRemainingClass} transition-all`}
       >

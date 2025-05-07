@@ -36,7 +36,7 @@ export default function TimerPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-poker-black p-4">
+    <div className="flex items-center justify-center min-h-screen bg-poker-black p-4 timer-container">
       <div className="w-full max-w-3xl">
         <BlindTimer />
       </div>

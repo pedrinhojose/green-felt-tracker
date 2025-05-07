@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BellOff, Bell, Play, Pause, SkipForward, SkipBack } from "lucide-react";
+import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2 } from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
@@ -12,6 +12,7 @@ interface TimerControlsProps {
   onPrevious: () => void;
   onToggleSound: () => void;
   onOpenNewWindow: () => void;
+  onToggleFullScreen: () => void;
 }
 
 export default function TimerControls({
@@ -22,7 +23,8 @@ export default function TimerControls({
   onNext,
   onPrevious,
   onToggleSound,
-  onOpenNewWindow
+  onOpenNewWindow,
+  onToggleFullScreen
 }: TimerControlsProps) {
   return (
     <div className="flex flex-wrap justify-center gap-2">
@@ -68,6 +70,16 @@ export default function TimerControls({
         ) : (
           <BellOff className="h-4 w-4 text-gray-400" />
         )}
+      </Button>
+      
+      <Button 
+        onClick={onToggleFullScreen}
+        variant="outline"
+        size="icon"
+        className="w-10 h-10 rounded-full"
+        title="Tela Cheia"
+      >
+        <Maximize2 className="h-4 w-4 text-poker-gold" />
       </Button>
       
       <Button 

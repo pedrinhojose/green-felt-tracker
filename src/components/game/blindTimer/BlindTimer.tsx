@@ -33,6 +33,7 @@ export default function BlindTimer() {
     isAlertTime,
     isFinalCountdown,
     isLevelJustCompleted,
+    isNewBlindAlert,
     nextBreak,
     levelsUntilBreak,
   } = useTimerState(blindLevels);
@@ -45,6 +46,7 @@ export default function BlindTimer() {
     toggleSound,
     openInNewWindow,
     setLevelProgress,
+    toggleFullScreen,
   } = useTimerControls(
     blindLevels,
     state,
@@ -64,8 +66,10 @@ export default function BlindTimer() {
             nextBreak={nextBreak}
             levelsUntilBreak={levelsUntilBreak}
             showAlert={state.showAlert}
+            isNewBlindAlert={isNewBlindAlert}
             onProgressClick={setLevelProgress}
-            blindLevels={blindLevels} // Passamos os blindLevels para o TimerDisplay
+            onToggleFullScreen={toggleFullScreen}
+            blindLevels={blindLevels}
           />
           
           <TimerControls
@@ -77,6 +81,7 @@ export default function BlindTimer() {
             onPrevious={goToPreviousLevel}
             onToggleSound={toggleSound}
             onOpenNewWindow={openInNewWindow}
+            onToggleFullScreen={toggleFullScreen}
           />
         </div>
       </CardContent>

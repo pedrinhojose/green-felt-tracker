@@ -7,6 +7,7 @@ export interface TimerAlertState {
   isFinalCountdown: boolean;
   isLevelJustCompleted: boolean;
   showAlert: boolean;
+  isNewBlindAlert: boolean;
 }
 
 export function useTimerAlerts(
@@ -23,10 +24,19 @@ export function useTimerAlerts(
   // Verifica se o nível acabou de terminar
   const isLevelJustCompleted = timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel % 60 === 0;
 
+  // Novo alerta específico para quando um novo blind acaba de iniciar (primeiros 3 segundos)
+  const isNewBlindAlert = state.isRunning && 
+    state.elapsedTimeInLevel < 3 && 
+    state.elapsedTimeInLevel > 0 && 
+    timeRemainingInLevel > 0 && 
+    currentLevel && 
+    !currentLevel.isBreak;
+
   return {
     isAlertTime,
     isFinalCountdown,
     isLevelJustCompleted,
-    showAlert: state.showAlert
+    showAlert: state.showAlert,
+    isNewBlindAlert
   };
 }
