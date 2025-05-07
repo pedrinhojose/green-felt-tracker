@@ -74,25 +74,34 @@ export default function TimerDisplay({
     if (!currentLevel || !nextBreak) return "";
     
     try {
-      // Preparar os dados para a função getTimeUntilBreak
-      const currentLevelIndex = currentLevel.level - 1;
-      const elapsedTimeInCurrentLevel = currentLevel.duration * 60 - timeRemainingInLevel;
-      const allLevels = Array.isArray(nextBreak) ? [...nextBreak] : [nextBreak];
-      const nextBreakIndex = nextBreak.level - 1;
-      
-      // Certificar que temos dados válidos antes de chamar a função
-      if (currentLevelIndex >= 0 && allLevels.length > 0) {
-        return getTimeUntilBreak(
-          currentLevelIndex,
-          elapsedTimeInCurrentLevel,
-          allLevels,
-          nextBreakIndex
-        );
+      // Verificar se temos todos os dados necessários
+      if (!Array.isArray(currentLevel.level) && typeof currentLevel.level === 'number' && 
+          !Array.isArray(nextBreak.level) && typeof nextBreak.level === 'number' &&
+          typeof currentLevel.duration === 'number') {
+        
+        const currentLevelIndex = currentLevel.level - 1;
+        const elapsedTimeInCurrentLevel = currentLevel.duration * 60 - timeRemainingInLevel;
+        const nextBreakIndex = nextBreak.level - 1;
+        
+        // Obter todos os níveis disponíveis (assumindo que estamos usando a estrutura da temporada ativa)
+        const allLevels = Array.isArray(nextBreak) 
+          ? [...nextBreak] 
+          : window.blindLevels || []; // Fallback para uma variável global se disponível
+        
+        // Calcular o tempo até o próximo intervalo apenas se tivermos dados válidos
+        if (allLevels && allLevels.length > 0) {
+          return getTimeUntilBreak(
+            currentLevelIndex,
+            elapsedTimeInCurrentLevel,
+            allLevels,
+            nextBreakIndex
+          );
+        }
       }
-      return "";
+      return "Calculando...";
     } catch (error) {
       console.error("Erro ao calcular tempo até o intervalo:", error);
-      return "";
+      return "Cálculo indisponível";
     }
   };
 

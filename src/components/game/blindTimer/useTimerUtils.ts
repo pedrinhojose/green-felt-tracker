@@ -31,36 +31,46 @@ export function useTimerUtils() {
     blindLevels: BlindLevel[],
     nextBreakIndex: number
   ): string => {
-    // Verificar se os índices são válidos e se temos níveis suficientes
-    if (nextBreakIndex === -1 || !blindLevels || blindLevels.length === 0) {
-      return "Não há intervalo programado";
-    }
-    
-    // Verificar se o índice atual é válido
-    if (currentLevelIndex < 0 || currentLevelIndex >= blindLevels.length) {
-      return "Índice de nível inválido";
-    }
-    
-    let timeUntilBreak = 0;
-    
-    // Tempo restante no nível atual
-    const currentLevel = blindLevels[currentLevelIndex];
-    if (!currentLevel || typeof currentLevel.duration !== 'number') {
-      return "Configuração de nível inválida";
-    }
-    
-    const remainingInCurrentLevel = (currentLevel.duration * 60) - elapsedTimeInLevel;
-    timeUntilBreak += remainingInCurrentLevel;
-    
-    // Somar o tempo dos níveis intermediários
-    for (let i = currentLevelIndex + 1; i < nextBreakIndex; i++) {
-      if (i < blindLevels.length && blindLevels[i] && typeof blindLevels[i].duration === 'number') {
-        timeUntilBreak += blindLevels[i].duration * 60;
+    try {
+      // Verificar se os índices são válidos e se temos níveis suficientes
+      if (nextBreakIndex === -1 || !blindLevels || blindLevels.length === 0) {
+        return "Não há intervalo programado";
       }
+      
+      // Verificar se o índice atual é válido
+      if (currentLevelIndex < 0 || currentLevelIndex >= blindLevels.length) {
+        return "Índice de nível inválido";
+      }
+      
+      // Verificar se o próximo índice de intervalo é válido
+      if (nextBreakIndex < 0 || nextBreakIndex >= blindLevels.length) {
+        return "Índice de próximo intervalo inválido";
+      }
+      
+      let timeUntilBreak = 0;
+      
+      // Tempo restante no nível atual
+      const currentLevel = blindLevels[currentLevelIndex];
+      if (!currentLevel || typeof currentLevel.duration !== 'number') {
+        return "Configuração de nível inválida";
+      }
+      
+      const remainingInCurrentLevel = (currentLevel.duration * 60) - elapsedTimeInLevel;
+      timeUntilBreak += remainingInCurrentLevel;
+      
+      // Somar o tempo dos níveis intermediários
+      for (let i = currentLevelIndex + 1; i < nextBreakIndex; i++) {
+        if (i < blindLevels.length && blindLevels[i] && typeof blindLevels[i].duration === 'number') {
+          timeUntilBreak += blindLevels[i].duration * 60;
+        }
+      }
+      
+      const minutes = Math.floor(timeUntilBreak / 60);
+      return `${minutes} min`;
+    } catch (error) {
+      console.error("Erro ao calcular tempo até o intervalo:", error);
+      return "Cálculo indisponível";
     }
-    
-    const minutes = Math.floor(timeUntilBreak / 60);
-    return `${minutes} min`;
   };
 
   return {
