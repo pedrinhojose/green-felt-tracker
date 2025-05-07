@@ -1,58 +1,59 @@
 
-import { useRef } from "react";
+import { BlindLevel } from "@/lib/db/models";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-interface TimerUtilsProps {
-  currentTime: number;
-  setCurrentTime: React.Dispatch<React.SetStateAction<number>>;
-  blindLevels: any[];
-  currentLevelIndex: number;
-}
-
-export function useTimerUtils({
-  currentTime,
-  setCurrentTime,
-  blindLevels,
-  currentLevelIndex
-}: TimerUtilsProps) {
-  const progressRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<HTMLDivElement>(null);
-  
-  // Formatar tempo como MM:SS
+export function useTimerUtils() {
+  // Formata o tempo em minutos:segundos
   const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
-  
-  // Formatar tempo total decorrido
-  const formatElapsedTime = (seconds: number): string => {
+
+  // Formata o tempo total decorrido em HH:MM:SS
+  const formatTotalTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
-  
-  // Permitir posicionar o tempo clicando na barra de progresso
-  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !blindLevels[currentLevelIndex]) return;
-    
-    const rect = progressRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = clickX / rect.width;
-    
-    // Calcular o novo tempo baseado na porcentagem clicada
-    const totalLevelTime = blindLevels[currentLevelIndex].duration * 60;
-    const newTime = Math.round(totalLevelTime - (totalLevelTime * percentage));
-    
-    // Atualizar o tempo atual
-    setCurrentTime(Math.max(1, newTime)); // Evitar que chegue a 0
+
+  // Retorna a hora atual formatada
+  const getCurrentTime = (): string => {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-  
+
+  // Calcula quanto tempo falta para o próximo intervalo
+  const getTimeUntilBreak = (
+    currentLevelIndex: number, 
+    elapsedTimeInLevel: number,
+    blindLevels: BlindLevel[],
+    nextBreakIndex: number
+  ): string => {
+    if (nextBreakIndex === -1) return "Não há intervalo programado";
+    
+    let timeUntilBreak = 0;
+    
+    // Tempo restante no nível atual
+    const currentLevel = blindLevels[currentLevelIndex];
+    const remainingInCurrentLevel = (currentLevel.duration * 60) - elapsedTimeInLevel;
+    
+    timeUntilBreak += remainingInCurrentLevel;
+    
+    // Somar o tempo dos níveis intermediários
+    for (let i = currentLevelIndex + 1; i < nextBreakIndex; i++) {
+      timeUntilBreak += blindLevels[i].duration * 60;
+    }
+    
+    const minutes = Math.floor(timeUntilBreak / 60);
+    return `${minutes} min`;
+  };
+
   return {
-    progressRef,
-    timerRef,
     formatTime,
-    formatElapsedTime,
-    handleProgressBarClick
+    formatTotalTime,
+    getCurrentTime,
+    getTimeUntilBreak,
   };
 }

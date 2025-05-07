@@ -1,133 +1,77 @@
 
-import { useState, useRef } from "react";
+import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePoker } from "@/contexts/PokerContext";
+import TimerDisplay from "./TimerDisplay";
+import TimerControls from "./TimerControls";
 import { useTimerState } from "./useTimerState";
 import { useTimerControls } from "./useTimerControls";
-import { useTimerUtils } from "./useTimerUtils";
-import { TimerDisplay } from "./TimerDisplay";
-import { TimerControls } from "./TimerControls";
-import { VolumeX, Volume2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-interface BlindTimerProps {
-  initialTime?: number;
-}
-
-export default function BlindTimer({ initialTime = 15 * 60 }: BlindTimerProps) {
-  // State
-  const [timerRunning, setTimerRunning] = useState<boolean>(false);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [showLevelChange, setShowLevelChange] = useState<boolean>(false);
-  const [currentLevelIndex, setCurrentLevelIndex] = useState<number>(0);
-  const [currentTime, setCurrentTime] = useState<number>(initialTime);
-
-  // Custom hooks
+export default function BlindTimer() {
+  const { activeSeason } = usePoker();
+  
+  // Se não houver temporada ativa, exibe um componente de fallback
+  if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
+    return (
+      <Card className="bg-poker-dark-green border border-poker-gold/20">
+        <CardContent className="p-6 text-center">
+          <p className="text-white">Estrutura de blinds não configurada para esta temporada</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Obter a estrutura de blinds da temporada ativa
+  const blindLevels = activeSeason.blindStructure;
+  
+  // Usar os hooks personalizados
   const {
-    blindLevels,
-    currentGameTime,
-    countdownSoundStarted,
-    calculateProgress,
-    isNextLevelBreak,
-    calculateTimeToBreak,
-    isCurrentLevelBreak,
-    isMuted,
-    setIsMuted
-  } = useTimerState(initialTime);
-
-  // Timer controls
+    state,
+    setState,
+    currentLevel,
+    nextLevel,
+    timeRemainingInLevel,
+    nextBreak,
+    levelsUntilBreak,
+  } = useTimerState(blindLevels);
+  
   const {
-    handleNextLevel,
-    handlePreviousLevel,
-    toggleTimer,
-    toggleFullscreen: toggleFullscreenFn
-  } = useTimerControls({
-    currentTime,
-    setCurrentTime,
-    timerRunning,
-    setTimerRunning,
-    currentLevelIndex,
-    setCurrentLevelIndex,
+    startTimer,
+    pauseTimer,
+    nextLevel: goToNextLevel,
+    toggleSound,
+    openInNewWindow,
+  } = useTimerControls(
     blindLevels,
-    setShowLevelChange,
-    countdownSoundStarted,
-    isMuted
-  });
-
-  // Utility functions
-  const {
-    progressRef,
-    timerRef,
-    formatTime,
-    formatElapsedTime,
-    handleProgressBarClick
-  } = useTimerUtils({
-    currentTime,
-    setCurrentTime,
-    blindLevels,
-    currentLevelIndex
-  });
-
-  // Combined fullscreen function
-  const handleToggleFullscreen = () => {
-    toggleFullscreenFn(timerRef, isFullscreen, setIsFullscreen);
-  };
-
-  // Toggle mute function
-  const toggleMute = () => {
-    setIsMuted(prev => !prev);
-  };
+    state,
+    setState,
+    timeRemainingInLevel
+  );
   
   return (
-    <Card 
-      ref={timerRef} 
-      className={`${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''} bg-poker-dark-green border-0 overflow-hidden`}
-    >
-      {/* Barra de ouro na parte superior em modo tela cheia */}
-      {isFullscreen && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-poker-gold"></div>
-      )}
-      
-      <CardContent className={`p-0 ${isFullscreen ? 'h-screen flex flex-col justify-between' : ''}`}>
-        <TimerDisplay
-          currentTime={currentTime}
-          blindLevels={blindLevels}
-          currentLevelIndex={currentLevelIndex}
-          showLevelChange={showLevelChange}
-          calculateProgress={calculateProgress}
-          calculateTimeToBreak={calculateTimeToBreak}
-          isCurrentLevelBreak={isCurrentLevelBreak}
-          formatTime={formatTime}
-          progressRef={progressRef}
-          handleProgressBarClick={handleProgressBarClick}
-        />
-        
-        {/* Área do botão mudo abaixo do timer, antes dos controles */}
-        <div className="w-full flex justify-center py-2 bg-poker-dark-green/80 border-t border-poker-gold/10">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleMute} 
-            className="text-white/80 hover:text-poker-gold hover:bg-poker-dark-green/90 transition-colors"
-            title={isMuted ? "Ativar som" : "Desativar som"}
-          >
-            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-          </Button>
+    <Card className="bg-poker-dark-green border border-poker-gold/20">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <TimerDisplay
+            currentLevel={currentLevel}
+            nextLevel={nextLevel}
+            timeRemainingInLevel={timeRemainingInLevel}
+            totalElapsedTime={state.totalElapsedTime}
+            nextBreak={nextBreak}
+            levelsUntilBreak={levelsUntilBreak}
+            showAlert={state.showAlert}
+          />
+          
+          <TimerControls
+            isRunning={state.isRunning}
+            soundEnabled={state.soundEnabled}
+            onStart={startTimer}
+            onPause={pauseTimer}
+            onNext={goToNextLevel}
+            onToggleSound={toggleSound}
+            onOpenNewWindow={openInNewWindow}
+          />
         </div>
-        
-        {/* Barra de informações inferiores e controles */}
-        <TimerControls
-          timerRunning={timerRunning}
-          currentGameTime={currentGameTime}
-          currentLevelIndex={currentLevelIndex}
-          blindLevels={blindLevels}
-          isFullscreen={isFullscreen}
-          calculateTimeToBreak={calculateTimeToBreak}
-          formatElapsedTime={formatElapsedTime}
-          toggleTimer={toggleTimer}
-          handlePreviousLevel={handlePreviousLevel}
-          handleNextLevel={handleNextLevel}
-          toggleFullscreen={handleToggleFullscreen}
-        />
       </CardContent>
     </Card>
   );

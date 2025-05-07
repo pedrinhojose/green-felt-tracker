@@ -1,75 +1,135 @@
 
-import React from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
-import { Progress } from "@/components/ui/progress";
+import { useTimerUtils } from "./useTimerUtils";
+
 interface TimerDisplayProps {
-  currentTime: number;
-  blindLevels: BlindLevel[];
-  currentLevelIndex: number;
-  showLevelChange: boolean;
-  calculateProgress: () => number;
-  calculateTimeToBreak: () => string;
-  isCurrentLevelBreak: boolean;
-  formatTime: (seconds: number) => string;
-  progressRef: React.RefObject<HTMLDivElement>;
-  handleProgressBarClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  currentLevel: BlindLevel | undefined;
+  nextLevel: BlindLevel | undefined;
+  timeRemainingInLevel: number;
+  totalElapsedTime: number;
+  nextBreak: BlindLevel | null;
+  levelsUntilBreak: number | null;
+  showAlert: boolean;
 }
-export function TimerDisplay({
-  currentTime,
-  blindLevels,
-  currentLevelIndex,
-  showLevelChange,
-  calculateProgress,
-  calculateTimeToBreak,
-  isCurrentLevelBreak,
-  formatTime,
-  progressRef,
-  handleProgressBarClick
+
+export default function TimerDisplay({ 
+  currentLevel,
+  nextLevel,
+  timeRemainingInLevel,
+  totalElapsedTime,
+  nextBreak,
+  levelsUntilBreak,
+  showAlert
 }: TimerDisplayProps) {
-  // Calculate the progress percentage
-  const progress = calculateProgress();
-  return <div className="flex flex-col items-center p-6">
-      {/* Layout reorganizado - Três colunas */}
-      <div className="w-full grid grid-cols-3 mb-6">
-        {/* Coluna da Esquerda - Informações de blind */}
-        <div className="text-left">
-          {/* Valores de SB e BB - Agora maiores e em amarelo mais forte */}
-          {!isCurrentLevelBreak && blindLevels[currentLevelIndex] && <div className={`text-5xl md:text-6xl font-bold text-yellow-500 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)] transition-all ${showLevelChange ? 'scale-110' : ''}`}>
-              SB: {blindLevels[currentLevelIndex].smallBlind} / BB: {blindLevels[currentLevelIndex].bigBlind}
-              {blindLevels[currentLevelIndex].ante > 0 && ` / ANTE: ${blindLevels[currentLevelIndex].ante}`}
-            </div>}
+  const { formatTime, formatTotalTime, getCurrentTime } = useTimerUtils();
+  const [currentTime, setCurrentTime] = useState(getCurrentTime());
+  
+  // Atualiza o relógio do sistema a cada minuto
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(getCurrentTime());
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Calcular a porcentagem de tempo decorrido no nível atual
+  const progressPercentage = currentLevel
+    ? 100 - (timeRemainingInLevel / (currentLevel.duration * 60)) * 100
+    : 0;
+  
+  // Determinar a cor da barra de progresso
+  const getProgressColor = () => {
+    if (progressPercentage >= 85) return 'bg-red-500';
+    if (progressPercentage >= 50) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  // Efeito de alerta para o tempo restante
+  const timeRemainingClass = showAlert 
+    ? 'animate-pulse scale-105 text-red-500'
+    : '';
+  
+  // Efeito de alerta para blinds
+  const blindsClass = showAlert && timeRemainingInLevel === 0
+    ? 'animate-pulse scale-110 text-poker-gold'
+    : 'text-poker-gold';
+    
+  if (!currentLevel) return null;
+
+  return (
+    <div className="text-center space-y-4">
+      {/* Nível atual */}
+      <div className="mb-2">
+        <h2 className="text-xl text-white font-medium">
+          {currentLevel.isBreak ? 'INTERVALO' : `NÍVEL ${currentLevel.level}`}
+        </h2>
+      </div>
+      
+      {/* Blinds atuais */}
+      {!currentLevel.isBreak ? (
+        <div className={`text-3xl font-bold ${blindsClass} transition-all`}>
+          SB: {currentLevel.smallBlind} / BB: {currentLevel.bigBlind}
+          {currentLevel.ante > 0 && ` / Ante: ${currentLevel.ante}`}
+        </div>
+      ) : (
+        <div className="text-2xl text-poker-gold font-bold">
+          Pausa para Descanso
+        </div>
+      )}
+      
+      {/* Tempo restante */}
+      <div 
+        className={`text-5xl md:text-7xl font-bold text-white ${timeRemainingClass} transition-all`}
+      >
+        {formatTime(timeRemainingInLevel)}
+      </div>
+      
+      {/* Barra de progresso */}
+      <div className="w-full bg-gray-700 rounded-full h-3 mt-4">
+        <div 
+          className={`h-3 rounded-full transition-all ${getProgressColor()}`}
+          style={{ width: `${progressPercentage}%` }}
+        ></div>
+      </div>
+      
+      {/* Informações adicionais */}
+      <div className="grid grid-cols-3 gap-4 text-gray-300 pt-4">
+        <div>
+          <div className="text-xs text-gray-400">Próximo Nível</div>
+          {nextLevel ? (
+            <div className="text-sm">
+              {nextLevel.isBreak ? 'INTERVALO' : `${nextLevel.smallBlind} / ${nextLevel.bigBlind}`}
+            </div>
+          ) : (
+            <div className="text-sm">Último Nível</div>
+          )}
         </div>
         
-        {/* Coluna Central - Nível atual (movido para o centro) */}
-        <div className="flex flex-col items-center justify-center px-0 mx-[74px]">
-          <div className={`text-2xl md:text-3.9xl text-gray-300 uppercase font-medium transition-all ${showLevelChange ? 'scale-110' : ''}`}>
-            {isCurrentLevelBreak ? "INTERVALO" : `NÍVEL ${blindLevels[currentLevelIndex]?.level || 1}`}
-          </div>
+        <div>
+          <div className="text-xs text-gray-400">Tempo de Jogo</div>
+          <div className="text-sm">{formatTotalTime(totalElapsedTime)}</div>
         </div>
         
-        {/* Coluna da Direita - Intervalo em */}
-        <div className="text-right">
-          <div className="text-xl text-gray-300 uppercase">INTERVALO EM</div>
-          <div className="text-4xl font-bold text-gray-200 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]">
-            {calculateTimeToBreak()}
-          </div>
+        <div>
+          <div className="text-xs text-gray-400">Hora Atual</div>
+          <div className="text-sm">{currentTime}</div>
         </div>
       </div>
       
-      {/* Timer grande com efeito 3D */}
-      <div className="text-7xl md:text-9xl font-bold tabular-nums mb-8 text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]">
-        {formatTime(currentTime)}
-      </div>
-      
-      {/* Barra de progresso - Preenchendo gradualmente com a cor amarela */}
-      <div ref={progressRef} className="w-4/5 mx-auto mb-8 cursor-pointer" onClick={handleProgressBarClick}>
-        <Progress 
-          value={progress} 
-          className="h-3 bg-blue-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]" 
-          barClassName="bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-[0_0_10px_rgba(255,204,0,0.5)]" 
-        />
-      </div>
-    </div>;
+      {/* Próximo intervalo */}
+      {nextBreak && (
+        <div className="bg-poker-navy/30 rounded-lg p-2 mt-2 text-sm">
+          <div className="text-gray-400">Próximo Intervalo</div>
+          <div className="text-white">
+            {levelsUntilBreak && levelsUntilBreak > 0
+              ? `Faltam ${levelsUntilBreak} níveis (Nível ${nextBreak.level})`
+              : 'Próximo nível'
+            }
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

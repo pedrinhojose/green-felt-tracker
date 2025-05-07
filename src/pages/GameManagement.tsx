@@ -7,8 +7,7 @@ import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useState } from "react";
 
 // Component imports
-// BlindTimer será re-implementado
-// import BlindTimer from "@/components/game/blindTimer/BlindTimer"; 
+import BlindTimer from "@/components/game/blindTimer/BlindTimer"; 
 import PlayerSelection from "@/components/game/PlayerSelection";
 import PrizePoolManager from "@/components/game/PrizePoolManager";
 import PlayersTable from "@/components/game/PlayersTable";
@@ -120,11 +119,8 @@ export default function GameManagement() {
       ) : (
         // Game management screen
         <div className="space-y-6">
-          {/* O BlindTimer será re-implementado em breve */}
-          {/* <BlindTimer /> */}
-          <div className="bg-poker-dark-green p-4 rounded-lg border border-poker-gold/20 text-center">
-            <p className="text-white">Timer em desenvolvimento</p>
-          </div>
+          {/* Blind Timer */}
+          <BlindTimer />
           
           {/* Prize Pool */}
           <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
