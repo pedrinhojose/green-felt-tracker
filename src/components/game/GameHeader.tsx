@@ -96,7 +96,7 @@ export default function GameHeader({
         
         {isFinished ? (
           <Button
-            onClick={() => navigate('/partidas')}
+            onClick={() => navigate('/games')}
             variant="outline"
             size="sm"
           >
@@ -132,7 +132,7 @@ export default function GameHeader({
           </AlertDialog>
         )}
         
-        {/* Diálogo de confirmação para exportar relatório após finalização da partida */}
+        {/* Sheet for report export after finishing game */}
         <Sheet open={showReportDialog} onOpenChange={setShowReportDialog}>
           <SheetContent className="sm:max-w-md">
             <SheetHeader>
@@ -171,7 +171,7 @@ export default function GameHeader({
               <Button 
                 onClick={() => {
                   setShowReportDialog(false);
-                  navigate('/partidas');
+                  navigate('/games');
                 }}
                 variant="ghost"
                 className="w-full"

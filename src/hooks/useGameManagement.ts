@@ -49,7 +49,7 @@ export function useGameManagement() {
             description: "Partida não encontrada.",
             variant: "destructive",
           });
-          navigate("/partidas");
+          navigate("/games");
         }
       } catch (error) {
         console.error("Error loading game:", error);

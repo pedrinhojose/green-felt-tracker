@@ -41,7 +41,7 @@ export default function GamesList() {
     try {
       setIsCreating(true);
       const gameId = await createGame(activeSeason.id);
-      navigate(`/game/${gameId}`);  // Use /game/:id route for game management
+      navigate(`/game/${gameId}`);
     } catch (error) {
       console.error("Error creating game:", error);
       toast({
