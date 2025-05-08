@@ -1,10 +1,12 @@
 
 import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+import { optimizeImage } from "@/lib/utils/imageUtils";
 
 export function usePlayerPhoto() {
   const { toast } = useToast();
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,42 +45,95 @@ export function usePlayerPhoto() {
     }
   };
   
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const imageDataUrl = canvas.toDataURL('image/jpeg');
-        stopCamera();
-        return imageDataUrl;
+  const capturePhoto = async () => {
+    setIsProcessing(true);
+    try {
+      if (videoRef.current) {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          const imageDataUrl = canvas.toDataURL('image/jpeg');
+          stopCamera();
+          
+          // Optimize the image before returning
+          const optimizedImageUrl = await optimizeImage(imageDataUrl);
+          setIsProcessing(false);
+          return optimizedImageUrl;
+        }
       }
+      setIsProcessing(false);
+      return null;
+    } catch (error) {
+      console.error("Error capturing photo:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar a foto.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+      return null;
     }
-    return null;
   };
   
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    return new Promise<string | null>((resolve) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imageDataUrl = event.target?.result as string;
-          resolve(imageDataUrl);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        resolve(null);
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return null;
+    
+    setIsProcessing(true);
+    try {
+      // Check file size before processing
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Arquivo muito grande",
+          description: "O tamanho máximo permitido é 5MB. Por favor, escolha uma imagem menor.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return null;
       }
+      
+      const imageDataUrl = await readFileAsDataURL(file);
+      // Optimize the image
+      const optimizedImageUrl = await optimizeImage(imageDataUrl);
+      setIsProcessing(false);
+      return optimizedImageUrl;
+    } catch (error) {
+      console.error("Error processing image:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar a imagem.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+      return null;
+    }
+  };
+
+  // Helper function to read file as data URL
+  const readFileAsDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result;
+        if (typeof result === 'string') {
+          resolve(result);
+        } else {
+          reject(new Error("Failed to read file"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   };
 
   return {
     isCameraActive,
     setIsCameraActive,
+    isProcessing,
     videoRef,
     fileInputRef,
     startCamera,

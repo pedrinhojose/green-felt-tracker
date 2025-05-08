@@ -32,6 +32,7 @@ export default function PlayersManagement() {
   const {
     isCameraActive,
     setIsCameraActive,
+    isProcessing,
     videoRef,
     fileInputRef,
     startCamera,
@@ -58,28 +59,6 @@ export default function PlayersManagement() {
       setNewPlayer({ ...newPlayer, photoUrl: undefined });
     }
   };
-  
-  const handleCapturePhoto = () => {
-    const photoDataUrl = capturePhoto();
-    if (photoDataUrl) {
-      if (editingPlayer) {
-        setEditingPlayer({ ...editingPlayer, photoUrl: photoDataUrl });
-      } else {
-        setNewPlayer({ ...newPlayer, photoUrl: photoDataUrl });
-      }
-    }
-  };
-  
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const photoDataUrl = await handleFileUpload(e);
-    if (photoDataUrl) {
-      if (editingPlayer) {
-        setEditingPlayer({ ...editingPlayer, photoUrl: photoDataUrl });
-      } else {
-        setNewPlayer({ ...newPlayer, photoUrl: photoDataUrl });
-      }
-    }
-  };
 
   const handleAddPlayer = async () => {
     if (!newPlayer.name.trim()) {
@@ -104,7 +83,7 @@ export default function PlayersManagement() {
       console.error("Error adding player:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível adicionar o jogador.",
+        description: error instanceof Error ? error.message : "Não foi possível adicionar o jogador.",
         variant: "destructive",
       });
     } finally {
@@ -135,7 +114,7 @@ export default function PlayersManagement() {
       console.error("Error updating player:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o jogador.",
+        description: error instanceof Error ? error.message : "Não foi possível atualizar o jogador.",
         variant: "destructive",
       });
     } finally {
@@ -237,9 +216,10 @@ export default function PlayersManagement() {
         fileInputRef={fileInputRef}
         startCamera={startCamera}
         stopCamera={stopCamera}
-        capturePhoto={handleCapturePhoto}
-        handleFileUpload={handleFileInputChange}
+        capturePhoto={capturePhoto}
+        handleFileUpload={handleFileUpload}
         clearPhoto={clearPhoto}
+        isProcessing={isProcessing}
       />
       
       {/* Edit Player Dialog */}
@@ -254,9 +234,10 @@ export default function PlayersManagement() {
         fileInputRef={fileInputRef}
         startCamera={startCamera}
         stopCamera={stopCamera}
-        capturePhoto={handleCapturePhoto}
-        handleFileUpload={handleFileInputChange}
+        capturePhoto={capturePhoto}
+        handleFileUpload={handleFileUpload}
         clearPhoto={clearPhoto}
+        isProcessing={isProcessing}
       />
     </div>
   );

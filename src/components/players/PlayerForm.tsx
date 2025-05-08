@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Camera, ImageIcon, X } from "lucide-react";
+import { Camera, ImageIcon, X, Loader2 } from "lucide-react";
 import { Player } from "@/lib/db/models";
 
 interface PlayerFormProps {
@@ -21,9 +21,10 @@ interface PlayerFormProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   startCamera: () => Promise<void>;
   stopCamera: () => void;
-  capturePhoto: () => void;
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  capturePhoto: () => Promise<string | null>;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<string | null>;
   clearPhoto: () => void;
+  isProcessing: boolean;
 }
 
 export function PlayerForm({
@@ -37,8 +38,29 @@ export function PlayerForm({
   stopCamera,
   capturePhoto,
   handleFileUpload,
-  clearPhoto
+  clearPhoto,
+  isProcessing
 }: PlayerFormProps) {
+  // Handle photo capture
+  const handleCapturePhoto = async () => {
+    const imageUrl = await capturePhoto();
+    if (imageUrl) {
+      setPlayer({ ...player, photoUrl: imageUrl });
+    }
+  };
+  
+  // Handle file upload
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const imageUrl = await handleFileUpload(e);
+    if (imageUrl) {
+      setPlayer({ ...player, photoUrl: imageUrl });
+    }
+    // Reset the file input so the same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
   return (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
@@ -74,7 +96,14 @@ export function PlayerForm({
       <div className="space-y-2">
         <Label>Foto do Jogador</Label>
         
-        {isCameraActive ? (
+        {isProcessing && (
+          <div className="flex justify-center items-center py-4">
+            <Loader2 className="h-8 w-8 animate-spin text-poker-gold" />
+            <span className="ml-2">Processando imagem...</span>
+          </div>
+        )}
+        
+        {isCameraActive && !isProcessing ? (
           <div className="space-y-2">
             <div className="relative rounded-lg overflow-hidden bg-black">
               <video 
@@ -93,13 +122,13 @@ export function PlayerForm({
               </Button>
             </div>
             <Button 
-              onClick={capturePhoto} 
+              onClick={handleCapturePhoto} 
               className="w-full bg-poker-gold hover:bg-poker-gold/80 text-black"
             >
               Tirar Foto
             </Button>
           </div>
-        ) : player.photoUrl ? (
+        ) : player.photoUrl && !isProcessing ? (
           <div className="space-y-2">
             <div className="relative">
               <img 
@@ -117,7 +146,7 @@ export function PlayerForm({
               </Button>
             </div>
           </div>
-        ) : (
+        ) : !isProcessing && (
           <div className="flex gap-2">
             <Button 
               onClick={startCamera} 
@@ -138,7 +167,7 @@ export function PlayerForm({
               ref={fileInputRef}
               accept="image/jpeg,image/png"
               style={{ display: 'none' }}
-              onChange={handleFileUpload}
+              onChange={handleFileInputChange}
             />
           </div>
         )}

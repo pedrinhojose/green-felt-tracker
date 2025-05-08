@@ -16,9 +16,10 @@ interface EditPlayerDialogProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   startCamera: () => Promise<void>;
   stopCamera: () => void;
-  capturePhoto: () => void;
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  capturePhoto: () => Promise<string | null>;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<string | null>;
   clearPhoto: () => void;
+  isProcessing: boolean;
 }
 
 export function EditPlayerDialog({
@@ -34,7 +35,8 @@ export function EditPlayerDialog({
   stopCamera,
   capturePhoto,
   handleFileUpload,
-  clearPhoto
+  clearPhoto,
+  isProcessing
 }: EditPlayerDialogProps) {
   return (
     <Dialog 
@@ -63,15 +65,17 @@ export function EditPlayerDialog({
               capturePhoto={capturePhoto}
               handleFileUpload={handleFileUpload}
               clearPhoto={clearPhoto}
+              isProcessing={isProcessing}
             />
             
             <DialogFooter>
               <Button
                 onClick={handleEditPlayer}
-                disabled={isSaving || !editingPlayer.name.trim()}
+                disabled={isSaving || isProcessing || !editingPlayer.name.trim()}
                 className="bg-poker-gold hover:bg-poker-gold/80 text-black"
               >
                 {isSaving ? "Salvando..." : "Salvar"}
+                {isProcessing && " (Processando imagem...)"}
               </Button>
             </DialogFooter>
           </>
