@@ -6,7 +6,5 @@ import './index.css';
 
 // Create the root and render the App component with proper React wrapping
 createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <App />
 );
