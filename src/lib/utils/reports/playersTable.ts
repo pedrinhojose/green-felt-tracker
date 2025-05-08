@@ -15,9 +15,9 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Ajustando o grid para garantir que todas as colunas sejam exibidas corretamente
-  tableHeader.style.gridTemplateColumns = '20px 40px 1fr 50px 50px 50px 90px';
-  tableHeader.style.gap = '8px';
+  // Ajustando o grid para uma visualização mais compacta, reduzindo o espaço para nomes e aumentando para o saldo
+  tableHeader.style.gridTemplateColumns = '20px 36px minmax(80px, 0.8fr) 45px 45px 45px 90px';
+  tableHeader.style.gap = '4px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '6px 0';
   tableHeader.style.fontSize = '12px';
@@ -60,11 +60,11 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     const row = document.createElement('div');
     row.style.display = 'grid';
     // Usando o mesmo template de grid do cabeçalho para manter consistência
-    row.style.gridTemplateColumns = '20px 40px 1fr 50px 50px 50px 90px';
-    row.style.gap = '8px';
+    row.style.gridTemplateColumns = '20px 36px minmax(80px, 0.8fr) 45px 45px 45px 90px';
+    row.style.gap = '4px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
-    row.style.padding = '12px 0';
-    row.style.fontSize = '14px';
+    row.style.padding = '10px 0';
+    row.style.fontSize = '13px';
     
     // Position
     const posCell = document.createElement('div');
@@ -79,8 +79,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     photoCell.style.alignItems = 'center';
     
     const photoImg = document.createElement('div');
-    photoImg.style.width = '32px';
-    photoImg.style.height = '32px';
+    photoImg.style.width = '28px';
+    photoImg.style.height = '28px';
     photoImg.style.borderRadius = '50%';
     photoImg.style.overflow = 'hidden';
     photoImg.style.backgroundColor = '#2A2A2A';
@@ -100,7 +100,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
       photoImg.style.color = '#FFFFFF';
       photoImg.style.backgroundColor = '#8E9196';
       photoImg.textContent = player.name.charAt(0).toUpperCase();
-      photoImg.style.fontSize = '16px';
+      photoImg.style.fontSize = '14px';
       photoImg.style.fontWeight = 'bold';
     }
     
@@ -110,9 +110,12 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     const nameCell = document.createElement('div');
     nameCell.textContent = player.name;
     nameCell.style.fontWeight = 'bold';
-    nameCell.style.overflow = 'visible';
+    nameCell.style.overflow = 'hidden';
+    nameCell.style.textOverflow = 'ellipsis';
+    nameCell.style.whiteSpace = 'nowrap';
     nameCell.style.display = 'flex';
     nameCell.style.alignItems = 'center';
+    nameCell.style.paddingLeft = '2px';
     
     // Rebuys
     const rebuysCell = document.createElement('div');

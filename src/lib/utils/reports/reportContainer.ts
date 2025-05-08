@@ -8,8 +8,8 @@ export const createReportContainer = () => {
   container.style.backgroundColor = '#1a2e35';
   container.style.color = '#FFFFFF';
   container.style.fontFamily = 'Inter, Arial, sans-serif';
-  container.style.padding = '24px';
-  container.style.maxWidth = '700px'; // Aumentando a largura máxima para acomodar todas as colunas
+  container.style.padding = '16px';
+  container.style.maxWidth = '580px'; // Reduzindo a largura máxima para visualização em celular
   container.style.margin = '0 auto';
   container.style.borderRadius = '8px';
   container.style.boxSizing = 'border-box';
