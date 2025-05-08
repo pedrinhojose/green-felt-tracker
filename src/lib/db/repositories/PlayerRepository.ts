@@ -4,6 +4,7 @@ import { Player } from '../models';
 import { PokerDB } from '../schema/PokerDBSchema';
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseCore } from '../core/SupabaseCore';
+import { deleteImageFromStorage } from '@/lib/utils/storageUtils';
 
 export class PlayerRepository extends SupabaseCore {
   private idbDb: Promise<IDBPDatabase<PokerDB>> | null = null;
@@ -85,6 +86,18 @@ export class PlayerRepository extends SupabaseCore {
       try {
         const userId = await this.getUserId();
         
+        // If updating an existing player, check if we need to delete an old photo
+        if (player.id) {
+          const existingPlayer = await this.getPlayer(player.id);
+          if (existingPlayer && existingPlayer.photoUrl && 
+              existingPlayer.photoUrl !== player.photoUrl && 
+              existingPlayer.photoUrl.includes('player-photos')) {
+            // Delete the old photo if it's from our storage and different from the new one
+            await deleteImageFromStorage(existingPlayer.photoUrl);
+            console.log("Deleted old player photo:", existingPlayer.photoUrl);
+          }
+        }
+        
         const supabasePlayer = {
           id: player.id,
           name: player.name,
@@ -121,6 +134,14 @@ export class PlayerRepository extends SupabaseCore {
     if (this.useSupabase) {
       try {
         const userId = await this.getUserId();
+        
+        // Get the player to check for photo URL
+        const player = await this.getPlayer(id);
+        if (player && player.photoUrl && player.photoUrl.includes('player-photos')) {
+          // Delete the player's photo from Storage
+          await deleteImageFromStorage(player.photoUrl);
+          console.log("Deleted player photo:", player.photoUrl);
+        }
         
         const { error } = await supabase
           .from('players')

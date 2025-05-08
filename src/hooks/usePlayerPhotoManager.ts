@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { optimizeImage } from "@/lib/utils/imageUtils";
+import { uploadImageToStorage } from "@/lib/utils/storageUtils";
 
 export function usePlayerPhotoManager(initialPhotoUrl?: string) {
   const { toast } = useToast();
@@ -60,11 +61,14 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
           const imageDataUrl = canvas.toDataURL('image/jpeg');
           stopCamera();
           
-          // Optimize the image before returning
+          // Optimize the image before uploading
           const optimizedImageUrl = await optimizeImage(imageDataUrl);
-          setPhotoUrl(optimizedImageUrl);
+          
+          // Upload to Supabase Storage
+          const storageUrl = await uploadImageToStorage(optimizedImageUrl);
+          setPhotoUrl(storageUrl);
           setIsProcessing(false);
-          return optimizedImageUrl;
+          return storageUrl;
         }
       }
       setIsProcessing(false);
@@ -101,9 +105,12 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
       const imageDataUrl = await readFileAsDataURL(file);
       // Optimize the image
       const optimizedImageUrl = await optimizeImage(imageDataUrl);
-      setPhotoUrl(optimizedImageUrl);
+      
+      // Upload to Supabase Storage
+      const storageUrl = await uploadImageToStorage(optimizedImageUrl);
+      setPhotoUrl(storageUrl);
       setIsProcessing(false);
-      return optimizedImageUrl;
+      return storageUrl;
     } catch (error) {
       console.error("Error processing image:", error);
       toast({

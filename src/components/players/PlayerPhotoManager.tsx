@@ -75,6 +75,12 @@ export function PlayerPhotoManager({
               src={photoUrl} 
               alt="Foto do jogador" 
               className="w-full h-auto rounded-lg"
+              onError={(e) => {
+                // Fallback if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = "/placeholder.svg";
+              }}
             />
             <Button 
               onClick={clearPhoto}

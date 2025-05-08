@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Player } from '../lib/db/models';
 import { pokerDB } from '../lib/db';
 import { useToast } from '@/components/ui/use-toast';
+import { deleteImageFromStorage } from '@/lib/utils/storageUtils';
 
 export function usePlayerFunctions() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -93,9 +94,11 @@ export function usePlayerFunctions() {
         };
       }
       
-      // Log for debugging
-      const photoSize = player.photoUrl ? Math.round(player.photoUrl.length / 1024) : 0;
-      console.log(`Saving player with photo size: ${photoSize} KB`);
+      // Log for debugging - check if we have a storage URL
+      if (player.photoUrl) {
+        const isStorageUrl = player.photoUrl.includes('player-photos');
+        console.log(`Player photo is ${isStorageUrl ? 'a storage URL' : 'not a storage URL'}: ${player.photoUrl.substring(0, 50)}${player.photoUrl.length > 50 ? '...' : ''}`);
+      }
       
       // Save player to database
       const id = await pokerDB.savePlayer(player);
@@ -119,6 +122,9 @@ export function usePlayerFunctions() {
 
   const deletePlayer = async (id: string) => {
     try {
+      // Get the player first to check for photo
+      const player = await getPlayer(id);
+      
       await pokerDB.deletePlayer(id);
       setPlayers(prev => prev.filter(p => p.id !== id));
     } catch (error) {
