@@ -15,12 +15,12 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Ajustando o grid para uma visualização mais compacta, reduzindo o espaço para nomes e aumentando para o saldo
-  tableHeader.style.gridTemplateColumns = '20px 36px minmax(80px, 0.8fr) 45px 45px 45px 90px';
-  tableHeader.style.gap = '4px';
+  // Layout mais compacto conforme a imagem de referência
+  tableHeader.style.gridTemplateColumns = '18px 30px minmax(70px, 0.7fr) 42px 42px 42px 80px';
+  tableHeader.style.gap = '2px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
-  tableHeader.style.padding = '6px 0';
-  tableHeader.style.fontSize = '12px';
+  tableHeader.style.padding = '5px 0';
+  tableHeader.style.fontSize = '11px';
   tableHeader.style.color = '#8E9196';
   
   // Header columns
@@ -28,8 +28,13 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   headers.forEach((header, index) => {
     const headerCell = document.createElement('div');
     headerCell.textContent = header;
-    // Alinhamento consistente para todas as colunas, exceto nome do jogador
-    headerCell.style.textAlign = index === 2 ? 'left' : 'center';
+    // Alinhamento consistente para todas as colunas
+    if (index === 2) {
+      headerCell.style.textAlign = 'left';
+      headerCell.style.paddingLeft = '2px';
+    } else {
+      headerCell.style.textAlign = 'center';
+    }
     tableHeader.appendChild(headerCell);
   });
   
@@ -60,11 +65,11 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     const row = document.createElement('div');
     row.style.display = 'grid';
     // Usando o mesmo template de grid do cabeçalho para manter consistência
-    row.style.gridTemplateColumns = '20px 36px minmax(80px, 0.8fr) 45px 45px 45px 90px';
-    row.style.gap = '4px';
+    row.style.gridTemplateColumns = '18px 30px minmax(70px, 0.7fr) 42px 42px 42px 80px';
+    row.style.gap = '2px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
-    row.style.padding = '10px 0';
-    row.style.fontSize = '13px';
+    row.style.padding = '8px 0';
+    row.style.fontSize = '12px';
     
     // Position
     const posCell = document.createElement('div');
@@ -79,8 +84,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     photoCell.style.alignItems = 'center';
     
     const photoImg = document.createElement('div');
-    photoImg.style.width = '28px';
-    photoImg.style.height = '28px';
+    photoImg.style.width = '24px';
+    photoImg.style.height = '24px';
     photoImg.style.borderRadius = '50%';
     photoImg.style.overflow = 'hidden';
     photoImg.style.backgroundColor = '#2A2A2A';
@@ -100,7 +105,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
       photoImg.style.color = '#FFFFFF';
       photoImg.style.backgroundColor = '#8E9196';
       photoImg.textContent = player.name.charAt(0).toUpperCase();
-      photoImg.style.fontSize = '14px';
+      photoImg.style.fontSize = '12px';
       photoImg.style.fontWeight = 'bold';
     }
     
@@ -115,7 +120,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     nameCell.style.whiteSpace = 'nowrap';
     nameCell.style.display = 'flex';
     nameCell.style.alignItems = 'center';
-    nameCell.style.paddingLeft = '2px';
+    nameCell.style.paddingLeft = '0'; // Reduzir espaço à esquerda
     
     // Rebuys
     const rebuysCell = document.createElement('div');
