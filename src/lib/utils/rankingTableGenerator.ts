@@ -68,24 +68,24 @@ export const createPlayerRow = (
   playerCell.appendChild(playerDiv);
   row.appendChild(playerCell);
   
-  // Pontos (colocado antes das partidas para seguir a ordem da imagem)
+  // Pontos (em amarelo conforme solicitado)
   const pointsCell = document.createElement('td');
   pointsCell.textContent = ranking.totalPoints.toString();
   pointsCell.style.textAlign = 'center';
   pointsCell.style.fontWeight = 'bold';
   pointsCell.style.padding = '8px 4px';
   pointsCell.style.fontSize = '18px';
-  pointsCell.style.color = '#D4AF37'; // Cor dourada
+  pointsCell.style.color = '#D4AF37'; // Cor dourada/amarela para pontos
   pointsCell.style.width = '80px';
   row.appendChild(pointsCell);
   
-  // Partidas
+  // Partidas (em branco conforme solicitado)
   const gamesCell = document.createElement('td');
   gamesCell.textContent = ranking.gamesPlayed.toString();
   gamesCell.style.textAlign = 'center';
   gamesCell.style.padding = '8px 4px';
   gamesCell.style.fontSize = '18px';
-  gamesCell.style.color = '#ffffff';
+  gamesCell.style.color = '#ffffff'; // Cor branca para jogos
   gamesCell.style.width = '80px';
   row.appendChild(gamesCell);
   
@@ -124,3 +124,4 @@ export const createRankingTable = (
   tableElement.appendChild(tbody);
   return tableElement;
 };
+
