@@ -1,23 +1,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-// URLs para os arquivos de áudio no GitHub (corrigido para .mp3)
+// URLs para os arquivos de áudio no GitHub (usando a URL raw para acesso direto)
 const AUDIO_URLS = {
   alert: 'https://raw.githubusercontent.com/pedrinhojose/AudiosPoker/main/alert.mp3',
   countdown: 'https://raw.githubusercontent.com/pedrinhojose/AudiosPoker/main/countdown.mp3',
   levelComplete: 'https://raw.githubusercontent.com/pedrinhojose/AudiosPoker/main/level-complete.mp3'
 };
 
-// Chaves do localStorage
-const STORAGE_KEYS = {
-  alert: 'poker_audio_alert',
-  countdown: 'poker_audio_countdown',
-  levelComplete: 'poker_audio_level_complete',
-  version: 'poker_audio_version'
-};
-
-// Versão atual - incremente quando os arquivos de áudio mudarem
-const CURRENT_VERSION = '1.0.1'; // Incrementado para forçar a atualização com os novos arquivos
+// Versão atual - para controle interno
+const CURRENT_VERSION = '1.0.2';
 
 export interface AudioElements {
   alertAudio: HTMLAudioElement | null;
@@ -41,31 +33,13 @@ export function useLocalStorageAudio() {
 
     const initializeAudio = async () => {
       try {
-        console.log('Inicializando áudio do localStorage');
+        console.log('Inicializando áudio do GitHub');
         setIsLoading(true);
         
-        // Verificar se precisamos atualizar os arquivos de áudio com base na versão
-        const storedVersion = localStorage.getItem(STORAGE_KEYS.version);
-        const needsUpdate = !storedVersion || storedVersion !== CURRENT_VERSION;
-        
-        if (needsUpdate) {
-          console.log('Atualização de versão de áudio necessária, baixando novos arquivos');
-          await Promise.all([
-            downloadAndStoreAudio('alert'),
-            downloadAndStoreAudio('countdown'),
-            downloadAndStoreAudio('levelComplete')
-          ]);
-          
-          // Atualizar versão
-          localStorage.setItem(STORAGE_KEYS.version, CURRENT_VERSION);
-        } else {
-          console.log('Usando arquivos de áudio em cache do localStorage');
-        }
-        
-        // Criar elementos de áudio a partir dos dados do localStorage
-        const alertAudio = createAudioFromLocalStorage(STORAGE_KEYS.alert);
-        const countdownAudio = createAudioFromLocalStorage(STORAGE_KEYS.countdown);
-        const levelCompleteAudio = createAudioFromLocalStorage(STORAGE_KEYS.levelComplete);
+        // Criar elementos de áudio com as URLs diretas do GitHub
+        const alertAudio = createAudioFromUrl(AUDIO_URLS.alert, 'alerta');
+        const countdownAudio = createAudioFromUrl(AUDIO_URLS.countdown, 'contagem regressiva');
+        const levelCompleteAudio = createAudioFromUrl(AUDIO_URLS.levelComplete, 'nível completo');
         
         setAudioElements({
           alertAudio,
@@ -91,94 +65,46 @@ export function useLocalStorageAudio() {
     };
   }, [isInitialized]);
   
-  // Função para baixar áudio e armazenar no localStorage
-  const downloadAndStoreAudio = async (type: 'alert' | 'countdown' | 'levelComplete') => {
+  // Criar um elemento Audio a partir de uma URL
+  const createAudioFromUrl = (url: string, name: string): HTMLAudioElement => {
     try {
-      console.log(`Baixando áudio ${type}...`);
-      const url = AUDIO_URLS[type];
-      console.log(`URL do áudio: ${url}`);
+      console.log(`Criando elemento de áudio para ${name} a partir da URL: ${url}`);
       
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`Falha ao buscar áudio ${type}: ${response.status} ${response.statusText}`);
-      }
-      
-      // Obter áudio como blob e converter para base64
-      const blob = await response.blob();
-      console.log(`Tipo MIME do arquivo: ${blob.type}`); // Log do tipo MIME para debug
-      
-      const base64 = await blobToBase64(blob);
-      
-      // Armazenar no localStorage
-      localStorage.setItem(STORAGE_KEYS[type], base64);
-      console.log(`Áudio ${type} armazenado no localStorage`);
-      
-      return base64;
-    } catch (error) {
-      console.error(`Erro ao baixar áudio ${type}:`, error);
-      throw error;
-    }
-  };
-  
-  // Converter blob para base64
-  const blobToBase64 = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result);
-        } else {
-          reject(new Error('Falha ao converter blob para base64'));
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-  
-  // Criar um elemento Audio a partir dos dados do localStorage
-  const createAudioFromLocalStorage = (key: string): HTMLAudioElement | null => {
-    try {
-      const audioData = localStorage.getItem(key);
-      if (!audioData) {
-        console.warn(`Nenhum dado de áudio encontrado no localStorage para a chave: ${key}`);
-        return null;
-      }
-      
-      const audio = new Audio(audioData);
+      const audio = new Audio();
+      audio.src = url;
       audio.preload = 'auto';
       
       // Adicionar event listeners para debug
-      audio.addEventListener('canplaythrough', () => console.log(`Áudio ${key} carregado e pronto para reproduzir`));
-      audio.addEventListener('error', (e) => console.error(`Erro ao carregar áudio ${key}:`, e));
+      audio.addEventListener('canplaythrough', () => console.log(`Áudio ${name} carregado e pronto para reproduzir`));
+      audio.addEventListener('error', (e) => console.error(`Erro ao carregar áudio ${name}:`, e.target));
       
       return audio;
     } catch (error) {
-      console.error(`Erro ao criar áudio do localStorage para chave: ${key}`, error);
-      return null;
+      console.error(`Erro ao criar áudio para ${name}:`, error);
+      setLoadingErrors(prev => [...prev, `Erro ao criar áudio para ${name}: ${error}`]);
+      return new Audio(); // Retorna um elemento de áudio vazio em caso de erro
     }
   };
   
-  // Forçar recarga manual dos arquivos de áudio
+  // Força recarregamento dos elementos de áudio
   const reloadAudioFiles = async () => {
     setIsLoading(true);
     setLoadingErrors([]);
     
     try {
+      console.log('Recarregando arquivos de áudio do GitHub...');
+      
+      // Criar novos elementos de áudio
+      const alertAudio = createAudioFromUrl(AUDIO_URLS.alert, 'alerta');
+      const countdownAudio = createAudioFromUrl(AUDIO_URLS.countdown, 'contagem regressiva');
+      const levelCompleteAudio = createAudioFromUrl(AUDIO_URLS.levelComplete, 'nível completo');
+      
+      // Tentar pré-carregar os áudios
       await Promise.all([
-        downloadAndStoreAudio('alert'),
-        downloadAndStoreAudio('countdown'),
-        downloadAndStoreAudio('levelComplete')
+        preloadAudio(alertAudio, 'alerta'),
+        preloadAudio(countdownAudio, 'contagem regressiva'),
+        preloadAudio(levelCompleteAudio, 'nível completo')
       ]);
-      
-      // Atualizar versão
-      localStorage.setItem(STORAGE_KEYS.version, CURRENT_VERSION);
-      
-      // Recriar elementos de áudio
-      const alertAudio = createAudioFromLocalStorage(STORAGE_KEYS.alert);
-      const countdownAudio = createAudioFromLocalStorage(STORAGE_KEYS.countdown);
-      const levelCompleteAudio = createAudioFromLocalStorage(STORAGE_KEYS.levelComplete);
       
       setAudioElements({
         alertAudio,
@@ -193,6 +119,42 @@ export function useLocalStorageAudio() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Função para pré-carregar áudio
+  const preloadAudio = (audio: HTMLAudioElement, name: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (!audio) {
+        reject(new Error(`Elemento de áudio para ${name} não foi criado`));
+        return;
+      }
+      
+      const onCanPlay = () => {
+        console.log(`Áudio ${name} pré-carregado com sucesso`);
+        audio.removeEventListener('canplaythrough', onCanPlay);
+        resolve();
+      };
+      
+      const onError = (e: Event) => {
+        console.error(`Erro ao pré-carregar áudio ${name}:`, e);
+        audio.removeEventListener('error', onError);
+        reject(new Error(`Erro ao pré-carregar áudio ${name}`));
+      };
+      
+      audio.addEventListener('canplaythrough', onCanPlay);
+      audio.addEventListener('error', onError);
+      
+      // Carregar os dados do áudio
+      audio.load();
+      
+      // Definir um timeout para não ficar preso esperando indefinidamente
+      setTimeout(() => {
+        audio.removeEventListener('canplaythrough', onCanPlay);
+        audio.removeEventListener('error', onError);
+        console.log(`Tempo limite excedido para pré-carregar ${name}, continuando assim mesmo`);
+        resolve();
+      }, 5000);
+    });
   };
   
   return {

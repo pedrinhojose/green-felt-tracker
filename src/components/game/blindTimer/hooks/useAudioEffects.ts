@@ -16,37 +16,37 @@ export function useAudioEffects() {
   // Flag to control audio loading
   const audioLoadedRef = useRef<boolean>(false);
   
-  // Use our new localStorage audio hook
+  // Use our updated GitHub audio hook
   const { audioElements, isLoading } = useLocalStorageAudio();
   
   // Initialize audio references
   useEffect(() => {
     if (audioLoadedRef.current) return;
-    if (isLoading) return; // Wait until audio is loaded from localStorage
+    if (isLoading) return; // Wait until audio is loaded from GitHub
     
     try {
-      console.log("Initializing audio elements from localStorage");
+      console.log("Inicializando elementos de áudio do GitHub");
       
-      // Assign the audio elements from localStorage to our refs
+      // Assign the audio elements from GitHub to our refs
       if (audioElements.alertAudio) {
         alertAudioRef.current = audioElements.alertAudio;
-        console.log("Alert audio loaded from localStorage");
+        console.log("Áudio de alerta carregado do GitHub");
       }
       
       if (audioElements.countdownAudio) {
         countdownAudioRef.current = audioElements.countdownAudio;
-        console.log("Countdown audio loaded from localStorage");
+        console.log("Áudio de contagem regressiva carregado do GitHub");
       }
       
       if (audioElements.levelCompleteAudio) {
         levelCompleteAudioRef.current = audioElements.levelCompleteAudio;
-        console.log("Level complete audio loaded from localStorage");
+        console.log("Áudio de conclusão de nível carregado do GitHub");
       }
       
       // Add event listeners for debugging
       const addAudioEventListeners = (audio: HTMLAudioElement, name: string) => {
-        audio.addEventListener('canplaythrough', () => console.log(`Audio ${name} loaded and ready to play`));
-        audio.addEventListener('error', (e) => console.error(`Error loading audio ${name}:`, e));
+        audio.addEventListener('canplaythrough', () => console.log(`Áudio ${name} carregado e pronto para reproduzir`));
+        audio.addEventListener('error', (e) => console.error(`Erro ao carregar áudio ${name}:`, e));
       };
       
       if (alertAudioRef.current) addAudioEventListeners(alertAudioRef.current, 'alerta');
@@ -55,15 +55,15 @@ export function useAudioEffects() {
 
       // Mark audio as loaded
       audioLoadedRef.current = true;
-      console.log("All audio prepared for playback");
+      console.log("Todos os áudios preparados para reprodução");
       
     } catch (e) {
-      console.error("Error initializing audio files:", e);
+      console.error("Erro ao inicializar arquivos de áudio:", e);
     }
 
     // Cleanup function when component unmounts
     return () => {
-      console.log("Cleaning up audio references");
+      console.log("Limpando referências de áudio");
       if (alertAudioRef.current) {
         alertAudioRef.current.pause();
         alertAudioRef.current = null;
@@ -81,13 +81,13 @@ export function useAudioEffects() {
 
   // Function to unlock audio on iOS/Safari
   const unlockAudio = () => {
-    console.log("Trying to unlock audio...");
+    console.log("Tentando desbloquear áudio...");
     // Create temporary audio to unlock
     const silentAudio = new Audio();
     silentAudio.play().then(() => {
-      console.log("Audio unlocked successfully");
+      console.log("Áudio desbloqueado com sucesso");
     }).catch(error => {
-      console.warn("Could not automatically unlock audio:", error);
+      console.warn("Não foi possível desbloquear áudio automaticamente:", error);
     });
     
     // Try to unlock each audio reference
@@ -100,7 +100,7 @@ export function useAudioEffects() {
           ref.current!.currentTime = 0;
           ref.current!.volume = tempVolume;
         }).catch(e => {
-          console.warn("Attempt to unlock audio failed:", e);
+          console.warn("Tentativa de desbloquear áudio falhou:", e);
         });
       }
     });
@@ -109,34 +109,34 @@ export function useAudioEffects() {
   // Function to safely play audio
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
     if (!soundEnabled || !audioRef.current) {
-      console.log("Sound disabled or audio reference not available");
+      console.log("Som desativado ou referência de áudio não disponível");
       return;
     }
     
     try {
-      // Debug to check if audio is available
-      console.log("Trying to play audio:", audioRef.current.src, "Current state:", audioRef.current.readyState);
+      // Debug para verificar se o áudio está disponível
+      console.log("Tentando reproduzir áudio:", audioRef.current.src, "Estado atual:", audioRef.current.readyState);
       
-      // Reset audio
+      // Resetar áudio
       audioRef.current.currentTime = 0;
       audioRef.current.volume = 1.0;
       
-      // Try to unlock audio first
+      // Tentar desbloquear áudio primeiro
       unlockAudio();
       
-      // Use play() method and handle the resulting promise
+      // Usar método play() e tratar a promessa resultante
       await audioRef.current.play()
-        .then(() => console.log("Audio started successfully"))
+        .then(() => console.log("Áudio iniciado com sucesso"))
         .catch((error) => {
-          console.error("Error playing audio:", error);
+          console.error("Erro ao reproduzir áudio:", error);
           
           if (error.name === "NotAllowedError") {
-            console.warn("Autoplay blocked. User interaction required first.");
+            console.warn("Reprodução automática bloqueada. Interação do usuário necessária primeiro.");
             unlockAudio();
           }
         });
     } catch (error) {
-      console.error("Error playing audio:", error);
+      console.error("Erro ao reproduzir áudio:", error);
     }
   };
 
