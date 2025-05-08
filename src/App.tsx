@@ -46,8 +46,8 @@ function App() {
             }>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/players" element={<PlayersManagement />} />
-              <Route path="/game/:id" element={<GameManagement />} />
-              <Route path="/games" element={<GamesList />} />
+              <Route path="/game/:id" element={<GameManagement />} /> 
+              <Route path="/games" element={<GamesList />} /> {/* This route should be accessible at /games */}
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/timer" element={<TimerPage />} />
               <Route path="/season" element={<SeasonConfig />} />

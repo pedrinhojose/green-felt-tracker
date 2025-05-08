@@ -41,7 +41,7 @@ export default function GamesList() {
     try {
       setIsCreating(true);
       const gameId = await createGame(activeSeason.id);
-      navigate(`/partidas/${gameId}`);
+      navigate(`/game/${gameId}`);  // Use /game/:id route for game management
     } catch (error) {
       console.error("Error creating game:", error);
       toast({
@@ -63,7 +63,7 @@ export default function GamesList() {
           {activeSeason && sortedGames.length > 0 && (
             <Button 
               variant="outline"
-              onClick={() => navigate('/relatorio-temporada')}
+              onClick={() => navigate('/report')}
               className="mr-2"
             >
               <FileText className="mr-2 h-4 w-4" />
@@ -82,7 +82,7 @@ export default function GamesList() {
           ) : (
             <Button 
               variant="outline" 
-              onClick={() => navigate('/temporada')}
+              onClick={() => navigate('/season')}
             >
               Criar Temporada
             </Button>
@@ -94,7 +94,7 @@ export default function GamesList() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sortedGames.map(game => (
             <Card key={game.id} className="bg-poker-green hover:bg-poker-green/90 cursor-pointer transition-all duration-200"
-              onClick={() => navigate(`/partidas/${game.id}`)}>
+              onClick={() => navigate(`/game/${game.id}`)}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex justify-between items-center">
                   <span>Partida #{game.number.toString().padStart(3, '0')}</span>
