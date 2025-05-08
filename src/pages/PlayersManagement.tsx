@@ -1,15 +1,14 @@
 
 import { useState, useEffect } from "react";
 import { usePoker } from "@/contexts/PokerContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Player } from "@/lib/db/models";
-import { PlayerCard } from "@/components/players/PlayerCard";
+import { usePlayerPhoto } from "@/hooks/usePlayerPhoto";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { EditPlayerDialog } from "@/components/players/EditPlayerDialog";
-import { usePlayerPhoto } from "@/hooks/usePlayerPhoto";
-import { Search } from "lucide-react";
+import { PlayersHeader } from "@/components/players/PlayersHeader";
+import { PlayerSearch } from "@/components/players/PlayerSearch";
+import { PlayersList } from "@/components/players/PlayersList";
 
 export default function PlayersManagement() {
   const { players, savePlayer, deletePlayer } = usePoker();
@@ -46,10 +45,6 @@ export default function PlayersManagement() {
         player.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : players;
-    
-  const sortedPlayers = [...filteredPlayers].sort((a, b) => 
-    a.name.localeCompare(b.name)
-  );
   
   // Photo handling functions for add/edit forms
   const clearPhoto = () => {
@@ -152,55 +147,16 @@ export default function PlayersManagement() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Jogadores</h2>
-        <Button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-poker-gold hover:bg-poker-gold/80 text-black"
-        >
-          Adicionar Jogador
-        </Button>
-      </div>
-      
-      <div className="mb-6 relative">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Buscar jogadores..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 max-w-md"
-          />
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {sortedPlayers.map(player => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            onEdit={setEditingPlayer}
-            onDelete={handleDeletePlayer}
-            isDeleting={isDeleting}
-          />
-        ))}
-      </div>
-      
-      {sortedPlayers.length === 0 && (
-        <div className="text-center py-10">
-          <p className="text-muted-foreground mb-4">
-            {searchQuery ? "Nenhum jogador encontrado com este termo." : "Nenhum jogador cadastrado ainda."}
-          </p>
-          {!searchQuery && (
-            <Button
-              onClick={() => setIsAddDialogOpen(true)}
-              className="bg-poker-gold hover:bg-poker-gold/80 text-black"
-            >
-              Adicionar seu primeiro jogador
-            </Button>
-          )}
-        </div>
-      )}
+      <PlayersHeader onAddPlayer={() => setIsAddDialogOpen(true)} />
+      <PlayerSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <PlayersList 
+        players={filteredPlayers} 
+        searchQuery={searchQuery}
+        onAddPlayer={() => setIsAddDialogOpen(true)}
+        onEditPlayer={setEditingPlayer}
+        onDeletePlayer={handleDeletePlayer}
+        isDeleting={isDeleting}
+      />
       
       {/* Add Player Dialog */}
       <AddPlayerDialog
