@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import ProfileDropdown from './ProfileDropdown';
+import { ProfileDropdown } from './ProfileDropdown';
 
 interface NavItem {
   name: string;
@@ -11,11 +11,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { name: 'Painel', path: '/' },
-  { name: 'Temporada', path: '/temporada' },
-  { name: 'Partidas', path: '/partidas' },
+  { name: 'Painel', path: '/dashboard' },
+  { name: 'Temporada', path: '/season' },
+  { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
-  { name: 'Jogadores', path: '/jogadores' },
+  { name: 'Jogadores', path: '/players' },
 ];
 
 export default function PokerNav() {

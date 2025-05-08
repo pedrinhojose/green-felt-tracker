@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -25,108 +26,110 @@ import RequireAuth from '@/components/RequireAuth';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="poker-ui-theme">
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <Dashboard />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/players"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <PlayersManagement />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/game/:id"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <GameManagement />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/games"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <GamesList />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/ranking"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <RankingPage />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/timer"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <TimerPage />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/season"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <SeasonConfig />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/report"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <SeasonReport />
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<Navigate to="/404" replace />} />
-          </Routes>
-          <Toaster />
-        </BrowserRouter>
-      </AuthProvider>
-    </ThemeProvider>
+    <React.StrictMode>
+      <ThemeProvider defaultTheme="dark" storageKey="poker-ui-theme">
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              
+              <Route
+                path="/dashboard"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <Dashboard />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/players"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <PlayersManagement />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/game/:id"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <GameManagement />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/games"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <GamesList />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/ranking"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <RankingPage />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/timer"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <TimerPage />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/season"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <SeasonConfig />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route
+                path="/report"
+                element={
+                  <RequireAuth>
+                    <PokerProvider>
+                      <SeasonReport />
+                    </PokerProvider>
+                  </RequireAuth>
+                }
+              />
+              
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+            <Toaster />
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
+    </React.StrictMode>
   );
 }
 
