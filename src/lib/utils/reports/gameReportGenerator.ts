@@ -31,11 +31,21 @@ export const createGameReport = async (game: Game, players: Player[], seasonName
   // Add footer
   container.appendChild(createReportFooter());
   
-  // Get current jackpot value from season
+  // Get current jackpot value and contribution from season
   if (game.seasonId) {
     try {
       const season = await pokerDB.getSeason(game.seasonId);
       if (season) {
+        // Calculate jackpot contribution for this game
+        const playerCount = game.players.filter(p => p.buyIn).length;
+        const jackpotContribution = playerCount * season.financialParams.jackpotContribution;
+        
+        // Find the jackpot contribution placeholder and update it
+        const contributionElement = summarySection.querySelector('[data-jackpot-contribution-placeholder="true"]');
+        if (contributionElement) {
+          contributionElement.textContent = formatCurrency(jackpotContribution);
+        }
+        
         // Find the jackpot placeholder and update it
         const jackpotElement = summarySection.querySelector('[data-jackpot-placeholder="true"]');
         if (jackpotElement) {

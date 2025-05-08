@@ -132,14 +132,36 @@ export const createReportSummary = (game: Game, players = []) => {
   prizeRow.appendChild(prizeValue);
   summary.appendChild(prizeRow);
   
-  // Jackpot value (new)
+  // Jackpot contribution (new)
   if (game.seasonId) {
+    // Add "RETIRADO AO JACKPOT" row
+    const contributionRow = document.createElement('div');
+    contributionRow.style.display = 'flex';
+    contributionRow.style.justifyContent = 'space-between';
+    contributionRow.style.marginTop = '4px';
+    contributionRow.style.paddingTop = '8px';
+    contributionRow.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
+    
+    const contributionLabel = document.createElement('div');
+    contributionLabel.textContent = 'RETIRADO AO JACKPOT:';
+    contributionLabel.style.color = '#8E9196';
+    
+    const contributionValue = document.createElement('div');
+    // Use a data attribute to be populated by the gameReportGenerator
+    contributionValue.setAttribute('data-jackpot-contribution-placeholder', 'true');
+    contributionValue.textContent = 'Carregando...';
+    contributionValue.style.fontWeight = 'bold';
+    contributionValue.style.color = '#C0C0C0'; // Silver color for contribution
+    
+    contributionRow.appendChild(contributionLabel);
+    contributionRow.appendChild(contributionValue);
+    summary.appendChild(contributionRow);
+    
+    // Jackpot value
     const jackpotRow = document.createElement('div');
     jackpotRow.style.display = 'flex';
     jackpotRow.style.justifyContent = 'space-between';
     jackpotRow.style.marginTop = '4px';
-    jackpotRow.style.paddingTop = '8px';
-    jackpotRow.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
     
     const jackpotLabel = document.createElement('div');
     jackpotLabel.textContent = 'Jackpot Acumulado:';
@@ -148,7 +170,6 @@ export const createReportSummary = (game: Game, players = []) => {
     const jackpotValue = document.createElement('div');
     
     // Use a data attribute to be populated by the gameReportGenerator
-    // which will have access to the actual season object
     jackpotValue.setAttribute('data-jackpot-placeholder', 'true');
     jackpotValue.textContent = 'Carregando...';
     jackpotValue.style.fontWeight = 'bold';

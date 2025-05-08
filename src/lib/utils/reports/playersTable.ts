@@ -15,8 +15,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Ajustando o grid para dar mais espaço à coluna do nome e incluir a foto
-  tableHeader.style.gridTemplateColumns = '20px 40px 1fr repeat(4, auto)';
+  // Ajuste de grid com larguras fixas para melhor alinhamento
+  tableHeader.style.gridTemplateColumns = '20px 40px 1fr 60px 60px 60px 80px';
   tableHeader.style.gap = '8px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '6px 0';
@@ -28,6 +28,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   headers.forEach((header, index) => {
     const headerCell = document.createElement('div');
     headerCell.textContent = header;
+    // Alinhamento consistente para todas as colunas, exceto nome do jogador
     headerCell.style.textAlign = index === 2 ? 'left' : 'center';
     tableHeader.appendChild(headerCell);
   });
@@ -58,11 +59,11 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     // Player row
     const row = document.createElement('div');
     row.style.display = 'grid';
-    // Ajustando o grid para dar mais espaço à coluna do nome e incluir a foto
-    row.style.gridTemplateColumns = '20px 40px 1fr repeat(4, auto)';
+    // Mesmo ajuste de grid para as linhas, com larguras fixas iguais ao cabeçalho
+    row.style.gridTemplateColumns = '20px 40px 1fr 60px 60px 60px 80px';
     row.style.gap = '8px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
-    row.style.padding = '12px 0'; // Altura um pouco maior para acomodar a foto
+    row.style.padding = '12px 0';
     row.style.fontSize = '14px';
     
     // Position
@@ -135,7 +136,6 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     balanceCell.style.color = gamePlayer.balance >= 0 ? '#F2FCE2' : '#ea384c';
     balanceCell.style.fontWeight = 'bold';
     balanceCell.style.textAlign = 'center';
-    balanceCell.style.paddingLeft = '8px';
     
     row.appendChild(posCell);
     row.appendChild(photoCell);

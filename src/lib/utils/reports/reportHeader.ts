@@ -14,13 +14,13 @@ export const createReportHeader = (game: Game, seasonName: string) => {
   header.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
   header.style.paddingBottom = '12px';
   
-  // Title - Modificado para "Resultado/Ranking"
+  // Title - Alterado para "RESULTADO DA PARTIDA" em amarelo
   const title = document.createElement('h2');
-  title.textContent = 'Resultado/Ranking';
+  title.textContent = 'RESULTADO DA PARTIDA';
   title.style.fontSize = '20px';
   title.style.fontWeight = 'bold';
   title.style.margin = '0 0 8px 0';
-  title.style.color = '#9b87f5';
+  title.style.color = '#FFD700'; // Alterado para amarelo
   
   // Subtitle with game number, season and date
   const subtitle = document.createElement('div');
