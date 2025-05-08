@@ -23,6 +23,7 @@ import Auth from '@/pages/Auth';
 
 // Components
 import RequireAuth from '@/components/RequireAuth';
+import AppLayout from '@/components/layout/AppLayout';
 
 function App() {
   return (
@@ -38,7 +39,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <Dashboard />
+                    <AppLayout>
+                      <Dashboard />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -49,7 +52,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <PlayersManagement />
+                    <AppLayout>
+                      <PlayersManagement />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -60,7 +65,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <GameManagement />
+                    <AppLayout>
+                      <GameManagement />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -71,7 +78,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <GamesList />
+                    <AppLayout>
+                      <GamesList />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -82,7 +91,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <RankingPage />
+                    <AppLayout>
+                      <RankingPage />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -93,7 +104,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <TimerPage />
+                    <AppLayout>
+                      <TimerPage />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -104,7 +117,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <SeasonConfig />
+                    <AppLayout>
+                      <SeasonConfig />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
@@ -115,7 +130,9 @@ function App() {
               element={
                 <RequireAuth>
                   <PokerProvider>
-                    <SeasonReport />
+                    <AppLayout>
+                      <SeasonReport />
+                    </AppLayout>
                   </PokerProvider>
                 </RequireAuth>
               }
