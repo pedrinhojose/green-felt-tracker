@@ -1,7 +1,5 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,62 +8,64 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { signOut } from "@/lib/utils/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, Settings, User } from "lucide-react";
+import { UserCircle } from "lucide-react";
 
-export default function ProfileDropdown() {
-  const { profile, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
+export function ProfileDropdown() {
+  const { user, profile } = useAuth();
   
-  const handleLogout = async () => {
+  const getInitials = (name: string | null | undefined): string => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+  
+  const handleSignOut = async () => {
     await signOut();
   };
-  
-  const getInitials = (): string => {
-    if (profile?.full_name) {
-      return profile.full_name
-        .split(' ')
-        .map(name => name[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
-    }
-    return profile?.username?.substring(0, 2).toUpperCase() || 'AP';
-  };
-  
+
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="relative rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
-          <Avatar className="h-8 w-8 cursor-pointer">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
             {profile?.avatar_url ? (
-              <AvatarImage src={profile.avatar_url} alt={profile.username || "Usuário"} />
+              <img 
+                src={profile.avatar_url} 
+                alt="Avatar" 
+                className="rounded-full object-cover"
+              />
             ) : (
-              <AvatarFallback className="bg-poker-gold text-white">{getInitials()}</AvatarFallback>
+              <AvatarFallback className="bg-poker-dark-green text-white">
+                {getInitials(profile?.username || profile?.full_name)}
+              </AvatarFallback>
             )}
           </Avatar>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel>
-          <div className="flex flex-col">
-            <span className="font-medium">{profile?.full_name || profile?.username}</span>
-            <span className="text-xs text-muted-foreground truncate">{profile?.email}</span>
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {profile?.username || profile?.full_name || 'Usuário'}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user?.email}
+            </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/perfil")}>
-          <User className="mr-2 h-4 w-4" />
-          <span>Meu Perfil</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Configurações</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          className="cursor-pointer flex items-center text-red-500"
+          onClick={handleSignOut}
+        >
+          <UserCircle className="mr-2 h-4 w-4" />
           <span>Sair</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

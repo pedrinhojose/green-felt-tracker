@@ -2,59 +2,336 @@
 import { IDBPDatabase } from 'idb';
 import { Season } from '../models';
 import { PokerDB } from '../schema/PokerDBSchema';
+import { supabase } from "@/integrations/supabase/client";
+import { SupabaseCore } from '../core/SupabaseCore';
 
-export class SeasonRepository {
-  constructor(private db: Promise<IDBPDatabase<PokerDB>>) {}
+export class SeasonRepository extends SupabaseCore {
+  private idbDb: Promise<IDBPDatabase<PokerDB>> | null = null;
+  private useSupabase = true;
+
+  constructor(idbDb?: Promise<IDBPDatabase<PokerDB>>) {
+    super();
+    this.idbDb = idbDb || null;
+    
+    if (idbDb) {
+      this.useSupabase = false;
+    }
+  }
 
   async getSeasons(): Promise<Season[]> {
-    return (await this.db).getAll('seasons');
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        const { data, error } = await supabase
+          .from('seasons')
+          .select('*')
+          .eq('user_id', userId);
+          
+        if (error) throw error;
+        
+        return data.map(season => ({
+          id: season.id,
+          name: season.name,
+          startDate: new Date(season.start_date),
+          endDate: season.end_date ? new Date(season.end_date) : undefined,
+          gamesPerWeek: season.games_per_week,
+          isActive: season.is_active,
+          scoreSchema: season.score_schema,
+          weeklyPrizeSchema: season.weekly_prize_schema,
+          seasonPrizeSchema: season.season_prize_schema,
+          financialParams: season.financial_params,
+          blindStructure: season.blind_structure,
+          jackpot: Number(season.jackpot),
+          createdAt: new Date(season.created_at)
+        })) as Season[];
+      } catch (error) {
+        console.error("Error fetching seasons from Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      return (await this.idbDb).getAll('seasons');
+    }
+    
+    return [];
   }
   
   async getActiveSeason(): Promise<Season | undefined> {
-    // Updated to use 1 instead of true for the active status
-    return (await this.db).getFromIndex('seasons', 'by-active', 1);
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        const { data, error } = await supabase
+          .from('seasons')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_active', true)
+          .maybeSingle();
+          
+        if (error) throw error;
+        
+        if (!data) return undefined;
+        
+        return {
+          id: data.id,
+          name: data.name,
+          startDate: new Date(data.start_date),
+          endDate: data.end_date ? new Date(data.end_date) : undefined,
+          gamesPerWeek: data.games_per_week,
+          isActive: data.is_active,
+          scoreSchema: data.score_schema,
+          weeklyPrizeSchema: data.weekly_prize_schema,
+          seasonPrizeSchema: data.season_prize_schema,
+          financialParams: data.financial_params,
+          blindStructure: data.blind_structure,
+          jackpot: Number(data.jackpot),
+          createdAt: new Date(data.created_at)
+        } as Season;
+      } catch (error) {
+        console.error("Error fetching active season from Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      return (await this.idbDb).getFromIndex('seasons', 'by-active', 1);
+    }
+    
+    return undefined;
   }
 
   async getSeason(id: string): Promise<Season | undefined> {
-    return (await this.db).get('seasons', id);
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        const { data, error } = await supabase
+          .from('seasons')
+          .select('*')
+          .eq('id', id)
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (error) throw error;
+        
+        if (!data) return undefined;
+        
+        return {
+          id: data.id,
+          name: data.name,
+          startDate: new Date(data.start_date),
+          endDate: data.end_date ? new Date(data.end_date) : undefined,
+          gamesPerWeek: data.games_per_week,
+          isActive: data.is_active,
+          scoreSchema: data.score_schema,
+          weeklyPrizeSchema: data.weekly_prize_schema,
+          seasonPrizeSchema: data.season_prize_schema,
+          financialParams: data.financial_params,
+          blindStructure: data.blind_structure,
+          jackpot: Number(data.jackpot),
+          createdAt: new Date(data.created_at)
+        } as Season;
+      } catch (error) {
+        console.error("Error fetching season from Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      return (await this.idbDb).get('seasons', id);
+    }
+    
+    return undefined;
   }
 
   async saveSeason(season: Season): Promise<string> {
-    await (await this.db).put('seasons', season);
-    return season.id;
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        
+        const supabaseSeason = {
+          id: season.id,
+          name: season.name,
+          start_date: season.startDate.toISOString(),
+          end_date: season.endDate ? season.endDate.toISOString() : null,
+          games_per_week: season.gamesPerWeek,
+          is_active: season.isActive,
+          score_schema: season.scoreSchema,
+          weekly_prize_schema: season.weeklyPrizeSchema,
+          season_prize_schema: season.seasonPrizeSchema,
+          financial_params: season.financialParams,
+          blind_structure: season.blindStructure,
+          jackpot: season.jackpot,
+          created_at: season.createdAt.toISOString(),
+          user_id: userId
+        };
+        
+        // If this is set as the active season, deactivate all others first
+        if (season.isActive) {
+          await this.deactivateAllSeasons();
+        }
+        
+        const { error } = await supabase
+          .from('seasons')
+          .upsert(supabaseSeason, { onConflict: 'id' });
+          
+        if (error) throw error;
+        
+        return season.id;
+      } catch (error) {
+        console.error("Error saving season to Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      await (await this.idbDb).put('seasons', season);
+      return season.id;
+    }
+    
+    throw new Error("No database available");
+  }
+  
+  // Helper method to deactivate all seasons
+  private async deactivateAllSeasons(): Promise<void> {
+    if (!this.useSupabase) return;
+    
+    try {
+      const userId = await this.getUserId();
+      
+      const { error } = await supabase
+        .from('seasons')
+        .update({ is_active: false })
+        .eq('user_id', userId)
+        .eq('is_active', true);
+        
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error deactivating seasons:", error);
+      throw error;
+    }
   }
 
   async deleteSeason(id: string): Promise<void> {
-    await (await this.db).delete('seasons', id);
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        const { error } = await supabase
+          .from('seasons')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', userId);
+          
+        if (error) throw error;
+      } catch (error) {
+        console.error("Error deleting season from Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      await (await this.idbDb).delete('seasons', id);
+    }
   }
   
   async updateJackpot(seasonId: string, amount: number): Promise<void> {
-    // Obtém uma transação para garantir operações atômicas
-    const db = await this.db;
-    const tx = db.transaction('seasons', 'readwrite');
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        
+        // Get the current season to access the current jackpot amount
+        const { data: season, error: fetchError } = await supabase
+          .from('seasons')
+          .select('jackpot')
+          .eq('id', seasonId)
+          .eq('user_id', userId)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        // Calculate the new jackpot amount
+        const currentJackpot = Number(season.jackpot);
+        const newJackpot = Math.max(0, currentJackpot + amount);
+        
+        // Update the jackpot
+        const { error: updateError } = await supabase
+          .from('seasons')
+          .update({ jackpot: newJackpot })
+          .eq('id', seasonId)
+          .eq('user_id', userId);
+          
+        if (updateError) throw updateError;
+      } catch (error) {
+        console.error("Error updating jackpot in Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      // Obtém uma transação para garantir operações atômicas
+      const db = await this.idbDb;
+      const tx = db.transaction('seasons', 'readwrite');
+      
+      try {
+        // Obter a temporada atual
+        const season = await tx.store.get(seasonId);
+        if (!season) {
+          throw new Error('Temporada não encontrada');
+        }
+        
+        // Calcular novo valor do jackpot (garantindo que não seja negativo)
+        const newJackpot = Math.max(0, (season.jackpot || 0) + amount);
+        
+        // Atualizar temporada
+        season.jackpot = newJackpot;
+        
+        // Salvar temporada atualizada
+        await tx.store.put(season);
+        
+        // Confirmar transação
+        await tx.done;
+        
+      } catch (error) {
+        // Qualquer erro cancela a transação automaticamente
+        console.error('Erro na transação:', error);
+        throw error;
+      }
+    }
+  }
+  
+  // Method to migrate seasons from IndexedDB to Supabase
+  async migrateSeasonsFromIndexedDB(): Promise<void> {
+    if (!this.idbDb) return;
     
     try {
-      // Obter a temporada atual
-      const season = await tx.store.get(seasonId);
-      if (!season) {
-        throw new Error('Temporada não encontrada');
+      console.log("Starting season migration from IndexedDB to Supabase");
+      const userId = await this.getUserId();
+      
+      // Get all seasons from IndexedDB
+      const idbSeasons = await (await this.idbDb).getAll('seasons');
+      
+      if (idbSeasons.length === 0) {
+        console.log("No seasons to migrate");
+        return;
       }
       
-      // Calcular novo valor do jackpot (garantindo que não seja negativo)
-      const newJackpot = Math.max(0, (season.jackpot || 0) + amount);
+      console.log(`Found ${idbSeasons.length} seasons to migrate`);
       
-      // Atualizar temporada
-      season.jackpot = newJackpot;
+      // Prepare the seasons for Supabase format
+      const supabaseSeasons = idbSeasons.map(season => ({
+        id: season.id,
+        name: season.name,
+        start_date: season.startDate.toISOString(),
+        end_date: season.endDate ? season.endDate.toISOString() : null,
+        games_per_week: season.gamesPerWeek,
+        is_active: season.isActive,
+        score_schema: season.scoreSchema,
+        weekly_prize_schema: season.weeklyPrizeSchema,
+        season_prize_schema: season.seasonPrizeSchema,
+        financial_params: season.financialParams,
+        blind_structure: season.blindStructure,
+        jackpot: season.jackpot,
+        created_at: season.createdAt.toISOString(),
+        user_id: userId
+      }));
       
-      // Salvar temporada atualizada
-      await tx.store.put(season);
+      // Upsert all seasons to Supabase
+      const { error } = await supabase
+        .from('seasons')
+        .upsert(supabaseSeasons, { onConflict: 'id' });
+        
+      if (error) throw error;
       
-      // Confirmar transação
-      await tx.done;
-      
+      console.log(`Successfully migrated ${supabaseSeasons.length} seasons to Supabase`);
     } catch (error) {
-      // Qualquer erro cancela a transação automaticamente
-      console.error('Erro na transação:', error);
+      console.error("Error migrating seasons to Supabase:", error);
       throw error;
     }
   }

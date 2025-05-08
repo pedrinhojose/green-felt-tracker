@@ -40,4 +40,9 @@ export class DatabaseCore {
       }
     });
   }
+  
+  // Method to access the database instance
+  getDatabase(): Promise<IDBPDatabase<PokerDB>> {
+    return this.db;
+  }
 }

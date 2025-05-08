@@ -1,3 +1,4 @@
+
 import { DatabaseCore } from './core/DatabaseCore';
 import { PlayerRepository } from './repositories/PlayerRepository';
 import { SeasonRepository } from './repositories/SeasonRepository';
@@ -5,8 +6,9 @@ import { GameRepository } from './repositories/GameRepository';
 import { RankingRepository } from './repositories/RankingRepository';
 import { BackupService } from './services/BackupService';
 import { Player, Season, Game, RankingEntry } from './models';
+import { supabase } from '@/integrations/supabase/client';
 
-class PokerDatabase extends DatabaseCore {
+class PokerDatabase {
   private static instance: PokerDatabase;
   
   private playerRepository: PlayerRepository;
@@ -14,14 +16,25 @@ class PokerDatabase extends DatabaseCore {
   private gameRepository: GameRepository;
   private rankingRepository: RankingRepository;
   private backupService: BackupService;
+  private dbCore: DatabaseCore;
+  private useSupabase = true;
 
   private constructor() {
-    super();
-    this.playerRepository = new PlayerRepository(this.db);
-    this.seasonRepository = new SeasonRepository(this.db);
-    this.gameRepository = new GameRepository(this.db);
-    this.rankingRepository = new RankingRepository(this.db);
-    this.backupService = new BackupService(this.db);
+    this.dbCore = new DatabaseCore();
+    const db = this.dbCore.getDatabase();
+    
+    // Use IndexedDB repositories as fallback when user is not authenticated
+    this.playerRepository = new PlayerRepository(db);
+    this.seasonRepository = new SeasonRepository(db);
+    this.gameRepository = new GameRepository(db);
+    this.rankingRepository = new RankingRepository(db);
+    this.backupService = new BackupService(db);
+    
+    // Initialize Supabase repositories
+    this.checkAuthAndSetupRepositories();
+    
+    // Listen for auth changes
+    this.setupAuthListener();
   }
 
   static getInstance(): PokerDatabase {
@@ -29,6 +42,85 @@ class PokerDatabase extends DatabaseCore {
       PokerDatabase.instance = new PokerDatabase();
     }
     return PokerDatabase.instance;
+  }
+  
+  private async checkAuthAndSetupRepositories(): Promise<void> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // If user is authenticated, use Supabase repositories
+      if (session && session.user) {
+        console.log("User is authenticated, using Supabase repositories");
+        this.setupSupabaseRepositories();
+      } else {
+        console.log("User is not authenticated, using IndexedDB repositories");
+        this.useSupabase = false;
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      this.useSupabase = false;
+    }
+  }
+  
+  private setupSupabaseRepositories(): void {
+    this.playerRepository = new PlayerRepository();
+    this.seasonRepository = new SeasonRepository();
+    this.gameRepository = new GameRepository();
+    this.rankingRepository = new RankingRepository();
+    this.useSupabase = true;
+    console.log("Supabase repositories initialized");
+  }
+  
+  private setupAuthListener(): void {
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event);
+      
+      if (event === 'SIGNED_IN') {
+        // Use setTimeout to prevent deadlocks
+        setTimeout(() => {
+          this.setupSupabaseRepositories();
+          
+          // Migrate data from IndexedDB if needed
+          this.migrateLocalDataToSupabase().catch(error => 
+            console.error("Error during data migration:", error)
+          );
+        }, 0);
+      } else if (event === 'SIGNED_OUT') {
+        // Switch back to IndexedDB
+        const db = this.dbCore.getDatabase();
+        this.playerRepository = new PlayerRepository(db);
+        this.seasonRepository = new SeasonRepository(db);
+        this.gameRepository = new GameRepository(db);
+        this.rankingRepository = new RankingRepository(db);
+        this.useSupabase = false;
+        console.log("Using IndexedDB repositories after sign out");
+      }
+    });
+  }
+  
+  // Migrate local data to Supabase
+  private async migrateLocalDataToSupabase(): Promise<void> {
+    try {
+      console.log("Checking for local data to migrate to Supabase");
+      const db = this.dbCore.getDatabase();
+      
+      // Create temporary repositories for IndexedDB access
+      const playerRepo = new PlayerRepository(db);
+      const seasonRepo = new SeasonRepository(db);
+      const gameRepo = new GameRepository(db);
+      const rankingRepo = new RankingRepository(db);
+      
+      // Start migration process
+      await playerRepo.migratePlayersFromIndexedDB();
+      await seasonRepo.migrateSeasonsFromIndexedDB();
+      await gameRepo.migrateGamesFromIndexedDB();
+      await rankingRepo.migrateRankingsFromIndexedDB();
+      
+      console.log("Data migration complete");
+    } catch (error) {
+      console.error("Failed to migrate local data to Supabase:", error);
+      throw error;
+    }
   }
 
   // Player methods

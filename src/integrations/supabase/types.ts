@@ -9,6 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      games: {
+        Row: {
+          created_at: string
+          date: string
+          dinner_cost: number | null
+          id: string
+          is_finished: boolean
+          number: number
+          players: Json
+          season_id: string
+          total_prize_pool: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          dinner_cost?: number | null
+          id: string
+          is_finished?: boolean
+          number: number
+          players?: Json
+          season_id: string
+          total_prize_pool?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          dinner_cost?: number | null
+          id?: string
+          is_finished?: boolean
+          number?: number
+          players?: Json
+          season_id?: string
+          total_prize_pool?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          photo_url: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id: string
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -33,6 +110,101 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      rankings: {
+        Row: {
+          best_position: number
+          games_played: number
+          id: string
+          photo_url: string | null
+          player_id: string
+          player_name: string
+          season_id: string
+          total_points: number
+          user_id: string
+        }
+        Insert: {
+          best_position?: number
+          games_played?: number
+          id: string
+          photo_url?: string | null
+          player_id: string
+          player_name: string
+          season_id: string
+          total_points?: number
+          user_id: string
+        }
+        Update: {
+          best_position?: number
+          games_played?: number
+          id?: string
+          photo_url?: string | null
+          player_id?: string
+          player_name?: string
+          season_id?: string
+          total_points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rankings_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          blind_structure: Json
+          created_at: string
+          end_date: string | null
+          financial_params: Json
+          games_per_week: number
+          id: string
+          is_active: boolean
+          jackpot: number
+          name: string
+          score_schema: Json
+          season_prize_schema: Json
+          start_date: string
+          user_id: string
+          weekly_prize_schema: Json
+        }
+        Insert: {
+          blind_structure?: Json
+          created_at?: string
+          end_date?: string | null
+          financial_params?: Json
+          games_per_week?: number
+          id: string
+          is_active?: boolean
+          jackpot?: number
+          name: string
+          score_schema?: Json
+          season_prize_schema?: Json
+          start_date: string
+          user_id: string
+          weekly_prize_schema?: Json
+        }
+        Update: {
+          blind_structure?: Json
+          created_at?: string
+          end_date?: string | null
+          financial_params?: Json
+          games_per_week?: number
+          id?: string
+          is_active?: boolean
+          jackpot?: number
+          name?: string
+          score_schema?: Json
+          season_prize_schema?: Json
+          start_date?: string
+          user_id?: string
+          weekly_prize_schema?: Json
         }
         Relationships: []
       }
