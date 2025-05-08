@@ -9,7 +9,7 @@ import { useTimerControls } from "./useTimerControls";
 export default function BlindTimer() {
   const { activeSeason } = usePoker();
   
-  // Se não houver temporada ativa ou estrutura de blinds, exibe um componente de fallback
+  // If there's no active season or blind structure, show a fallback component
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
     return (
       <Card className="bg-poker-dark-green border border-poker-gold/20">
@@ -20,10 +20,10 @@ export default function BlindTimer() {
     );
   }
   
-  // Obter a estrutura de blinds da temporada ativa
+  // Get the blind structure from the active season
   const blindLevels = activeSeason.blindStructure;
   
-  // Usar os hooks personalizados
+  // Use custom hooks
   const {
     state,
     setState,
@@ -47,6 +47,7 @@ export default function BlindTimer() {
     openInNewWindow,
     setLevelProgress,
     toggleFullScreen,
+    reloadAudio,
   } = useTimerControls(
     blindLevels,
     state,
@@ -82,6 +83,7 @@ export default function BlindTimer() {
             onToggleSound={toggleSound}
             onOpenNewWindow={openInNewWindow}
             onToggleFullScreen={toggleFullScreen}
+            onReloadAudio={reloadAudio}
           />
         </div>
       </CardContent>

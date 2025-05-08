@@ -1,5 +1,6 @@
 
 import { useEffect, useRef } from "react";
+import { useLocalStorageAudio } from "./useLocalStorageAudio";
 
 export interface AudioRefs {
   alertAudioRef: React.MutableRefObject<HTMLAudioElement | null>;
@@ -12,80 +13,57 @@ export function useAudioEffects() {
   const countdownAudioRef = useRef<HTMLAudioElement | null>(null);
   const levelCompleteAudioRef = useRef<HTMLAudioElement | null>(null);
   
-  // Flag para controlar o carregamento do áudio
+  // Flag to control audio loading
   const audioLoadedRef = useRef<boolean>(false);
   
-  // Inicializar referências de áudio
+  // Use our new localStorage audio hook
+  const { audioElements, isLoading } = useLocalStorageAudio();
+  
+  // Initialize audio references
   useEffect(() => {
     if (audioLoadedRef.current) return;
+    if (isLoading) return; // Wait until audio is loaded from localStorage
     
     try {
-      // Verificar se estamos no navegador
-      if (typeof window === 'undefined') return;
+      console.log("Initializing audio elements from localStorage");
       
-      console.log("Inicializando elementos de áudio");
+      // Assign the audio elements from localStorage to our refs
+      if (audioElements.alertAudio) {
+        alertAudioRef.current = audioElements.alertAudio;
+        console.log("Alert audio loaded from localStorage");
+      }
       
-      // Usar o construtor de Audio em vez de new Audio()
-      const alertAudio = new Audio();
-      alertAudio.src = "/sounds/alert.mp3";
-      alertAudio.preload = "auto";
-      alertAudioRef.current = alertAudio;
+      if (audioElements.countdownAudio) {
+        countdownAudioRef.current = audioElements.countdownAudio;
+        console.log("Countdown audio loaded from localStorage");
+      }
       
-      const countdownAudio = new Audio();
-      countdownAudio.src = "/sounds/countdown.mp3";
-      countdownAudio.preload = "auto";
-      countdownAudioRef.current = countdownAudio;
+      if (audioElements.levelCompleteAudio) {
+        levelCompleteAudioRef.current = audioElements.levelCompleteAudio;
+        console.log("Level complete audio loaded from localStorage");
+      }
       
-      const levelCompleteAudio = new Audio();
-      levelCompleteAudio.src = "/sounds/level-complete.mp3";
-      levelCompleteAudio.preload = "auto";
-      levelCompleteAudioRef.current = levelCompleteAudio;
-
-      // Verificar se os arquivos existem
-      const checkAudioFiles = async () => {
-        try {
-          const files = [
-            "/sounds/alert.mp3",
-            "/sounds/countdown.mp3",
-            "/sounds/level-complete.mp3"
-          ];
-          
-          for (const file of files) {
-            const response = await fetch(file, { method: 'HEAD' });
-            if (!response.ok) {
-              console.error(`Erro: Arquivo de áudio não encontrado: ${file}`);
-            } else {
-              console.log(`Arquivo de áudio encontrado: ${file}`);
-            }
-          }
-        } catch (error) {
-          console.error("Erro ao verificar arquivos de áudio:", error);
-        }
-      };
-      
-      checkAudioFiles();
-      
-      // Adicionar event listeners para debugging
+      // Add event listeners for debugging
       const addAudioEventListeners = (audio: HTMLAudioElement, name: string) => {
-        audio.addEventListener('canplaythrough', () => console.log(`Áudio ${name} carregado e pronto para reprodução`));
-        audio.addEventListener('error', (e) => console.error(`Erro ao carregar áudio ${name}:`, e));
+        audio.addEventListener('canplaythrough', () => console.log(`Audio ${name} loaded and ready to play`));
+        audio.addEventListener('error', (e) => console.error(`Error loading audio ${name}:`, e));
       };
       
       if (alertAudioRef.current) addAudioEventListeners(alertAudioRef.current, 'alerta');
       if (countdownAudioRef.current) addAudioEventListeners(countdownAudioRef.current, 'contagem regressiva');
       if (levelCompleteAudioRef.current) addAudioEventListeners(levelCompleteAudioRef.current, 'conclusão de nível');
 
-      // Marcar áudios como carregados
+      // Mark audio as loaded
       audioLoadedRef.current = true;
-      console.log("Áudios preparados para reprodução");
+      console.log("All audio prepared for playback");
       
     } catch (e) {
-      console.error("Erro ao inicializar arquivos de áudio:", e);
+      console.error("Error initializing audio files:", e);
     }
 
-    // Função de limpeza ao desmontar componente
+    // Cleanup function when component unmounts
     return () => {
-      console.log("Limpando referências de áudio");
+      console.log("Cleaning up audio references");
       if (alertAudioRef.current) {
         alertAudioRef.current.pause();
         alertAudioRef.current = null;
@@ -99,20 +77,20 @@ export function useAudioEffects() {
         levelCompleteAudioRef.current = null;
       }
     };
-  }, []);
+  }, [audioElements, isLoading]);
 
-  // Função para desbloquear áudio em iOS/Safari
+  // Function to unlock audio on iOS/Safari
   const unlockAudio = () => {
-    console.log("Tentando desbloquear áudio...");
-    // Criando áudio temporário para desbloquear
+    console.log("Trying to unlock audio...");
+    // Create temporary audio to unlock
     const silentAudio = new Audio();
     silentAudio.play().then(() => {
-      console.log("Áudio desbloqueado com sucesso");
+      console.log("Audio unlocked successfully");
     }).catch(error => {
-      console.warn("Não foi possível desbloquear o áudio automaticamente:", error);
+      console.warn("Could not automatically unlock audio:", error);
     });
     
-    // Tentativa de desbloquear cada referência de áudio
+    // Try to unlock each audio reference
     [alertAudioRef, countdownAudioRef, levelCompleteAudioRef].forEach(ref => {
       if (ref.current) {
         const tempVolume = ref.current.volume;
@@ -122,43 +100,43 @@ export function useAudioEffects() {
           ref.current!.currentTime = 0;
           ref.current!.volume = tempVolume;
         }).catch(e => {
-          console.warn("Tentativa de desbloquear áudio falhou:", e);
+          console.warn("Attempt to unlock audio failed:", e);
         });
       }
     });
   };
 
-  // Função para reproduzir áudio com segurança
+  // Function to safely play audio
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
     if (!soundEnabled || !audioRef.current) {
-      console.log("Som desabilitado ou referência de áudio não disponível");
+      console.log("Sound disabled or audio reference not available");
       return;
     }
     
     try {
-      // Debug para verificar se o áudio está disponível
-      console.log("Tentando reproduzir áudio:", audioRef.current.src, "Estado atual:", audioRef.current.readyState);
+      // Debug to check if audio is available
+      console.log("Trying to play audio:", audioRef.current.src, "Current state:", audioRef.current.readyState);
       
-      // Reset do áudio
+      // Reset audio
       audioRef.current.currentTime = 0;
       audioRef.current.volume = 1.0;
       
-      // Tentando desbloquear áudio primeiro
+      // Try to unlock audio first
       unlockAudio();
       
-      // Usar o método play() e tratar a promise resultante
+      // Use play() method and handle the resulting promise
       await audioRef.current.play()
-        .then(() => console.log("Áudio iniciado com sucesso"))
+        .then(() => console.log("Audio started successfully"))
         .catch((error) => {
-          console.error("Erro na reprodução de áudio:", error);
+          console.error("Error playing audio:", error);
           
           if (error.name === "NotAllowedError") {
-            console.warn("Reprodução automática bloqueada. O usuário precisa interagir primeiro.");
+            console.warn("Autoplay blocked. User interaction required first.");
             unlockAudio();
           }
         });
     } catch (error) {
-      console.error("Erro ao reproduzir áudio:", error);
+      console.error("Error playing audio:", error);
     }
   };
 

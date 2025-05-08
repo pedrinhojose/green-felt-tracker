@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2 } from "lucide-react";
+import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw } from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
@@ -13,6 +13,7 @@ interface TimerControlsProps {
   onToggleSound: () => void;
   onOpenNewWindow: () => void;
   onToggleFullScreen: () => void;
+  onReloadAudio?: () => void;
 }
 
 export default function TimerControls({
@@ -24,7 +25,8 @@ export default function TimerControls({
   onPrevious,
   onToggleSound,
   onOpenNewWindow,
-  onToggleFullScreen
+  onToggleFullScreen,
+  onReloadAudio
 }: TimerControlsProps) {
   return (
     <div className="flex flex-wrap justify-center gap-2">
@@ -71,6 +73,18 @@ export default function TimerControls({
           <BellOff className="h-4 w-4 text-gray-400" />
         )}
       </Button>
+      
+      {onReloadAudio && (
+        <Button
+          onClick={onReloadAudio}
+          variant="outline"
+          size="icon"
+          className="w-10 h-10 rounded-full"
+          title="Recarregar Sons"
+        >
+          <RefreshCw className="h-4 w-4 text-poker-gold" />
+        </Button>
+      )}
       
       <Button 
         onClick={onToggleFullScreen}

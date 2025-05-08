@@ -50,6 +50,7 @@ function App() {
               <Route path="/games" element={<GamesList />} />
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/timer" element={<TimerPage />} />
+              <Route path="/timer/:gameId" element={<TimerPage />} /> {/* Added route with gameId parameter */}
               <Route path="/season" element={<SeasonConfig />} />
               <Route path="/report" element={<SeasonReport />} />
             </Route>

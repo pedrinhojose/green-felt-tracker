@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export default function TimerPage() {
-  const { gameId } = useParams<{ gameId: string }>();
+  const { gameId } = useParams<{ gameId?: string }>();
   const { activeSeason } = usePoker();
   const navigate = useNavigate();
   
-  // Verificamos se a temporada ativa tem uma estrutura de blinds
+  // Check if active season has a blind structure
   const hasBlindStructure = activeSeason && 
     activeSeason.blindStructure && 
     activeSeason.blindStructure.length > 0;
@@ -24,7 +24,7 @@ export default function TimerPage() {
           <CardContent className="p-6 text-center space-y-4">
             <p className="text-white text-lg">Estrutura de blinds não configurada para esta temporada</p>
             <Button 
-              onClick={() => navigate("/temporada")} 
+              onClick={() => navigate("/season")} 
               className="bg-poker-gold text-black hover:bg-poker-gold/80"
             >
               Configurar Estrutura de Blinds
