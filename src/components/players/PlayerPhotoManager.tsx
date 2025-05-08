@@ -11,8 +11,8 @@ interface PlayerPhotoManagerProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   startCamera: () => Promise<void>;
   stopCamera: () => void;
-  capturePhoto: () => Promise<string | null>;
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<string | null>;
+  capturePhoto: () => Promise<void>;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   clearPhoto: () => void;
 }
 
