@@ -1,9 +1,10 @@
 
 import { IDBPDatabase } from 'idb';
-import { Game } from '../models';
+import { Game, GamePlayer } from '../models';
 import { PokerDB } from '../schema/PokerDBSchema';
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseCore } from '../core/SupabaseCore';
+import { Json } from '@/integrations/supabase/types';
 
 export class GameRepository extends SupabaseCore {
   private idbDb: Promise<IDBPDatabase<PokerDB>> | null = null;
@@ -35,7 +36,7 @@ export class GameRepository extends SupabaseCore {
           number: game.number,
           seasonId: game.season_id,
           date: new Date(game.date),
-          players: game.players,
+          players: game.players as unknown as GamePlayer[],
           totalPrizePool: Number(game.total_prize_pool),
           dinnerCost: game.dinner_cost ? Number(game.dinner_cost) : undefined,
           isFinished: game.is_finished,
@@ -72,7 +73,7 @@ export class GameRepository extends SupabaseCore {
           number: data.number,
           seasonId: data.season_id,
           date: new Date(data.date),
-          players: data.players,
+          players: data.players as unknown as GamePlayer[],
           totalPrizePool: Number(data.total_prize_pool),
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
@@ -110,7 +111,7 @@ export class GameRepository extends SupabaseCore {
           number: data.number,
           seasonId: data.season_id,
           date: new Date(data.date),
-          players: data.players,
+          players: data.players as unknown as GamePlayer[],
           totalPrizePool: Number(data.total_prize_pool),
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
@@ -141,7 +142,7 @@ export class GameRepository extends SupabaseCore {
           number: game.number,
           season_id: game.seasonId,
           date: game.date.toISOString(),
-          players: game.players,
+          players: game.players as unknown as Json,
           total_prize_pool: game.totalPrizePool,
           dinner_cost: game.dinnerCost,
           is_finished: game.isFinished,
@@ -212,7 +213,7 @@ export class GameRepository extends SupabaseCore {
         number: game.number,
         season_id: game.seasonId,
         date: game.date.toISOString(),
-        players: game.players,
+        players: game.players as unknown as Json,
         total_prize_pool: game.totalPrizePool,
         dinner_cost: game.dinnerCost,
         is_finished: game.isFinished,

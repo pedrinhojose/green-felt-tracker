@@ -1,9 +1,10 @@
 
 import { IDBPDatabase } from 'idb';
-import { Season } from '../models';
+import { Season, ScoreEntry, PrizeEntry, BlindLevel, FinancialParams } from '../models';
 import { PokerDB } from '../schema/PokerDBSchema';
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseCore } from '../core/SupabaseCore';
+import { Json } from '@/integrations/supabase/types';
 
 export class SeasonRepository extends SupabaseCore {
   private idbDb: Promise<IDBPDatabase<PokerDB>> | null = null;
@@ -36,11 +37,11 @@ export class SeasonRepository extends SupabaseCore {
           endDate: season.end_date ? new Date(season.end_date) : undefined,
           gamesPerWeek: season.games_per_week,
           isActive: season.is_active,
-          scoreSchema: season.score_schema,
-          weeklyPrizeSchema: season.weekly_prize_schema,
-          seasonPrizeSchema: season.season_prize_schema,
-          financialParams: season.financial_params,
-          blindStructure: season.blind_structure,
+          scoreSchema: season.score_schema as unknown as ScoreEntry[],
+          weeklyPrizeSchema: season.weekly_prize_schema as unknown as PrizeEntry[],
+          seasonPrizeSchema: season.season_prize_schema as unknown as PrizeEntry[],
+          financialParams: season.financial_params as unknown as FinancialParams,
+          blindStructure: season.blind_structure as unknown as BlindLevel[],
           jackpot: Number(season.jackpot),
           createdAt: new Date(season.created_at)
         })) as Season[];
@@ -77,11 +78,11 @@ export class SeasonRepository extends SupabaseCore {
           endDate: data.end_date ? new Date(data.end_date) : undefined,
           gamesPerWeek: data.games_per_week,
           isActive: data.is_active,
-          scoreSchema: data.score_schema,
-          weeklyPrizeSchema: data.weekly_prize_schema,
-          seasonPrizeSchema: data.season_prize_schema,
-          financialParams: data.financial_params,
-          blindStructure: data.blind_structure,
+          scoreSchema: data.score_schema as unknown as ScoreEntry[],
+          weeklyPrizeSchema: data.weekly_prize_schema as unknown as PrizeEntry[],
+          seasonPrizeSchema: data.season_prize_schema as unknown as PrizeEntry[],
+          financialParams: data.financial_params as unknown as FinancialParams,
+          blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
           createdAt: new Date(data.created_at)
         } as Season;
@@ -118,11 +119,11 @@ export class SeasonRepository extends SupabaseCore {
           endDate: data.end_date ? new Date(data.end_date) : undefined,
           gamesPerWeek: data.games_per_week,
           isActive: data.is_active,
-          scoreSchema: data.score_schema,
-          weeklyPrizeSchema: data.weekly_prize_schema,
-          seasonPrizeSchema: data.season_prize_schema,
-          financialParams: data.financial_params,
-          blindStructure: data.blind_structure,
+          scoreSchema: data.score_schema as unknown as ScoreEntry[],
+          weeklyPrizeSchema: data.weekly_prize_schema as unknown as PrizeEntry[],
+          seasonPrizeSchema: data.season_prize_schema as unknown as PrizeEntry[],
+          financialParams: data.financial_params as unknown as FinancialParams,
+          blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
           createdAt: new Date(data.created_at)
         } as Season;
@@ -149,11 +150,11 @@ export class SeasonRepository extends SupabaseCore {
           end_date: season.endDate ? season.endDate.toISOString() : null,
           games_per_week: season.gamesPerWeek,
           is_active: season.isActive,
-          score_schema: season.scoreSchema,
-          weekly_prize_schema: season.weeklyPrizeSchema,
-          season_prize_schema: season.seasonPrizeSchema,
-          financial_params: season.financialParams,
-          blind_structure: season.blindStructure,
+          score_schema: season.scoreSchema as unknown as Json,
+          weekly_prize_schema: season.weeklyPrizeSchema as unknown as Json,
+          season_prize_schema: season.seasonPrizeSchema as unknown as Json,
+          financial_params: season.financialParams as unknown as Json,
+          blind_structure: season.blindStructure as unknown as Json,
           jackpot: season.jackpot,
           created_at: season.createdAt.toISOString(),
           user_id: userId
@@ -312,11 +313,11 @@ export class SeasonRepository extends SupabaseCore {
         end_date: season.endDate ? season.endDate.toISOString() : null,
         games_per_week: season.gamesPerWeek,
         is_active: season.isActive,
-        score_schema: season.scoreSchema,
-        weekly_prize_schema: season.weeklyPrizeSchema,
-        season_prize_schema: season.seasonPrizeSchema,
-        financial_params: season.financialParams,
-        blind_structure: season.blindStructure,
+        score_schema: season.scoreSchema as unknown as Json,
+        weekly_prize_schema: season.weeklyPrizeSchema as unknown as Json,
+        season_prize_schema: season.seasonPrizeSchema as unknown as Json,
+        financial_params: season.financialParams as unknown as Json,
+        blind_structure: season.blindStructure as unknown as Json,
         jackpot: season.jackpot,
         created_at: season.createdAt.toISOString(),
         user_id: userId
