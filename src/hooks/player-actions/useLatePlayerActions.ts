@@ -13,6 +13,18 @@ export function useLatePlayerActions(game: Game | null, setGame: React.Dispatch<
     if (!game || !activeSeason) return false;
     
     try {
+      // Verificar se o jogador já está na partida
+      const isAlreadyInGame = game.players.some(player => player.playerId === playerId);
+      
+      if (isAlreadyInGame) {
+        toast({
+          title: "Jogador já está na partida",
+          description: "Este jogador já foi adicionado à partida atual.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
       const buyInAmount = activeSeason?.financialParams.buyIn || 0;
       const jackpotContribution = activeSeason?.financialParams.jackpotContribution || 0;
       // Desconta a contribuição do jackpot do prêmio adicionado

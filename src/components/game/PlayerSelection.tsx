@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Player, GamePlayer } from "@/lib/db/models";
+import { useToast } from "@/components/ui/use-toast";
 
 interface PlayerSelectionProps {
   players: Player[];
@@ -13,6 +14,7 @@ interface PlayerSelectionProps {
 
 export default function PlayerSelection({ players, onStartGame }: PlayerSelectionProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
   
   const togglePlayerSelection = (playerId: string) => {
     setSelectedPlayers(prevSelected => {
@@ -27,7 +29,35 @@ export default function PlayerSelection({ players, onStartGame }: PlayerSelectio
   };
   
   const handleStartGame = () => {
-    if (selectedPlayers.size === 0) return;
+    if (selectedPlayers.size === 0) {
+      toast({
+        title: "Nenhum jogador selecionado",
+        description: "Selecione pelo menos um jogador para iniciar a partida",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Verificar duplicatas (por segurança adicional)
+    const uniqueIds = new Set<string>();
+    let hasDuplicates = false;
+    
+    selectedPlayers.forEach(id => {
+      if (uniqueIds.has(id)) {
+        hasDuplicates = true;
+      }
+      uniqueIds.add(id);
+    });
+    
+    if (hasDuplicates) {
+      toast({
+        title: "Jogadores duplicados",
+        description: "Existem jogadores duplicados na seleção. Isso não deveria acontecer.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     onStartGame(selectedPlayers);
   };
   

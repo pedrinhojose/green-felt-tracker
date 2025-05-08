@@ -22,6 +22,19 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
         return false;
       }
       
+      // Verificar se há jogadores duplicados
+      const selectedArray = Array.from(selectedPlayers);
+      const uniqueIds = new Set(selectedArray);
+      
+      if (uniqueIds.size !== selectedArray.length) {
+        toast({
+          title: "Erro",
+          description: "Há jogadores duplicados na seleção. Selecione cada jogador apenas uma vez.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
       // Create game players array from selected player IDs
       const gamePlayers: GamePlayer[] = Array.from(selectedPlayers).map(playerId => ({
         id: `${playerId}-${Date.now()}`,
