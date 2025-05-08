@@ -79,34 +79,106 @@ export function useAudioEffects() {
     };
   }, [audioElements, isLoading]);
 
+  // Function to forcefully play audio - even on iOS
+  const forcePlayAudio = (audioElement: HTMLAudioElement) => {
+    // Create user gesture context by touching DOM
+    document.documentElement.click();
+    
+    // Set audio to start from beginning
+    audioElement.currentTime = 0;
+    
+    // Play with all the workarounds we can find
+    const playPromise = audioElement.play();
+    if (playPromise) {
+      playPromise.catch(error => {
+        console.warn("Erro ao reproduzir áudio:", error);
+        
+        // Special iOS workaround - add to DOM temporarily
+        if (!document.body.contains(audioElement)) {
+          document.body.appendChild(audioElement);
+          audioElement.play().catch(e => console.error("Falha na reprodução mesmo adicionando ao DOM:", e));
+          
+          // Remove after playing (or after time interval to be safe)
+          setTimeout(() => {
+            if (document.body.contains(audioElement)) {
+              document.body.removeChild(audioElement);
+            }
+          }, 3000);
+        }
+      });
+    }
+  };
+
   // Function to unlock audio on iOS/Safari
   const unlockAudio = () => {
     console.log("Tentando desbloquear áudio...");
-    // Create temporary audio to unlock
-    const silentAudio = new Audio();
-    silentAudio.play().then(() => {
-      console.log("Áudio desbloqueado com sucesso");
-    }).catch(error => {
-      console.warn("Não foi possível desbloquear áudio automaticamente:", error);
+    
+    // Create array of all our audio elements
+    const audioElements = [
+      alertAudioRef.current,
+      countdownAudioRef.current,
+      levelCompleteAudioRef.current
+    ].filter(Boolean) as HTMLAudioElement[];
+    
+    if (audioElements.length === 0) {
+      console.warn("Nenhum elemento de áudio disponível para desbloquear");
+      return;
+    }
+    
+    // Add all audio elements to DOM temporarily (crucial for iOS)
+    const audioContainer = document.createElement('div');
+    audioContainer.style.display = 'none';
+    document.body.appendChild(audioContainer);
+    
+    audioElements.forEach(audio => {
+      if (!audio.parentElement) {
+        audioContainer.appendChild(audio);
+      }
+      
+      // Set volume to 0 for silent unlocking
+      const originalVolume = audio.volume;
+      audio.volume = 0.01;
+      
+      // Play and immediately pause
+      audio.play()
+        .then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.volume = originalVolume;
+          console.log("Áudio desbloqueado com sucesso:", audio.src);
+        })
+        .catch(error => {
+          console.warn("Não foi possível desbloquear áudio:", error);
+          audio.volume = originalVolume;
+        });
     });
     
-    // Try to unlock each audio reference
-    [alertAudioRef, countdownAudioRef, levelCompleteAudioRef].forEach(ref => {
-      if (ref.current) {
-        const tempVolume = ref.current.volume;
-        ref.current.volume = 0;
-        ref.current.play().then(() => {
-          ref.current!.pause();
-          ref.current!.currentTime = 0;
-          ref.current!.volume = tempVolume;
-        }).catch(e => {
-          console.warn("Tentativa de desbloquear áudio falhou:", e);
-        });
+    // Remove container after a short delay (giving browser time to process)
+    setTimeout(() => {
+      if (document.body.contains(audioContainer)) {
+        document.body.removeChild(audioContainer);
       }
-    });
+    }, 1000);
+    
+    // Create a user interaction context
+    document.addEventListener('click', function unlockOnUserAction() {
+      console.log("Interação do usuário detectada, tentando desbloquear áudio");
+      
+      audioElements.forEach(audio => {
+        const originalVolume = audio.volume;
+        audio.volume = 0.01;
+        audio.play().then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.volume = originalVolume;
+        }).catch(e => console.warn("Erro ao desbloquear no click:", e));
+      });
+      
+      document.removeEventListener('click', unlockOnUserAction);
+    }, { once: true });
   };
 
-  // Function to safely play audio
+  // Function to safely play audio with all our workarounds
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
     if (!soundEnabled || !audioRef.current) {
       console.log("Som desativado ou referência de áudio não disponível");
@@ -114,27 +186,33 @@ export function useAudioEffects() {
     }
     
     try {
+      const audio = audioRef.current;
+      
       // Debug para verificar se o áudio está disponível
-      console.log("Tentando reproduzir áudio:", audioRef.current.src, "Estado atual:", audioRef.current.readyState);
+      console.log("Tentando reproduzir áudio:", audio.src, "Estado atual:", audio.readyState);
       
-      // Resetar áudio
-      audioRef.current.currentTime = 0;
-      audioRef.current.volume = 1.0;
+      // Garantir que estamos prontos para reproduzir
+      if (audio.readyState < 2) { // HAVE_CURRENT_DATA = 2
+        console.log("Áudio não está pronto, tentando pré-carregar primeiro");
+        audio.load(); // Força pré-carregamento
+        
+        // Adicionar ao DOM temporariamente para ajudar no carregamento
+        if (!audio.parentElement) {
+          document.body.appendChild(audio);
+          setTimeout(() => {
+            if (document.body.contains(audio)) {
+              document.body.removeChild(audio);
+            }
+          }, 1000);
+        }
+        
+        // Espere um pouco para dar tempo ao carregamento
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       
-      // Tentar desbloquear áudio primeiro
-      unlockAudio();
+      // Usar nosso método de força para garantir a reprodução
+      forcePlayAudio(audio);
       
-      // Usar método play() e tratar a promessa resultante
-      await audioRef.current.play()
-        .then(() => console.log("Áudio iniciado com sucesso"))
-        .catch((error) => {
-          console.error("Erro ao reproduzir áudio:", error);
-          
-          if (error.name === "NotAllowedError") {
-            console.warn("Reprodução automática bloqueada. Interação do usuário necessária primeiro.");
-            unlockAudio();
-          }
-        });
     } catch (error) {
       console.error("Erro ao reproduzir áudio:", error);
     }
