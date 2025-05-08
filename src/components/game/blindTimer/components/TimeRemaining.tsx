@@ -15,12 +15,14 @@ export function TimeRemaining({
 }: TimeRemainingProps) {
   const { formatTime } = useTimerUtils();
   
-  // Removemos completamente a lógica de alteração de classe condicional
-  // para garantir que o timer sempre permaneça branco
+  // Mantemos a cor branca mas adicionamos text-shadow para efeito 3D
   
   return (
     <div 
       className="text-5xl md:text-7xl font-bold text-white transition-all"
+      style={{
+        textShadow: "0px 3px 6px rgba(0,0,0,0.6)"
+      }}
     >
       {formatTime(timeRemainingInLevel)}
     </div>
