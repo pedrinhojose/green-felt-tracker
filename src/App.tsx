@@ -31,114 +31,30 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <Dashboard />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/players"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <PlayersManagement />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/game/:id"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <GameManagement />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/games"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <GamesList />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/ranking"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <RankingPage />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/timer"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <TimerPage />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/season"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <SeasonConfig />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
-            <Route
-              path="/report"
-              element={
-                <RequireAuth>
-                  <PokerProvider>
-                    <AppLayout>
-                      <SeasonReport />
-                    </AppLayout>
-                  </PokerProvider>
-                </RequireAuth>
-              }
-            />
-            
             <Route path="/404" element={<NotFound />} />
+            
+            {/* Protected routes with AppLayout */}
+            <Route element={
+              <RequireAuth>
+                <PokerProvider>
+                  <AppLayout />
+                </PokerProvider>
+              </RequireAuth>
+            }>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/players" element={<PlayersManagement />} />
+              <Route path="/game/:id" element={<GameManagement />} />
+              <Route path="/games" element={<GamesList />} />
+              <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/timer" element={<TimerPage />} />
+              <Route path="/season" element={<SeasonConfig />} />
+              <Route path="/report" element={<SeasonReport />} />
+            </Route>
+            
+            {/* Catch all route */}
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
           <Toaster />
