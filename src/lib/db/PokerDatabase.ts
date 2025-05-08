@@ -105,7 +105,7 @@ class PokerDatabase {
   private async clearLocalData(): Promise<void> {
     try {
       console.log("Clearing local IndexedDB data");
-      const db = this.dbCore.getDatabase();
+      const db = await this.dbCore.getDatabase();
       
       // Clear all stores in IndexedDB
       await db.clear('players');
