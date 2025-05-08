@@ -143,7 +143,7 @@ export const createReportSummary = (game: Game, players = []) => {
     contributionRow.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
     
     const contributionLabel = document.createElement('div');
-    contributionLabel.textContent = 'RETIRADO AO JACKPOT:';
+    contributionLabel.textContent = 'Retirado ao jackpot:';
     contributionLabel.style.color = '#8E9196';
     
     const contributionValue = document.createElement('div');
