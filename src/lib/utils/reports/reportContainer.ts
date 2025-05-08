@@ -9,7 +9,7 @@ export const createReportContainer = () => {
   container.style.color = '#FFFFFF';
   container.style.fontFamily = 'Inter, Arial, sans-serif';
   container.style.padding = '12px'; // Reduzindo ainda mais o padding
-  container.style.maxWidth = '550px'; // Ajustando para o tamanho móvel ideal
+  container.style.maxWidth = '520px'; // Ajustando para um tamanho mais compacto
   container.style.margin = '0 auto';
   container.style.borderRadius = '8px';
   container.style.boxSizing = 'border-box';

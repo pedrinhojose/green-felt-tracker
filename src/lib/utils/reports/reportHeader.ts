@@ -17,7 +17,7 @@ export const createReportHeader = (game: Game, seasonName: string) => {
   // Title - Alterado para "RESULTADO DA PARTIDA" em amarelo
   const title = document.createElement('h2');
   title.textContent = 'RESULTADO DA PARTIDA';
-  title.style.fontSize = '20px';
+  title.style.fontSize = '22px'; // Aumentando o tamanho da fonte
   title.style.fontWeight = 'bold';
   title.style.margin = '0 0 8px 0';
   title.style.color = '#FFD700'; // Alterado para amarelo
@@ -25,13 +25,13 @@ export const createReportHeader = (game: Game, seasonName: string) => {
   // Subtitle with game number, season and date
   const subtitle = document.createElement('div');
   subtitle.textContent = `Partida #${game.number.toString().padStart(3, '0')} - ${seasonName}`;
-  subtitle.style.fontSize = '14px';
+  subtitle.style.fontSize = '15px'; // Aumentando o tamanho da fonte
   subtitle.style.color = '#8E9196';
   
   // Date
   const dateText = document.createElement('div');
   dateText.textContent = formatDate(game.date);
-  dateText.style.fontSize = '14px';
+  dateText.style.fontSize = '15px'; // Aumentando o tamanho da fonte
   dateText.style.color = '#8E9196';
   dateText.style.marginTop = '4px';
   
