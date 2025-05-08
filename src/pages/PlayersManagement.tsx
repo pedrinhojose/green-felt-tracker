@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Player } from "@/lib/db/models";
-import { usePlayerPhoto } from "@/hooks/usePlayerPhoto";
+import { usePlayerPhotoManager } from "@/hooks/usePlayerPhotoManager";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { EditPlayerDialog } from "@/components/players/EditPlayerDialog";
 import { PlayersHeader } from "@/components/players/PlayersHeader";
@@ -28,17 +28,8 @@ export default function PlayersManagement() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   
-  const {
-    isCameraActive,
-    setIsCameraActive,
-    isProcessing,
-    videoRef,
-    fileInputRef,
-    startCamera,
-    stopCamera,
-    capturePhoto,
-    handleFileUpload
-  } = usePlayerPhoto();
+  // Use our new photo manager hook
+  const photoManager = usePlayerPhotoManager();
   
   const filteredPlayers = searchQuery
     ? players.filter(player => 
@@ -46,13 +37,14 @@ export default function PlayersManagement() {
       )
     : players;
   
-  // Photo handling functions for add/edit forms
+  // Clear photo in edit mode
   const clearPhoto = () => {
     if (editingPlayer) {
       setEditingPlayer({ ...editingPlayer, photoUrl: undefined });
     } else {
       setNewPlayer({ ...newPlayer, photoUrl: undefined });
     }
+    photoManager.clearPhoto();
   };
 
   const handleAddPlayer = async () => {
@@ -83,7 +75,7 @@ export default function PlayersManagement() {
       });
     } finally {
       setIsSaving(false);
-      stopCamera();
+      photoManager.stopCamera();
     }
   };
 
@@ -114,7 +106,7 @@ export default function PlayersManagement() {
       });
     } finally {
       setIsSaving(false);
-      stopCamera();
+      photoManager.stopCamera();
     }
   };
 
@@ -141,7 +133,7 @@ export default function PlayersManagement() {
   // Cleanup camera on unmount
   useEffect(() => {
     return () => {
-      stopCamera();
+      photoManager.stopCamera();
     };
   }, []);
 
@@ -166,16 +158,16 @@ export default function PlayersManagement() {
         setNewPlayer={setNewPlayer}
         isSaving={isSaving}
         handleAddPlayer={handleAddPlayer}
-        isCameraActive={isCameraActive}
-        setIsCameraActive={setIsCameraActive}
-        videoRef={videoRef}
-        fileInputRef={fileInputRef}
-        startCamera={startCamera}
-        stopCamera={stopCamera}
-        capturePhoto={capturePhoto}
-        handleFileUpload={handleFileUpload}
+        isCameraActive={photoManager.isCameraActive}
+        setIsCameraActive={photoManager.setIsCameraActive}
+        videoRef={photoManager.videoRef}
+        fileInputRef={photoManager.fileInputRef}
+        startCamera={photoManager.startCamera}
+        stopCamera={photoManager.stopCamera}
+        capturePhoto={photoManager.capturePhoto}
+        handleFileUpload={photoManager.handleFileUpload}
         clearPhoto={clearPhoto}
-        isProcessing={isProcessing}
+        isProcessing={photoManager.isProcessing}
       />
       
       {/* Edit Player Dialog */}
@@ -184,16 +176,16 @@ export default function PlayersManagement() {
         setEditingPlayer={setEditingPlayer}
         isSaving={isSaving}
         handleEditPlayer={handleEditPlayer}
-        isCameraActive={isCameraActive}
-        setIsCameraActive={setIsCameraActive}
-        videoRef={videoRef}
-        fileInputRef={fileInputRef}
-        startCamera={startCamera}
-        stopCamera={stopCamera}
-        capturePhoto={capturePhoto}
-        handleFileUpload={handleFileUpload}
+        isCameraActive={photoManager.isCameraActive}
+        setIsCameraActive={photoManager.setIsCameraActive}
+        videoRef={photoManager.videoRef}
+        fileInputRef={photoManager.fileInputRef}
+        startCamera={photoManager.startCamera}
+        stopCamera={photoManager.stopCamera}
+        capturePhoto={photoManager.capturePhoto}
+        handleFileUpload={photoManager.handleFileUpload}
         clearPhoto={clearPhoto}
-        isProcessing={isProcessing}
+        isProcessing={photoManager.isProcessing}
       />
     </div>
   );

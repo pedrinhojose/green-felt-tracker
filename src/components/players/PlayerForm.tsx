@@ -1,10 +1,8 @@
 
-import React, { useRef, useState } from "react";
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Camera, ImageIcon, X, Loader2 } from "lucide-react";
-import { Player } from "@/lib/db/models";
+import { PlayerPhotoManager } from "./PlayerPhotoManager";
 
 interface PlayerFormProps {
   player: { 
@@ -41,7 +39,7 @@ export function PlayerForm({
   clearPhoto,
   isProcessing
 }: PlayerFormProps) {
-  // Handle photo capture
+  // Customize capturePhoto to update player state
   const handleCapturePhoto = async () => {
     const imageUrl = await capturePhoto();
     if (imageUrl) {
@@ -49,7 +47,7 @@ export function PlayerForm({
     }
   };
   
-  // Handle file upload
+  // Customize file upload to update player state
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const imageUrl = await handleFileUpload(e);
     if (imageUrl) {
@@ -95,82 +93,18 @@ export function PlayerForm({
       
       <div className="space-y-2">
         <Label>Foto do Jogador</Label>
-        
-        {isProcessing && (
-          <div className="flex justify-center items-center py-4">
-            <Loader2 className="h-8 w-8 animate-spin text-poker-gold" />
-            <span className="ml-2">Processando imagem...</span>
-          </div>
-        )}
-        
-        {isCameraActive && !isProcessing ? (
-          <div className="space-y-2">
-            <div className="relative rounded-lg overflow-hidden bg-black">
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                className="w-full"
-              />
-              <Button 
-                onClick={() => stopCamera()}
-                variant="destructive" 
-                size="icon" 
-                className="absolute top-2 right-2"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <Button 
-              onClick={handleCapturePhoto} 
-              className="w-full bg-poker-gold hover:bg-poker-gold/80 text-black"
-            >
-              Tirar Foto
-            </Button>
-          </div>
-        ) : player.photoUrl && !isProcessing ? (
-          <div className="space-y-2">
-            <div className="relative">
-              <img 
-                src={player.photoUrl} 
-                alt="Foto do jogador" 
-                className="w-full h-auto rounded-lg"
-              />
-              <Button 
-                onClick={clearPhoto}
-                variant="destructive" 
-                size="icon" 
-                className="absolute top-2 right-2"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ) : !isProcessing && (
-          <div className="flex gap-2">
-            <Button 
-              onClick={startCamera} 
-              variant="outline" 
-              className="flex-1"
-            >
-              <Camera className="mr-2 h-4 w-4" /> Usar Câmera
-            </Button>
-            <Button 
-              onClick={() => fileInputRef.current?.click()} 
-              variant="outline" 
-              className="flex-1"
-            >
-              <ImageIcon className="mr-2 h-4 w-4" /> Escolher Arquivo
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/jpeg,image/png"
-              style={{ display: 'none' }}
-              onChange={handleFileInputChange}
-            />
-          </div>
-        )}
+        <PlayerPhotoManager
+          photoUrl={player.photoUrl}
+          isCameraActive={isCameraActive}
+          isProcessing={isProcessing}
+          videoRef={videoRef}
+          fileInputRef={fileInputRef}
+          startCamera={startCamera}
+          stopCamera={stopCamera}
+          capturePhoto={handleCapturePhoto}
+          handleFileUpload={handleFileInputChange}
+          clearPhoto={clearPhoto}
+        />
       </div>
     </div>
   );
