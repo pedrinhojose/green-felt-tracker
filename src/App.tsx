@@ -46,11 +46,11 @@ function App() {
             }>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/players" element={<PlayersManagement />} />
-              <Route path="/game/:gameId" element={<GameManagement />} /> {/* Alterado para usar gameId como parâmetro */}
+              <Route path="/game/:gameId" element={<GameManagement />} />
               <Route path="/games" element={<GamesList />} />
               <Route path="/ranking" element={<RankingPage />} />
               <Route path="/timer" element={<TimerPage />} />
-              <Route path="/timer/:gameId" element={<TimerPage />} /> {/* Added route with gameId parameter */}
+              <Route path="/timer/:gameId" element={<TimerPage />} />
               <Route path="/season" element={<SeasonConfig />} />
               <Route path="/report" element={<SeasonReport />} />
             </Route>
