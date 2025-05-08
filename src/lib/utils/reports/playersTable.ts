@@ -15,8 +15,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Ajuste de grid com larguras fixas para melhor alinhamento
-  tableHeader.style.gridTemplateColumns = '20px 40px 1fr 60px 60px 60px 80px';
+  // Ajustando o grid para garantir que todas as colunas sejam exibidas corretamente
+  tableHeader.style.gridTemplateColumns = '20px 40px 1fr 50px 50px 50px 90px';
   tableHeader.style.gap = '8px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '6px 0';
@@ -59,8 +59,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     // Player row
     const row = document.createElement('div');
     row.style.display = 'grid';
-    // Mesmo ajuste de grid para as linhas, com larguras fixas iguais ao cabeçalho
-    row.style.gridTemplateColumns = '20px 40px 1fr 60px 60px 60px 80px';
+    // Usando o mesmo template de grid do cabeçalho para manter consistência
+    row.style.gridTemplateColumns = '20px 40px 1fr 50px 50px 50px 90px';
     row.style.gap = '8px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
     row.style.padding = '12px 0';
