@@ -1,4 +1,3 @@
-
 import { DatabaseCore } from './core/DatabaseCore';
 import { PlayerRepository } from './repositories/PlayerRepository';
 import { SeasonRepository } from './repositories/SeasonRepository';
@@ -80,9 +79,13 @@ class PokerDatabase {
         setTimeout(() => {
           this.setupSupabaseRepositories();
           
-          // Migrate data from IndexedDB if needed
-          this.migrateLocalDataToSupabase().catch(error => 
-            console.error("Error during data migration:", error)
+          // REMOVED automatic migration from IndexedDB to Supabase
+          // Now we prioritize Supabase data and don't migrate local data
+          console.log("User signed in - using Supabase repositories without data migration");
+          
+          // Clear IndexedDB data to prevent future accidental migrations
+          this.clearLocalData().catch(error => 
+            console.error("Error during local data clearing:", error)
           );
         }, 0);
       } else if (event === 'SIGNED_OUT') {
@@ -98,27 +101,21 @@ class PokerDatabase {
     });
   }
   
-  // Migrate local data to Supabase
-  private async migrateLocalDataToSupabase(): Promise<void> {
+  // New method to clear local IndexedDB data when user logs in
+  private async clearLocalData(): Promise<void> {
     try {
-      console.log("Checking for local data to migrate to Supabase");
+      console.log("Clearing local IndexedDB data");
       const db = this.dbCore.getDatabase();
       
-      // Create temporary repositories for IndexedDB access
-      const playerRepo = new PlayerRepository(db);
-      const seasonRepo = new SeasonRepository(db);
-      const gameRepo = new GameRepository(db);
-      const rankingRepo = new RankingRepository(db);
+      // Clear all stores in IndexedDB
+      await db.clear('players');
+      await db.clear('seasons');
+      await db.clear('games');
+      await db.clear('rankings');
       
-      // Start migration process
-      await playerRepo.migratePlayersFromIndexedDB();
-      await seasonRepo.migrateSeasonsFromIndexedDB();
-      await gameRepo.migrateGamesFromIndexedDB();
-      await rankingRepo.migrateRankingsFromIndexedDB();
-      
-      console.log("Data migration complete");
+      console.log("Local data cleared successfully");
     } catch (error) {
-      console.error("Failed to migrate local data to Supabase:", error);
+      console.error("Failed to clear local IndexedDB data:", error);
       throw error;
     }
   }

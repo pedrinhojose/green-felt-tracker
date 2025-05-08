@@ -27,6 +27,16 @@ export const cleanupAuthState = () => {
       sessionStorage.removeItem(key);
     }
   });
+
+  // Limpar indexedDB relacionados ao Supabase
+  const indexedDBs = ['localforage', 'firebaseLocalStorageDb'];
+  indexedDBs.forEach(db => {
+    try {
+      indexedDB.deleteDatabase(db);
+    } catch (e) {
+      console.log(`Failed to delete IndexedDB: ${db}`, e);
+    }
+  });
 };
 
 // Função para fazer logout
