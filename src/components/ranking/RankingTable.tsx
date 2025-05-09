@@ -47,7 +47,7 @@ export default function RankingTable({
               <TableRow className="border-b border-poker-dark-green">
                 <TableHead className="w-12 pr-0 py-2">#</TableHead>
                 <TableHead className="px-1 py-2">Jogador</TableHead>
-                <TableHead className="text-center w-20 py-2">Jontos</TableHead>
+                <TableHead className="text-center w-20 py-2">Pontos</TableHead>
                 <TableHead className="text-center w-20 py-2">Jogos</TableHead>
               </TableRow>
             </TableHeader>
