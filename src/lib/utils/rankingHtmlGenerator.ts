@@ -88,7 +88,7 @@ export const createTableHeader = () => {
   headerRow.style.borderBottom = '1px solid #2D3748';
   
   // Cabeçalhos conforme a imagem: Pos., Jogador, Pontos, Partidas
-  const headers = ['#', 'Jogador', 'Jogos', 'Pontos'];
+  const headers = ['#', 'Jogador', 'Pontos', 'Jogos'];
   const columnWidths = ['50px', 'auto', '80px', '80px'];
   const textAligns = ['center', 'left', 'center', 'center'];
   
