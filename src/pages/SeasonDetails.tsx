@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -85,34 +86,21 @@ export default function SeasonDetails() {
     const sortedRankings = [...rankingsData].sort((a, b) => b.totalPoints - a.totalPoints);
     
     const playerStatsMap = new Map<string, PlayerStat>();
-    const uniquePlayers = new Set<string>();
     
+    // Para cada jogo, processar estatísticas dos jogadores
     gamesData.forEach(game => {
       game.players.forEach(gamePlayer => {
-        // Add to unique players
-        uniquePlayers.add(gamePlayer.playerId);
-        
-        // Busque informações do jogador (aqui estamos usando uma solução alternativa para obter o nome e foto)
-        const player = {
-          id: gamePlayer.playerId,
-          name: "", // Este valor será preenchido quando tivermos os dados do jogador
-          photoUrl: undefined // Este valor será preenchido quando tivermos os dados do jogador
-        };
-        
-        // Encontre o jogador correspondente no ranking
+        // Busque informações do jogador no ranking
         const rankingPlayer = sortedRankings.find(r => r.playerId === gamePlayer.playerId);
-        if (rankingPlayer) {
-          player.name = rankingPlayer.playerName;
-          player.photoUrl = rankingPlayer.photoUrl;
-        }
+        if (!rankingPlayer) return;
         
         // Update player stats
         let playerStat = playerStatsMap.get(gamePlayer.playerId);
         if (!playerStat) {
           playerStat = {
             playerId: gamePlayer.playerId,
-            playerName: player.name, // Use o nome do jogador do ranking
-            photoUrl: player.photoUrl, // Use a foto do jogador do ranking
+            playerName: rankingPlayer.playerName, // Use o nome do jogador do ranking
+            photoUrl: rankingPlayer.photoUrl, // Use a foto do jogador do ranking
             gamesPlayed: 0,
             victories: 0,
             averagePosition: 0,
@@ -134,8 +122,6 @@ export default function SeasonDetails() {
         if (gamePlayer.position < playerStat.bestPosition) {
           playerStat.bestPosition = gamePlayer.position;
         }
-        
-        // Atualizar pontos (serão calculados depois com base no ranking)
       });
     });
     
@@ -144,7 +130,22 @@ export default function SeasonDetails() {
       const playerStat = playerStatsMap.get(rankingEntry.playerId);
       if (playerStat) {
         playerStat.totalPoints = rankingEntry.totalPoints;
-        playerStat.averagePosition = rankingEntry.averagePosition;
+        // Verificar se averagePosition existe no rankingEntry
+        if ('averagePosition' in rankingEntry) {
+          playerStat.averagePosition = (rankingEntry as any).averagePosition;
+        } else {
+          // Calcular média com base nos jogos se não existir no ranking
+          const playerGames = games
+            .flatMap(game => game.players)
+            .filter(player => player.playerId === rankingEntry.playerId);
+          
+          if (playerGames.length) {
+            const sum = playerGames.reduce((acc, curr) => acc + curr.position, 0);
+            playerStat.averagePosition = sum / playerGames.length;
+          } else {
+            playerStat.averagePosition = 0;
+          }
+        }
       }
     });
     
@@ -274,8 +275,8 @@ export default function SeasonDetails() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RankingTable rankings={rankings} />
-                  <RankingExporter rankings={rankings} filename={`ranking_temporada_${season.name}`} />
+                  <RankingTable data={rankings} />
+                  <RankingExporter data={rankings} filename={`ranking_temporada_${season.name}`} />
                 </CardContent>
               </Card>
             </TabsContent>
