@@ -19,6 +19,8 @@ import RankingPage from '@/pages/RankingPage';
 import TimerPage from '@/pages/TimerPage';
 import SeasonConfig from '@/pages/SeasonConfig';
 import SeasonReport from '@/pages/SeasonReport';
+import SeasonsList from '@/pages/SeasonsList';
+import SeasonDetails from '@/pages/SeasonDetails';
 import Auth from '@/pages/Auth';
 
 // Components
@@ -53,6 +55,8 @@ function App() {
               <Route path="/timer/:gameId" element={<TimerPage />} />
               <Route path="/season" element={<SeasonConfig />} />
               <Route path="/report" element={<SeasonReport />} />
+              <Route path="/seasons" element={<SeasonsList />} />
+              <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
             </Route>
             
             {/* Catch all route */}

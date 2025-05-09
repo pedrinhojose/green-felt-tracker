@@ -1,12 +1,5 @@
 
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
 
 interface RankingPaginationProps {
   currentPage: number;
@@ -14,111 +7,39 @@ interface RankingPaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export default function RankingPagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: RankingPaginationProps) {
-  // Generate an array of page numbers to show
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxPagesToShow = 5;
-    
-    if (totalPages <= maxPagesToShow) {
-      // If total pages are less than or equal to max pages to show, show all pages
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Always show first page
-      pages.push(1);
-      
-      // Calculate start and end of page numbers to show
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
-      
-      // Adjust if we're near the start
-      if (currentPage <= 3) {
-        endPage = 4;
-      }
-      
-      // Adjust if we're near the end
-      if (currentPage >= totalPages - 2) {
-        startPage = totalPages - 3;
-      }
-      
-      // Add ellipsis if needed at start
-      if (startPage > 2) {
-        pages.push('ellipsis-start');
-      }
-      
-      // Add page numbers
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-      
-      // Add ellipsis if needed at end
-      if (endPage < totalPages - 1) {
-        pages.push('ellipsis-end');
-      }
-      
-      // Always show last page
-      pages.push(totalPages);
-    }
-    
-    return pages;
-  };
-
+export function RankingPagination({ currentPage, totalPages, onPageChange }: RankingPaginationProps) {
   return (
-    <Pagination className="mt-4">
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              if (currentPage > 1) {
-                onPageChange(currentPage - 1);
-              }
-            }}
-            className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : ''}`}
-          />
-        </PaginationItem>
+    <div className="flex justify-center mt-4">
+      <div className="flex space-x-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+          disabled={currentPage === 1}
+        >
+          &lt;
+        </Button>
         
-        {getPageNumbers().map((page, index) => (
-          <PaginationItem key={index}>
-            {page === 'ellipsis-start' || page === 'ellipsis-end' ? (
-              <span className="px-4 py-2">...</span>
-            ) : (
-              <PaginationLink
-                href="#"
-                isActive={page === currentPage}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onPageChange(page as number);
-                }}
-              >
-                {page}
-              </PaginationLink>
-            )}
-          </PaginationItem>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+          <Button
+            key={page}
+            variant={page === currentPage ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
         ))}
         
-        <PaginationItem>
-          <PaginationNext
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              if (currentPage < totalPages) {
-                onPageChange(currentPage + 1);
-              }
-            }}
-            className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}`}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+          disabled={currentPage === totalPages}
+        >
+          &gt;
+        </Button>
+      </div>
+    </div>
   );
 }
-
-export { RankingPagination };

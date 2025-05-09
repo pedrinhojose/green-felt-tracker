@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText } from "lucide-react";
+import { FileText, List } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +60,15 @@ export default function GamesList() {
         <h2 className="text-2xl font-bold text-white">Partidas</h2>
         
         <div className="flex gap-2 mt-4 sm:mt-0">
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/seasons')}
+            className="mr-2"
+          >
+            <List className="mr-2 h-4 w-4" />
+            Ver Temporadas
+          </Button>
+          
           {activeSeason && sortedGames.length > 0 && (
             <Button 
               variant="outline"
@@ -90,6 +99,7 @@ export default function GamesList() {
         </div>
       </div>
       
+      {/* Resto do componente permanece igual */}
       {sortedGames.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sortedGames.map(game => (
