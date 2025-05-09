@@ -34,6 +34,8 @@ export default function SeasonDetails() {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerStats, setPlayerStats] = useState<PlayerStat[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
   
   useEffect(() => {
     if (!seasonId) return;
@@ -78,6 +80,25 @@ export default function SeasonDetails() {
     
     loadSeasonDetails();
   }, [seasonId, navigate, toast]);
+  
+  // Funções auxiliares para o ranking
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+  
+  const getMedalEmoji = (position: number) => {
+    switch (position) {
+      case 0: return '🥇';
+      case 1: return '🥈';
+      case 2: return '🥉';
+      default: return (position + 1).toString();
+    }
+  };
   
   const calculatePlayerStats = (gamesData: Game[], rankingsData: RankingEntry[]) => {
     if (!gamesData.length) return;
@@ -163,6 +184,9 @@ export default function SeasonDetails() {
   if (!season) {
     return <div className="text-center text-white">Temporada não encontrada.</div>;
   }
+  
+  // Ordenar rankings por total de pontos
+  const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -275,8 +299,19 @@ export default function SeasonDetails() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RankingTable data={rankings} />
-                  <RankingExporter data={rankings} filename={`ranking_temporada_${season.name}`} />
+                  <RankingTable 
+                    sortedRankings={sortedRankings} 
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    getInitials={getInitials}
+                    getMedalEmoji={getMedalEmoji}
+                  />
+                  <RankingExporter 
+                    sortedRankings={sortedRankings} 
+                    activeSeason={season}
+                    getInitials={getInitials}
+                    getMedalEmoji={getMedalEmoji}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
