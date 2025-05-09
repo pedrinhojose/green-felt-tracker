@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,6 +35,25 @@ export default function SeasonDetails() {
   const [playerStats, setPlayerStats] = useState<PlayerStat[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  
+  // Funções auxiliares para o ranking
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+  
+  const getMedalEmoji = (position: number) => {
+    switch (position) {
+      case 0: return '🥇';
+      case 1: return '🥈';
+      case 2: return '🥉';
+      default: return (position + 1).toString();
+    }
+  };
   
   useEffect(() => {
     if (!seasonId) return;
@@ -80,25 +98,6 @@ export default function SeasonDetails() {
     
     loadSeasonDetails();
   }, [seasonId, navigate, toast]);
-  
-  // Funções auxiliares para o ranking
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-  
-  const getMedalEmoji = (position: number) => {
-    switch (position) {
-      case 0: return '🥇';
-      case 1: return '🥈';
-      case 2: return '🥉';
-      default: return (position + 1).toString();
-    }
-  };
   
   const calculatePlayerStats = (gamesData: Game[], rankingsData: RankingEntry[]) => {
     if (!gamesData.length) return;
