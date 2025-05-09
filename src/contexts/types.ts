@@ -1,11 +1,11 @@
 
-import { Player, Season, Game, RankingEntry } from '../lib/db/models';
+import { Game, Player, Season, RankingEntry } from "@/lib/db/models";
 
 export interface PokerContextProps {
   // Players
   players: Player[];
-  getPlayer: (id: string) => Promise<Player | undefined>;
-  savePlayer: (player: Partial<Player>) => Promise<string>;
+  getPlayer: (id: string) => Player | undefined;
+  savePlayer: (player: Player) => Promise<string>;
   deletePlayer: (id: string) => Promise<void>;
   
   // Seasons
@@ -20,6 +20,7 @@ export interface PokerContextProps {
   lastGame: Game | null;
   createGame: (seasonId: string) => Promise<string>;
   updateGame: (gameData: Partial<Game>) => Promise<void>;
+  deleteGame: (gameId: string) => Promise<boolean>;
   finishGame: (gameId: string) => Promise<void>;
   
   // Rankings

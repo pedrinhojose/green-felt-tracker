@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText, List } from "lucide-react";
+import { FileText, List, Trash } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +22,10 @@ import {
 export default function GamesList() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { games, activeSeason, createGame, getGameNumber } = usePoker();
+  const { games, activeSeason, createGame, getGameNumber, deleteGame } = usePoker();
   const [isCreating, setIsCreating] = useState(false);
+  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Sort games by number in descending order
   const sortedGames = [...games].sort((a, b) => b.number - a.number);
@@ -51,6 +53,27 @@ export default function GamesList() {
       });
     } finally {
       setIsCreating(false);
+    }
+  };
+  
+  const handleDeleteGame = async (gameId: string) => {
+    try {
+      setIsDeleting(true);
+      await deleteGame(gameId);
+      toast({
+        title: "Partida excluída",
+        description: "A partida foi excluída com sucesso.",
+      });
+      setGameToDelete(null);
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a partida.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -99,21 +122,48 @@ export default function GamesList() {
         </div>
       </div>
       
-      {/* Resto do componente permanece igual */}
       {sortedGames.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sortedGames.map(game => (
-            <Card key={game.id} className="bg-poker-green hover:bg-poker-green/90 cursor-pointer transition-all duration-200"
-              onClick={() => navigate(`/game/${game.id}`)}>
-              <CardHeader className="pb-2">
+            <Card key={game.id} className="bg-poker-green hover:bg-poker-green/90 transition-all duration-200">
+              <CardHeader className="pb-2 flex flex-row justify-between items-start">
                 <CardTitle className="flex justify-between items-center">
                   <span>Partida #{game.number.toString().padStart(3, '0')}</span>
                   {game.isFinished && (
                     <span className="text-sm bg-poker-gold text-black px-2 py-1 rounded-full">Finalizada</span>
                   )}
                 </CardTitle>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-500/10 hover:text-red-600 p-1 h-auto">
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir partida</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir esta partida? Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-500 hover:bg-red-600"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteGame(game.id);
+                        }}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? "Excluindo..." : "Excluir partida"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardHeader>
-              <CardContent>
+              <CardContent onClick={() => navigate(`/game/${game.id}`)} className="cursor-pointer">
                 <p className="text-sm text-muted-foreground mb-2">{formatDate(game.date)}</p>
                 <p className="mb-1">Jogadores: {game.players.length}</p>
                 <p className="text-poker-gold font-semibold">Premiação: {formatCurrency(game.totalPrizePool)}</p>

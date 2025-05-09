@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Game, Season } from '../lib/db/models';
@@ -77,6 +76,65 @@ export function useGameFunctions(
       if (latestGame?.id === updatedGame.id) {
         setLastGame(updatedGame);
       }
+    }
+  };
+
+  const deleteGame = async (gameId: string) => {
+    try {
+      // Get the game before deleting it to check if it's the last game
+      const game = await pokerDB.getGame(gameId);
+      if (!game) {
+        throw new Error('Game not found');
+      }
+      
+      // Delete game from database
+      await pokerDB.deleteGame(gameId);
+      
+      // Update local state
+      setGames(prev => prev.filter(g => g.id !== gameId));
+      
+      // If the deleted game was the last game, update lastGame state
+      if (lastGame?.id === gameId) {
+        const newLastGame = await pokerDB.getLastGame();
+        setLastGame(newLastGame || null);
+      }
+      
+      // If the game was finished, we should update the rankings to reflect the change
+      if (game.isFinished) {
+        // Update rankings
+        await updateRankings();
+        
+        // If this was a finished game, we should also update the jackpot in the season
+        if (game.seasonId) {
+          // Get current season data
+          const season = await pokerDB.getSeason(game.seasonId);
+          if (season) {
+            // Calculate jackpot adjustment (assuming we know the original contribution)
+            const playerCount = game.players.filter(p => p.buyIn).length;
+            const jackpotContribution = playerCount * (season.financialParams?.jackpotContribution || 0);
+            
+            // Reverse the jackpot contribution
+            const updatedSeason = {
+              ...season,
+              jackpot: Math.max(0, season.jackpot - jackpotContribution)
+            };
+            
+            // Update the season with the adjusted jackpot
+            await pokerDB.saveSeason(updatedSeason);
+            
+            // Update active season state if needed
+            if (season.isActive && setActiveSeason) {
+              setActiveSeason(updatedSeason);
+            }
+          }
+        }
+      }
+      
+      // Return success
+      return true;
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      throw error;
     }
   };
 
@@ -197,6 +255,7 @@ export function useGameFunctions(
     getGameNumber,
     createGame,
     updateGame,
+    deleteGame,
     finishGame
   };
 }
