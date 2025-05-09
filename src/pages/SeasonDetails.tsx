@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -115,13 +114,27 @@ export default function SeasonDetails() {
             // Add to unique players
             uniquePlayers.add(gamePlayer.playerId);
             
+            // Busque informações do jogador (aqui estamos usando uma solução alternativa para obter o nome e foto)
+            const player = {
+              id: gamePlayer.playerId,
+              name: "", // Este valor será preenchido quando tivermos os dados do jogador
+              photoUrl: undefined // Este valor será preenchido quando tivermos os dados do jogador
+            };
+            
+            // Encontre o jogador correspondente no ranking
+            const rankingPlayer = sortedRankings.find(r => r.playerId === gamePlayer.playerId);
+            if (rankingPlayer) {
+              player.name = rankingPlayer.playerName;
+              player.photoUrl = rankingPlayer.photoUrl;
+            }
+            
             // Update player stats
             let playerStat = playerStatsMap.get(gamePlayer.playerId);
             if (!playerStat) {
               playerStat = {
                 playerId: gamePlayer.playerId,
-                playerName: gamePlayer.playerName,
-                photoUrl: gamePlayer.photoUrl,
+                playerName: player.name, // Use o nome do jogador do ranking
+                photoUrl: player.photoUrl, // Use a foto do jogador do ranking
                 gamesPlayed: 0,
                 victories: 0,
                 averagePosition: 0,

@@ -43,3 +43,6 @@ export default function BackupButton() {
     </Button>
   );
 }
+
+// Exportação alternativa para compatibilidade
+export { BackupButton };

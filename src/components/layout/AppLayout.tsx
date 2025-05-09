@@ -1,18 +1,18 @@
 
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { PokerNav } from '../PokerNav';
+import PokerNav from '../PokerNav';
 import { Button } from '../ui/button';
 import { Calendar, EqualSquare, GraduationCap, List, Truck, User, Users } from 'lucide-react';
-import { BackupButton } from '../BackupButton';
+import BackupButton from '../BackupButton';
 import { ProfileDropdown } from '../ProfileDropdown';
 import { useState, useEffect } from 'react';
 import { usePoker } from '@/contexts/PokerContext';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '../ui/separator';
 
 export default function AppLayout() {
   const navigate = useNavigate();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { activeSeason } = usePoker();
   

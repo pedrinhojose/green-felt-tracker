@@ -124,3 +124,6 @@ export default function PokerNav() {
     </header>
   );
 }
+
+// Exportação alternativa para compatibilidade
+export { PokerNav };
