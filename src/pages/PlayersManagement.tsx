@@ -59,7 +59,7 @@ export default function PlayersManagement() {
     
     try {
       setIsSaving(true);
-      await savePlayer(newPlayer);
+      await savePlayer(newPlayer); // This is now correct as we updated savePlayer to accept Partial<Player>
       setNewPlayer({ name: "" });
       setIsAddDialogOpen(false);
       toast({
@@ -91,7 +91,7 @@ export default function PlayersManagement() {
     
     try {
       setIsSaving(true);
-      await savePlayer(editingPlayer);
+      await savePlayer(editingPlayer); // This is already a complete Player object, so it works fine
       setEditingPlayer(null);
       toast({
         title: "Jogador atualizado",

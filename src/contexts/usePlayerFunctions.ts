@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Player } from '../lib/db/models';
@@ -10,7 +9,7 @@ export function usePlayerFunctions() {
   const [players, setPlayers] = useState<Player[]>([]);
   const { toast } = useToast();
 
-  const getPlayer = async (id: string) => {
+  const getPlayer = async (id: string): Promise<Player | undefined> => {
     try {
       return await pokerDB.getPlayer(id);
     } catch (error) {
@@ -45,7 +44,7 @@ export function usePlayerFunctions() {
     }
   };
 
-  const savePlayer = async (playerData: Partial<Player>) => {
+  const savePlayer = async (playerData: Partial<Player>): Promise<string> => {
     const now = new Date();
     let player: Player;
     
@@ -120,7 +119,7 @@ export function usePlayerFunctions() {
     }
   };
 
-  const deletePlayer = async (id: string) => {
+  const deletePlayer = async (id: string): Promise<void> => {
     try {
       // Get the player first to check for photo
       const player = await getPlayer(id);
