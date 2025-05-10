@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
  * @param bucket Name of the storage bucket
  * @returns URL of the uploaded image
  */
-export const uploadImageToStorage = async (dataUrl: string, bucket: string = 'player-photos'): Promise<string> => {
+export const uploadImageToStorage = async (dataUrl: string, bucket: string = 'fotos'): Promise<string> => {
   try {
     // Extract file content from data URL
     const arr = dataUrl.split(',');
