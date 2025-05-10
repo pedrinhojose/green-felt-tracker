@@ -25,7 +25,7 @@ export const uploadImageToStorage = async (dataUrl: string, bucket: string = 'fo
     const fileName = `${uuidv4()}.${mime.split('/')[1] || 'jpg'}`;
     const file = new File([u8arr], fileName, { type: mime });
     
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage - using 'fotos' bucket and 'players' folder
     const { data, error } = await supabase
       .storage
       .from(bucket)
@@ -54,7 +54,7 @@ export const uploadImageToStorage = async (dataUrl: string, bucket: string = 'fo
  * @param url Public URL of the image
  * @param bucket Name of the storage bucket
  */
-export const deleteImageFromStorage = async (url: string, bucket: string = 'player-photos'): Promise<void> => {
+export const deleteImageFromStorage = async (url: string, bucket: string = 'fotos'): Promise<void> => {
   try {
     // Extract file path from URL
     const storageUrl = supabase.storage.from(bucket).getPublicUrl('').data.publicUrl;

@@ -91,7 +91,7 @@ export class PlayerRepository extends SupabaseCore {
           const existingPlayer = await this.getPlayer(player.id);
           if (existingPlayer && existingPlayer.photoUrl && 
               existingPlayer.photoUrl !== player.photoUrl && 
-              existingPlayer.photoUrl.includes('player-photos')) {
+              existingPlayer.photoUrl.includes('fotos')) {
             // Delete the old photo if it's from our storage and different from the new one
             await deleteImageFromStorage(existingPlayer.photoUrl);
             console.log("Deleted old player photo:", existingPlayer.photoUrl);
@@ -137,7 +137,7 @@ export class PlayerRepository extends SupabaseCore {
         
         // Get the player to check for photo URL
         const player = await this.getPlayer(id);
-        if (player && player.photoUrl && player.photoUrl.includes('player-photos')) {
+        if (player && player.photoUrl && player.photoUrl.includes('fotos')) {
           // Delete the player's photo from Storage
           await deleteImageFromStorage(player.photoUrl);
           console.log("Deleted player photo:", player.photoUrl);

@@ -124,6 +124,12 @@ export function usePlayerFunctions() {
       // Get the player first to check for photo
       const player = await getPlayer(id);
       
+      // If player has a photo in the 'fotos' bucket, delete it
+      if (player && player.photoUrl && player.photoUrl.includes('fotos')) {
+        await deleteImageFromStorage(player.photoUrl, 'fotos');
+        console.log("Deleted player photo:", player.photoUrl);
+      }
+      
       await pokerDB.deletePlayer(id);
       setPlayers(prev => prev.filter(p => p.id !== id));
     } catch (error) {

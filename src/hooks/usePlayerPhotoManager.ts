@@ -64,8 +64,8 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
           // Optimize the image before uploading
           const optimizedImageUrl = await optimizeImage(imageDataUrl);
           
-          // Upload to Supabase Storage
-          const storageUrl = await uploadImageToStorage(optimizedImageUrl);
+          // Upload to Supabase Storage - using 'fotos' bucket explicitly
+          const storageUrl = await uploadImageToStorage(optimizedImageUrl, 'fotos');
           setPhotoUrl(storageUrl);
           setIsProcessing(false);
           return storageUrl;
@@ -106,8 +106,8 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
       // Optimize the image
       const optimizedImageUrl = await optimizeImage(imageDataUrl);
       
-      // Upload to Supabase Storage
-      const storageUrl = await uploadImageToStorage(optimizedImageUrl);
+      // Upload to Supabase Storage - using 'fotos' bucket explicitly
+      const storageUrl = await uploadImageToStorage(optimizedImageUrl, 'fotos');
       setPhotoUrl(storageUrl);
       setIsProcessing(false);
       return storageUrl;
