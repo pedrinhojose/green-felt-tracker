@@ -17,17 +17,17 @@ export interface JackpotWinner {
 }
 
 export function useSeasonReport() {
-  const { activeSeason, players } = usePoker();
+  const { activeSeason, players, rankings } = usePoker();
   const { playerStats } = usePlayerStats();
   const { seasonSummary } = useSeasonSummary();
   const { isExporting, isExportingImage, exportReportAsPdf, exportReportAsImage } = useReportExport();
   
-  // Calcular os ganhadores do jackpot
+  // Calcular os ganhadores do jackpot usando o ranking (pontuação) em vez do saldo financeiro
   const calculateJackpotWinners = (): JackpotWinner[] => {
-    if (!activeSeason || !playerStats.length) return [];
+    if (!activeSeason || !rankings.length) return [];
     
-    // Ordenar jogadores por pontuação (já estão ordenados)
-    const sortedPlayers = [...playerStats];
+    // Ordenar jogadores por pontuação (os rankings já estão ordenados por pontos)
+    const sortedRankings = [...rankings];
     
     // Obter o schema de premiação da temporada
     const prizeSchema = activeSeason.seasonPrizeSchema;
@@ -38,20 +38,20 @@ export function useSeasonReport() {
     // Calcular premiação para os jogadores no top (de acordo com o schema)
     const winners: JackpotWinner[] = [];
     
-    for (let i = 0; i < Math.min(prizeSchema.length, sortedPlayers.length); i++) {
-      const playerStat = sortedPlayers[i];
+    for (let i = 0; i < Math.min(prizeSchema.length, sortedRankings.length); i++) {
+      const ranking = sortedRankings[i];
       const prizeEntry = prizeSchema[i];
       
       if (!prizeEntry) continue;
       
       // Encontrar dados do jogador
-      const playerData = players.find((p: Player) => p.id === playerStat.playerId);
+      const playerData = players.find((p: Player) => p.id === ranking.playerId);
       
       if (playerData) {
         winners.push({
-          playerId: playerStat.playerId,
-          playerName: playerStat.playerName,
-          photoUrl: playerData.photoUrl,
+          playerId: ranking.playerId,
+          playerName: ranking.playerName,
+          photoUrl: playerData.photoUrl || ranking.photoUrl,
           position: prizeEntry.position,
           jackpotAmount: (totalJackpot * prizeEntry.percentage) / 100
         });
