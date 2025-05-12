@@ -87,29 +87,58 @@ export function useGameFunctions(
         throw new Error('Game not found');
       }
       
-      // Delete game from database
-      await pokerDB.deleteGame(gameId);
-      
-      // Update local state
-      setGames(prev => prev.filter(g => g.id !== gameId));
-      
-      // If the deleted game was the last game, update lastGame state
-      if (lastGame?.id === gameId) {
-        const newLastGame = await pokerDB.getLastGame();
-        setLastGame(newLastGame || null);
-      }
-      
-      // If the game was finished, we should update the rankings to reflect the change
+      // Se o jogo estava finalizado, precisamos reverter os dados dos jogadores
       if (game.isFinished) {
-        // Update rankings
-        await updateRankings();
+        // Obter rankings atuais da temporada
+        const currentRankings = await pokerDB.getRankings(game.seasonId);
         
-        // If this was a finished game, we should also update the jackpot in the season
+        // Para cada jogador na partida, ajustar seu ranking
+        for (const gamePlayer of game.players) {
+          // Encontrar o ranking atual do jogador
+          const playerRanking = currentRankings.find(r => r.playerId === gamePlayer.playerId);
+          
+          if (playerRanking) {
+            // Subtrair os pontos ganhos nesta partida
+            const updatedRanking = {
+              ...playerRanking,
+              totalPoints: Math.max(0, playerRanking.totalPoints - (gamePlayer.points || 0)),
+              gamesPlayed: Math.max(0, playerRanking.gamesPlayed - 1)
+            };
+            
+            // Se o jogador teve sua melhor posição neste jogo, precisamos recalcular
+            if (gamePlayer.position && gamePlayer.position === playerRanking.bestPosition) {
+              // Buscar todas as partidas do jogador nesta temporada exceto a que está sendo excluída
+              const seasonGames = await pokerDB.getGames(game.seasonId);
+              const playerGames = seasonGames
+                .filter(g => g.id !== gameId)
+                .filter(g => g.isFinished)
+                .filter(g => g.players.some(p => p.playerId === gamePlayer.playerId));
+              
+              // Encontrar a melhor posição em outros jogos
+              let newBestPosition = 0;
+              for (const playerGame of playerGames) {
+                const playerInGame = playerGame.players.find(p => p.playerId === gamePlayer.playerId);
+                if (playerInGame && playerInGame.position) {
+                  if (newBestPosition === 0 || playerInGame.position < newBestPosition) {
+                    newBestPosition = playerInGame.position;
+                  }
+                }
+              }
+              
+              updatedRanking.bestPosition = newBestPosition;
+            }
+            
+            // Salvar o ranking atualizado
+            await pokerDB.saveRanking(updatedRanking);
+          }
+        }
+        
+        // Se esta era uma partida finalizada, também ajustar o jackpot na temporada
         if (game.seasonId) {
           // Get current season data
           const season = await pokerDB.getSeason(game.seasonId);
           if (season) {
-            // Calculate jackpot adjustment (assuming we know the original contribution)
+            // Calculate jackpot adjustment (assumindo que sabemos a contribuição original)
             const playerCount = game.players.filter(p => p.buyIn).length;
             const jackpotContribution = playerCount * (season.financialParams?.jackpotContribution || 0);
             
@@ -129,6 +158,21 @@ export function useGameFunctions(
           }
         }
       }
+      
+      // Delete game from database
+      await pokerDB.deleteGame(gameId);
+      
+      // Update local state
+      setGames(prev => prev.filter(g => g.id !== gameId));
+      
+      // If the deleted game was the last game, update lastGame state
+      if (lastGame?.id === gameId) {
+        const newLastGame = await pokerDB.getLastGame();
+        setLastGame(newLastGame || null);
+      }
+      
+      // Atualizar rankings após todas as modificações
+      await updateRankings();
       
       // Return success
       return true;
