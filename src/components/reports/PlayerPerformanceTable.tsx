@@ -28,14 +28,14 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
           <TableHeader>
             <TableRow>
               <TableHead>Jogador</TableHead>
-              <TableHead className="text-center">J</TableHead>
-              <TableHead className="text-center">V</TableHead>
-              <TableHead className="text-center">RB</TableHead>
-              <TableHead className="text-center">P.Med</TableHead>
-              <TableHead className="text-center">Pontos</TableHead>
-              <TableHead className="text-right">Ganhos</TableHead>
-              <TableHead className="text-right">Perdas</TableHead>
-              <TableHead className="text-right">Saldo</TableHead>
+              <TableHead className="text-center w-10">J</TableHead>
+              <TableHead className="text-center w-10">V</TableHead>
+              <TableHead className="text-center w-10">RB</TableHead>
+              <TableHead className="text-center w-16">P.Med</TableHead>
+              <TableHead className="text-center w-16">Pontos</TableHead>
+              <TableHead className="text-right w-20">Ganhos</TableHead>
+              <TableHead className="text-right w-20">Perdas</TableHead>
+              <TableHead className="text-right w-20">Saldo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -53,14 +53,14 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
                 <TableCell className="text-center font-semibold">
                   {player.totalPoints || 0}
                 </TableCell>
-                <TableCell className="text-right text-green-400">
+                <TableCell className="text-right text-green-400 whitespace-nowrap">
                   {formatCurrency(player.totalWinnings)}
                 </TableCell>
-                <TableCell className="text-right text-red-400">
+                <TableCell className="text-right text-red-400 whitespace-nowrap">
                   {formatCurrency(player.totalInvestment)}
                 </TableCell>
                 <TableCell 
-                  className={`text-right font-semibold ${
+                  className={`text-right font-semibold whitespace-nowrap ${
                     player.balance >= 0 ? 'text-blue-400' : 'text-red-400'
                   }`}
                 >
