@@ -28,13 +28,14 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
           <TableHeader>
             <TableRow>
               <TableHead>Jogador</TableHead>
-              <TableHead className="text-center">Jogos</TableHead>
-              <TableHead className="text-center">Vitórias</TableHead>
-              <TableHead className="text-center">Posição Média</TableHead>
+              <TableHead className="text-center">J</TableHead>
+              <TableHead className="text-center">V</TableHead>
+              <TableHead className="text-center">RB</TableHead>
+              <TableHead className="text-center">P.Med</TableHead>
               <TableHead className="text-center">Pontos</TableHead>
-              <TableHead className="text-right">Total Ganhos</TableHead>
-              <TableHead className="text-right">Total Perdas</TableHead>
-              <TableHead className="text-right">Balanço</TableHead>
+              <TableHead className="text-right">Ganhos</TableHead>
+              <TableHead className="text-right">Perdas</TableHead>
+              <TableHead className="text-right">Saldo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -43,6 +44,7 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
                 <TableCell className="font-medium">{player.playerName}</TableCell>
                 <TableCell className="text-center">{player.gamesPlayed}</TableCell>
                 <TableCell className="text-center">{player.victories}</TableCell>
+                <TableCell className="text-center">{player.totalRebuys}</TableCell>
                 <TableCell className="text-center">
                   {player.averagePosition > 0 
                     ? player.averagePosition.toFixed(1) 

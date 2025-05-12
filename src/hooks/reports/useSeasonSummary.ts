@@ -11,7 +11,8 @@ export function useSeasonSummary() {
     totalPrizePool: 0,
     totalBuyIns: 0,
     totalRebuys: 0,
-    totalAddons: 0
+    totalAddons: 0,
+    totalDinnerCost: 0
   });
 
   useEffect(() => {
@@ -26,7 +27,8 @@ export function useSeasonSummary() {
       totalPrizePool: finishedGames.reduce((sum, game) => sum + game.totalPrizePool, 0),
       totalBuyIns: 0,
       totalRebuys: 0,
-      totalAddons: 0
+      totalAddons: 0,
+      totalDinnerCost: 0
     };
     
     // Inicializar conjunto para contar jogadores únicos
@@ -47,6 +49,9 @@ export function useSeasonSummary() {
       summary.totalBuyIns += gameBuyIns;
       summary.totalRebuys += gameRebuys;
       summary.totalAddons += gameAddons;
+      
+      // Adicionar o custo da janta
+      summary.totalDinnerCost += game.dinnerCost || 0;
       
       // Adicionar jogadores ao conjunto de jogadores únicos
       game.players.forEach(gamePlayer => {

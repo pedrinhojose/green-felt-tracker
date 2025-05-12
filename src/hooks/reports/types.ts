@@ -22,6 +22,7 @@ export interface SeasonSummary {
   totalBuyIns: number;
   totalRebuys: number;
   totalAddons: number;
+  totalDinnerCost: number;
 }
 
 // Helper function to get player name from player ID

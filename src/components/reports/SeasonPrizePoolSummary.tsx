@@ -21,15 +21,20 @@ interface SeasonPrizePoolSummaryProps {
 }
 
 export default function SeasonPrizePoolSummary({ seasonSummary }: SeasonPrizePoolSummaryProps) {
-  const { totalBuyIns, totalRebuys, totalAddons } = seasonSummary;
+  const { totalBuyIns, totalRebuys, totalAddons, totalDinnerCost } = seasonSummary;
   
   const pieData = [
     { name: 'Buy-ins', value: totalBuyIns },
     { name: 'Rebuys', value: totalRebuys },
-    { name: 'Add-ons', value: totalAddons }
-  ];
+    { name: 'Add-ons', value: totalAddons },
+    { name: 'Jantas', value: totalDinnerCost }
+  ].filter(item => item.value > 0); // Só mostrar itens com valor > 0
   
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  
+  // Calcular o total (incluindo jantas)
+  const totalMovement = totalBuyIns + totalRebuys + totalAddons + totalDinnerCost;
+  const totalPrizePool = totalBuyIns + totalRebuys + totalAddons;
   
   return (
     <Card>
@@ -52,10 +57,14 @@ export default function SeasonPrizePoolSummary({ seasonSummary }: SeasonPrizePoo
                 <span className="text-muted-foreground">Total Add-ons:</span>
                 <span className="font-semibold">{formatCurrency(totalAddons)}</span>
               </div>
+              <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                <span className="text-muted-foreground">Total Jantas:</span>
+                <span className="font-semibold">{formatCurrency(totalDinnerCost)}</span>
+              </div>
               <div className="flex justify-between items-center pt-2">
                 <span className="text-lg">Total Premiação:</span>
                 <span className="text-lg font-bold text-poker-gold">
-                  {formatCurrency(totalBuyIns + totalRebuys + totalAddons)}
+                  {formatCurrency(totalPrizePool)}
                 </span>
               </div>
             </div>
