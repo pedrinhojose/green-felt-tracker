@@ -34,7 +34,7 @@ export function usePlayerStats() {
           playerStat = {
             playerId: gamePlayer.playerId,
             playerName,
-            photoUrl: player?.photoUrl, // Add the player's photoUrl
+            photoUrl: player?.photoUrl, // Obter a foto do objeto player atualizado
             gamesPlayed: 0,
             victories: 0,
             averagePosition: 0,
@@ -88,7 +88,16 @@ export function usePlayerStats() {
     const playerStatsArray = Array.from(playerStatsMap.values())
       .sort((a, b) => b.balance - a.balance);
     
-    setPlayerStats(playerStatsArray);
+    // Atualizar as fotos com os dados mais recentes dos jogadores
+    const updatedPlayerStats = playerStatsArray.map(stat => {
+      const player = players.find(p => p.id === stat.playerId);
+      return {
+        ...stat,
+        photoUrl: player?.photoUrl // Garantir que a URL da foto mais recente seja usada
+      };
+    });
+    
+    setPlayerStats(updatedPlayerStats);
   }, [games, activeSeason, players]);
 
   return { playerStats };

@@ -44,14 +44,14 @@ export function useSeasonReport() {
       
       if (!prizeEntry) continue;
       
-      // Encontrar dados do jogador
+      // Encontrar dados do jogador para obter a foto mais atualizada
       const playerData = players.find((p: Player) => p.id === ranking.playerId);
       
       if (playerData) {
         winners.push({
           playerId: ranking.playerId,
           playerName: ranking.playerName,
-          photoUrl: playerData.photoUrl || ranking.photoUrl,
+          photoUrl: playerData.photoUrl, // Usar diretamente a foto do objeto player que está atualizado
           position: prizeEntry.position,
           jackpotAmount: (totalJackpot * prizeEntry.percentage) / 100
         });
