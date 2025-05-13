@@ -24,6 +24,7 @@ export function StatusInfo({
 }: StatusInfoProps) {
   const { formatTotalTime, getCurrentTime, getTimeUntilBreak } = useTimerUtils();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
+  const [timeUntilBreakValue, setTimeUntilBreakValue] = useState<string>("");
   
   // Atualiza o relógio do sistema a cada minuto
   useEffect(() => {
@@ -33,6 +34,21 @@ export function StatusInfo({
     
     return () => clearInterval(interval);
   }, []);
+
+  // Atualiza o tempo até o intervalo a cada segundo
+  useEffect(() => {
+    const calculateTimeUntilBreak = () => {
+      setTimeUntilBreakValue(getTimeUntilBreakSafely());
+    };
+
+    // Calcular imediatamente
+    calculateTimeUntilBreak();
+    
+    // Atualizar a cada segundo
+    const interval = setInterval(calculateTimeUntilBreak, 1000);
+    
+    return () => clearInterval(interval);
+  }, [currentLevel, nextBreak, blindLevels, timeRemainingInLevel]);
 
   // Função de segurança para obter o tempo até o próximo intervalo
   const getTimeUntilBreakSafely = () => {
