@@ -68,10 +68,6 @@ export function useTimerUtils() {
       // Formato mais detalhado (minutos e segundos)
       const minutes = Math.floor(timeUntilBreak / 60);
       const seconds = Math.floor(timeUntilBreak % 60);
-      
-      // Log para debug
-      console.log(`Tempo até o intervalo: ${minutes}:${seconds} (${timeUntilBreak} segundos)`);
-      
       return `${minutes}:${String(seconds).padStart(2, '0')} min`;
     } catch (error) {
       console.error("Erro ao calcular tempo até o intervalo:", error);
