@@ -24,7 +24,6 @@ export function StatusInfo({
 }: StatusInfoProps) {
   const { formatTotalTime, getCurrentTime, getTimeUntilBreak } = useTimerUtils();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
-  const [timeUntilBreakValue, setTimeUntilBreakValue] = useState<string>("");
   
   // Atualiza o relógio do sistema a cada minuto
   useEffect(() => {
@@ -34,21 +33,6 @@ export function StatusInfo({
     
     return () => clearInterval(interval);
   }, []);
-
-  // Atualiza o tempo até o intervalo a cada segundo
-  useEffect(() => {
-    const calculateTimeUntilBreak = () => {
-      setTimeUntilBreakValue(getTimeUntilBreakSafely());
-    };
-
-    // Calcular imediatamente
-    calculateTimeUntilBreak();
-    
-    // Atualizar a cada 1 segundo
-    const interval = setInterval(calculateTimeUntilBreak, 1000);
-    
-    return () => clearInterval(interval);
-  }, [currentLevel, nextBreak, blindLevels, timeRemainingInLevel]);
 
   // Função de segurança para obter o tempo até o próximo intervalo
   const getTimeUntilBreakSafely = () => {
@@ -95,40 +79,36 @@ export function StatusInfo({
           )}
         </div>
         
-        <div className="col-span-2 flex justify-between">
-          <div>
-            <div className="text-xs text-gray-400">Hora Atual</div>
-            <div className="text-sm text-poker-gold flex items-center gap-3">
-              {currentTime}
-              <span className="border-l border-gray-600 h-4 mx-1"></span>
-              <span className="text-xs">
-                Tempo: {formatTotalTime(totalElapsedTime)}
-              </span>
-            </div>
-          </div>
+        <div>
+          <div className="text-xs text-gray-400">Tempo de Jogo</div>
+          <div className="text-sm text-poker-gold">{formatTotalTime(totalElapsedTime)}</div>
+        </div>
+        
+        <div>
+          <div className="text-xs text-gray-400">Hora Atual</div>
+          <div className="text-sm text-poker-gold">{currentTime}</div>
         </div>
       </div>
       
-      {/* Cronômetro do próximo intervalo */}
-      {nextBreak ? (
-        <div className="bg-poker-navy/30 rounded-lg p-2 mt-2">
-          <div className="text-gray-400 text-sm">Próximo Intervalo</div>
+      {/* Próximo intervalo */}
+      {nextBreak && (
+        <div className="bg-poker-navy/30 rounded-lg p-2 mt-2 text-sm">
+          <div className="text-gray-400">Próximo Intervalo</div>
           <div className="text-white">
             {levelsUntilBreak && levelsUntilBreak > 0 ? (
-              <div className="flex justify-between items-center">
-                <div>
-                  Faltam {levelsUntilBreak} níveis (Nível {nextBreak.level})
-                </div>
-                <div className="text-poker-gold font-medium text-lg">
-                  {timeUntilBreakValue}
-                </div>
-              </div>
+              <>
+                Faltam {levelsUntilBreak} níveis (Nível {nextBreak.level})
+                {' - '}
+                <span className="text-poker-gold font-medium">
+                  {getTimeUntilBreakSafely()}
+                </span>
+              </>
             ) : (
               'Próximo nível'
             )}
           </div>
         </div>
-      ) : null}
+      )}
     </>
   );
 }

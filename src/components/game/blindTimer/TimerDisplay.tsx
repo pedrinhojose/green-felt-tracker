@@ -19,7 +19,7 @@ interface TimerDisplayProps {
   isNewBlindAlert: boolean;
   onProgressClick: (percentage: number) => void;
   onToggleFullScreen: () => void;
-  blindLevels: BlindLevel[];
+  blindLevels?: BlindLevel[];
 }
 
 export default function TimerDisplay({ 
@@ -33,7 +33,7 @@ export default function TimerDisplay({
   isNewBlindAlert,
   onProgressClick,
   onToggleFullScreen,
-  blindLevels
+  blindLevels = []
 }: TimerDisplayProps) {
   if (!currentLevel) return null;
 
