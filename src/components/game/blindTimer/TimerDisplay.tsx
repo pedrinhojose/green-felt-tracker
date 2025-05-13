@@ -70,6 +70,7 @@ export default function TimerDisplay({
               nextBreakIndex
             );
             setTimeUntilBreakValue(time);
+            console.log("Tempo até o intervalo calculado:", time); // Debug log
           }
         }
       } catch (error) {
@@ -97,11 +98,11 @@ export default function TimerDisplay({
       {/* Botão de tela cheia */}
       <FullscreenButton onToggleFullScreen={onToggleFullScreen} />
 
-      {/* Contador de tempo até o intervalo */}
+      {/* Contador de tempo até o intervalo - Aumentada a visibilidade */}
       {nextBreak && levelsUntilBreak && levelsUntilBreak > 0 && (
-        <div className="absolute top-1 left-1 text-left p-2 rounded-md bg-poker-navy/30">
-          <div className="text-white text-xs">Intervalo em</div>
-          <div className="text-poker-gold text-sm font-medium">
+        <div className="absolute top-1 left-1 text-left p-2 rounded-md bg-poker-navy/70 shadow-md z-10">
+          <div className="text-white text-xs font-medium">Intervalo em</div>
+          <div className="text-poker-gold text-sm font-bold">
             {timeUntilBreakValue} - {levelsUntilBreak} níveis
           </div>
         </div>
