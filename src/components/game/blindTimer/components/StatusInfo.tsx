@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
+import { cn } from "@/lib/utils";
 
 interface StatusInfoProps {
   nextLevel: BlindLevel | undefined;
@@ -81,17 +82,20 @@ export function StatusInfo({
     }
   };
 
+  // Estilo para os elementos destacados
+  const highlightedDisplayStyle = "text-sm md:text-lg lg:text-xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
+
   return (
     <>
       <div className="grid grid-cols-3 gap-4 text-gray-300 pt-4">
         <div>
           <div className="text-xs text-gray-400">Próximo Nível</div>
           {nextLevel ? (
-            <div className="text-sm text-poker-gold">
+            <div className={cn(highlightedDisplayStyle)}>
               {nextLevel.isBreak ? 'INTERVALO' : `${nextLevel.smallBlind} / ${nextLevel.bigBlind}`}
             </div>
           ) : (
-            <div className="text-sm text-poker-gold">Último Nível</div>
+            <div className={cn(highlightedDisplayStyle)}>Último Nível</div>
           )}
         </div>
         
@@ -102,7 +106,7 @@ export function StatusInfo({
         
         <div>
           <div className="text-xs text-gray-400">Hora Atual</div>
-          <div className="text-sm text-poker-gold">{currentTime}</div>
+          <div className={cn(highlightedDisplayStyle, "transition-all")}>{currentTime}</div>
         </div>
       </div>
       
