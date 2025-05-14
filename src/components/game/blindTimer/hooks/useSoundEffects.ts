@@ -14,14 +14,25 @@ export function useSoundEffects(
   useEffect(() => {
     let alertTimeout: number;
     
+    // Aumentar volume antes de reproduzir cada som
+    const playWithIncreasedVolume = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+      if (audioRef.current) {
+        // Salvar o volume original
+        const originalVolume = audioRef.current.volume;
+        // Dobrar o volume (limitado a 1.0 que é o máximo)
+        audioRef.current.volume = Math.min(originalVolume * 2, 1.0);
+      }
+      await playAudioSafely(audioRef, state.soundEnabled);
+    };
+    
     if (timeRemainingInLevel === 60 && state.isRunning) {
       // Alerta para 1 minuto restante
       setState(prev => ({ ...prev, showAlert: true }));
       
       // Tocar o alerta apenas se o som estiver habilitado
       if (state.soundEnabled) {
-        console.log("Tocando som de alerta (1 minuto restante)");
-        playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
+        console.log("Tocando som de alerta (1 minuto restante) com volume aumentado");
+        playWithIncreasedVolume(audioRefs.alertAudioRef);
       }
       
       // Limpar alerta após 3 segundos
@@ -31,13 +42,13 @@ export function useSoundEffects(
     } 
     else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
       // Sons de contagem regressiva
-      console.log(`Tocando som de contagem regressiva: ${timeRemainingInLevel}`);
-      playAudioSafely(audioRefs.countdownAudioRef, state.soundEnabled);
+      console.log(`Tocando som de contagem regressiva: ${timeRemainingInLevel} com volume aumentado`);
+      playWithIncreasedVolume(audioRefs.countdownAudioRef);
     } 
     else if (timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel === 0) {
       // Som de conclusão de nível - ajustado para tocar apenas uma vez
-      console.log("Tocando som de conclusão de nível");
-      playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
+      console.log("Tocando som de conclusão de nível com volume aumentado");
+      playWithIncreasedVolume(audioRefs.levelCompleteAudioRef);
       
       // Destacar novos blinds por 3 segundos
       setState(prev => ({ ...prev, showAlert: true }));
@@ -67,8 +78,9 @@ export function useSoundEffects(
       .then(() => {
         audio.pause();
         audio.currentTime = 0;
-        audio.volume = originalVolume;
-        console.log("Áudio desbloqueado com sucesso");
+        // Configurar volume aumentado após desbloqueio
+        audio.volume = Math.min(originalVolume * 2, 1.0);
+        console.log("Áudio desbloqueado com sucesso e volume aumentado");
       })
       .catch(error => {
         console.warn("Erro ao desbloquear áudio:", error);
@@ -98,7 +110,12 @@ export function useSoundEffects(
   };
 
   const playLevelCompleteSound = () => {
-    console.log("Chamada para reproduzir som de conclusão de nível");
+    console.log("Chamada para reproduzir som de conclusão de nível com volume aumentado");
+    // Aumentar volume antes de reproduzir
+    if (audioRefs.levelCompleteAudioRef.current) {
+      const originalVolume = audioRefs.levelCompleteAudioRef.current.volume;
+      audioRefs.levelCompleteAudioRef.current.volume = Math.min(originalVolume * 2, 1.0);
+    }
     playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
   };
 
