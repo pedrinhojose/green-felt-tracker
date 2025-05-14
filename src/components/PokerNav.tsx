@@ -12,8 +12,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Painel', path: '/dashboard' },
-  { name: 'Temporada', path: '/season' },
-  { name: 'Partidas', path: '/games' }, // Ensure this matches the route in App.tsx
+  { name: 'Configuração', path: '/season' },
+  { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
   { name: 'Jogadores', path: '/players' },
 ];

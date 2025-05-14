@@ -63,6 +63,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          photo_base64: string | null
           photo_url: string | null
           user_id: string
         }
@@ -72,6 +73,7 @@ export type Database = {
           id: string
           name: string
           phone?: string | null
+          photo_base64?: string | null
           photo_url?: string | null
           user_id: string
         }
@@ -81,6 +83,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          photo_base64?: string | null
           photo_url?: string | null
           user_id?: string
         }
