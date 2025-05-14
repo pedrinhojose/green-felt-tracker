@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
@@ -82,8 +81,8 @@ export function StatusInfo({
     }
   };
 
-  // Estilo para os elementos destacados
-  const highlightedDisplayStyle = "text-sm md:text-lg lg:text-xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
+  // Estilo para os elementos destacados - aumentando tamanho para igualar ao dos SB/BB
+  const highlightedDisplayStyle = "text-3.9xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
 
   return (
     <>
