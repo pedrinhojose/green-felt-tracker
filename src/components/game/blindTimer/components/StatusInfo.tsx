@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
@@ -113,7 +112,7 @@ export function StatusInfo({
       {/* Próximo intervalo - DESTACADO e AUMENTADO */}
       {nextBreak && (
         <div className="bg-poker-navy/30 rounded-lg p-2 mt-2">
-          <div className="text-gray-400 text-xs">Próximo Intervalo</div>
+          <div className="text-gray-400 text-xl font-semibold">Próximo Intervalo</div>
           <div className="text-white">
             {levelsUntilBreak && levelsUntilBreak > 0 ? (
               <div className={cn(highlightedDisplayStyle, "text-center")}>
