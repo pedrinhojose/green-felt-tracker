@@ -20,9 +20,17 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUserRole, AppRole } from '@/hooks/useUserRole';
-import { UserProfile } from '@/lib/utils/auth';
+import { Database } from '@/integrations/supabase/types';
 
-interface UserWithRoles extends UserProfile {
+// Interface revisada para corresponder aos dados disponíveis
+interface UserWithRoles {
+  id: string;
+  username?: string | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  created_at: string;
+  updated_at: string;
+  default_role: Database["public"]["Enums"]["app_role"];
   roles: AppRole[];
 }
 
@@ -159,7 +167,7 @@ export default function UserManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Nome de usuário</TableHead>
                   <TableHead>Papéis</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -175,9 +183,9 @@ export default function UserManagement() {
                   users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
-                        {user.full_name || user.username || 'Usuário sem nome'}
+                        {user.full_name || 'Usuário sem nome'}
                       </TableCell>
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.username || 'Sem nome de usuário'}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {user.roles.map(role => (
