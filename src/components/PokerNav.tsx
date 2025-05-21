@@ -4,10 +4,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
+import { useUserRole } from '@/hooks/useUserRole';
+import { ShieldAlert } from 'lucide-react';
 
 interface NavItem {
   name: string;
   path: string;
+  requiredRole?: 'admin' | 'player' | 'viewer';
 }
 
 const navItems: NavItem[] = [
@@ -16,12 +19,20 @@ const navItems: NavItem[] = [
   { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
   { name: 'Jogadores', path: '/players' },
+  { name: 'Usuários', path: '/users', requiredRole: 'admin' },
 ];
 
 export default function PokerNav() {
   const location = useLocation();
   const { user } = useAuth();
+  const { hasRole } = useUserRole();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Filtragem dos itens de navegação com base nos papéis do usuário
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.requiredRole) return true;
+    return hasRole(item.requiredRole);
+  });
 
   return (
     <header className="sticky top-0 z-50 w-full bg-poker-black/80 backdrop-blur-md border-b border-white/5">
@@ -56,15 +67,18 @@ export default function PokerNav() {
         {/* Desktop Menu */}
         <nav className="hidden md:flex items-center">
           <ul className="flex space-x-1">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   className={cn(
-                    "nav-tab",
+                    "nav-tab flex items-center",
                     location.pathname === item.path ? "text-poker-gold font-medium px-3 py-2 rounded hover:bg-white/5" : "text-white/80 px-3 py-2 rounded hover:bg-white/5"
                   )}
                 >
+                  {item.requiredRole === 'admin' && (
+                    <ShieldAlert className="mr-1 h-3 w-3" />
+                  )}
                   {item.name}
                 </Link>
               </li>
@@ -91,16 +105,19 @@ export default function PokerNav() {
       {isMobileMenuOpen && (
         <nav className="md:hidden bg-poker-black/95 backdrop-blur-md">
           <ul className="flex flex-col">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   className={cn(
-                    "block py-3 px-4 border-b border-white/5",
+                    "flex items-center py-3 px-4 border-b border-white/5",
                     location.pathname === item.path ? "text-poker-gold" : "text-white"
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
+                  {item.requiredRole === 'admin' && (
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                  )}
                   {item.name}
                 </Link>
               </li>

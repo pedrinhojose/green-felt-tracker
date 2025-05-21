@@ -22,6 +22,7 @@ import SeasonReport from '@/pages/SeasonReport';
 import SeasonsList from '@/pages/SeasonsList';
 import SeasonDetails from '@/pages/SeasonDetails';
 import Auth from '@/pages/Auth';
+import UserManagement from '@/pages/UserManagement';
 
 // Components
 import RequireAuth from '@/components/RequireAuth';
@@ -57,6 +58,13 @@ function App() {
               <Route path="/report" element={<SeasonReport />} />
               <Route path="/seasons" element={<SeasonsList />} />
               <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
+              
+              {/* Rotas de administração */}
+              <Route path="/users" element={
+                <RequireAuth requiredRole="admin">
+                  <UserManagement />
+                </RequireAuth>
+              } />
             </Route>
             
             {/* Catch all route */}

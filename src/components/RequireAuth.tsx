@@ -2,17 +2,20 @@
 import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface RequireAuthProps {
   children: JSX.Element;
+  requiredRole?: 'admin' | 'player' | 'viewer';
 }
 
-export default function RequireAuth({ children }: RequireAuthProps) {
+export default function RequireAuth({ children, requiredRole }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
+  const { hasRole, isCheckingRole } = useUserRole();
 
   // Se estiver carregando, mostre um indicador de carregamento
-  if (isLoading) {
+  if (isLoading || isCheckingRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold"></div>
@@ -26,7 +29,13 @@ export default function RequireAuth({ children }: RequireAuthProps) {
     // para que o usuário possa voltar após o login
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
+
+  // Verificação de papel, se necessário
+  if (requiredRole && !hasRole(requiredRole)) {
+    // Redirecionar para o dashboard com mensagem de permissão insuficiente
+    return <Navigate to="/dashboard" state={{ permissionDenied: true }} replace />;
+  }
   
-  // Se há usuário, renderize o conteúdo protegido
+  // Se há usuário e tem o papel necessário (ou não necessita de papel específico), renderize o conteúdo protegido
   return children;
 }

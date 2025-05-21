@@ -13,6 +13,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/lib/utils/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AppRole } from "@/hooks/useUserRole";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "E-mail inválido" }),
@@ -24,11 +26,19 @@ const registerSchema = z.object({
   password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
   confirmPassword: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
   username: z.string().min(3, { message: "Nome de usuário deve ter pelo menos 3 caracteres" }),
+  role: z.enum(['player', 'viewer', 'admin']).default('player')
 })
 .refine(data => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
-});
+})
+.refine(
+  data => data.role !== 'admin' || data.password.includes('admin'),
+  {
+    message: "Para registrar como administrador, a senha deve conter a palavra 'admin'",
+    path: ["password"],
+  }
+);
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -36,6 +46,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
+  const [selectedRole, setSelectedRole] = useState<AppRole>('player');
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,6 +77,7 @@ export default function Auth() {
       password: "",
       confirmPassword: "",
       username: "",
+      role: "player",
     },
   });
   
@@ -111,11 +123,34 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  // Função para adicionar papel ao usuário
+  const addRoleToUser = async (userId: string, role: AppRole) => {
+    if (!userId) return;
+    
+    try {
+      // Add the selected role to the user - fix the type issue by using explicit typing
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: selectedRole
+        });
+      
+      if (error) throw error;
+      
+      console.log(`Papel ${role} adicionado ao usuário ${userId}`);
+    } catch (error) {
+      console.error("Erro ao adicionar papel:", error);
+      throw error;
+    }
+  };
   
   // Handle register submission
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     try {
       setIsLoading(true);
+      setSelectedRole(data.role);
       
       // Clean up existing auth state
       cleanupAuthState();
@@ -141,25 +176,37 @@ export default function Auth() {
       if (error) throw error;
       
       if (authData?.user) {
-        toast({
-          title: "Registro realizado com sucesso!",
-          description: "Você foi autenticado automaticamente. Redirecionando para o dashboard...",
-        });
-        
-        // If email confirmation is required
-        if (authData.session === null) {
+        try {
+          // Adicionar papel ao usuário
+          await addRoleToUser(authData.user.id, data.role);
+          
           toast({
-            title: "Confirmação de e-mail necessária",
-            description: "Verifique seu e-mail para confirmar sua conta antes de fazer login.",
+            title: "Registro realizado com sucesso!",
+            description: `Você foi registrado como ${data.role}. Redirecionando para o dashboard...`,
           });
           
-          setActiveTab("login");
-          registerForm.reset();
-          return;
+          // If email confirmation is required
+          if (authData.session === null) {
+            toast({
+              title: "Confirmação de e-mail necessária",
+              description: "Verifique seu e-mail para confirmar sua conta antes de fazer login.",
+            });
+            
+            setActiveTab("login");
+            registerForm.reset();
+            return;
+          }
+          
+          // Redirect to dashboard
+          window.location.href = "/dashboard"; // Force page reload
+        } catch (roleError) {
+          console.error("Erro ao definir papel do usuário:", roleError);
+          toast({
+            title: "Aviso",
+            description: "Conta criada, mas houve um problema ao definir seu papel. Faça login novamente.",
+            variant: "destructive",
+          });
         }
-        
-        // Redirect to dashboard
-        window.location.href = "/dashboard"; // Force page reload
       }
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -264,6 +311,37 @@ export default function Auth() {
                             <Input placeholder="Seu nome" {...field} />
                           </FormControl>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Papel no Sistema</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione seu papel" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="player">Jogador</SelectItem>
+                              <SelectItem value="viewer">Espectador</SelectItem>
+                              <SelectItem value="admin">Administrador</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          {registerForm.watch("role") === "admin" && (
+                            <p className="text-xs text-amber-500 mt-1">
+                              Para criar uma conta de administrador, a senha deve conter "admin".
+                            </p>
+                          )}
                         </FormItem>
                       )}
                     />
