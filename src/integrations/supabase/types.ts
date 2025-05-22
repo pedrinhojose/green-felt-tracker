@@ -17,6 +17,7 @@ export type Database = {
           id: string
           is_finished: boolean
           number: number
+          organization_id: string | null
           players: Json
           season_id: string
           total_prize_pool: number
@@ -29,6 +30,7 @@ export type Database = {
           id: string
           is_finished?: boolean
           number: number
+          organization_id?: string | null
           players?: Json
           season_id: string
           total_prize_pool?: number
@@ -41,12 +43,20 @@ export type Database = {
           id?: string
           is_finished?: boolean
           number?: number
+          organization_id?: string | null
           players?: Json
           season_id?: string
           total_prize_pool?: number
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "games_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "games_season_id_fkey"
             columns: ["season_id"]
@@ -56,12 +66,72 @@ export type Database = {
           },
         ]
       }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          settings: Json
+          subscription_plan: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          settings?: Json
+          subscription_plan?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          settings?: Json
+          subscription_plan?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           city: string | null
           created_at: string
           id: string
           name: string
+          organization_id: string | null
           phone: string | null
           photo_base64: string | null
           photo_url: string | null
@@ -72,6 +142,7 @@ export type Database = {
           created_at?: string
           id: string
           name: string
+          organization_id?: string | null
           phone?: string | null
           photo_base64?: string | null
           photo_url?: string | null
@@ -82,12 +153,21 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          organization_id?: string | null
           phone?: string | null
           photo_base64?: string | null
           photo_url?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "players_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -124,6 +204,7 @@ export type Database = {
           best_position: number
           games_played: number
           id: string
+          organization_id: string | null
           photo_url: string | null
           player_id: string
           player_name: string
@@ -135,6 +216,7 @@ export type Database = {
           best_position?: number
           games_played?: number
           id: string
+          organization_id?: string | null
           photo_url?: string | null
           player_id: string
           player_name: string
@@ -146,6 +228,7 @@ export type Database = {
           best_position?: number
           games_played?: number
           id?: string
+          organization_id?: string | null
           photo_url?: string | null
           player_id?: string
           player_name?: string
@@ -154,6 +237,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rankings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rankings_season_id_fkey"
             columns: ["season_id"]
@@ -174,6 +264,7 @@ export type Database = {
           is_active: boolean
           jackpot: number
           name: string
+          organization_id: string | null
           score_schema: Json
           season_prize_schema: Json
           start_date: string
@@ -190,6 +281,7 @@ export type Database = {
           is_active?: boolean
           jackpot?: number
           name: string
+          organization_id?: string | null
           score_schema?: Json
           season_prize_schema?: Json
           start_date: string
@@ -206,13 +298,22 @@ export type Database = {
           is_active?: boolean
           jackpot?: number
           name?: string
+          organization_id?: string | null
           score_schema?: Json
           season_prize_schema?: Json
           start_date?: string
           user_id?: string
           weekly_prize_schema?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "seasons_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -240,6 +341,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_organizations: {
+        Args: { user_id: string }
+        Returns: {
+          organization_id: string
+          name: string
+          role: string
+        }[]
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]

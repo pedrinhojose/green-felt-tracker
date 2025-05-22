@@ -17,4 +17,21 @@ export class SupabaseCore {
     
     return session.user.id;
   }
+
+  // Helper to get current organization ID from local storage
+  protected getCurrentOrganizationId(): string | null {
+    return localStorage.getItem('currentOrganizationId');
+  }
+
+  // Helper to verify we have both user and organization
+  protected async getUserAndOrgIds(): Promise<{userId: string, orgId: string}> {
+    const userId = await this.getUserId();
+    const orgId = this.getCurrentOrganizationId();
+    
+    if (!orgId) {
+      throw new Error("No organization selected");
+    }
+
+    return { userId, orgId };
+  }
 }

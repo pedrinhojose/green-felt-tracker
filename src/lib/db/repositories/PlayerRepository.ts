@@ -23,11 +23,13 @@ export class PlayerRepository extends SupabaseCore {
   async getPlayers(): Promise<Player[]> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('players')
           .select('*')
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
         
@@ -49,13 +51,15 @@ export class PlayerRepository extends SupabaseCore {
   async getPlayer(id: string): Promise<Player | undefined> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('players')
           .select('*')
           .eq('id', id)
           .eq('user_id', userId)
-          .single();
+          .eq('organization_id', orgId)
+          .maybeSingle();
         
         if (error) {
           if (error.code === 'PGRST116') {
@@ -64,6 +68,8 @@ export class PlayerRepository extends SupabaseCore {
           }
           throw error;
         }
+        
+        if (!data) return undefined;
         
         return {
           ...data,
@@ -84,7 +90,7 @@ export class PlayerRepository extends SupabaseCore {
   async savePlayer(player: Player): Promise<string> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         // If updating an existing player, check if we need to delete an old photo
         if (player.id) {
@@ -105,7 +111,8 @@ export class PlayerRepository extends SupabaseCore {
           phone: player.phone,
           city: player.city,
           created_at: player.createdAt.toISOString(),
-          user_id: userId
+          user_id: userId,
+          organization_id: orgId
         };
         
         const { data, error } = await supabase
@@ -133,7 +140,7 @@ export class PlayerRepository extends SupabaseCore {
   async deletePlayer(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         // Get the player to check for photo URL
         const player = await this.getPlayer(id);
@@ -147,7 +154,8 @@ export class PlayerRepository extends SupabaseCore {
           .from('players')
           .delete()
           .eq('id', id)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
         
@@ -166,7 +174,7 @@ export class PlayerRepository extends SupabaseCore {
     
     try {
       console.log("Starting player migration from IndexedDB to Supabase");
-      const userId = await this.getUserId();
+      const { userId, orgId } = await this.getUserAndOrgIds();
       
       // Get all players from IndexedDB
       const idbPlayers = await (await this.idbDb).getAll('players');
@@ -186,7 +194,8 @@ export class PlayerRepository extends SupabaseCore {
         phone: player.phone,
         city: player.city,
         created_at: player.createdAt.toISOString(),
-        user_id: userId
+        user_id: userId,
+        organization_id: orgId
       }));
       
       // Upsert all players to Supabase
