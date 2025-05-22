@@ -22,11 +22,13 @@ export class SeasonRepository extends SupabaseCore {
   async getSeasons(): Promise<Season[]> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
         
@@ -59,11 +61,13 @@ export class SeasonRepository extends SupabaseCore {
   async getActiveSeason(): Promise<Season | undefined> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
           .eq('user_id', userId)
+          .eq('organization_id', orgId)
           .eq('is_active', true)
           .maybeSingle();
           
@@ -100,12 +104,14 @@ export class SeasonRepository extends SupabaseCore {
   async getSeason(id: string): Promise<Season | undefined> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
           .eq('id', id)
           .eq('user_id', userId)
+          .eq('organization_id', orgId)
           .maybeSingle();
           
         if (error) throw error;
@@ -141,7 +147,7 @@ export class SeasonRepository extends SupabaseCore {
   async saveSeason(season: Season): Promise<string> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         const supabaseSeason = {
           id: season.id,
@@ -157,7 +163,8 @@ export class SeasonRepository extends SupabaseCore {
           blind_structure: season.blindStructure as unknown as Json,
           jackpot: season.jackpot,
           created_at: season.createdAt.toISOString(),
-          user_id: userId
+          user_id: userId,
+          organization_id: orgId
         };
         
         // If this is set as the active season, deactivate all others first
@@ -189,12 +196,13 @@ export class SeasonRepository extends SupabaseCore {
     if (!this.useSupabase) return;
     
     try {
-      const userId = await this.getUserId();
+      const { userId, orgId } = await this.getUserAndOrgIds();
       
       const { error } = await supabase
         .from('seasons')
         .update({ is_active: false })
         .eq('user_id', userId)
+        .eq('organization_id', orgId)
         .eq('is_active', true);
         
       if (error) throw error;
@@ -207,12 +215,14 @@ export class SeasonRepository extends SupabaseCore {
   async deleteSeason(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { error } = await supabase
           .from('seasons')
           .delete()
           .eq('id', id)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
       } catch (error) {
@@ -227,7 +237,7 @@ export class SeasonRepository extends SupabaseCore {
   async updateJackpot(seasonId: string, amount: number): Promise<void> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         // Get the current season to access the current jackpot amount
         const { data: season, error: fetchError } = await supabase
@@ -235,6 +245,7 @@ export class SeasonRepository extends SupabaseCore {
           .select('jackpot')
           .eq('id', seasonId)
           .eq('user_id', userId)
+          .eq('organization_id', orgId)
           .single();
           
         if (fetchError) throw fetchError;
@@ -248,7 +259,8 @@ export class SeasonRepository extends SupabaseCore {
           .from('seasons')
           .update({ jackpot: newJackpot })
           .eq('id', seasonId)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (updateError) throw updateError;
       } catch (error) {
@@ -294,6 +306,12 @@ export class SeasonRepository extends SupabaseCore {
     try {
       console.log("Starting season migration from IndexedDB to Supabase");
       const userId = await this.getUserId();
+      const orgId = this.getCurrentOrganizationId();
+      
+      if (!orgId) {
+        console.error("No organization selected for migration");
+        return;
+      }
       
       // Get all seasons from IndexedDB
       const idbSeasons = await (await this.idbDb).getAll('seasons');
@@ -320,7 +338,8 @@ export class SeasonRepository extends SupabaseCore {
         blind_structure: season.blindStructure as unknown as Json,
         jackpot: season.jackpot,
         created_at: season.createdAt.toISOString(),
-        user_id: userId
+        user_id: userId,
+        organization_id: orgId
       }));
       
       // Upsert all seasons to Supabase

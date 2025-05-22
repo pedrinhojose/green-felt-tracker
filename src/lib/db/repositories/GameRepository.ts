@@ -22,12 +22,14 @@ export class GameRepository extends SupabaseCore {
   async getGames(seasonId: string): Promise<Game[]> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('games')
           .select('*')
           .eq('season_id', seasonId)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
         
@@ -56,12 +58,14 @@ export class GameRepository extends SupabaseCore {
   async getGame(id: string): Promise<Game | undefined> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('games')
           .select('*')
           .eq('id', id)
           .eq('user_id', userId)
+          .eq('organization_id', orgId)
           .maybeSingle();
           
         if (error) throw error;
@@ -93,11 +97,13 @@ export class GameRepository extends SupabaseCore {
   async getLastGame(): Promise<Game | undefined> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { data, error } = await supabase
           .from('games')
           .select('*')
           .eq('user_id', userId)
+          .eq('organization_id', orgId)
           .order('date', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -135,7 +141,7 @@ export class GameRepository extends SupabaseCore {
   async saveGame(game: Game): Promise<string> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         const supabaseGame = {
           id: game.id,
@@ -147,7 +153,8 @@ export class GameRepository extends SupabaseCore {
           dinner_cost: game.dinnerCost,
           is_finished: game.isFinished,
           created_at: game.createdAt.toISOString(),
-          user_id: userId
+          user_id: userId,
+          organization_id: orgId
         };
         
         const { error } = await supabase
@@ -172,12 +179,14 @@ export class GameRepository extends SupabaseCore {
   async deleteGame(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
+        
         const { error } = await supabase
           .from('games')
           .delete()
           .eq('id', id)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
       } catch (error) {
@@ -196,6 +205,12 @@ export class GameRepository extends SupabaseCore {
     try {
       console.log("Starting game migration from IndexedDB to Supabase");
       const userId = await this.getUserId();
+      const orgId = this.getCurrentOrganizationId();
+      
+      if (!orgId) {
+        console.error("No organization selected for migration");
+        return;
+      }
       
       // Get all games from IndexedDB
       const idbGames = await (await this.idbDb).getAll('games');
@@ -218,7 +233,8 @@ export class GameRepository extends SupabaseCore {
         dinner_cost: game.dinnerCost,
         is_finished: game.isFinished,
         created_at: game.createdAt.toISOString(),
-        user_id: userId
+        user_id: userId,
+        organization_id: orgId
       }));
       
       // Upsert all games to Supabase

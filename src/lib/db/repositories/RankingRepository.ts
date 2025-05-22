@@ -21,13 +21,14 @@ export class RankingRepository extends SupabaseCore {
   async getRankings(seasonId: string): Promise<RankingEntry[]> {
     if (this.useSupabase) {
       try {
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         const { data, error } = await supabase
           .from('rankings')
           .select('*')
           .eq('season_id', seasonId)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('organization_id', orgId);
           
         if (error) throw error;
         
@@ -79,7 +80,7 @@ export class RankingRepository extends SupabaseCore {
           throw new Error("seasonId é obrigatório para salvar um ranking");
         }
         
-        const userId = await this.getUserId();
+        const { userId, orgId } = await this.getUserAndOrgIds();
         
         const supabaseRanking = {
           id: ranking.id,
@@ -90,7 +91,8 @@ export class RankingRepository extends SupabaseCore {
           games_played: ranking.gamesPlayed,
           best_position: ranking.bestPosition,
           season_id: ranking.seasonId,
-          user_id: userId
+          user_id: userId,
+          organization_id: orgId
         };
         
         const { error } = await supabase
@@ -128,6 +130,12 @@ export class RankingRepository extends SupabaseCore {
     try {
       console.log("Starting ranking migration from IndexedDB to Supabase");
       const userId = await this.getUserId();
+      const orgId = this.getCurrentOrganizationId();
+      
+      if (!orgId) {
+        console.error("No organization selected for migration");
+        return;
+      }
       
       // Get all rankings from IndexedDB
       const idbRankings = await (await this.idbDb).getAll('rankings');
@@ -149,7 +157,8 @@ export class RankingRepository extends SupabaseCore {
         games_played: ranking.gamesPlayed,
         best_position: ranking.bestPosition,
         season_id: ranking.seasonId,
-        user_id: userId
+        user_id: userId,
+        organization_id: orgId
       }));
       
       // Upsert all rankings to Supabase
