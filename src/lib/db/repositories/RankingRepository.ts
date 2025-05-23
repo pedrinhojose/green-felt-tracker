@@ -21,13 +21,13 @@ export class RankingRepository extends SupabaseCore {
   async getRankings(seasonId: string): Promise<RankingEntry[]> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const { orgId } = await this.getUserAndOrgIds();
         
+        // Simplified query without the user_id filter
         const { data, error } = await supabase
           .from('rankings')
           .select('*')
           .eq('season_id', seasonId)
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;

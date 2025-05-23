@@ -22,12 +22,12 @@ export class SeasonRepository extends SupabaseCore {
   async getSeasons(): Promise<Season[]> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const { orgId } = await this.getUserAndOrgIds();
         
+        // Simplified query without the user_id filter
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;

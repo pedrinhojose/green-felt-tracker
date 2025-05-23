@@ -25,10 +25,11 @@ export class PlayerRepository extends SupabaseCore {
       try {
         const { userId, orgId } = await this.getUserAndOrgIds();
         
+        // Let's use a simpler query first - just checking organization membership
+        // without directly referencing the user_id in the query
         const { data, error } = await supabase
           .from('players')
           .select('*')
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;

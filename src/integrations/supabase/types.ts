@@ -357,6 +357,14 @@ export type Database = {
         Args: { user_id: string; role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      is_admin_of_organization: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
+      is_member_of_organization: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
       set_user_role: {
         Args: { p_user_id: string; p_role: string }
         Returns: undefined

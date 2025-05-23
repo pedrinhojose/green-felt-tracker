@@ -22,13 +22,13 @@ export class GameRepository extends SupabaseCore {
   async getGames(seasonId: string): Promise<Game[]> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const { orgId } = await this.getUserAndOrgIds();
         
+        // Simplified query without the user_id filter
         const { data, error } = await supabase
           .from('games')
           .select('*')
           .eq('season_id', seasonId)
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;
