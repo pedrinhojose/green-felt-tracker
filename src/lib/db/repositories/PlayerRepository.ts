@@ -23,16 +23,23 @@ export class PlayerRepository extends SupabaseCore {
   async getPlayers(): Promise<Player[]> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
-        // Let's use a simpler query first - just checking organization membership
-        // without directly referencing the user_id in the query
+        if (!orgId) {
+          console.warn("No organization selected, returning empty players list");
+          return [];
+        }
+        
+        // Simple query using just organization_id and relying on RLS
         const { data, error } = await supabase
           .from('players')
           .select('*')
           .eq('organization_id', orgId);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase query error:", error);
+          throw error;
+        }
         
         return data.map(player => ({
           ...player,
@@ -52,13 +59,18 @@ export class PlayerRepository extends SupabaseCore {
   async getPlayer(id: string): Promise<Player | undefined> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          console.warn("No organization selected, cannot get player");
+          return undefined;
+        }
+        
+        // Simple query using just organization_id and player id, relying on RLS
         const { data, error } = await supabase
           .from('players')
           .select('*')
           .eq('id', id)
-          .eq('user_id', userId)
           .eq('organization_id', orgId)
           .maybeSingle();
         
@@ -91,7 +103,12 @@ export class PlayerRepository extends SupabaseCore {
   async savePlayer(player: Player): Promise<string> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const userId = await this.getUserId();
+        const orgId = this.getCurrentOrganizationId();
+        
+        if (!orgId) {
+          throw new Error("No organization selected, cannot save player");
+        }
         
         // If updating an existing player, check if we need to delete an old photo
         if (player.id) {
@@ -141,7 +158,11 @@ export class PlayerRepository extends SupabaseCore {
   async deletePlayer(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
+        
+        if (!orgId) {
+          throw new Error("No organization selected, cannot delete player");
+        }
         
         // Get the player to check for photo URL
         const player = await this.getPlayer(id);
@@ -151,11 +172,11 @@ export class PlayerRepository extends SupabaseCore {
           console.log("Deleted player photo:", player.photoUrl);
         }
         
+        // Rely on RLS for user verification, just provide organization_id
         const { error } = await supabase
           .from('players')
           .delete()
           .eq('id', id)
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;

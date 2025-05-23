@@ -21,9 +21,14 @@ export class RankingRepository extends SupabaseCore {
   async getRankings(seasonId: string): Promise<RankingEntry[]> {
     if (this.useSupabase) {
       try {
-        const { orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
-        // Simplified query without the user_id filter
+        if (!orgId) {
+          console.warn("No organization selected, returning empty rankings list");
+          return [];
+        }
+        
+        // Simplified query without the user_id filter, relying on RLS
         const { data, error } = await supabase
           .from('rankings')
           .select('*')
@@ -80,7 +85,12 @@ export class RankingRepository extends SupabaseCore {
           throw new Error("seasonId é obrigatório para salvar um ranking");
         }
         
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const userId = await this.getUserId();
+        const orgId = this.getCurrentOrganizationId();
+        
+        if (!orgId) {
+          throw new Error("No organization selected, cannot save ranking");
+        }
         
         const supabaseRanking = {
           id: ranking.id,

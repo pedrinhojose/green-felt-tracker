@@ -1,12 +1,64 @@
 
+import { useState, useEffect } from "react";
 import JackpotCard from "@/components/JackpotCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import BackupButton from "@/components/BackupButton";
 import { usePoker } from "@/contexts/PokerContext";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function Dashboard() {
-  const { activeSeason } = usePoker();
+  const { activeSeason, isLoading } = usePoker();
+  const [error, setError] = useState<Error | null>(null);
+
+  // Clear error if component unmounts or data loads successfully
+  useEffect(() => {
+    if (!isLoading) {
+      setError(null);
+    }
+    
+    return () => setError(null);
+  }, [isLoading]);
+
+  // Handle global errors that might happen during data fetching
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error("Global error caught:", event.error);
+      setError(event.error);
+    };
+
+    window.addEventListener('error', handleError);
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-poker-gold"></div>
+        <p className="mt-4 text-muted-foreground">Carregando o painel...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erro ao carregar dados</AlertTitle>
+        <AlertDescription>
+          Ocorreu um erro ao carregar os dados. Por favor, tente novamente mais tarde.
+          {error.message && (
+            <pre className="mt-2 p-2 bg-muted/30 overflow-auto text-xs">
+              {error.message}
+            </pre>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <>
