@@ -22,9 +22,14 @@ export class GameRepository extends SupabaseCore {
   async getGames(seasonId: string): Promise<Game[]> {
     if (this.useSupabase) {
       try {
-        const { orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
-        // Simplified query without the user_id filter
+        if (!orgId) {
+          console.warn("No organization selected, returning empty games list");
+          return [];
+        }
+        
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('games')
           .select('*')
@@ -58,13 +63,18 @@ export class GameRepository extends SupabaseCore {
   async getGame(id: string): Promise<Game | undefined> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          console.warn("No organization selected, cannot get game");
+          return undefined;
+        }
+        
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('games')
           .select('*')
           .eq('id', id)
-          .eq('user_id', userId)
           .eq('organization_id', orgId)
           .maybeSingle();
           
@@ -97,12 +107,17 @@ export class GameRepository extends SupabaseCore {
   async getLastGame(): Promise<Game | undefined> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          console.warn("No organization selected, cannot get last game");
+          return undefined;
+        }
+        
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('games')
           .select('*')
-          .eq('user_id', userId)
           .eq('organization_id', orgId)
           .order('date', { ascending: false })
           .limit(1)
@@ -179,13 +194,17 @@ export class GameRepository extends SupabaseCore {
   async deleteGame(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          throw new Error("No organization selected, cannot delete game");
+        }
+        
+        // RLS policies will handle access control
         const { error } = await supabase
           .from('games')
           .delete()
           .eq('id', id)
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;

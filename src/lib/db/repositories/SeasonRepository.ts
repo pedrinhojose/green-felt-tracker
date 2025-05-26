@@ -22,9 +22,14 @@ export class SeasonRepository extends SupabaseCore {
   async getSeasons(): Promise<Season[]> {
     if (this.useSupabase) {
       try {
-        const { orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
-        // Simplified query without the user_id filter
+        if (!orgId) {
+          console.warn("No organization selected, returning empty seasons list");
+          return [];
+        }
+        
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
@@ -61,12 +66,17 @@ export class SeasonRepository extends SupabaseCore {
   async getActiveSeason(): Promise<Season | undefined> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          console.warn("No organization selected, cannot get active season");
+          return undefined;
+        }
+        
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
-          .eq('user_id', userId)
           .eq('organization_id', orgId)
           .eq('is_active', true)
           .maybeSingle();
@@ -104,13 +114,18 @@ export class SeasonRepository extends SupabaseCore {
   async getSeason(id: string): Promise<Season | undefined> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          console.warn("No organization selected, cannot get season");
+          return undefined;
+        }
+        
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('seasons')
           .select('*')
           .eq('id', id)
-          .eq('user_id', userId)
           .eq('organization_id', orgId)
           .maybeSingle();
           
@@ -196,12 +211,16 @@ export class SeasonRepository extends SupabaseCore {
     if (!this.useSupabase) return;
     
     try {
-      const { userId, orgId } = await this.getUserAndOrgIds();
+      const orgId = this.getCurrentOrganizationId();
       
+      if (!orgId) {
+        throw new Error("No organization selected, cannot deactivate seasons");
+      }
+      
+      // RLS policies will handle access control
       const { error } = await supabase
         .from('seasons')
         .update({ is_active: false })
-        .eq('user_id', userId)
         .eq('organization_id', orgId)
         .eq('is_active', true);
         
@@ -215,13 +234,17 @@ export class SeasonRepository extends SupabaseCore {
   async deleteSeason(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
         
+        if (!orgId) {
+          throw new Error("No organization selected, cannot delete season");
+        }
+        
+        // RLS policies will handle access control
         const { error } = await supabase
           .from('seasons')
           .delete()
           .eq('id', id)
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (error) throw error;
@@ -237,14 +260,17 @@ export class SeasonRepository extends SupabaseCore {
   async updateJackpot(seasonId: string, amount: number): Promise<void> {
     if (this.useSupabase) {
       try {
-        const { userId, orgId } = await this.getUserAndOrgIds();
+        const orgId = this.getCurrentOrganizationId();
+        
+        if (!orgId) {
+          throw new Error("No organization selected, cannot update jackpot");
+        }
         
         // Get the current season to access the current jackpot amount
         const { data: season, error: fetchError } = await supabase
           .from('seasons')
           .select('jackpot')
           .eq('id', seasonId)
-          .eq('user_id', userId)
           .eq('organization_id', orgId)
           .single();
           
@@ -254,12 +280,11 @@ export class SeasonRepository extends SupabaseCore {
         const currentJackpot = Number(season.jackpot);
         const newJackpot = Math.max(0, currentJackpot + amount);
         
-        // Update the jackpot
+        // Update the jackpot - RLS policies will handle access control
         const { error: updateError } = await supabase
           .from('seasons')
           .update({ jackpot: newJackpot })
           .eq('id', seasonId)
-          .eq('user_id', userId)
           .eq('organization_id', orgId);
           
         if (updateError) throw updateError;
@@ -273,26 +298,17 @@ export class SeasonRepository extends SupabaseCore {
       const tx = db.transaction('seasons', 'readwrite');
       
       try {
-        // Obter a temporada atual
         const season = await tx.store.get(seasonId);
         if (!season) {
           throw new Error('Temporada não encontrada');
         }
         
-        // Calcular novo valor do jackpot (garantindo que não seja negativo)
         const newJackpot = Math.max(0, (season.jackpot || 0) + amount);
-        
-        // Atualizar temporada
         season.jackpot = newJackpot;
-        
-        // Salvar temporada atualizada
         await tx.store.put(season);
-        
-        // Confirmar transação
         await tx.done;
         
       } catch (error) {
-        // Qualquer erro cancela a transação automaticamente
         console.error('Erro na transação:', error);
         throw error;
       }

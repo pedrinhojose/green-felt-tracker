@@ -28,7 +28,7 @@ export class RankingRepository extends SupabaseCore {
           return [];
         }
         
-        // Simplified query without the user_id filter, relying on RLS
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('rankings')
           .select('*')

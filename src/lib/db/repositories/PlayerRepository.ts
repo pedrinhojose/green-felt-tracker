@@ -30,7 +30,7 @@ export class PlayerRepository extends SupabaseCore {
           return [];
         }
         
-        // Simple query using just organization_id and relying on RLS
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('players')
           .select('*')
@@ -66,7 +66,7 @@ export class PlayerRepository extends SupabaseCore {
           return undefined;
         }
         
-        // Simple query using just organization_id and player id, relying on RLS
+        // Simple query - RLS policies will handle the filtering
         const { data, error } = await supabase
           .from('players')
           .select('*')
@@ -172,7 +172,7 @@ export class PlayerRepository extends SupabaseCore {
           console.log("Deleted player photo:", player.photoUrl);
         }
         
-        // Rely on RLS for user verification, just provide organization_id
+        // RLS policies will handle access control
         const { error } = await supabase
           .from('players')
           .delete()
