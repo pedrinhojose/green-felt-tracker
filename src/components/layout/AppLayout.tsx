@@ -14,7 +14,6 @@ export default function AppLayout() {
             <OrganizationSelector />
             <PokerNav />
           </div>
-          <ProfileDropdown />
         </div>
       </header>
 
