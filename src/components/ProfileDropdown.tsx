@@ -53,28 +53,30 @@ export function ProfileDropdown() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              {profile?.avatar_url ? (
-                <img 
-                  src={profile.avatar_url} 
-                  alt="Avatar" 
-                  className="rounded-full object-cover"
-                />
-              ) : (
-                <AvatarFallback className="bg-poker-dark-green text-white">
-                  {getInitials(profile?.username || profile?.full_name)}
-                </AvatarFallback>
-              )}
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+            <div className="relative">
+              <Avatar className="h-10 w-10">
+                {profile?.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="Avatar" 
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <AvatarFallback className="bg-poker-dark-green text-white">
+                    {getInitials(profile?.username || profile?.full_name)}
+                  </AvatarFallback>
+                )}
+              </Avatar>
               {isAdmin() && (
-                <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5">
+                <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 z-10">
                   <ShieldAlert className="h-3 w-3 text-white" />
                 </div>
               )}
-            </Avatar>
+            </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent className="w-56 bg-background border shadow-lg z-50" align="end" forceMount>
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
