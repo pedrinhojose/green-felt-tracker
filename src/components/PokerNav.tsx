@@ -68,7 +68,7 @@ export default function PokerNav() {
         </button>
         
         {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center">
+        <nav className="hidden md:flex items-center gap-6">
           <ul className="flex space-x-1">
             {filteredNavItems.map((item) => (
               <li key={item.path}>
@@ -88,15 +88,13 @@ export default function PokerNav() {
             ))}
           </ul>
           
-          {/* Perfil do Usuário */}
+          {/* Perfil do Usuário - Desktop */}
           {user ? (
-            <div className="ml-4">
-              <ProfileDropdown />
-            </div>
+            <ProfileDropdown />
           ) : (
             <Link 
               to="/auth"
-              className="ml-4 text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded"
+              className="text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded"
             >
               Entrar
             </Link>
@@ -129,7 +127,9 @@ export default function PokerNav() {
             {/* Perfil do usuário para mobile */}
             {user && (
               <li className="p-4 border-b border-white/5">
-                <ProfileDropdown />
+                <div className="flex items-center justify-between">
+                  <ProfileDropdown />
+                </div>
               </li>
             )}
             
