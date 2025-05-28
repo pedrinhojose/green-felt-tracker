@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
+import { OrganizationSelector } from '@/components/organizations/OrganizationSelector';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ShieldAlert } from 'lucide-react';
 
@@ -37,12 +38,14 @@ export default function PokerNav() {
   return (
     <header className="sticky top-0 z-50 w-full bg-poker-black/80 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-        <div className="flex items-center">
+        {/* Logo e seletor de organização */}
+        <div className="flex items-center gap-4">
           <Link to="/dashboard">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent">
               APA POKER
             </h1>
           </Link>
+          <OrganizationSelector />
         </div>
         
         {/* Mobile Menu Toggle */}
@@ -122,6 +125,13 @@ export default function PokerNav() {
                 </Link>
               </li>
             ))}
+            
+            {/* Perfil do usuário para mobile */}
+            {user && (
+              <li className="p-4 border-b border-white/5">
+                <ProfileDropdown />
+              </li>
+            )}
             
             {/* Link de autenticação para mobile */}
             {!user && (
