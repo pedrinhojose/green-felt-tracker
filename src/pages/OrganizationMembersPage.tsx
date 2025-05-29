@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -22,7 +21,9 @@ import RequireAuth from '@/components/RequireAuth';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Mail } from 'lucide-react';
+import { Mail, Building, Users } from 'lucide-react';
+import { PageBreadcrumb } from '@/components/navigation/PageBreadcrumb';
+import { PageHeader } from '@/components/navigation/PageHeader';
 
 interface OrganizationMember {
   id: string;
@@ -41,18 +42,36 @@ export default function OrganizationMembersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [organizationName, setOrganizationName] = useState<string>('');
   
   const { toast } = useToast();
   const { currentOrganization } = useOrganization();
   const { organizationId } = useParams<{organizationId: string}>();
   
   const orgId = organizationId || currentOrganization?.id;
+  const isCurrentOrg = orgId === currentOrganization?.id;
   
   useEffect(() => {
     if (orgId) {
+      fetchOrganizationDetails(orgId);
       fetchMembers(orgId);
     }
   }, [orgId]);
+
+  const fetchOrganizationDetails = async (organizationId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', organizationId)
+        .single();
+      
+      if (error) throw error;
+      setOrganizationName(data.name);
+    } catch (error: any) {
+      console.error('Error fetching organization details:', error);
+    }
+  };
 
   const fetchMembers = async (organizationId: string) => {
     try {
@@ -146,14 +165,35 @@ export default function OrganizationMembersPage() {
     }
   };
 
+  const breadcrumbItems = [
+    { label: 'Organizações', href: '/organizations', icon: Building },
+    { label: organizationName || 'Carregando...', href: `/organizations/${orgId}/settings` },
+    { label: 'Membros', icon: Users }
+  ];
+
   return (
     <RequireAuth>
       <div className="container mx-auto py-8">
-        <Card className="mb-8">
+        <PageBreadcrumb 
+          items={breadcrumbItems}
+          showBackButton
+          backButtonLabel="Voltar para Organizações"
+          backButtonHref="/organizations"
+        />
+        
+        <PageHeader
+          title="Gerenciamento de Membros"
+          description={`Gerencie os membros da organização`}
+          organizationId={orgId}
+          organizationName={organizationName}
+          isCurrentOrganization={isCurrentOrg}
+        />
+
+        <Card>
           <CardHeader>
-            <CardTitle>Gerenciamento de Membros</CardTitle>
+            <CardTitle>Membros da Organização</CardTitle>
             <CardDescription>
-              Gerencie os membros da organização {currentOrganization?.name || ''}
+              Convide novos membros e gerencie os papéis dos membros atuais
             </CardDescription>
           </CardHeader>
           <CardContent>
