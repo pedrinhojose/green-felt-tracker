@@ -29,7 +29,7 @@ interface OrganizationMember {
   user_id: string;
   organization_id: string;
   role: string;
-  profiles?: {
+  profile?: {
     username?: string | null;
     full_name?: string | null;
     avatar_url?: string | null;
@@ -58,21 +58,54 @@ export default function OrganizationMembersPage() {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
+      // First, get organization members
+      const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
-        .select(`
-          *,
-          profiles!inner(username, full_name, avatar_url)
-        `)
+        .select('*')
         .eq('organization_id', organizationId);
       
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      if (membersError) {
+        console.error('Supabase error fetching members:', membersError);
+        throw membersError;
       }
       
-      console.log('Members data:', data);
-      setMembers(data as OrganizationMember[]);
+      console.log('Members data:', membersData);
+      
+      if (!membersData || membersData.length === 0) {
+        setMembers([]);
+        return;
+      }
+      
+      // Get all user IDs
+      const userIds = membersData.map(member => member.user_id);
+      
+      // Fetch profiles for these users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', userIds);
+      
+      if (profilesError) {
+        console.error('Supabase error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+      
+      console.log('Profiles data:', profilesData);
+      
+      // Combine members with their profiles
+      const membersWithProfiles = membersData.map(member => {
+        const profile = profilesData?.find(p => p.id === member.user_id);
+        return {
+          ...member,
+          profile: profile ? {
+            username: profile.username,
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url
+          } : null
+        };
+      });
+      
+      setMembers(membersWithProfiles as OrganizationMember[]);
     } catch (error: any) {
       console.error('Error fetching members:', error);
       toast({
@@ -171,7 +204,7 @@ export default function OrganizationMembersPage() {
                     members.map((member) => (
                       <TableRow key={member.id}>
                         <TableCell>
-                          {member.profiles?.full_name || member.profiles?.username || 'Usuário sem nome'}
+                          {member.profile?.full_name || member.profile?.username || 'Usuário sem nome'}
                         </TableCell>
                         <TableCell>{member.role}</TableCell>
                         <TableCell className="text-right">
