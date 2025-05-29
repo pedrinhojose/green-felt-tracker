@@ -29,7 +29,7 @@ interface OrganizationMember {
   user_id: string;
   organization_id: string;
   role: string;
-  profile?: {
+  profiles?: {
     username?: string | null;
     full_name?: string | null;
     avatar_url?: string | null;
@@ -62,12 +62,16 @@ export default function OrganizationMembersPage() {
         .from('organization_members')
         .select(`
           *,
-          profile:profiles(username, full_name, avatar_url)
+          profiles!inner(username, full_name, avatar_url)
         `)
         .eq('organization_id', organizationId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
+      console.log('Members data:', data);
       setMembers(data as OrganizationMember[]);
     } catch (error: any) {
       console.error('Error fetching members:', error);
@@ -167,7 +171,7 @@ export default function OrganizationMembersPage() {
                     members.map((member) => (
                       <TableRow key={member.id}>
                         <TableCell>
-                          {member.profile?.full_name || member.profile?.username || 'Usuário sem nome'}
+                          {member.profiles?.full_name || member.profiles?.username || 'Usuário sem nome'}
                         </TableCell>
                         <TableCell>{member.role}</TableCell>
                         <TableCell className="text-right">
