@@ -369,6 +369,14 @@ export type Database = {
         Args: { p_user_id: string; p_role: string }
         Returns: undefined
       }
+      user_can_access_organization_members: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
+      user_can_manage_organization_members: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
       user_organization_check: {
         Args: { org_id: string }
         Returns: boolean
