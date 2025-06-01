@@ -4,440 +4,473 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import RequireAuth from '@/components/RequireAuth';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { useParams } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Mail, Building, Users, UserPlus } from 'lucide-react';
-import { PageBreadcrumb } from '@/components/navigation/PageBreadcrumb';
-import { PageHeader } from '@/components/navigation/PageHeader';
+import { useParams, useNavigate } from 'react-router-dom';
+import { UserPlus, Mail, Settings, ArrowLeft, Users } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface OrganizationMember {
   id: string;
   user_id: string;
-  organization_id: string;
   role: string;
-  profile?: {
-    username?: string | null;
-    full_name?: string | null;
-    avatar_url?: string | null;
-  };
+  created_at: string;
+  profiles: {
+    full_name: string | null;
+    username: string | null;
+  } | null;
 }
 
-type ErrorType = 'network' | 'permission' | 'not_found' | 'unknown';
-
-interface LoadingState {
-  members: boolean;
-  organization: boolean;
-  invite: boolean;
-}
-
-interface ErrorState {
-  type?: ErrorType;
+interface ErrorDetails {
+  type: 'network' | 'permission' | 'not_found' | 'rls_error' | 'unknown';
   message: string;
-  hasMembers?: boolean;
-  hasOrganization?: boolean;
+  canRetry: boolean;
 }
+
+const inviteSchema = z.object({
+  email: z.string().email({ message: 'Email inválido' }),
+  role: z.enum(['admin', 'member'], {
+    required_error: 'Selecione um papel',
+  }),
+});
 
 export default function OrganizationMembersPage() {
   const [members, setMembers] = useState<OrganizationMember[]>([]);
-  const [loading, setLoading] = useState<LoadingState>({
-    members: true,
-    organization: true,
-    invite: false
-  });
-  const [error, setError] = useState<ErrorState | null>(null);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [organizationName, setOrganizationName] = useState<string>('');
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<ErrorDetails | null>(null);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const { toast } = useToast();
   const { currentOrganization } = useOrganization();
   const { organizationId } = useParams<{organizationId: string}>();
+  const navigate = useNavigate();
   
   const orgId = organizationId || currentOrganization?.id;
-  const isCurrentOrg = orgId === currentOrganization?.id;
+  
+  const form = useForm<z.infer<typeof inviteSchema>>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: {
+      email: '',
+      role: 'member',
+    },
+  });
 
-  const getErrorMessage = (errorType: ErrorType, context: 'members' | 'organization') => {
-    switch (errorType) {
-      case 'permission':
-        return context === 'members' 
-          ? 'Você não tem permissão para visualizar os membros desta organização.'
-          : 'Você não tem permissão para acessar esta organização.';
-      case 'not_found':
-        return context === 'members'
-          ? 'Esta organização ainda não possui membros cadastrados.'
-          : 'Esta organização não foi encontrada ou não existe.';
-      case 'network':
-        return 'Problemas de conexão. Verifique sua internet e tente novamente.';
-      default:
-        return context === 'members'
-          ? 'Erro inesperado ao carregar os membros.'
-          : 'Erro inesperado ao carregar a organização.';
-    }
-  };
-
-  const determineErrorType = (error: any): ErrorType => {
-    if (!error) return 'unknown';
+  const analyzeError = (error: any): ErrorDetails => {
+    console.error('Organization members error:', error);
     
-    const errorMessage = error.message?.toLowerCase() || '';
-    
-    if (errorMessage.includes('permission') || errorMessage.includes('policy')) {
-      return 'permission';
-    }
-    if (errorMessage.includes('not found') || errorMessage.includes('no rows')) {
-      return 'not_found';
-    }
-    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-      return 'network';
+    // Erro de recursão RLS
+    if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
+      return {
+        type: 'rls_error',
+        message: 'Há um problema temporário com as permissões. Nossa equipe está trabalhando na solução.',
+        canRetry: true
+      };
     }
     
-    return 'unknown';
+    // Erro de rede/servidor
+    if (error?.code >= 500 || error?.message?.includes('fetch')) {
+      return {
+        type: 'network',
+        message: 'Não foi possível conectar ao servidor. Verifique sua conexão.',
+        canRetry: true
+      };
+    }
+    
+    // Erro de permissão
+    if (error?.code === 403 || error?.message?.includes('permission')) {
+      return {
+        type: 'permission',
+        message: 'Você não tem permissão para gerenciar membros desta organização.',
+        canRetry: false
+      };
+    }
+    
+    // Organização não encontrada
+    if (error?.code === 404) {
+      return {
+        type: 'not_found',
+        message: 'Organização não encontrada.',
+        canRetry: false
+      };
+    }
+    
+    return {
+      type: 'unknown',
+      message: 'Ocorreu um erro inesperado. Tente novamente em alguns instantes.',
+      canRetry: true
+    };
   };
   
   useEffect(() => {
     if (orgId) {
-      fetchOrganizationDetails(orgId);
-      fetchMembers(orgId);
+      fetchMembers();
     } else {
       setError({
         type: 'not_found',
-        message: 'ID da organização não fornecido.',
-        hasOrganization: false
+        message: 'Organização não especificada.',
+        canRetry: false
       });
-      setLoading({ members: false, organization: false, invite: false });
+      setIsLoading(false);
     }
   }, [orgId]);
-
-  const fetchOrganizationDetails = async (organizationId: string) => {
+  
+  const fetchMembers = async () => {
+    if (!orgId) return;
+    
     try {
-      setLoading(prev => ({ ...prev, organization: true }));
+      setIsLoading(true);
       setError(null);
       
       const { data, error } = await supabase
-        .from('organizations')
-        .select('name')
-        .eq('id', organizationId)
-        .single();
-      
-      if (error) {
-        const errorType = determineErrorType(error);
-        setError({
-          type: errorType,
-          message: getErrorMessage(errorType, 'organization'),
-          hasOrganization: false
-        });
-        return;
-      }
-      
-      setOrganizationName(data.name);
-    } catch (error: any) {
-      console.error('Error fetching organization details:', error);
-      const errorType = determineErrorType(error);
-      setError({
-        type: errorType,
-        message: getErrorMessage(errorType, 'organization'),
-        hasOrganization: false
-      });
-    } finally {
-      setLoading(prev => ({ ...prev, organization: false }));
-    }
-  };
-
-  const fetchMembers = async (organizationId: string) => {
-    try {
-      setLoading(prev => ({ ...prev, members: true }));
-      
-      // First, get organization members
-      const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
-        .select('*')
-        .eq('organization_id', organizationId);
+        .select(`
+          id,
+          user_id,
+          role,
+          created_at,
+          profiles:user_id (
+            full_name,
+            username
+          )
+        `)
+        .eq('organization_id', orgId);
       
-      if (membersError) {
-        console.error('Supabase error fetching members:', membersError);
-        const errorType = determineErrorType(membersError);
-        setError({
-          type: errorType,
-          message: getErrorMessage(errorType, 'members'),
-          hasMembers: false
-        });
-        return;
-      }
+      if (error) throw error;
       
-      console.log('Members data:', membersData);
-      
-      if (!membersData || membersData.length === 0) {
-        setMembers([]);
-        setError(null);
-        return;
-      }
-      
-      // Get all user IDs
-      const userIds = membersData.map(member => member.user_id);
-      
-      // Fetch profiles for these users
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, full_name, avatar_url')
-        .in('id', userIds);
-      
-      if (profilesError) {
-        console.error('Supabase error fetching profiles:', profilesError);
-        // Don't treat profile errors as critical - show members without profile data
-        console.warn('Could not load profile data, showing members without profiles');
-      }
-      
-      console.log('Profiles data:', profilesData);
-      
-      // Combine members with their profiles
-      const membersWithProfiles = membersData.map(member => {
-        const profile = profilesData?.find(p => p.id === member.user_id);
-        return {
-          ...member,
-          profile: profile ? {
-            username: profile.username,
-            full_name: profile.full_name,
-            avatar_url: profile.avatar_url
-          } : null
-        };
-      });
-      
-      setMembers(membersWithProfiles as OrganizationMember[]);
-      setError(null);
+      setMembers(data || []);
     } catch (error: any) {
-      console.error('Error fetching members:', error);
-      const errorType = determineErrorType(error);
-      setError({
-        type: errorType,
-        message: getErrorMessage(errorType, 'members'),
-        hasMembers: false
-      });
+      const errorDetails = analyzeError(error);
+      setError(errorDetails);
+      
+      // Só mostra toast para erros graves, não para ausência de dados
+      if (errorDetails.type !== 'permission') {
+        toast({
+          title: 'Erro ao carregar membros',
+          description: errorDetails.message,
+          variant: 'destructive',
+        });
+      }
     } finally {
-      setLoading(prev => ({ ...prev, members: false }));
+      setIsLoading(false);
     }
   };
-
-  const sendInvite = async () => {
-    if (!inviteEmail || !orgId) return;
+  
+  async function onInvite(values: z.infer<typeof inviteSchema>) {
+    if (!orgId) return;
     
     try {
-      setLoading(prev => ({ ...prev, invite: true }));
-      
-      // This is just a placeholder - in a real app, you would implement 
-      // a server-side function to send invitations
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulação de convite por email
+      console.log('Sending invite:', { ...values, organizationId: orgId });
       
       toast({
         title: 'Convite enviado',
-        description: `Um convite foi enviado para ${inviteEmail}`,
+        description: `Convite enviado para ${values.email}`,
       });
       
-      setInviteEmail('');
+      setIsInviteDialogOpen(false);
+      form.reset();
     } catch (error: any) {
       console.error('Error sending invite:', error);
       toast({
-        title: 'Erro ao enviar convite',
-        description: 'Não foi possível enviar o convite. Tente novamente.',
+        title: 'Erro',
+        description: 'Não foi possível enviar o convite.',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(prev => ({ ...prev, invite: false }));
     }
-  };
+  }
 
   const handleRetry = () => {
-    if (orgId) {
-      fetchOrganizationDetails(orgId);
-      fetchMembers(orgId);
-    }
+    fetchMembers();
   };
 
-  const breadcrumbItems = [
-    { label: 'Organizações', href: '/organizations', icon: Building },
-    { label: organizationName || 'Carregando...', href: `/organizations/${orgId}/settings` },
-    { label: 'Membros', icon: Users }
-  ];
+  const handleBack = () => {
+    navigate('/organizations');
+  };
 
-  // Show error state if organization couldn't be loaded
-  if (error && !error.hasOrganization) {
+  // Loading state
+  if (isLoading) {
     return (
       <RequireAuth>
         <div className="container mx-auto py-8">
-          <PageBreadcrumb 
-            items={[
-              { label: 'Organizações', href: '/organizations', icon: Building },
-              { label: 'Erro', icon: Users }
-            ]}
-            showBackButton
-            backButtonLabel="Voltar para Organizações"
-            backButtonHref="/organizations"
-          />
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" size="sm" onClick={handleBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <Skeleton className="h-8 w-48" />
+          </div>
           
-          <ErrorState
-            title="Organização não encontrada"
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </RequireAuth>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <RequireAuth>
+        <div className="container mx-auto py-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" size="sm" onClick={handleBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <h1 className="text-2xl font-bold">Membros da Organização</h1>
+          </div>
+
+          <ErrorState 
             description={error.message}
-            onRetry={handleRetry}
+            onRetry={error.canRetry ? handleRetry : undefined}
+            retryLabel="Tentar novamente"
           />
         </div>
       </RequireAuth>
     );
   }
 
+  // Empty state
+  if (members.length === 0) {
+    return (
+      <RequireAuth>
+        <div className="container mx-auto py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={handleBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+              <h1 className="text-2xl font-bold">Membros da Organização</h1>
+            </div>
+          </div>
+
+          <EmptyState
+            icon={Users}
+            title="Nenhum membro encontrado"
+            description="Esta organização ainda não possui membros. Convide pessoas para colaborar com você."
+            actionLabel="Convidar primeiro membro"
+            onAction={() => setIsInviteDialogOpen(true)}
+          />
+
+          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Convidar membro</DialogTitle>
+                <DialogDescription>
+                  Envie um convite por email para adicionar um novo membro à organização.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onInvite)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" placeholder="exemplo@email.com" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Papel</FormLabel>
+                        <FormControl>
+                          <select {...field} className="w-full p-2 border rounded-md">
+                            <option value="member">Membro</option>
+                            <option value="admin">Administrador</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Enviar convite
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </RequireAuth>
+    );
+  }
+
+  // Success state with members
   return (
     <RequireAuth>
       <div className="container mx-auto py-8">
-        <PageBreadcrumb 
-          items={breadcrumbItems}
-          showBackButton
-          backButtonLabel="Voltar para Organizações"
-          backButtonHref="/organizations"
-        />
-        
-        {loading.organization ? (
-          <div className="mb-8">
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-96" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={handleBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <h1 className="text-2xl font-bold">Membros da Organização</h1>
           </div>
-        ) : (
-          <PageHeader
-            title="Gerenciamento de Membros"
-            description={`Gerencie os membros da organização`}
-            organizationId={orgId}
-            organizationName={organizationName}
-            isCurrentOrganization={isCurrentOrg}
-          />
-        )}
+          
+          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Convidar membro
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Convidar membro</DialogTitle>
+                <DialogDescription>
+                  Envie um convite por email para adicionar um novo membro à organização.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onInvite)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" placeholder="exemplo@email.com" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Papel</FormLabel>
+                        <FormControl>
+                          <select {...field} className="w-full p-2 border rounded-md">
+                            <option value="member">Membro</option>
+                            <option value="admin">Administrador</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Enviar convite
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Membros da Organização</CardTitle>
+            <CardTitle>Membros ativos</CardTitle>
             <CardDescription>
-              Convide novos membros e gerencie os papéis dos membros atuais
+              Gerencie os membros e suas permissões na organização
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-6">
-              <h3 className="text-lg font-medium mb-2">Convidar novo membro</h3>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Input 
-                    placeholder="Email do convidado"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
+            <div className="space-y-4">
+              {members.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-sm font-medium">
+                        {member.profiles?.full_name?.[0] || member.profiles?.username?.[0] || '?'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {member.profiles?.full_name || member.profiles?.username || 'Usuário sem nome'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Membro desde {new Date(member.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={member.role === 'admin' ? 'destructive' : 'secondary'}>
+                      {member.role === 'admin' ? 'Admin' : 'Membro'}
+                    </Badge>
+                    <Button variant="ghost" size="sm">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <Button 
-                  onClick={sendInvite} 
-                  disabled={loading.invite || !inviteEmail}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {loading.invite ? 'Enviando...' : 'Enviar convite'}
-                </Button>
-              </div>
+              ))}
             </div>
-
-            <div className="mb-4 flex justify-between items-center">
-              <h3 className="text-lg font-medium">Membros atuais</h3>
-              <Button 
-                onClick={() => fetchMembers(orgId!)} 
-                variant="outline" 
-                disabled={loading.members}
-              >
-                {loading.members ? 'Carregando...' : 'Atualizar'}
-              </Button>
-            </div>
-
-            {/* Error state for members */}
-            {error && error.hasMembers === false && error.type !== 'not_found' && (
-              <ErrorState
-                variant="alert"
-                description={error.message}
-                onRetry={() => fetchMembers(orgId!)}
-              />
-            )}
-
-            {/* Loading state */}
-            {loading.members ? (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Função</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[1, 2, 3].map((i) => (
-                      <TableRow key={i}>
-                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                        <TableCell className="text-right">
-                          <Skeleton className="h-8 w-16 ml-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : members.length === 0 ? (
-              <EmptyState
-                icon={UserPlus}
-                title="Nenhum membro encontrado"
-                description="Esta organização ainda não possui membros cadastrados. Comece convidando o primeiro membro usando o formulário acima."
-                actionLabel="Convidar primeiro membro"
-                onAction={() => document.querySelector('input[placeholder="Email do convidado"]')?.focus()}
-                actionVariant="outline"
-              />
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Função</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {members.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell>
-                          {member.profile?.full_name || member.profile?.username || 'Usuário sem nome'}
-                        </TableCell>
-                        <TableCell>{member.role}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled
-                          >
-                            Remover
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
