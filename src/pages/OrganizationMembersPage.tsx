@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -150,23 +149,40 @@ export default function OrganizationMembersPage() {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
+      // Primeiro, buscar os membros da organização
+      const { data: membersData, error: membersError } = await supabase
         .from('organization_members')
-        .select(`
-          id,
-          user_id,
-          role,
-          created_at,
-          profiles:user_id (
-            full_name,
-            username
-          )
-        `)
+        .select('id, user_id, role, created_at')
         .eq('organization_id', orgId);
       
-      if (error) throw error;
+      if (membersError) throw membersError;
       
-      setMembers(data || []);
+      if (!membersData || membersData.length === 0) {
+        setMembers([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Buscar os perfis dos usuários separadamente
+      const userIds = membersData.map(member => member.user_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, username')
+        .in('id', userIds);
+      
+      // Combinar os dados
+      const membersWithProfiles = membersData.map(member => {
+        const profile = profilesData?.find(p => p.id === member.user_id);
+        return {
+          ...member,
+          profiles: profile ? {
+            full_name: profile.full_name,
+            username: profile.username
+          } : null
+        };
+      });
+      
+      setMembers(membersWithProfiles);
     } catch (error: any) {
       const errorDetails = analyzeError(error);
       setError(errorDetails);
