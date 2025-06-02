@@ -7,6 +7,7 @@ import { OrganizationCreateModal } from '@/components/organizations/Organization
 import { Building, Plus, Settings, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RequireAuth from '@/components/RequireAuth';
+import { ArrowLeft } from 'lucide-react';
 
 export default function OrganizationsPage() {
   const { organizations, currentOrganization, selectOrganization } = useOrganization();
@@ -18,9 +19,15 @@ export default function OrganizationsPage() {
       <div className="container mx-auto py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Suas organizações</h1>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Nova organização
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para o Dashboard
+            </Button>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Nova organização
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

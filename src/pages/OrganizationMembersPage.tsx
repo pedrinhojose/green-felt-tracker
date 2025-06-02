@@ -381,7 +381,7 @@ export default function OrganizationMembersPage() {
       <div className="container mx-auto py-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleBack}>
+            <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>

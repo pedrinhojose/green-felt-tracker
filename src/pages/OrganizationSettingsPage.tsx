@@ -281,12 +281,13 @@ export default function OrganizationSettingsPage() {
   return (
     <RequireAuth>
       <div className="container mx-auto py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <h1 className="text-2xl font-bold">Configurações da Organização</h1>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+            </Button>
+            <h1 className="text-2xl font-bold">Configurações da Organização</h1>
+          </div>
         </div>
         
         <Card>
