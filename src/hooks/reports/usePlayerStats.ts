@@ -5,7 +5,7 @@ import { Game, Player } from "@/lib/db/models";
 import { PlayerPerformanceStats, getPlayerName } from "./types";
 
 export function usePlayerStats() {
-  const { games, activeSeason, players } = usePoker();
+  const { games, activeSeason, players, rankings } = usePoker();
   const [playerStats, setPlayerStats] = useState<PlayerPerformanceStats[]>([]);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export function usePlayerStats() {
     
     const finishedGames = games.filter(game => game.isFinished);
     
-    // Mapa para armazenar dados de desempenho por jogador
+    // Usar rankings como fonte principal de dados, complementando com cálculos dos jogos
     const playerStatsMap = new Map<string, PlayerPerformanceStats>();
     
     // Calcular valores de buy-in, rebuy e add-on
@@ -21,45 +21,54 @@ export function usePlayerStats() {
     const rebuyValue = activeSeason.financialParams.rebuy;
     const addonValue = activeSeason.financialParams.addon;
     
-    // Processar todas as partidas finalizadas
+    // Primeiro, criar estatísticas baseadas no ranking (fonte principal)
+    rankings.forEach(ranking => {
+      const player = players.find(p => p.id === ranking.playerId);
+      
+      playerStatsMap.set(ranking.playerId, {
+        playerId: ranking.playerId,
+        playerName: ranking.playerName,
+        photoUrl: player?.photoUrl || ranking.photoUrl,
+        gamesPlayed: ranking.gamesPlayed,
+        victories: 0, // Será calculado abaixo
+        averagePosition: 0, // Será calculado abaixo
+        totalWinnings: 0, // Será calculado abaixo
+        totalInvestment: 0, // Será calculado abaixo
+        balance: 0, // Será calculado abaixo
+        totalPoints: ranking.totalPoints, // Usar pontos do ranking
+        totalRebuys: 0 // Será calculado abaixo
+      });
+    });
+    
+    // Agora calcular dados financeiros e outras estatísticas dos jogos
     finishedGames.forEach(game => {
-      // Processar dados de cada jogador na partida
       game.players.forEach(gamePlayer => {
-        // Buscar ou criar estatísticas do jogador
         let playerStat = playerStatsMap.get(gamePlayer.playerId);
-        const player = players.find(p => p.id === gamePlayer.playerId);
-        const playerName = getPlayerName(gamePlayer.playerId, players);
         
         if (!playerStat) {
+          // Se o jogador não está no ranking, criar entrada baseada nos jogos
+          const player = players.find(p => p.id === gamePlayer.playerId);
+          const playerName = getPlayerName(gamePlayer.playerId, players);
+          
           playerStat = {
             playerId: gamePlayer.playerId,
             playerName,
-            photoUrl: player?.photoUrl, // Obter a foto do objeto player atualizado
+            photoUrl: player?.photoUrl,
             gamesPlayed: 0,
             victories: 0,
             averagePosition: 0,
             totalWinnings: 0,
             totalInvestment: 0,
             balance: 0,
-            totalPoints: 0,
+            totalPoints: 0, // Sem pontos se não estiver no ranking
             totalRebuys: 0
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
         }
         
-        // Atualizar estatísticas do jogador
-        playerStat.gamesPlayed++;
-        
         // Verificar se o jogador venceu esta partida
         if (gamePlayer.position === 1) {
           playerStat.victories++;
-        }
-        
-        // Adicionar posição para calcular média depois
-        if (gamePlayer.position) {
-          playerStat.averagePosition = 
-            (playerStat.averagePosition * (playerStat.gamesPlayed - 1) + gamePlayer.position) / 
-            playerStat.gamesPlayed;
         }
         
         // Calcular ganhos (prêmios)
@@ -73,32 +82,34 @@ export function usePlayerStats() {
         
         playerStat.totalInvestment += investment;
         
-        // Atualizar saldo
-        playerStat.balance = playerStat.totalWinnings - playerStat.totalInvestment;
-        
-        // Adicionar pontos
-        playerStat.totalPoints += gamePlayer.points || 0;
-        
         // Adicionar rebuys
         playerStat.totalRebuys += gamePlayer.rebuys || 0;
       });
     });
     
-    // Converter mapa para array e ordenar por saldo (maior para menor)
-    const playerStatsArray = Array.from(playerStatsMap.values())
-      .sort((a, b) => b.balance - a.balance);
-    
-    // Atualizar as fotos com os dados mais recentes dos jogadores
-    const updatedPlayerStats = playerStatsArray.map(stat => {
-      const player = players.find(p => p.id === stat.playerId);
-      return {
-        ...stat,
-        photoUrl: player?.photoUrl // Garantir que a URL da foto mais recente seja usada
-      };
+    // Calcular posição média para cada jogador
+    playerStatsMap.forEach((playerStat, playerId) => {
+      const playerGames = finishedGames
+        .flatMap(game => game.players)
+        .filter(gamePlayer => gamePlayer.playerId === playerId && gamePlayer.position);
+      
+      if (playerGames.length > 0) {
+        const totalPositions = playerGames.reduce((sum, gamePlayer) => 
+          sum + (gamePlayer.position || 0), 0);
+        playerStat.averagePosition = totalPositions / playerGames.length;
+      }
+      
+      // Calcular saldo final
+      playerStat.balance = playerStat.totalWinnings - playerStat.totalInvestment;
     });
     
-    setPlayerStats(updatedPlayerStats);
-  }, [games, activeSeason, players]);
+    // Converter mapa para array e ordenar por total de pontos (do ranking)
+    const playerStatsArray = Array.from(playerStatsMap.values())
+      .sort((a, b) => b.totalPoints - a.totalPoints);
+    
+    console.log("Player stats calculados baseados no ranking:", playerStatsArray.length);
+    setPlayerStats(playerStatsArray);
+  }, [games, activeSeason, players, rankings]); // Adicionar rankings como dependência
 
   return { playerStats };
 }

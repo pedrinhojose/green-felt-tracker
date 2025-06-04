@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import RankingTable from "@/components/ranking/RankingTable";
 import RankingExporter from "@/components/ranking/RankingExporter";
+import RankingRecalculateButton from "@/components/ranking/RankingRecalculateButton";
 import EmptyRanking from "@/components/ranking/EmptyRanking";
 import { RankingPagination } from "@/components/ranking/RankingPagination";
 
@@ -58,12 +59,15 @@ export default function RankingPage() {
           </p>
         </div>
         
-        <RankingExporter
-          sortedRankings={sortedRankings}
-          activeSeason={activeSeason}
-          getInitials={getInitials}
-          getMedalEmoji={getMedalEmoji}
-        />
+        <div className="flex gap-2">
+          <RankingRecalculateButton />
+          <RankingExporter
+            sortedRankings={sortedRankings}
+            activeSeason={activeSeason}
+            getInitials={getInitials}
+            getMedalEmoji={getMedalEmoji}
+          />
+        </div>
       </div>
       
       {sortedRankings.length > 0 ? (

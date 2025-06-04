@@ -8,7 +8,7 @@ import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { PokerProvider } from "@/contexts/PokerContext";
 import { AudioProvider } from "@/contexts/AudioContext";
 import RequireAuth from '@/components/RequireAuth';
-import OrganizationRequired from '@/components/organizations/OrganizationRequired';
+import { OrganizationRequired } from '@/components/organizations/OrganizationRequired';
 import AppLayout from '@/components/layout/AppLayout';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
@@ -23,7 +23,7 @@ import SeasonsList from '@/pages/SeasonsList';
 import SeasonDetails from '@/pages/SeasonDetails';
 import SeasonReport from '@/pages/SeasonReport';
 import OrganizationsPage from '@/pages/OrganizationsPage';
-import OrganizationSelectionPage from '@/pages/OrganizationSelectionPage';
+import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
 import OrganizationSettingsPage from '@/pages/OrganizationSettingsPage';
 import OrganizationMembersPage from '@/pages/OrganizationMembersPage';
 import UserManagement from '@/pages/UserManagement';
@@ -45,10 +45,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <AuthProvider>
-          <OrganizationProvider>
-            <PokerProvider>
-              <AudioProvider>
-                <Router>
+          <Router>
+            <OrganizationProvider>
+              <PokerProvider>
+                <AudioProvider>
                   <div className="min-h-screen bg-poker-black">
                     <Routes>
                       {/* Public routes */}
@@ -196,10 +196,10 @@ function App() {
                     </Routes>
                   </div>
                   <Toaster />
-                </Router>
-              </AudioProvider>
-            </PokerProvider>
-          </OrganizationProvider>
+                </AudioProvider>
+              </PokerProvider>
+            </OrganizationProvider>
+          </Router>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

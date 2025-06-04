@@ -42,6 +42,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   } = useGameFunctions(
     async () => {
       if (activeSeason) {
+        console.log("Atualizando rankings após alteração de jogo...");
         await updateRankings(activeSeason.id);
       }
     },
@@ -66,6 +67,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
           const gamesData = await pokerDB.getGames(activeSeason.id);
           setGames(gamesData);
           
+          console.log("Carregando rankings para temporada ativa:", activeSeason.id);
           const rankingsData = await pokerDB.getRankings(activeSeason.id);
           setRankings(rankingsData);
         }
@@ -85,7 +87,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     };
     
     initData();
-  }, [toast]);
+  }, [toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
 
   // Create the context value
   const contextValue: PokerContextProps = {
