@@ -1,6 +1,7 @@
 
 import { useEffect, useRef } from "react";
 import { useLocalStorageAudio } from "./useLocalStorageAudio";
+import { useAudioContext } from "@/contexts/AudioContext";
 
 export interface AudioRefs {
   alertAudioRef: React.MutableRefObject<HTMLAudioElement | null>;
@@ -18,6 +19,9 @@ export function useAudioEffects() {
   
   // Use our updated GitHub audio hook
   const { audioElements, isLoading } = useLocalStorageAudio();
+  
+  // Use audio context instead of global listeners
+  const { isTimerAudioActive } = useAudioContext();
   
   // Initialize audio references
   useEffect(() => {
@@ -79,10 +83,12 @@ export function useAudioEffects() {
     };
   }, [audioElements, isLoading]);
 
-  // Function to forcefully play audio - even on iOS
+  // Function to forcefully play audio - even on iOS (only when timer audio is active)
   const forcePlayAudio = (audioElement: HTMLAudioElement) => {
-    // Create user gesture context by touching DOM
-    document.documentElement.click();
+    if (!isTimerAudioActive) {
+      console.log("Áudio do timer não está ativo, ignorando reprodução");
+      return;
+    }
     
     // Set audio to start from beginning
     audioElement.currentTime = 0;
@@ -109,9 +115,14 @@ export function useAudioEffects() {
     }
   };
 
-  // Function to unlock audio on iOS/Safari
+  // Function to unlock audio on iOS/Safari (only when explicitly called by timer)
   const unlockAudio = () => {
-    console.log("Tentando desbloquear áudio...");
+    if (!isTimerAudioActive) {
+      console.log("Áudio do timer não está ativo, não desbloqueando");
+      return;
+    }
+    
+    console.log("Desbloqueando áudio para o timer...");
     
     // Create array of all our audio elements
     const audioElements = [
@@ -159,29 +170,12 @@ export function useAudioEffects() {
         document.body.removeChild(audioContainer);
       }
     }, 1000);
-    
-    // Create a user interaction context
-    document.addEventListener('click', function unlockOnUserAction() {
-      console.log("Interação do usuário detectada, tentando desbloquear áudio");
-      
-      audioElements.forEach(audio => {
-        const originalVolume = audio.volume;
-        audio.volume = 0.01;
-        audio.play().then(() => {
-          audio.pause();
-          audio.currentTime = 0;
-          audio.volume = originalVolume;
-        }).catch(e => console.warn("Erro ao desbloquear no click:", e));
-      });
-      
-      document.removeEventListener('click', unlockOnUserAction);
-    }, { once: true });
   };
 
-  // Function to safely play audio with all our workarounds
+  // Function to safely play audio with all our workarounds (only when timer audio is active)
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
-    if (!soundEnabled || !audioRef.current) {
-      console.log("Som desativado ou referência de áudio não disponível");
+    if (!soundEnabled || !audioRef.current || !isTimerAudioActive) {
+      console.log("Som desativado, referência de áudio não disponível ou timer audio inativo");
       return;
     }
     

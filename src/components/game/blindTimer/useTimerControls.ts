@@ -8,6 +8,7 @@ import { useLevelNavigation } from "./hooks/useLevelNavigation";
 import { useWindowControl } from "./hooks/useWindowControl";
 import { useSoundEffects } from "./hooks/useSoundEffects";
 import { useLocalStorageAudio } from "./hooks/useLocalStorageAudio";
+import { useAudioContext } from "@/contexts/AudioContext";
 
 export function useTimerControls(
   blindLevels: BlindLevel[],
@@ -15,6 +16,9 @@ export function useTimerControls(
   setState: React.Dispatch<React.SetStateAction<TimerState>>,
   timeRemainingInLevel: number
 ) {
+  // Audio context
+  const { enableTimerAudio, disableTimerAudio, setGlobalAudioEnabled } = useAudioContext();
+  
   // Audio setup
   const { audioRefs, playAudioSafely, unlockAudio } = useAudioEffects();
   
@@ -31,7 +35,7 @@ export function useTimerControls(
   );
   
   // Timer core functionality
-  const { startTimer, pauseTimer, cleanupTimer } = useTimerCore(
+  const { startTimer: coreStartTimer, pauseTimer: corePauseTimer, cleanupTimer } = useTimerCore(
     blindLevels,
     state,
     setState,
@@ -48,29 +52,16 @@ export function useTimerControls(
   // Window control
   const { openInNewWindow, toggleFullScreen } = useWindowControl();
   
-  // Try to unlock audio when component mounts
+  // Enable timer audio when component mounts
   useEffect(() => {
-    console.log("Setting up event handlers to unlock audio");
-    
-    // Try to unlock audio when component mounts
-    const unblockAudioOnUserAction = () => {
-      console.log("User interaction detected, trying to unlock audio");
-      unlockAudio();
-      // Remove event listeners after first interaction
-      document.removeEventListener('click', unblockAudioOnUserAction);
-      document.removeEventListener('touchstart', unblockAudioOnUserAction);
-    };
-    
-    // Add event listeners to unlock audio on first interaction
-    document.addEventListener('click', unblockAudioOnUserAction);
-    document.addEventListener('touchstart', unblockAudioOnUserAction);
+    console.log("Habilitando áudio do timer ao montar componente");
+    enableTimerAudio();
     
     return () => {
-      // Remove event listeners if component unmounts
-      document.removeEventListener('click', unblockAudioOnUserAction);
-      document.removeEventListener('touchstart', unblockAudioOnUserAction);
+      console.log("Desabilitando áudio do timer ao desmontar componente");
+      disableTimerAudio();
     };
-  }, [unlockAudio]);
+  }, [enableTimerAudio, disableTimerAudio]);
   
   // Cleanup on unmount
   useEffect(() => {
@@ -80,16 +71,40 @@ export function useTimerControls(
     };
   }, [cleanupTimer]);
 
-  // Wrappers for functions that need memoization
-  const handleStartTimer = useCallback(() => {
-    console.log("Start timer called");
-    startTimer();
-  }, [startTimer]);
+  // Enhanced start timer that enables audio context
+  const startTimer = useCallback(() => {
+    console.log("Start timer called - habilitando contexto de áudio");
+    setGlobalAudioEnabled(true);
+    enableTimerAudio();
+    // Try to unlock audio on start
+    setTimeout(() => {
+      unlockAudio();
+    }, 100);
+    coreStartTimer();
+  }, [coreStartTimer, setGlobalAudioEnabled, enableTimerAudio, unlockAudio]);
 
-  const handlePauseTimer = useCallback(() => {
+  // Enhanced pause timer
+  const pauseTimer = useCallback(() => {
     console.log("Pause timer called");
-    pauseTimer();
-  }, [pauseTimer]);
+    corePauseTimer();
+  }, [corePauseTimer]);
+
+  // Enhanced toggle sound that manages audio context
+  const enhancedToggleSound = useCallback(() => {
+    const newSoundState = !state.soundEnabled;
+    console.log(`Som ${newSoundState ? 'ativado' : 'desativado'} pelo usuário`);
+    
+    setGlobalAudioEnabled(newSoundState);
+    if (newSoundState) {
+      enableTimerAudio();
+      // Try to unlock audio when user enables sound
+      setTimeout(() => {
+        unlockAudio();
+      }, 100);
+    }
+    
+    toggleSound();
+  }, [state.soundEnabled, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, toggleSound]);
 
   const handleNextLevel = useCallback(() => {
     console.log("Next level called");
@@ -112,11 +127,11 @@ export function useTimerControls(
   }, [reloadAudioFiles]);
 
   return {
-    startTimer: handleStartTimer,
-    pauseTimer: handlePauseTimer,
+    startTimer,
+    pauseTimer,
     nextLevel: handleNextLevel,
     previousLevel: handlePreviousLevel,
-    toggleSound,
+    toggleSound: enhancedToggleSound,
     openInNewWindow,
     setLevelProgress: handleLevelProgress,
     toggleFullScreen,

@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { AudioRefs } from "./useAudioEffects";
 import { TimerState } from "../useTimerState";
+import { useAudioContext } from "@/contexts/AudioContext";
 
 export function useSoundEffects(
   timeRemainingInLevel: number,
@@ -10,9 +11,16 @@ export function useSoundEffects(
   audioRefs: AudioRefs,
   playAudioSafely: (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => Promise<void>
 ) {
+  const { isTimerAudioActive, setGlobalAudioEnabled } = useAudioContext();
+  
   // Handle sound effects based on timer state
   useEffect(() => {
     let alertTimeout: number;
+    
+    // Only play sounds if timer audio is active
+    if (!isTimerAudioActive) {
+      return;
+    }
     
     // Aumentar volume antes de reproduzir cada som
     const playWithIncreasedVolume = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
@@ -63,30 +71,7 @@ export function useSoundEffects(
         clearTimeout(alertTimeout);
       }
     };
-  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel]);
-
-  // Função para tentar desbloquear o áudio
-  const attemptToUnlockAudio = (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
-    if (!audioRef.current) return;
-    
-    const audio = audioRef.current;
-    const originalVolume = audio.volume;
-    
-    // Tentativa de reprodução silenciosa para desbloquear
-    audio.volume = 0.01;
-    audio.play()
-      .then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        // Configurar volume aumentado após desbloqueio
-        audio.volume = Math.min(originalVolume * 2, 1.0);
-        console.log("Áudio desbloqueado com sucesso e volume aumentado");
-      })
-      .catch(error => {
-        console.warn("Erro ao desbloquear áudio:", error);
-        audio.volume = originalVolume;
-      });
-  };
+  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel, isTimerAudioActive]);
 
   const toggleSound = () => {
     // Adiciona um log para verificar quando o usuário alterna o som
@@ -94,22 +79,17 @@ export function useSoundEffects(
     console.log(`Som ${newSoundState ? 'ativado' : 'desativado'} pelo usuário`);
     setState(prev => ({ ...prev, soundEnabled: newSoundState }));
     
-    // Tentativa de reproduzir um som curto para "desbloquear" o áudio do navegador
-    if (newSoundState) {
-      // Tentar desbloquear todos os áudios após a interação do usuário
-      setTimeout(() => {
-        console.log("Tentativa de desbloqueio de áudio após interação do usuário");
-        attemptToUnlockAudio(audioRefs.alertAudioRef);
-        attemptToUnlockAudio(audioRefs.countdownAudioRef);
-        attemptToUnlockAudio(audioRefs.levelCompleteAudioRef);
-        
-        // Reproduzir um som muito curto e silencioso para confirmar o desbloqueio
-        playAudioSafely(audioRefs.alertAudioRef, true);
-      }, 100);
-    }
+    // Update global audio state
+    setGlobalAudioEnabled(newSoundState);
   };
 
   const playLevelCompleteSound = () => {
+    // Only play if timer audio is active
+    if (!isTimerAudioActive) {
+      console.log("Timer audio não está ativo, ignorando som de conclusão de nível");
+      return;
+    }
+    
     console.log("Chamada para reproduzir som de conclusão de nível com volume aumentado");
     // Aumentar volume antes de reproduzir
     if (audioRefs.levelCompleteAudioRef.current) {
