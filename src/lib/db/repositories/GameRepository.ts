@@ -1,4 +1,3 @@
-
 import { IDBPDatabase } from 'idb';
 import { Game, GamePlayer } from '../models';
 import { PokerDB } from '../schema/PokerDBSchema';
@@ -24,8 +23,14 @@ export class GameRepository extends SupabaseCore {
       try {
         const orgId = this.getCurrentOrganizationId();
         
+        console.log("GameRepository.getGames: Buscando games", {
+          seasonId,
+          orgId,
+          useSupabase: this.useSupabase
+        });
+        
         if (!orgId) {
-          console.warn("No organization selected, returning empty games list");
+          console.warn("GameRepository.getGames: No organization selected, returning empty games list");
           return [];
         }
         
@@ -36,7 +41,12 @@ export class GameRepository extends SupabaseCore {
           .eq('season_id', seasonId)
           .eq('organization_id', orgId);
           
-        if (error) throw error;
+        if (error) {
+          console.error("GameRepository.getGames: Supabase error:", error);
+          throw error;
+        }
+        
+        console.log("GameRepository.getGames: Dados recebidos do Supabase:", data?.length || 0);
         
         return data.map(game => ({
           id: game.id,
@@ -50,7 +60,7 @@ export class GameRepository extends SupabaseCore {
           createdAt: new Date(game.created_at)
         })) as Game[];
       } catch (error) {
-        console.error("Error fetching games from Supabase:", error);
+        console.error("GameRepository.getGames: Error fetching games from Supabase:", error);
         throw error;
       }
     } else if (this.idbDb) {
@@ -65,8 +75,14 @@ export class GameRepository extends SupabaseCore {
       try {
         const orgId = this.getCurrentOrganizationId();
         
+        console.log("GameRepository.getGame: Buscando game", {
+          gameId: id,
+          orgId,
+          useSupabase: this.useSupabase
+        });
+        
         if (!orgId) {
-          console.warn("No organization selected, cannot get game");
+          console.warn("GameRepository.getGame: No organization selected, cannot get game");
           return undefined;
         }
         
@@ -78,7 +94,12 @@ export class GameRepository extends SupabaseCore {
           .eq('organization_id', orgId)
           .maybeSingle();
           
-        if (error) throw error;
+        if (error) {
+          console.error("GameRepository.getGame: Supabase error:", error);
+          throw error;
+        }
+        
+        console.log("GameRepository.getGame: Game encontrado:", !!data);
         
         if (!data) return undefined;
         
@@ -94,7 +115,7 @@ export class GameRepository extends SupabaseCore {
           createdAt: new Date(data.created_at)
         } as Game;
       } catch (error) {
-        console.error("Error fetching game from Supabase:", error);
+        console.error("GameRepository.getGame: Error fetching game from Supabase:", error);
         throw error;
       }
     } else if (this.idbDb) {
@@ -109,8 +130,13 @@ export class GameRepository extends SupabaseCore {
       try {
         const orgId = this.getCurrentOrganizationId();
         
+        console.log("GameRepository.getLastGame: Buscando último game", {
+          orgId,
+          useSupabase: this.useSupabase
+        });
+        
         if (!orgId) {
-          console.warn("No organization selected, cannot get last game");
+          console.warn("GameRepository.getLastGame: No organization selected, cannot get last game");
           return undefined;
         }
         
@@ -123,7 +149,12 @@ export class GameRepository extends SupabaseCore {
           .limit(1)
           .maybeSingle();
           
-        if (error) throw error;
+        if (error) {
+          console.error("GameRepository.getLastGame: Supabase error:", error);
+          throw error;
+        }
+        
+        console.log("GameRepository.getLastGame: Último game encontrado:", !!data);
         
         if (!data) return undefined;
         
@@ -139,7 +170,7 @@ export class GameRepository extends SupabaseCore {
           createdAt: new Date(data.created_at)
         } as Game;
       } catch (error) {
-        console.error("Error fetching last game from Supabase:", error);
+        console.error("GameRepository.getLastGame: Error fetching last game from Supabase:", error);
         throw error;
       }
     } else if (this.idbDb) {

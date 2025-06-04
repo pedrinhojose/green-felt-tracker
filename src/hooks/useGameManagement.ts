@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -25,17 +26,22 @@ export function useGameManagement() {
       if (!gameId) return;
       
       try {
+        console.log("useGameManagement: Carregando game:", gameId);
         setIsLoading(true);
+        
         // Find the game in the games array from context
         const foundGame = games.find(g => g.id === gameId);
+        console.log("useGameManagement: Game encontrado:", !!foundGame);
         
         if (foundGame) {
           setGame(foundGame);
           
           // Initialize selected players if game has players
           if (foundGame.players.length > 0) {
+            console.log("useGameManagement: Game tem", foundGame.players.length, "jogadores");
             setIsSelectingPlayers(false);
           } else {
+            console.log("useGameManagement: Game não tem jogadores, iniciando seleção");
             setIsSelectingPlayers(true);
           }
           
@@ -44,6 +50,7 @@ export function useGameManagement() {
             setDinnerCost(foundGame.dinnerCost);
           }
         } else {
+          console.error("useGameManagement: Game não encontrado");
           toast({
             title: "Erro",
             description: "Partida não encontrada.",
@@ -52,7 +59,7 @@ export function useGameManagement() {
           navigate("/games");
         }
       } catch (error) {
-        console.error("Error loading game:", error);
+        console.error("useGameManagement: Error loading game:", error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar os dados da partida.",

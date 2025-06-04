@@ -49,30 +49,31 @@ class PokerDatabase {
       
       // If user is authenticated, use Supabase repositories
       if (session && session.user) {
-        console.log("User is authenticated, using Supabase repositories");
+        console.log("PokerDatabase: User is authenticated, using Supabase repositories");
         this.setupSupabaseRepositories();
       } else {
-        console.log("User is not authenticated, using IndexedDB repositories");
+        console.log("PokerDatabase: User is not authenticated, using IndexedDB repositories");
         this.useSupabase = false;
       }
     } catch (error) {
-      console.error("Error checking auth status:", error);
+      console.error("PokerDatabase: Error checking auth status:", error);
       this.useSupabase = false;
     }
   }
   
   private setupSupabaseRepositories(): void {
+    console.log("PokerDatabase: Setting up Supabase repositories");
     this.playerRepository = new PlayerRepository();
     this.seasonRepository = new SeasonRepository();
     this.gameRepository = new GameRepository();
     this.rankingRepository = new RankingRepository();
     this.useSupabase = true;
-    console.log("Supabase repositories initialized");
+    console.log("PokerDatabase: Supabase repositories initialized");
   }
   
   private setupAuthListener(): void {
     supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change:", event);
+      console.log("PokerDatabase: Auth state change:", event);
       
       if (event === 'SIGNED_IN') {
         // Use setTimeout to prevent deadlocks
@@ -81,11 +82,11 @@ class PokerDatabase {
           
           // REMOVED automatic migration from IndexedDB to Supabase
           // Now we prioritize Supabase data and don't migrate local data
-          console.log("User signed in - using Supabase repositories without data migration");
+          console.log("PokerDatabase: User signed in - using Supabase repositories without data migration");
           
           // Clear IndexedDB data to prevent future accidental migrations
           this.clearLocalData().catch(error => 
-            console.error("Error during local data clearing:", error)
+            console.error("PokerDatabase: Error during local data clearing:", error)
           );
         }, 0);
       } else if (event === 'SIGNED_OUT') {
@@ -96,7 +97,7 @@ class PokerDatabase {
         this.gameRepository = new GameRepository(db);
         this.rankingRepository = new RankingRepository(db);
         this.useSupabase = false;
-        console.log("Using IndexedDB repositories after sign out");
+        console.log("PokerDatabase: Using IndexedDB repositories after sign out");
       }
     });
   }
@@ -104,7 +105,7 @@ class PokerDatabase {
   // New method to clear local IndexedDB data when user logs in
   private async clearLocalData(): Promise<void> {
     try {
-      console.log("Clearing local IndexedDB data");
+      console.log("PokerDatabase: Clearing local IndexedDB data");
       const db = await this.dbCore.getDatabase();
       
       // Clear all stores in IndexedDB
@@ -113,16 +114,19 @@ class PokerDatabase {
       await db.clear('games');
       await db.clear('rankings');
       
-      console.log("Local data cleared successfully");
+      console.log("PokerDatabase: Local data cleared successfully");
     } catch (error) {
-      console.error("Failed to clear local IndexedDB data:", error);
+      console.error("PokerDatabase: Failed to clear local IndexedDB data:", error);
       throw error;
     }
   }
 
   // Player methods
   async getPlayers(): Promise<Player[]> {
-    return this.playerRepository.getPlayers();
+    console.log("PokerDatabase.getPlayers: Iniciando busca de players");
+    const result = await this.playerRepository.getPlayers();
+    console.log("PokerDatabase.getPlayers: Resultado:", result.length, "players encontrados");
+    return result;
   }
 
   async getPlayer(id: string): Promise<Player | undefined> {
@@ -139,11 +143,17 @@ class PokerDatabase {
 
   // Season methods
   async getSeasons(): Promise<Season[]> {
-    return this.seasonRepository.getSeasons();
+    console.log("PokerDatabase.getSeasons: Iniciando busca de seasons");
+    const result = await this.seasonRepository.getSeasons();
+    console.log("PokerDatabase.getSeasons: Resultado:", result.length, "seasons encontradas");
+    return result;
   }
   
   async getActiveSeason(): Promise<Season | undefined> {
-    return this.seasonRepository.getActiveSeason();
+    console.log("PokerDatabase.getActiveSeason: Buscando season ativa");
+    const result = await this.seasonRepository.getActiveSeason();
+    console.log("PokerDatabase.getActiveSeason: Resultado:", result ? `Season ${result.name}` : 'nenhuma');
+    return result;
   }
 
   async getSeason(id: string): Promise<Season | undefined> {
@@ -164,7 +174,10 @@ class PokerDatabase {
 
   // Game methods
   async getGames(seasonId: string): Promise<Game[]> {
-    return this.gameRepository.getGames(seasonId);
+    console.log("PokerDatabase.getGames: Iniciando busca de games para season:", seasonId);
+    const result = await this.gameRepository.getGames(seasonId);
+    console.log("PokerDatabase.getGames: Resultado:", result.length, "games encontrados");
+    return result;
   }
 
   async getGame(id: string): Promise<Game | undefined> {
@@ -172,7 +185,10 @@ class PokerDatabase {
   }
   
   async getLastGame(): Promise<Game | undefined> {
-    return this.gameRepository.getLastGame();
+    console.log("PokerDatabase.getLastGame: Buscando último game");
+    const result = await this.gameRepository.getLastGame();
+    console.log("PokerDatabase.getLastGame: Resultado:", result ? `Game ${result.number}` : 'nenhum');
+    return result;
   }
 
   async saveGame(game: Game): Promise<string> {
@@ -185,7 +201,10 @@ class PokerDatabase {
 
   // Ranking methods
   async getRankings(seasonId: string): Promise<RankingEntry[]> {
-    return this.rankingRepository.getRankings(seasonId);
+    console.log("PokerDatabase.getRankings: Iniciando busca de rankings para season:", seasonId);
+    const result = await this.rankingRepository.getRankings(seasonId);
+    console.log("PokerDatabase.getRankings: Resultado:", result.length, "rankings encontrados");
+    return result;
   }
 
   async saveRanking(ranking: RankingEntry): Promise<void> {
