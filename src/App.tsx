@@ -63,133 +63,36 @@ function App() {
                         </RequireAuth>
                       } />
                       
-                      <Route path="/dashboard" element={
+                      {/* Routes that require organization and use AppLayout */}
+                      <Route path="/" element={
                         <RequireAuth>
                           <OrganizationRequired>
-                            <AppLayout>
-                              <Dashboard />
-                            </AppLayout>
+                            <AppLayout />
                           </OrganizationRequired>
                         </RequireAuth>
-                      } />
+                      }>
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="players" element={<PlayersManagement />} />
+                        <Route path="season" element={<SeasonConfig />} />
+                        <Route path="games" element={<GamesList />} />
+                        <Route path="game/:gameId" element={<GameManagement />} />
+                        <Route path="ranking" element={<RankingPage />} />
+                        <Route path="seasons" element={<SeasonsList />} />
+                        <Route path="seasons/:seasonId" element={<SeasonDetails />} />
+                        <Route path="seasons/:seasonId/report" element={<SeasonReport />} />
+                        <Route path="organization/settings" element={<OrganizationSettingsPage />} />
+                        <Route path="organization/members" element={<OrganizationMembersPage />} />
+                        <Route path="users" element={<UserManagement />} />
+                      </Route>
                       
-                      <Route path="/players" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <PlayersManagement />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/season" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <SeasonConfig />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/games" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <GamesList />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/game/:gameId" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <GameManagement />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/ranking" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <RankingPage />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/seasons" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <SeasonsList />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/seasons/:seasonId" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <SeasonDetails />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/seasons/:seasonId/report" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <SeasonReport />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
+                      {/* Organizations route (no organization required) */}
                       <Route path="/organizations" element={
                         <RequireAuth>
-                          <AppLayout>
-                            <OrganizationsPage />
-                          </AppLayout>
+                          <AppLayout />
                         </RequireAuth>
-                      } />
-                      
-                      <Route path="/organization/settings" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <OrganizationSettingsPage />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/organization/members" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <OrganizationMembersPage />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/users" element={
-                        <RequireAuth>
-                          <OrganizationRequired>
-                            <AppLayout>
-                              <UserManagement />
-                            </AppLayout>
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      } />
+                      }>
+                        <Route index element={<OrganizationsPage />} />
+                      </Route>
                       
                       {/* Catch all route */}
                       <Route path="*" element={<NotFound />} />
