@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { FileText, List, Trash } from "lucide-react";
@@ -22,13 +23,24 @@ import {
 export default function GamesList() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { games, activeSeason, createGame, getGameNumber, deleteGame } = usePoker();
+  const { games, activeSeason, createGame, getGameNumber, deleteGame, isLoading } = usePoker();
+  const { currentOrganization } = useOrganization();
   const [isCreating, setIsCreating] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
   // Sort games by number in descending order
   const sortedGames = [...games].sort((a, b) => b.number - a.number);
+  
+  // Debug logging
+  console.log("GamesList: Estado atual", {
+    organizationId: currentOrganization?.id || 'none',
+    organizationName: currentOrganization?.name || 'none',
+    activeSeasonId: activeSeason?.id || 'none',
+    activeSeasonName: activeSeason?.name || 'none',
+    gamesCount: games.length,
+    isLoading
+  });
   
   const handleCreateGame = async () => {
     if (!activeSeason) {
@@ -77,10 +89,27 @@ export default function GamesList() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Partidas</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-white">Partidas</h2>
+          {currentOrganization && (
+            <p className="text-sm text-muted-foreground">
+              Organização: {currentOrganization.name}
+            </p>
+          )}
+        </div>
         
         <div className="flex gap-2 mt-4 sm:mt-0">
           <Button 

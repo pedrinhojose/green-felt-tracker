@@ -8,12 +8,14 @@ import { useSeasonFunctions } from './useSeasonFunctions';
 import { useRankingFunctions } from './useRankingFunctions';
 import { usePokerUtils } from './usePokerUtils';
 import { useGameFunctions } from './useGameFunctions';
+import { useOrganization } from './OrganizationContext';
 
 // Create context with undefined as initial value
 const PokerContext = createContext<PokerContextProps | undefined>(undefined);
 
 export function PokerProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const { currentOrganization } = useOrganization();
   
   // Initialize all the hooks
   const { 
@@ -49,36 +51,72 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     setActiveSeason
   );
 
-  // Load initial data
+  // Load initial data when organization changes
   useEffect(() => {
     const initData = async () => {
+      if (!currentOrganization) {
+        console.log("PokerContext: Nenhuma organização selecionada, limpando dados");
+        setPlayers([]);
+        setSeasons([]);
+        setActiveSeason(null);
+        setGames([]);
+        setRankings([]);
+        setLastGame(null);
+        return;
+      }
+
       try {
+        console.log("PokerContext: Inicializando dados para organização:", currentOrganization.id, currentOrganization.name);
         setIsLoading(true);
+        
+        // Load players
+        console.log("PokerContext: Carregando jogadores...");
         const playersData = await pokerDB.getPlayers();
+        console.log("PokerContext: Jogadores carregados:", playersData.length);
         setPlayers(playersData);
         
+        // Load seasons
+        console.log("PokerContext: Carregando temporadas...");
         const seasonsData = await pokerDB.getSeasons();
+        console.log("PokerContext: Temporadas carregadas:", seasonsData.length);
         setSeasons(seasonsData);
         
-        const activeSeason = await pokerDB.getActiveSeason();
-        setActiveSeason(activeSeason || null);
+        // Load active season
+        console.log("PokerContext: Carregando temporada ativa...");
+        const activeSeasonData = await pokerDB.getActiveSeason();
+        console.log("PokerContext: Temporada ativa:", activeSeasonData?.id || 'nenhuma');
+        setActiveSeason(activeSeasonData || null);
         
-        if (activeSeason) {
-          const gamesData = await pokerDB.getGames(activeSeason.id);
+        if (activeSeasonData) {
+          // Load games for active season
+          console.log("PokerContext: Carregando jogos para temporada ativa:", activeSeasonData.id);
+          const gamesData = await pokerDB.getGames(activeSeasonData.id);
+          console.log("PokerContext: Jogos carregados:", gamesData.length);
           setGames(gamesData);
           
-          console.log("Carregando rankings para temporada ativa:", activeSeason.id);
-          const rankingsData = await pokerDB.getRankings(activeSeason.id);
+          // Load rankings for active season
+          console.log("PokerContext: Carregando rankings para temporada ativa:", activeSeasonData.id);
+          const rankingsData = await pokerDB.getRankings(activeSeasonData.id);
+          console.log("PokerContext: Rankings carregados:", rankingsData.length);
           setRankings(rankingsData);
+        } else {
+          console.log("PokerContext: Nenhuma temporada ativa, limpando jogos e rankings");
+          setGames([]);
+          setRankings([]);
         }
         
+        // Load last game
+        console.log("PokerContext: Carregando último jogo...");
         const lastGameData = await pokerDB.getLastGame();
+        console.log("PokerContext: Último jogo:", lastGameData?.id || 'nenhum');
         setLastGame(lastGameData || null);
+        
+        console.log("PokerContext: Inicialização concluída com sucesso");
       } catch (error) {
-        console.error('Error initializing data:', error);
+        console.error('PokerContext: Erro ao inicializar dados:', error);
         toast({
           title: "Erro ao carregar dados",
-          description: "Não foi possível carregar os dados. Por favor, recarregue a página.",
+          description: "Não foi possível carregar os dados. Verifique se você tem acesso à organização selecionada.",
           variant: "destructive",
         });
       } finally {
@@ -87,7 +125,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     };
     
     initData();
-  }, [toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
+  }, [currentOrganization, toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
 
   // Create the context value
   const contextValue: PokerContextProps = {
