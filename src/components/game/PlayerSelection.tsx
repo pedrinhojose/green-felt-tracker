@@ -16,6 +16,11 @@ export default function PlayerSelection({ players, onStartGame }: PlayerSelectio
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   
+  // Sort players alphabetically by name
+  const sortedPlayers = [...players].sort((a, b) => 
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+  );
+  
   const togglePlayerSelection = (playerId: string) => {
     setSelectedPlayers(prevSelected => {
       const newSelected = new Set(prevSelected);
@@ -80,7 +85,7 @@ export default function PlayerSelection({ players, onStartGame }: PlayerSelectio
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-          {players.map(player => (
+          {sortedPlayers.map(player => (
             <div 
               key={player.id}
               className={`p-3 rounded-lg flex items-center gap-3 cursor-pointer ${
