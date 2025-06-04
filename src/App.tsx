@@ -64,34 +64,35 @@ function App() {
                       } />
                       
                       {/* Routes that require organization and use AppLayout */}
-                      <Route path="/" element={
+                      <Route element={
                         <RequireAuth>
                           <OrganizationRequired>
                             <AppLayout />
                           </OrganizationRequired>
                         </RequireAuth>
                       }>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="players" element={<PlayersManagement />} />
-                        <Route path="season" element={<SeasonConfig />} />
-                        <Route path="games" element={<GamesList />} />
-                        <Route path="game/:gameId" element={<GameManagement />} />
-                        <Route path="ranking" element={<RankingPage />} />
-                        <Route path="seasons" element={<SeasonsList />} />
-                        <Route path="seasons/:seasonId" element={<SeasonDetails />} />
-                        <Route path="seasons/:seasonId/report" element={<SeasonReport />} />
-                        <Route path="organization/settings" element={<OrganizationSettingsPage />} />
-                        <Route path="organization/members" element={<OrganizationMembersPage />} />
-                        <Route path="users" element={<UserManagement />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/players" element={<PlayersManagement />} />
+                        <Route path="/season" element={<SeasonConfig />} />
+                        <Route path="/games" element={<GamesList />} />
+                        <Route path="/game/:gameId" element={<GameManagement />} />
+                        <Route path="/ranking" element={<RankingPage />} />
+                        <Route path="/seasons" element={<SeasonsList />} />
+                        <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
+                        <Route path="/seasons/:seasonId/report" element={<SeasonReport />} />
+                        <Route path="/report" element={<SeasonReport />} />
+                        <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
+                        <Route path="/organization/members" element={<OrganizationMembersPage />} />
+                        <Route path="/users" element={<UserManagement />} />
                       </Route>
                       
                       {/* Organizations route (no organization required) */}
-                      <Route path="/organizations" element={
+                      <Route element={
                         <RequireAuth>
                           <AppLayout />
                         </RequireAuth>
                       }>
-                        <Route index element={<OrganizationsPage />} />
+                        <Route path="/organizations" element={<OrganizationsPage />} />
                       </Route>
                       
                       {/* Catch all route */}
