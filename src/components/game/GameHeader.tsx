@@ -108,7 +108,7 @@ export default function GameHeader({
           </Button>
         ) : (
           <>
-            {/* Botão para excluir partida */}
+            {/* Botão para cancelar partida */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 
@@ -117,15 +117,15 @@ export default function GameHeader({
                   disabled={isDeleting}
                   className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                 >
-                  {isDeleting ? "Excluindo..." : "Excluir Partida"}
+                  {isDeleting ? "Cancelando..." : "Cancelar Partida"}
                   <Trash2 className="ml-2 h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir Partida</AlertDialogTitle>
+                  <AlertDialogTitle>Cancelar Partida</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza que deseja excluir esta partida? Esta ação não pode ser desfeita.
+                    Tem certeza que deseja cancelar esta partida? Esta ação não pode ser desfeita.
                     {isFinished && " Como a partida está finalizada, isso também reverterá os rankings e ajustes no jackpot."}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -136,7 +136,7 @@ export default function GameHeader({
                     disabled={isDeleting}
                     className="bg-red-500 hover:bg-red-600"
                   >
-                    {isDeleting ? "Excluindo..." : "Excluir"}
+                    {isDeleting ? "Cancelando..." : "Cancelar Partida"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
