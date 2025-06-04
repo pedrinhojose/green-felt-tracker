@@ -45,10 +45,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <AuthProvider>
-          <Router>
-            <OrganizationProvider>
-              <PokerProvider>
-                <AudioProvider>
+          <OrganizationProvider>
+            <PokerProvider>
+              <AudioProvider>
+                <Router>
                   <div className="min-h-screen bg-poker-black">
                     <Routes>
                       {/* Public routes */}
@@ -196,10 +196,10 @@ function App() {
                     </Routes>
                   </div>
                   <Toaster />
-                </AudioProvider>
-              </PokerProvider>
-            </OrganizationProvider>
-          </Router>
+                </Router>
+              </AudioProvider>
+            </PokerProvider>
+          </OrganizationProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
