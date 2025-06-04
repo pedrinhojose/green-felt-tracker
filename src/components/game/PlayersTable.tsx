@@ -10,6 +10,7 @@ interface PlayersTableProps {
   players: Player[];
   activeSeason: Season | null;
   onEliminatePlayer: (playerId: string) => void;
+  onReactivatePlayer: (playerId: string) => void;
   onUpdatePlayerStats: (playerId: string, field: keyof GamePlayer, value: any) => void;
 }
 
@@ -18,6 +19,7 @@ export default function PlayersTable({
   players,
   activeSeason,
   onEliminatePlayer,
+  onReactivatePlayer,
   onUpdatePlayerStats,
 }: PlayersTableProps) {
   
@@ -59,6 +61,7 @@ export default function PlayersTable({
                     activeSeason={activeSeason}
                     isFinished={game.isFinished}
                     onEliminatePlayer={onEliminatePlayer}
+                    onReactivatePlayer={onReactivatePlayer}
                     onUpdatePlayerStats={onUpdatePlayerStats}
                   />
                 );

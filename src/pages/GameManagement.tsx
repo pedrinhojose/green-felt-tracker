@@ -43,6 +43,7 @@ export default function GameManagement() {
     handleStartGame,
     updatePlayerStats,
     eliminatePlayer,
+    reactivatePlayer,
     addLatePlayer
   } = usePlayerActions(game, setGame);
   
@@ -153,6 +154,7 @@ export default function GameManagement() {
             players={players}
             activeSeason={activeSeason}
             onEliminatePlayer={eliminatePlayer}
+            onReactivatePlayer={reactivatePlayer}
             onUpdatePlayerStats={updatePlayerStats}
           />
           

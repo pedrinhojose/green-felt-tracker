@@ -95,5 +95,47 @@ export function useEliminationActions(game: Game | null, setGame: React.Dispatch
     }
   };
 
-  return { eliminatePlayer };
+  // Player reactivation function
+  const reactivatePlayer = async (playerId: string) => {
+    if (!game) return;
+    
+    try {
+      // Update player to remove elimination status and position
+      const updatedPlayers = game.players.map(player => {
+        if (player.playerId === playerId) {
+          return { ...player, position: null, isEliminated: false };
+        }
+        return player;
+      });
+      
+      // Update game
+      await updateGame({
+        id: game.id,
+        players: updatedPlayers,
+      });
+      
+      // Update local game state
+      setGame(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          players: updatedPlayers,
+        };
+      });
+      
+      toast({
+        title: "Jogador reativado",
+        description: "O jogador foi reintegrado à partida.",
+      });
+    } catch (error) {
+      console.error("Error reactivating player:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível reativar o jogador.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return { eliminatePlayer, reactivatePlayer };
 }

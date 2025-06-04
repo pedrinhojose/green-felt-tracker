@@ -13,6 +13,7 @@ interface PlayerTableRowProps {
   isFinished: boolean;
   onUpdatePlayerStats: (playerId: string, field: keyof GamePlayer, value: any) => void;
   onEliminatePlayer: (playerId: string) => void;
+  onReactivatePlayer: (playerId: string) => void;
 }
 
 export function PlayerTableRow({
@@ -23,6 +24,7 @@ export function PlayerTableRow({
   isFinished,
   onUpdatePlayerStats,
   onEliminatePlayer,
+  onReactivatePlayer,
 }: PlayerTableRowProps) {
   // Helper function to get player initials
   const getInitials = (name: string) => {
@@ -163,14 +165,27 @@ export function PlayerTableRow({
       </td>
       
       <td className="p-2 text-right">
-        {!gamePlayer.isEliminated && !isFinished && (
-          <Button 
-            size="sm" 
-            variant="destructive" 
-            onClick={() => onEliminatePlayer(gamePlayer.playerId)}
-          >
-            Eliminar
-          </Button>
+        {!isFinished && (
+          <div className="flex gap-2 justify-end">
+            {!gamePlayer.isEliminated ? (
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                onClick={() => onEliminatePlayer(gamePlayer.playerId)}
+              >
+                Eliminar
+              </Button>
+            ) : (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => onReactivatePlayer(gamePlayer.playerId)}
+                className="border-poker-gold text-poker-gold hover:bg-poker-gold hover:text-black"
+              >
+                Reativar
+              </Button>
+            )}
+          </div>
         )}
       </td>
     </tr>
