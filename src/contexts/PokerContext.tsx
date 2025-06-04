@@ -17,6 +17,8 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const { currentOrganization } = useOrganization();
   
+  console.log("PokerProvider: Renderizando com organização:", currentOrganization?.name || 'nenhuma');
+  
   // Initialize all the hooks
   const { 
     players, setPlayers, 
@@ -159,6 +161,13 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     getGameNumber,
   };
 
+  console.log("PokerProvider: Fornecendo contexto com dados:", {
+    players: players.length,
+    seasons: seasons.length,
+    activeSeason: activeSeason?.name || 'nenhuma',
+    games: games.length
+  });
+
   return (
     <PokerContext.Provider value={contextValue}>
       {children}
@@ -167,9 +176,15 @@ export function PokerProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePoker() {
+  console.log("usePoker: Tentando acessar contexto...");
   const context = useContext(PokerContext);
+  
   if (context === undefined) {
+    console.error('usePoker: Contexto não encontrado! Componente não está dentro do PokerProvider');
+    console.trace('Stack trace do erro usePoker');
     throw new Error('usePoker must be used within a PokerProvider');
   }
+  
+  console.log("usePoker: Contexto acessado com sucesso");
   return context;
 }

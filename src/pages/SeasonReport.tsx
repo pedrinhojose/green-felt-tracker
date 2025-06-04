@@ -12,7 +12,33 @@ import { useSeasonReport } from "@/hooks/useSeasonReport";
 
 export default function SeasonReport() {
   const navigate = useNavigate();
-  const { activeSeason } = usePoker();
+  
+  console.log("SeasonReport: Componente iniciando...");
+  
+  // Add a try-catch to better handle the context access
+  let activeSeason = null;
+  let contextError = null;
+  
+  try {
+    console.log("SeasonReport: Tentando acessar usePoker...");
+    const pokerContext = usePoker();
+    activeSeason = pokerContext.activeSeason;
+    console.log("SeasonReport: usePoker acessado com sucesso, temporada ativa:", activeSeason?.name || 'nenhuma');
+  } catch (error) {
+    console.error("SeasonReport: Erro ao acessar usePoker:", error);
+    contextError = error;
+  }
+  
+  // If there's a context error, show a loading state or error message
+  if (contextError) {
+    console.log("SeasonReport: Erro de contexto detectado, mostrando loading");
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold mx-auto mb-4"></div>
+        <h2 className="text-xl text-white">Carregando dados...</h2>
+      </div>
+    );
+  }
   
   const { 
     playerStats, 
@@ -45,7 +71,7 @@ export default function SeasonReport() {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <h2 className="text-2xl font-bold text-white mb-4">Nenhuma temporada ativa</h2>
-        <Button onClick={() => navigate('/temporada')}>Ir para Configuração de Temporada</Button>
+        <Button onClick={() => navigate('/season')}>Ir para Configuração de Temporada</Button>
       </div>
     );
   }
@@ -58,7 +84,7 @@ export default function SeasonReport() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => navigate('/partidas')}
+              onClick={() => navigate('/games')}
               className="mb-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
