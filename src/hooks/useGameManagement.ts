@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,7 +8,7 @@ export function useGameManagement() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { players, activeSeason, games, updateGame, finishGame } = usePoker();
+  const { players, activeSeason, games, updateGame, finishGame, deleteGame } = usePoker();
   
   const [game, setGame] = useState<Game | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,6 +17,7 @@ export function useGameManagement() {
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Load game data
   useEffect(() => {
@@ -163,6 +163,33 @@ export function useGameManagement() {
     }
   };
 
+  // Game delete functionality
+  const handleDeleteGame = async () => {
+    if (!game) return;
+    
+    try {
+      setIsDeleting(true);
+      await deleteGame(game.id);
+      
+      toast({
+        title: "Partida excluída",
+        description: "A partida foi excluída com sucesso.",
+      });
+      
+      // Navigate back to games list
+      navigate('/games');
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a partida.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return {
     game,
     setGame,
@@ -180,5 +207,7 @@ export function useGameManagement() {
     handleExportReportAsImage,
     isFinishing,
     handleFinishGame,
+    isDeleting,
+    handleDeleteGame,
   };
 }

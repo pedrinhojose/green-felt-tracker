@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
-import { FileImage, Image } from "lucide-react";
+import { FileImage, Image, Trash2 } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -39,9 +39,11 @@ interface GameHeaderProps {
   isExporting: boolean;
   isExportingImage: boolean;
   isFinishing: boolean;
+  isDeleting: boolean;
   onExportReport: () => void;
   onExportReportAsImage: () => void;
   onFinishGame: () => void;
+  onDeleteGame: () => void;
 }
 
 export default function GameHeader({
@@ -51,9 +53,11 @@ export default function GameHeader({
   isExporting,
   isExportingImage,
   isFinishing,
+  isDeleting,
   onExportReport,
   onExportReportAsImage,
   onFinishGame,
+  onDeleteGame,
 }: GameHeaderProps) {
   const navigate = useNavigate();
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -103,33 +107,70 @@ export default function GameHeader({
             Voltar
           </Button>
         ) : (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button 
-                variant="destructive"
-                size="sm"
-              >
-                Encerrar Partida
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Encerrar Partida</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tem certeza que deseja encerrar esta partida? Esta ação não pode ser desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleFinishGame}
-                  disabled={isFinishing}
+          <>
+            {/* Botão para excluir partida */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  disabled={isDeleting}
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                 >
-                  {isFinishing ? "Encerrando..." : "Encerrar"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  {isDeleting ? "Excluindo..." : "Excluir Partida"}
+                  <Trash2 className="ml-2 h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir Partida</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir esta partida? Esta ação não pode ser desfeita.
+                    {isFinished && " Como a partida está finalizada, isso também reverterá os rankings e ajustes no jackpot."}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDeleteGame}
+                    disabled={isDeleting}
+                    className="bg-red-500 hover:bg-red-600"
+                  >
+                    {isDeleting ? "Excluindo..." : "Excluir"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Botão para encerrar partida */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive"
+                  size="sm"
+                >
+                  Encerrar Partida
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Encerrar Partida</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja encerrar esta partida? Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleFinishGame}
+                    disabled={isFinishing}
+                  >
+                    {isFinishing ? "Encerrando..." : "Encerrar"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
         )}
         
         {/* Sheet for report export after finishing game */}

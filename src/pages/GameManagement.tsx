@@ -33,9 +33,11 @@ export default function GameManagement() {
     isExporting,
     isExportingImage,
     isFinishing,
+    isDeleting,
     handleExportReport,
     handleExportReportAsImage,
     handleFinishGame,
+    handleDeleteGame,
   } = useGameManagement();
   
   // Player actions hook
@@ -101,9 +103,11 @@ export default function GameManagement() {
           isExporting={isExporting}
           isExportingImage={isExportingImage}
           isFinishing={isFinishing}
+          isDeleting={isDeleting}
           onExportReport={handleExportReport}
           onExportReportAsImage={handleExportReportAsImage}
           onFinishGame={handleFinishGame}
+          onDeleteGame={handleDeleteGame}
         />
       )}
       
