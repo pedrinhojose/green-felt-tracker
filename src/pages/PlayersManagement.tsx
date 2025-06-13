@@ -9,10 +9,12 @@ import { EditPlayerDialog } from "@/components/players/EditPlayerDialog";
 import { PlayersHeader } from "@/components/players/PlayersHeader";
 import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { PlayersList } from "@/components/players/PlayersList";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function PlayersManagement() {
   const { players, savePlayer, deletePlayer } = usePoker();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -138,7 +140,7 @@ export default function PlayersManagement() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'} max-w-7xl`}>
       <PlayersHeader onAddPlayer={() => setIsAddDialogOpen(true)} />
       <PlayerSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <PlayersList 

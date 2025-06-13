@@ -5,15 +5,17 @@ import TimerDisplay from "./TimerDisplay";
 import TimerControls from "./TimerControls";
 import { useTimerState } from "./useTimerState";
 import { useTimerControls } from "./useTimerControls";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function BlindTimer() {
   const { activeSeason } = usePoker();
+  const isMobile = useIsMobile();
   
   // If there's no active season or blind structure, show a fallback component
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
     return (
       <Card className="bg-poker-dark-green border border-poker-gold/20">
-        <CardContent className="p-6 text-center">
+        <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
           <p className="text-white">Estrutura de blinds não configurada para esta temporada</p>
         </CardContent>
       </Card>
@@ -57,8 +59,8 @@ export default function BlindTimer() {
   
   return (
     <Card className="bg-poker-dark-green border border-poker-gold/20">
-      <CardContent className="p-6">
-        <div className="space-y-6">
+      <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+        <div className={`space-y-${isMobile ? '4' : '6'}`}>
           <TimerDisplay
             currentLevel={currentLevel}
             nextLevel={nextLevel}

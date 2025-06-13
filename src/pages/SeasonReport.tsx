@@ -9,9 +9,11 @@ import SeasonPrizePoolSummary from "@/components/reports/SeasonPrizePoolSummary"
 import JackpotWinnersCard from "@/components/reports/JackpotWinnersCard";
 import BestWorstPlayersCard from "@/components/reports/BestWorstPlayersCard";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function SeasonReport() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   console.log("SeasonReport: Componente iniciando...");
   
@@ -77,7 +79,7 @@ export default function SeasonReport() {
   }
   
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
@@ -90,17 +92,18 @@ export default function SeasonReport() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar para Partidas
             </Button>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>
               Relatório da Temporada: {activeSeason.name}
             </h2>
           </div>
           
-          <div className="flex gap-2 mt-4 sm:mt-0">
+          <div className={`flex gap-2 mt-4 sm:mt-0 ${isMobile ? 'w-full' : ''}`}>
             <Button
               onClick={handleExportPdf}
               disabled={isExporting}
               variant="outline"
               size="sm"
+              className={isMobile ? 'flex-1' : ''}
             >
               {isExporting ? "Exportando..." : "Exportar PDF"}
               <FileText className="ml-2 h-4 w-4" />
@@ -111,6 +114,7 @@ export default function SeasonReport() {
               disabled={isExportingImage}
               variant="outline"
               size="sm"
+              className={isMobile ? 'flex-1' : ''}
             >
               {isExportingImage ? "Exportando..." : "Exportar Imagem"}
               <Image className="ml-2 h-4 w-4" />
@@ -122,23 +126,23 @@ export default function SeasonReport() {
           {/* Resumo da Temporada */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Resumo da Temporada</CardTitle>
+              <CardTitle className={isMobile ? "text-lg" : "text-xl"}>Resumo da Temporada</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
                 <div className="bg-poker-green/30 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">Total de Partidas</p>
-                  <p className="text-2xl font-bold">{seasonSummary.totalGames}</p>
+                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>{seasonSummary.totalGames}</p>
                 </div>
                 
                 <div className="bg-poker-green/30 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">Total de Jogadores</p>
-                  <p className="text-2xl font-bold">{seasonSummary.totalPlayers}</p>
+                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>{seasonSummary.totalPlayers}</p>
                 </div>
                 
                 <div className="bg-poker-green/30 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">Total Premiação</p>
-                  <p className="text-2xl font-bold text-poker-gold">
+                  <p className={`font-bold text-poker-gold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(seasonSummary.totalPrizePool)}
                   </p>
                 </div>

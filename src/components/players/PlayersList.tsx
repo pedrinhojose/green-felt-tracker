@@ -3,6 +3,7 @@ import React from "react";
 import { Player } from "@/lib/db/models";
 import { Button } from "@/components/ui/button";
 import { PlayerCard } from "./PlayerCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PlayersListProps {
   players: Player[];
@@ -21,6 +22,8 @@ export function PlayersList({
   onDeletePlayer, 
   isDeleting 
 }: PlayersListProps) {
+  const isMobile = useIsMobile();
+  
   // Sort players alphabetically by name
   const sortedPlayers = [...players].sort((a, b) => 
     a.name.localeCompare(b.name)
@@ -28,7 +31,11 @@ export function PlayersList({
   
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className={`grid gap-3 ${
+        isMobile 
+          ? "grid-cols-1 sm:grid-cols-2" 
+          : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      }`}>
         {sortedPlayers.map(player => (
           <PlayerCard
             key={player.id}
@@ -48,7 +55,9 @@ export function PlayersList({
           {!searchQuery && (
             <Button
               onClick={onAddPlayer}
-              className="bg-poker-gold hover:bg-poker-gold/80 text-black"
+              className={`bg-poker-gold hover:bg-poker-gold/80 text-black ${
+                isMobile ? 'w-full max-w-sm' : ''
+              }`}
             >
               Adicionar seu primeiro jogador
             </Button>

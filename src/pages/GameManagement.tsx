@@ -5,6 +5,7 @@ import { useGameManagement } from "@/hooks/useGameManagement";
 import { usePlayerActions } from "@/hooks/usePlayerActions";
 import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Component imports
 import BlindTimer from "@/components/game/blindTimer/BlindTimer"; 
@@ -17,6 +18,7 @@ import { UserPlus } from "lucide-react";
 
 export default function GameManagement() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   
@@ -94,7 +96,7 @@ export default function GameManagement() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
       {!isSelectingPlayers && (
         <GameHeader
           gameNumber={game.number}
@@ -123,27 +125,29 @@ export default function GameManagement() {
         />
       ) : (
         // Game management screen
-        <div className="space-y-6">
+        <div className={`space-y-${isMobile ? '4' : '6'}`}>
           {/* Blind Timer */}
           <BlindTimer />
           
-          {/* Prize Pool */}
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-            <PrizePoolManager 
-              totalPrizePool={game.totalPrizePool}
-              onCalculateDinner={calculateDinnerCosts}
-              onDistributePrizes={distributeWinningsByPrize}
-              initialDinnerCost={dinnerCost}
-              game={game}
-              players={players}
-            />
+          {/* Prize Pool e Botão Add Player */}
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-col lg:flex-row'} justify-between items-start gap-4`}>
+            <div className="w-full">
+              <PrizePoolManager 
+                totalPrizePool={game.totalPrizePool}
+                onCalculateDinner={calculateDinnerCosts}
+                onDistributePrizes={distributeWinningsByPrize}
+                initialDinnerCost={dinnerCost}
+                game={game}
+                players={players}
+              />
+            </div>
             
             {/* Botão para adicionar jogador tardio */}
             {!game.isFinished && (
               <Button 
                 onClick={() => setIsAddPlayerDialogOpen(true)}
                 disabled={getAvailablePlayers().length === 0}
-                className="mt-2 lg:mt-0"
+                className={`${isMobile ? 'w-full mt-2' : 'mt-2 lg:mt-0'} bg-poker-gold hover:bg-poker-gold/80 text-black`}
                 variant="outline"
               >
                 <UserPlus className="mr-2 h-4 w-4" />
