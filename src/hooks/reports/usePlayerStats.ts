@@ -9,9 +9,20 @@ export function usePlayerStats() {
   const [playerStats, setPlayerStats] = useState<PlayerPerformanceStats[]>([]);
 
   useEffect(() => {
-    if (!activeSeason || !games.length || !players.length) return;
+    console.log("=== usePlayerStats DEBUG ===");
+    console.log("activeSeason:", activeSeason?.name || 'none');
+    console.log("games count:", games?.length || 0);
+    console.log("players count:", players?.length || 0);
+    console.log("rankings count:", rankings?.length || 0);
+    
+    if (!activeSeason || !games.length || !players.length) {
+      console.log("Missing required data for player stats calculation");
+      setPlayerStats([]);
+      return;
+    }
     
     const finishedGames = games.filter(game => game.isFinished);
+    console.log("Finished games count:", finishedGames.length);
     
     // Usar rankings como fonte principal de dados, complementando com cálculos dos jogos
     const playerStatsMap = new Map<string, PlayerPerformanceStats>();
@@ -21,8 +32,11 @@ export function usePlayerStats() {
     const rebuyValue = activeSeason.financialParams.rebuy;
     const addonValue = activeSeason.financialParams.addon;
     
+    console.log("Financial params:", { buyInValue, rebuyValue, addonValue });
+    
     // Obter o número de posições premiadas baseado no schema de premiação semanal
     const weeklyPrizePositions = activeSeason.weeklyPrizeSchema.length;
+    console.log("Weekly prize positions:", weeklyPrizePositions);
     
     // Primeiro, criar estatísticas baseadas no ranking (fonte principal)
     rankings.forEach(ranking => {
@@ -48,6 +62,8 @@ export function usePlayerStats() {
       });
     });
     
+    console.log("Initial player stats from rankings:", playerStatsMap.size);
+    
     // Agora calcular dados financeiros e outras estatísticas dos jogos
     finishedGames.forEach(game => {
       game.players.forEach(gamePlayer => {
@@ -57,6 +73,8 @@ export function usePlayerStats() {
           // Se o jogador não está no ranking, criar entrada baseada nos jogos
           const player = players.find(p => p.id === gamePlayer.playerId);
           const playerName = getPlayerName(gamePlayer.playerId, players);
+          
+          console.log("Player not in ranking, creating from games:", playerName);
           
           playerStat = {
             playerId: gamePlayer.playerId,
@@ -144,7 +162,8 @@ export function usePlayerStats() {
     const playerStatsArray = Array.from(playerStatsMap.values())
       .sort((a, b) => b.totalPoints - a.totalPoints);
     
-    console.log("Player stats calculados baseados no ranking:", playerStatsArray.length);
+    console.log("Final player stats calculated:", playerStatsArray.length);
+    console.log("Sample player stat:", playerStatsArray[0]);
     setPlayerStats(playerStatsArray);
   }, [games, activeSeason, players, rankings]); // Adicionar rankings como dependência
 

@@ -16,9 +16,17 @@ export function useSeasonSummary() {
   });
 
   useEffect(() => {
-    if (!activeSeason || !games.length) return;
+    console.log("=== useSeasonSummary DEBUG ===");
+    console.log("activeSeason:", activeSeason?.name || 'none');
+    console.log("games count:", games?.length || 0);
+    
+    if (!activeSeason || !games.length) {
+      console.log("Missing activeSeason or games for season summary");
+      return;
+    }
     
     const finishedGames = games.filter(game => game.isFinished);
+    console.log("Finished games for summary:", finishedGames.length);
     
     // Calcular resumo da temporada
     const summary: SeasonSummary = {
@@ -31,6 +39,8 @@ export function useSeasonSummary() {
       totalDinnerCost: 0
     };
     
+    console.log("Initial summary:", summary);
+    
     // Inicializar conjunto para contar jogadores únicos
     const uniquePlayers = new Set<string>();
     
@@ -38,6 +48,8 @@ export function useSeasonSummary() {
     const buyInValue = activeSeason.financialParams.buyIn;
     const rebuyValue = activeSeason.financialParams.rebuy;
     const addonValue = activeSeason.financialParams.addon;
+    
+    console.log("Financial params for summary:", { buyInValue, rebuyValue, addonValue });
     
     // Processar todas as partidas finalizadas
     finishedGames.forEach(game => {
@@ -62,6 +74,7 @@ export function useSeasonSummary() {
     // Atualizar número total de jogadores únicos
     summary.totalPlayers = uniquePlayers.size;
     
+    console.log("Final season summary:", summary);
     setSeasonSummary(summary);
   }, [games, activeSeason]);
 

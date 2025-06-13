@@ -18,13 +18,37 @@ export interface JackpotWinner {
 
 export function useSeasonReport() {
   const { activeSeason, players, rankings } = usePoker();
+  
+  // Debug logs para diagnosticar o problema
+  console.log("=== useSeasonReport DEBUG ===");
+  console.log("activeSeason:", activeSeason);
+  console.log("players count:", players?.length || 0);
+  console.log("rankings count:", rankings?.length || 0);
+  
   const { playerStats } = usePlayerStats();
   const { seasonSummary } = useSeasonSummary();
   const { isExporting, isExportingImage, exportReportAsPdf, exportReportAsImage } = useReportExport();
   
+  console.log("playerStats count:", playerStats?.length || 0);
+  console.log("seasonSummary:", seasonSummary);
+  
   // Calcular os ganhadores do jackpot usando o ranking (pontuação) em vez do saldo financeiro
   const calculateJackpotWinners = (): JackpotWinner[] => {
-    if (!activeSeason || !rankings.length) return [];
+    console.log("=== calculateJackpotWinners DEBUG ===");
+    
+    if (!activeSeason) {
+      console.log("No active season");
+      return [];
+    }
+    
+    if (!rankings.length) {
+      console.log("No rankings available");
+      return [];
+    }
+    
+    console.log("Active season:", activeSeason.name);
+    console.log("Rankings available:", rankings.length);
+    console.log("Prize schema:", activeSeason.seasonPrizeSchema);
     
     // Ordenar jogadores por pontuação (os rankings já estão ordenados por pontos)
     const sortedRankings = [...rankings];
@@ -35,8 +59,16 @@ export function useSeasonReport() {
     // Total do jackpot
     const totalJackpot = activeSeason.jackpot;
     
+    console.log("Total jackpot:", totalJackpot);
+    console.log("Prize schema length:", prizeSchema?.length || 0);
+    
     // Calcular premiação para os jogadores no top (de acordo com o schema)
     const winners: JackpotWinner[] = [];
+    
+    if (!prizeSchema || !Array.isArray(prizeSchema)) {
+      console.log("Invalid prize schema");
+      return [];
+    }
     
     for (let i = 0; i < Math.min(prizeSchema.length, sortedRankings.length); i++) {
       const ranking = sortedRankings[i];
@@ -48,21 +80,31 @@ export function useSeasonReport() {
       const playerData = players.find((p: Player) => p.id === ranking.playerId);
       
       if (playerData) {
-        winners.push({
+        const winner = {
           playerId: ranking.playerId,
           playerName: ranking.playerName,
           photoUrl: playerData.photoUrl, // Usar diretamente a foto do objeto player que está atualizado
           position: prizeEntry.position,
           jackpotAmount: (totalJackpot * prizeEntry.percentage) / 100
-        });
+        };
+        
+        console.log("Adding winner:", winner);
+        winners.push(winner);
       }
     }
     
+    console.log("Total winners calculated:", winners.length);
     return winners;
   };
   
   const jackpotWinners = calculateJackpotWinners();
   const totalJackpot = activeSeason?.jackpot || 0;
+  
+  console.log("Final data summary:");
+  console.log("- playerStats:", playerStats?.length || 0);
+  console.log("- jackpotWinners:", jackpotWinners?.length || 0);
+  console.log("- totalJackpot:", totalJackpot);
+  console.log("- seasonSummary.totalGames:", seasonSummary?.totalGames || 0);
   
   // Exportar relatório da temporada como PDF profissional para impressão
   const exportSeasonReportAsPdf = async () => {

@@ -15,25 +15,26 @@ export default function SeasonReport() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  console.log("SeasonReport: Componente iniciando...");
+  console.log("=== SeasonReport Component DEBUG ===");
+  console.log("Component rendering...");
   
   // Add a try-catch to better handle the context access
   let activeSeason = null;
   let contextError = null;
   
   try {
-    console.log("SeasonReport: Tentando acessar usePoker...");
+    console.log("Accessing usePoker context...");
     const pokerContext = usePoker();
     activeSeason = pokerContext.activeSeason;
-    console.log("SeasonReport: usePoker acessado com sucesso, temporada ativa:", activeSeason?.name || 'nenhuma');
+    console.log("Active season from context:", activeSeason?.name || 'none');
   } catch (error) {
-    console.error("SeasonReport: Erro ao acessar usePoker:", error);
+    console.error("Error accessing usePoker context:", error);
     contextError = error;
   }
   
   // If there's a context error, show a loading state or error message
   if (contextError) {
-    console.log("SeasonReport: Erro de contexto detectado, mostrando loading");
+    console.log("Context error detected, showing loading");
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold mx-auto mb-4"></div>
@@ -42,6 +43,17 @@ export default function SeasonReport() {
     );
   }
   
+  if (!activeSeason) {
+    console.log("No active season found");
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <h2 className="text-2xl font-bold text-white mb-4">Nenhuma temporada ativa</h2>
+        <Button onClick={() => navigate('/season')}>Ir para Configuração de Temporada</Button>
+      </div>
+    );
+  }
+  
+  console.log("Getting season report data...");
   const { 
     playerStats, 
     seasonSummary,
@@ -52,6 +64,12 @@ export default function SeasonReport() {
     exportReportAsPdf,
     exportReportAsImage
   } = useSeasonReport();
+  
+  console.log("Season report data retrieved:");
+  console.log("- playerStats count:", playerStats?.length || 0);
+  console.log("- seasonSummary:", seasonSummary);
+  console.log("- jackpotWinners count:", jackpotWinners?.length || 0);
+  console.log("- totalJackpot:", totalJackpot);
   
   const handleExportPdf = async () => {
     try {
@@ -68,15 +86,6 @@ export default function SeasonReport() {
       console.error("Error exporting image:", error);
     }
   };
-  
-  if (!activeSeason) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4">Nenhuma temporada ativa</h2>
-        <Button onClick={() => navigate('/season')}>Ir para Configuração de Temporada</Button>
-      </div>
-    );
-  }
   
   return (
     <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
@@ -123,7 +132,7 @@ export default function SeasonReport() {
         </div>
         
         <div id="season-report" className="space-y-6">
-          {/* Resumo da Temporada */}
+          {/* Resumo da Temporada - sempre mostra */}
           <Card>
             <CardHeader>
               <CardTitle className={isMobile ? "text-lg" : "text-xl"}>Resumo da Temporada</CardTitle>
@@ -132,42 +141,73 @@ export default function SeasonReport() {
               <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
                 <div className="bg-poker-green/30 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">Total de Partidas</p>
-                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>{seasonSummary.totalGames}</p>
+                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                    {seasonSummary?.totalGames || 0}
+                  </p>
                 </div>
                 
                 <div className="bg-poker-green/30 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">Total de Jogadores</p>
-                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>{seasonSummary.totalPlayers}</p>
+                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                    {seasonSummary?.totalPlayers || 0}
+                  </p>
                 </div>
                 
                 <div className="bg-poker-green/30 p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground">Total Premiação</p>
                   <p className={`font-bold text-poker-gold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(seasonSummary.totalPrizePool)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(seasonSummary?.totalPrizePool || 0)}
                   </p>
                 </div>
+              </div>
+              
+              {/* Debug info temporário */}
+              <div className="mt-4 p-2 bg-gray-800 rounded text-xs text-gray-400">
+                <p>Debug: playerStats={playerStats?.length || 0}, seasonSummary.totalGames={seasonSummary?.totalGames || 0}</p>
               </div>
             </CardContent>
           </Card>
           
           {/* Card de Destaques (Melhor Jogador e Rey do Rebuy) */}
-          {playerStats.length > 0 && (
+          {playerStats && playerStats.length > 0 ? (
             <BestWorstPlayersCard playerStats={playerStats} />
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                <p>Nenhum dado de jogador disponível para mostrar destaques.</p>
+              </CardContent>
+            </Card>
           )}
           
           {/* Card de Ganhadores do Jackpot */}
-          {jackpotWinners.length > 0 && (
+          {jackpotWinners && jackpotWinners.length > 0 ? (
             <JackpotWinnersCard 
               jackpotWinners={jackpotWinners} 
               totalJackpot={totalJackpot}
             />
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                <p>Nenhum ganhador de jackpot para exibir.</p>
+              </CardContent>
+            </Card>
           )}
           
           {/* Resumo financeiro da temporada */}
-          <SeasonPrizePoolSummary seasonSummary={seasonSummary} />
+          {seasonSummary && (
+            <SeasonPrizePoolSummary seasonSummary={seasonSummary} />
+          )}
           
           {/* Tabela de desempenho dos jogadores */}
-          <PlayerPerformanceTable playerStats={playerStats} />
+          {playerStats && playerStats.length > 0 ? (
+            <PlayerPerformanceTable playerStats={playerStats} />
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                <p>Nenhum dado de desempenho disponível para exibir.</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
