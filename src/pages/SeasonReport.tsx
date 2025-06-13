@@ -18,7 +18,7 @@ export default function SeasonReport() {
   console.log("=== SeasonReport Component DEBUG ===");
   console.log("Component rendering...");
   
-  // Add a try-catch to better handle the context access
+  // Always call all hooks first, before any conditional logic
   let activeSeason = null;
   let contextError = null;
   
@@ -32,7 +32,26 @@ export default function SeasonReport() {
     contextError = error;
   }
   
-  // If there's a context error, show a loading state or error message
+  // Always call useSeasonReport hook regardless of context state
+  console.log("Getting season report data...");
+  const { 
+    playerStats, 
+    seasonSummary,
+    jackpotWinners,
+    totalJackpot,
+    isExporting,
+    isExportingImage,
+    exportReportAsPdf,
+    exportReportAsImage
+  } = useSeasonReport();
+  
+  console.log("Season report data retrieved:");
+  console.log("- playerStats count:", playerStats?.length || 0);
+  console.log("- seasonSummary:", seasonSummary);
+  console.log("- jackpotWinners count:", jackpotWinners?.length || 0);
+  console.log("- totalJackpot:", totalJackpot);
+  
+  // Now handle conditional rendering after all hooks are called
   if (contextError) {
     console.log("Context error detected, showing loading");
     return (
@@ -52,24 +71,6 @@ export default function SeasonReport() {
       </div>
     );
   }
-  
-  console.log("Getting season report data...");
-  const { 
-    playerStats, 
-    seasonSummary,
-    jackpotWinners,
-    totalJackpot,
-    isExporting,
-    isExportingImage,
-    exportReportAsPdf,
-    exportReportAsImage
-  } = useSeasonReport();
-  
-  console.log("Season report data retrieved:");
-  console.log("- playerStats count:", playerStats?.length || 0);
-  console.log("- seasonSummary:", seasonSummary);
-  console.log("- jackpotWinners count:", jackpotWinners?.length || 0);
-  console.log("- totalJackpot:", totalJackpot);
   
   const handleExportPdf = async () => {
     try {
