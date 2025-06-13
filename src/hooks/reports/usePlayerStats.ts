@@ -21,6 +21,9 @@ export function usePlayerStats() {
     const rebuyValue = activeSeason.financialParams.rebuy;
     const addonValue = activeSeason.financialParams.addon;
     
+    // Obter o número de posições premiadas baseado no schema de premiação semanal
+    const weeklyPrizePositions = activeSeason.weeklyPrizeSchema.length;
+    
     // Primeiro, criar estatísticas baseadas no ranking (fonte principal)
     rankings.forEach(ranking => {
       const player = players.find(p => p.id === ranking.playerId);
@@ -36,7 +39,12 @@ export function usePlayerStats() {
         totalInvestment: 0, // Será calculado abaixo
         balance: 0, // Será calculado abaixo
         totalPoints: ranking.totalPoints, // Usar pontos do ranking
-        totalRebuys: 0 // Será calculado abaixo
+        totalRebuys: 0, // Será calculado abaixo
+        // Novas métricas
+        roi: 0,
+        winRate: 0,
+        itmRate: 0,
+        biggestPrize: 0
       });
     });
     
@@ -61,7 +69,11 @@ export function usePlayerStats() {
             totalInvestment: 0,
             balance: 0,
             totalPoints: 0, // Sem pontos se não estiver no ranking
-            totalRebuys: 0
+            totalRebuys: 0,
+            roi: 0,
+            winRate: 0,
+            itmRate: 0,
+            biggestPrize: 0
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
         }
@@ -72,7 +84,13 @@ export function usePlayerStats() {
         }
         
         // Calcular ganhos (prêmios)
-        playerStat.totalWinnings += gamePlayer.prize || 0;
+        const prize = gamePlayer.prize || 0;
+        playerStat.totalWinnings += prize;
+        
+        // Atualizar maior prêmio
+        if (prize > playerStat.biggestPrize) {
+          playerStat.biggestPrize = prize;
+        }
         
         // Calcular investimento (buy-in + rebuys + add-ons)
         const investment = 
@@ -87,12 +105,13 @@ export function usePlayerStats() {
       });
     });
     
-    // Calcular posição média para cada jogador
+    // Calcular métricas finais para cada jogador
     playerStatsMap.forEach((playerStat, playerId) => {
       const playerGames = finishedGames
         .flatMap(game => game.players)
         .filter(gamePlayer => gamePlayer.playerId === playerId && gamePlayer.position);
       
+      // Calcular posição média
       if (playerGames.length > 0) {
         const totalPositions = playerGames.reduce((sum, gamePlayer) => 
           sum + (gamePlayer.position || 0), 0);
@@ -101,6 +120,24 @@ export function usePlayerStats() {
       
       // Calcular saldo final
       playerStat.balance = playerStat.totalWinnings - playerStat.totalInvestment;
+      
+      // Calcular ROI (Return on Investment)
+      if (playerStat.totalInvestment > 0) {
+        playerStat.roi = ((playerStat.totalWinnings - playerStat.totalInvestment) / playerStat.totalInvestment) * 100;
+      }
+      
+      // Calcular taxa de vitórias
+      if (playerStat.gamesPlayed > 0) {
+        playerStat.winRate = (playerStat.victories / playerStat.gamesPlayed) * 100;
+      }
+      
+      // Calcular taxa de ITM (In The Money)
+      if (playerStat.gamesPlayed > 0) {
+        const itmCount = playerGames.filter(gamePlayer => 
+          gamePlayer.position && gamePlayer.position <= weeklyPrizePositions
+        ).length;
+        playerStat.itmRate = (itmCount / playerStat.gamesPlayed) * 100;
+      }
     });
     
     // Converter mapa para array e ordenar por total de pontos (do ranking)

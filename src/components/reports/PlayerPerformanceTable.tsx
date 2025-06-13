@@ -16,6 +16,10 @@ interface PlayerPerformanceTableProps {
 }
 
 export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanceTableProps) {
+  const formatPercentage = (value: number) => {
+    return `${value.toFixed(1)}%`;
+  };
+
   return (
     <div className="bg-poker-dark-green/30 rounded-lg overflow-hidden">
       <div className="p-4 border-b border-white/10">
@@ -33,6 +37,10 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
               <TableHead className="text-center w-10">RB</TableHead>
               <TableHead className="text-center w-16">P.Med</TableHead>
               <TableHead className="text-center w-16">Pontos</TableHead>
+              <TableHead className="text-center w-16">ROI</TableHead>
+              <TableHead className="text-center w-16">Taxa V.</TableHead>
+              <TableHead className="text-center w-16">ITM</TableHead>
+              <TableHead className="text-right w-20">Maior Prêmio</TableHead>
               <TableHead className="text-right w-20">Ganhos</TableHead>
               <TableHead className="text-right w-20">Perdas</TableHead>
               <TableHead className="text-right w-20">Saldo</TableHead>
@@ -52,6 +60,20 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
                 </TableCell>
                 <TableCell className="text-center font-semibold">
                   {player.totalPoints || 0}
+                </TableCell>
+                <TableCell className={`text-center font-semibold ${
+                  player.roi >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {formatPercentage(player.roi)}
+                </TableCell>
+                <TableCell className="text-center font-semibold text-blue-400">
+                  {formatPercentage(player.winRate)}
+                </TableCell>
+                <TableCell className="text-center font-semibold text-yellow-400">
+                  {formatPercentage(player.itmRate)}
+                </TableCell>
+                <TableCell className="text-right text-poker-gold whitespace-nowrap">
+                  {formatCurrency(player.biggestPrize)}
                 </TableCell>
                 <TableCell className="text-right text-green-400 whitespace-nowrap">
                   {formatCurrency(player.totalWinnings)}

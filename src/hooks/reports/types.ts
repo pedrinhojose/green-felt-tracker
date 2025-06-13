@@ -12,7 +12,12 @@ export interface PlayerPerformanceStats {
   balance: number;
   totalPoints: number; 
   totalRebuys: number;
-  photoUrl?: string; // Add the photoUrl property as optional
+  photoUrl?: string;
+  // Novas métricas
+  roi: number; // Return on Investment em porcentagem
+  winRate: number; // Taxa de vitórias em porcentagem
+  itmRate: number; // Taxa de In The Money em porcentagem
+  biggestPrize: number; // Maior prêmio individual recebido
 }
 
 export interface SeasonSummary {
