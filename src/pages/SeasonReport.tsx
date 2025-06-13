@@ -89,9 +89,9 @@ export default function SeasonReport() {
   };
   
   return (
-    <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
-      <div className="flex flex-col space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+    <div className={`container mx-auto ${isMobile ? 'px-1 py-2' : 'px-4 py-6'}`}>
+      <div className="flex flex-col space-y-4">
+        <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center ${isMobile ? 'px-2' : ''}`}>
           <div>
             <Button 
               variant="outline" 
@@ -102,7 +102,7 @@ export default function SeasonReport() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar para Partidas
             </Button>
-            <h2 className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+            <h2 className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}>
               Relatório da Temporada: {activeSeason.name}
             </h2>
           </div>
@@ -132,31 +132,31 @@ export default function SeasonReport() {
           </div>
         </div>
         
-        <div id="season-report" className="space-y-6">
+        <div id="season-report" className={`space-y-4 ${isMobile ? 'px-1' : ''}`}>
           {/* Resumo da Temporada - sempre mostra */}
           <Card>
-            <CardHeader>
-              <CardTitle className={isMobile ? "text-lg" : "text-xl"}>Resumo da Temporada</CardTitle>
+            <CardHeader className={isMobile ? 'pb-3' : ''}>
+              <CardTitle className={isMobile ? "text-base" : "text-xl"}>Resumo da Temporada</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
-                <div className="bg-poker-green/30 p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Total de Partidas</p>
-                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+            <CardContent className={isMobile ? 'pt-0' : ''}>
+              <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+                <div className="bg-poker-green/30 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground">Total de Partidas</p>
+                  <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                     {seasonSummary?.totalGames || 0}
                   </p>
                 </div>
                 
-                <div className="bg-poker-green/30 p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Total de Jogadores</p>
-                  <p className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                <div className="bg-poker-green/30 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground">Total de Jogadores</p>
+                  <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                     {seasonSummary?.totalPlayers || 0}
                   </p>
                 </div>
                 
-                <div className="bg-poker-green/30 p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Total Premiação</p>
-                  <p className={`font-bold text-poker-gold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                <div className="bg-poker-green/30 p-3 rounded-lg">
+                  <p className="text-xs text-muted-foreground">Total Premiação</p>
+                  <p className={`font-bold text-poker-gold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(seasonSummary?.totalPrizePool || 0)}
                   </p>
                 </div>

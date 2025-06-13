@@ -12,7 +12,7 @@ export default function AppLayout() {
       <PokerNav />
 
       {/* Conteúdo principal */}
-      <main className={`flex-1 overflow-auto ${isMobile ? 'pb-4' : ''}`}>
+      <main className={`flex-1 overflow-auto ${isMobile ? 'pb-2' : ''}`}>
         <Outlet />
       </main>
 
