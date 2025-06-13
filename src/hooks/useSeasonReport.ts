@@ -19,9 +19,8 @@ export interface JackpotWinner {
 export function useSeasonReport() {
   const { activeSeason, players, rankings } = usePoker();
   
-  // Debug logs para diagnosticar o problema
   console.log("=== useSeasonReport DEBUG ===");
-  console.log("activeSeason:", activeSeason);
+  console.log("activeSeason:", activeSeason?.name || 'none');
   console.log("players count:", players?.length || 0);
   console.log("rankings count:", rankings?.length || 0);
   
@@ -80,10 +79,16 @@ export function useSeasonReport() {
       const playerData = players.find((p: Player) => p.id === ranking.playerId);
       
       if (playerData) {
+        // Corrigir o problema da photoUrl - extrair o valor string se for um objeto
+        let photoUrl = playerData.photoUrl;
+        if (photoUrl && typeof photoUrl === 'object' && 'value' in photoUrl) {
+          photoUrl = photoUrl.value !== 'undefined' ? photoUrl.value : undefined;
+        }
+        
         const winner = {
           playerId: ranking.playerId,
           playerName: ranking.playerName,
-          photoUrl: playerData.photoUrl, // Usar diretamente a foto do objeto player que está atualizado
+          photoUrl: photoUrl, // Usar a foto corrigida
           position: prizeEntry.position,
           jackpotAmount: (totalJackpot * prizeEntry.percentage) / 100
         };
@@ -131,9 +136,17 @@ export function useSeasonReport() {
   };
   
   return {
-    playerStats,
-    seasonSummary,
-    jackpotWinners,
+    playerStats: playerStats || [],
+    seasonSummary: seasonSummary || {
+      totalGames: 0,
+      totalPlayers: 0,
+      totalPrizePool: 0,
+      totalBuyIns: 0,
+      totalRebuys: 0,
+      totalAddons: 0,
+      totalDinnerCost: 0
+    },
+    jackpotWinners: jackpotWinners || [],
     totalJackpot,
     isExporting,
     isExportingImage,

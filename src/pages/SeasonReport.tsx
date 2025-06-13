@@ -160,54 +160,23 @@ export default function SeasonReport() {
                   </p>
                 </div>
               </div>
-              
-              {/* Debug info temporário */}
-              <div className="mt-4 p-2 bg-gray-800 rounded text-xs text-gray-400">
-                <p>Debug: playerStats={playerStats?.length || 0}, seasonSummary.totalGames={seasonSummary?.totalGames || 0}</p>
-              </div>
             </CardContent>
           </Card>
           
           {/* Card de Destaques (Melhor Jogador e Rey do Rebuy) */}
-          {playerStats && playerStats.length > 0 ? (
-            <BestWorstPlayersCard playerStats={playerStats} />
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                <p>Nenhum dado de jogador disponível para mostrar destaques.</p>
-              </CardContent>
-            </Card>
-          )}
+          <BestWorstPlayersCard playerStats={playerStats} />
           
           {/* Card de Ganhadores do Jackpot */}
-          {jackpotWinners && jackpotWinners.length > 0 ? (
-            <JackpotWinnersCard 
-              jackpotWinners={jackpotWinners} 
-              totalJackpot={totalJackpot}
-            />
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                <p>Nenhum ganhador de jackpot para exibir.</p>
-              </CardContent>
-            </Card>
-          )}
+          <JackpotWinnersCard 
+            jackpotWinners={jackpotWinners} 
+            totalJackpot={totalJackpot}
+          />
           
           {/* Resumo financeiro da temporada */}
-          {seasonSummary && (
-            <SeasonPrizePoolSummary seasonSummary={seasonSummary} />
-          )}
+          <SeasonPrizePoolSummary seasonSummary={seasonSummary} />
           
           {/* Tabela de desempenho dos jogadores */}
-          {playerStats && playerStats.length > 0 ? (
-            <PlayerPerformanceTable playerStats={playerStats} />
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                <p>Nenhum dado de desempenho disponível para exibir.</p>
-              </CardContent>
-            </Card>
-          )}
+          <PlayerPerformanceTable playerStats={playerStats} />
         </div>
       </div>
     </div>
