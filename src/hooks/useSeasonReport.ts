@@ -80,9 +80,15 @@ export function useSeasonReport() {
       
       if (playerData) {
         // Corrigir o problema da photoUrl - extrair o valor string se for um objeto
-        let photoUrl = playerData.photoUrl;
-        if (photoUrl && typeof photoUrl === 'object' && 'value' in photoUrl) {
-          photoUrl = photoUrl.value !== 'undefined' ? photoUrl.value : undefined;
+        let photoUrl: string | undefined = undefined;
+        
+        if (playerData.photoUrl) {
+          if (typeof playerData.photoUrl === 'string') {
+            photoUrl = playerData.photoUrl;
+          } else if (typeof playerData.photoUrl === 'object' && 'value' in playerData.photoUrl) {
+            const urlValue = (playerData.photoUrl as any).value;
+            photoUrl = urlValue !== 'undefined' ? urlValue : undefined;
+          }
         }
         
         const winner = {
