@@ -1,11 +1,154 @@
-
 import { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { PlayerPerformanceStats, SeasonSummary, JackpotWinner } from "../useSeasonReport";
+import { formatCurrency } from "@/lib/utils/dateUtils";
 
 export function useReportExport() {
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
+  
+  // Função para gerar PDF profissional usando jsPDF
+  const generatePdfReport = async (
+    seasonName: string,
+    seasonSummary: SeasonSummary,
+    jackpotWinners: JackpotWinner[],
+    totalJackpot: number,
+    playerStats: PlayerPerformanceStats[]
+  ) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.width;
+    let yPosition = 20;
+    
+    // Configurar fonte
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
+    
+    // Título principal
+    pdf.text(`RELATÓRIO DA TEMPORADA: ${seasonName.toUpperCase()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+    
+    // Data de geração
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    const currentDate = new Date().toLocaleDateString('pt-BR');
+    pdf.text(`Gerado em: ${currentDate}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+    
+    // Seção 1: Resumo da Temporada
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(14);
+    pdf.text("RESUMO DA TEMPORADA", 20, yPosition);
+    yPosition += 10;
+    
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+    pdf.text(`Total de Partidas: ${seasonSummary.totalGames}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Total de Jogadores: ${seasonSummary.totalPlayers}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Total Premiação: ${formatCurrency(seasonSummary.totalPrizePool)}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Total Buy-ins: ${formatCurrency(seasonSummary.totalBuyIns)}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Total Rebuys: ${formatCurrency(seasonSummary.totalRebuys)}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Total Add-ons: ${formatCurrency(seasonSummary.totalAddons)}`, 20, yPosition);
+    yPosition += 15;
+    
+    // Seção 2: Ganhadores do Jackpot
+    if (jackpotWinners.length > 0) {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(14);
+      pdf.text("GANHADORES DO JACKPOT", 20, yPosition);
+      yPosition += 10;
+      
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(11);
+      pdf.text(`Valor Total do Jackpot: ${formatCurrency(totalJackpot)}`, 20, yPosition);
+      yPosition += 10;
+      
+      jackpotWinners.forEach((winner, index) => {
+        pdf.text(`${winner.position}º Lugar: ${winner.playerName} - ${formatCurrency(winner.jackpotAmount)}`, 25, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 15;
+    }
+    
+    // Seção 3: Tabela de Desempenho dos Jogadores
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(14);
+    pdf.text("DESEMPENHO DOS JOGADORES", 20, yPosition);
+    yPosition += 15;
+    
+    // Configurar dados da tabela
+    const tableColumns = [
+      'Jogador',
+      'J',
+      'V', 
+      'RB',
+      'Pos. Med',
+      'Pontos',
+      'Maior Prêmio',
+      'Ganhos',
+      'Perdas',
+      'Saldo'
+    ];
+    
+    const tableRows = playerStats.map(player => [
+      player.playerName,
+      player.gamesPlayed.toString(),
+      player.victories.toString(),
+      player.totalRebuys.toString(),
+      player.averagePosition > 0 ? player.averagePosition.toFixed(1) : "-",
+      (player.totalPoints || 0).toString(),
+      formatCurrency(player.biggestPrize),
+      formatCurrency(player.totalWinnings),
+      formatCurrency(player.totalInvestment),
+      formatCurrency(player.balance)
+    ]);
+    
+    // Gerar tabela usando autoTable
+    autoTable(pdf, {
+      head: [tableColumns],
+      body: tableRows,
+      startY: yPosition,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { cellWidth: 25 }, // Jogador
+        1: { cellWidth: 10, halign: 'center' }, // J
+        2: { cellWidth: 10, halign: 'center' }, // V
+        3: { cellWidth: 10, halign: 'center' }, // RB
+        4: { cellWidth: 15, halign: 'center' }, // Pos. Med
+        5: { cellWidth: 15, halign: 'center' }, // Pontos
+        6: { cellWidth: 20, halign: 'right' }, // Maior Prêmio
+        7: { cellWidth: 20, halign: 'right' }, // Ganhos
+        8: { cellWidth: 20, halign: 'right' }, // Perdas
+        9: { cellWidth: 20, halign: 'right' }, // Saldo
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      },
+      margin: { left: 10, right: 10 },
+    });
+    
+    // Rodapé
+    const finalY = (pdf as any).lastAutoTable.finalY + 20;
+    pdf.setFont("helvetica", "italic");
+    pdf.setFontSize(8);
+    pdf.text(`Relatório gerado automaticamente em ${currentDate}`, pageWidth / 2, finalY, { align: 'center' });
+    
+    return pdf;
+  };
   
   // Função para criar uma versão otimizada para mobile do relatório
   const createMobileOptimizedElement = (originalElement: HTMLElement): HTMLElement => {
@@ -55,48 +198,17 @@ export function useReportExport() {
   };
   
   // Exportar relatório como PDF otimizado para A4
-  const exportReportAsPdf = async (reportElementId: string, filename: string) => {
+  const exportReportAsPdf = async (
+    seasonName: string,
+    seasonSummary: SeasonSummary,
+    jackpotWinners: JackpotWinner[],
+    totalJackpot: number,
+    playerStats: PlayerPerformanceStats[],
+    filename: string
+  ) => {
     setIsExporting(true);
     try {
-      const reportElement = document.getElementById(reportElementId);
-      if (!reportElement) {
-        console.error(`Element with id ${reportElementId} not found`);
-        return;
-      }
-      
-      // Configurações otimizadas para PDF A4
-      const canvas = await html2canvas(reportElement, {
-        scale: 1.5, // Escala menor para otimizar para impressão
-        backgroundColor: '#ffffff', // Fundo branco para impressão
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        width: 794, // Largura A4 em pixels (210mm)
-        height: 1123, // Altura A4 em pixels (297mm)
-        scrollX: 0,
-        scrollY: 0
-      });
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.95); // JPEG com alta qualidade
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
-      });
-      
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Se o conteúdo for muito alto, ajustar para caber na página
-      if (imgHeight > 297) { // A4 height in mm
-        const scaledHeight = 297;
-        const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
-        pdf.addImage(imgData, 'JPEG', (210 - scaledWidth) / 2, 0, scaledWidth, scaledHeight);
-      } else {
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-      }
-      
+      const pdf = await generatePdfReport(seasonName, seasonSummary, jackpotWinners, totalJackpot, playerStats);
       pdf.save(filename);
     } catch (error) {
       console.error("Error exporting PDF:", error);

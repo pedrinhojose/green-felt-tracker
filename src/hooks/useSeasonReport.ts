@@ -1,3 +1,4 @@
+
 import { usePoker } from "@/contexts/PokerContext";
 import { usePlayerStats } from "./reports/usePlayerStats";
 import { useSeasonSummary } from "./reports/useSeasonSummary";
@@ -63,12 +64,16 @@ export function useSeasonReport() {
   const jackpotWinners = calculateJackpotWinners();
   const totalJackpot = activeSeason?.jackpot || 0;
   
-  // Exportar relatório da temporada como PDF otimizado para A4
+  // Exportar relatório da temporada como PDF profissional para impressão
   const exportSeasonReportAsPdf = async () => {
     if (!activeSeason) return;
     
     await exportReportAsPdf(
-      'season-report',
+      activeSeason.name || 'Temporada Atual',
+      seasonSummary,
+      jackpotWinners,
+      totalJackpot,
+      playerStats,
       `Relatorio_Temporada_${activeSeason.name?.replace(/\s+/g, '_') || 'Atual'}.pdf`
     );
   };
