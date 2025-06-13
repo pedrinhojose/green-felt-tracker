@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -342,137 +341,74 @@ export function useReportExport() {
     }
   };
   
-  // Exportar relatório como imagem de alta qualidade - CORRIGIDO E MELHORADO
+  // Exportar relatório como imagem - VERSÃO SIMPLIFICADA PARA DEBUG
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
-    console.log("=== exportReportAsImage DEBUG ===");
-    console.log("Searching for element with ID:", reportElementId);
-    console.log("Target filename:", filename);
+    console.log("=== SIMPLE IMAGE EXPORT DEBUG ===");
+    console.log("Target element ID:", reportElementId);
     
     setIsExportingImage(true);
     try {
       const reportElement = document.getElementById(reportElementId);
       if (!reportElement) {
         console.error(`Element with id ${reportElementId} not found`);
-        console.log("Available elements with IDs:", Array.from(document.querySelectorAll('[id]')).map(el => el.id));
         return;
       }
       
-      console.log("Found element:", reportElement);
-      console.log("Element dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
-      console.log("Element children count:", reportElement.children.length);
-      console.log("Element innerHTML length:", reportElement.innerHTML.length);
+      console.log("Element found, dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
       
-      // Verificar se o elemento tem conteúdo
-      if (reportElement.children.length === 0) {
-        console.error("Element has no children, nothing to export");
-        return;
-      }
+      // Garantir que o elemento está visível
+      reportElement.style.position = 'static';
+      reportElement.style.visibility = 'visible';
+      reportElement.style.display = 'block';
       
-      // Criar versão otimizada de alta qualidade
-      const highQualityElement = createHighQualityElement(reportElement);
+      // Aguardar um pouco para garantir renderização
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Adicionar temporariamente ao DOM (fora da tela)
-      highQualityElement.style.position = 'absolute';
-      highQualityElement.style.left = '-9999px';
-      highQualityElement.style.top = '0';
-      highQualityElement.style.zIndex = '-1';
-      highQualityElement.style.visibility = 'visible'; // Mudança: tornar visível para renderização
-      document.body.appendChild(highQualityElement);
+      console.log("Starting html2canvas with simplified settings...");
       
-      console.log("Added temporary element to DOM");
-      console.log("Temporary element dimensions:", highQualityElement.offsetWidth, "x", highQualityElement.offsetHeight);
-      
-      // Aguardar renderização completa - AUMENTADO
-      await new Promise(resolve => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setTimeout(resolve, 1000); // Aumentado para 1000ms
-          });
-        });
-      });
-      
-      console.log("Starting canvas capture...");
-      
-      // Configurações otimizadas para alta qualidade
-      const canvas = await html2canvas(highQualityElement, {
-        scale: 2,
-        backgroundColor: '#1a2e35',
+      // Usar configurações mais simples
+      const canvas = await html2canvas(reportElement, {
+        scale: 1,
+        backgroundColor: null,
         logging: true,
         useCORS: true,
-        allowTaint: true,
-        width: highQualityElement.offsetWidth,
-        height: Math.max(highQualityElement.offsetHeight, 600),
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: highQualityElement.offsetWidth,
-        windowHeight: Math.max(highQualityElement.offsetHeight, 600),
-        foreignObjectRendering: true,
-        imageTimeout: 15000,
-        removeContainer: true,
-        onclone: (clonedDoc) => {
-          console.log("Clone document created, applying final styles...");
-          const clonedElement = clonedDoc.body.querySelector('[style*="position: absolute"]') as HTMLElement;
-          if (clonedElement) {
-            clonedElement.style.visibility = 'visible';
-            clonedElement.style.position = 'static';
-          }
-        }
+        allowTaint: false,
+        width: reportElement.scrollWidth,
+        height: reportElement.scrollHeight,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        imageTimeout: 0,
+        removeContainer: false
       });
       
-      // Remover elemento temporário
-      document.body.removeChild(highQualityElement);
+      console.log(`Canvas created: ${canvas.width}x${canvas.height}`);
       
-      console.log(`Canvas created with dimensions: ${canvas.width}x${canvas.height}`);
-      
-      // Verificação melhorada de conteúdo do canvas
+      // Verificar se há conteúdo no canvas
       const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error("Could not get canvas context");
-        return;
+      if (ctx) {
+        const imageData = ctx.getImageData(0, 0, Math.min(100, canvas.width), Math.min(100, canvas.height));
+        const hasContent = imageData.data.some((value, index) => index % 4 !== 3 && value !== 0);
+        console.log("Canvas has content (sample check):", hasContent);
       }
       
-      // Verificar se o canvas tem pixels não transparentes
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      let hasVisibleContent = false;
+      // Converter para PNG
+      const dataURL = canvas.toDataURL('image/png', 1.0);
+      console.log("Data URL length:", dataURL.length);
       
-      // Verificar pixels com alpha > 0 (não completamente transparentes)
-      for (let i = 3; i < data.length; i += 4) {
-        if (data[i] > 0) { // canal alpha
-          hasVisibleContent = true;
-          break;
-        }
-      }
-      
-      console.log("Canvas has visible content:", hasVisibleContent);
-      
-      // MUDANÇA: Exportar mesmo se parecer vazio para debug
-      if (!hasVisibleContent) {
-        console.warn("Canvas appears to be empty, but proceeding with export for debugging");
-      }
-      
-      // Converter para PNG com máxima qualidade
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      
-      // Verificar se a imagem foi gerada
-      if (imgData === 'data:,') {
-        console.error("Failed to generate image data");
-        return;
-      }
-      
-      console.log("Image data generated, size:", imgData.length, "characters");
-      
-      // Criar link para download
+      // Criar e baixar
       const link = document.createElement('a');
-      link.href = imgData;
+      link.href = dataURL;
       link.download = filename;
+      link.style.display = 'none';
+      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      console.log(`Imagem exportada com sucesso: ${canvas.width}x${canvas.height}`);
+      console.log("Download triggered successfully");
+      
     } catch (error) {
-      console.error("Error exporting image:", error);
+      console.error("Error in image export:", error);
     } finally {
       setIsExportingImage(false);
     }
