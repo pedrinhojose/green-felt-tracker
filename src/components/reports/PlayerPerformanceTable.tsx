@@ -31,7 +31,7 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
               <TableHead className="text-center w-10">J</TableHead>
               <TableHead className="text-center w-10">V</TableHead>
               <TableHead className="text-center w-10">RB</TableHead>
-              <TableHead className="text-center w-16">P.Med</TableHead>
+              <TableHead className="text-center w-16">Pos. Med</TableHead>
               <TableHead className="text-center w-16">Pontos</TableHead>
               <TableHead className="text-right w-20">Maior Prêmio</TableHead>
               <TableHead className="text-right w-20">Ganhos</TableHead>
