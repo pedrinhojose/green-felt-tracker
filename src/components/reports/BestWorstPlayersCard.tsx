@@ -73,12 +73,12 @@ export default function BestWorstPlayersCard({ playerStats }: BestWorstPlayersCa
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Melhor Jogador */}
+          {/* O Rico da Temporada */}
           <div className="bg-poker-green/30 p-4 rounded-lg">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-bold text-poker-gold flex items-center">
                 <Trophy className="mr-2 h-5 w-5 text-poker-gold" />
-                Melhor Jogador
+                O Rico da Temporada
               </h3>
             </div>
             
