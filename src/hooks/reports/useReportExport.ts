@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -181,36 +182,64 @@ export function useReportExport() {
     const optimalWidth = calculateOptimalWidth(originalElement);
     console.log("Optimal width calculated:", optimalWidth);
     
-    // Aplicar estilos otimizados para alta qualidade
-    clone.style.width = `${optimalWidth}px`;
-    clone.style.maxWidth = 'none';
-    clone.style.fontSize = '16px';
-    clone.style.lineHeight = '1.5';
-    clone.style.padding = '24px';
-    clone.style.margin = '0';
-    clone.style.backgroundColor = '#1a2e35';
-    clone.style.color = '#FFFFFF';
-    clone.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-    clone.style.minHeight = '600px'; // Garantir altura mínima
-    clone.style.boxSizing = 'border-box';
-    
-    // Aplicar cores CSS personalizadas diretamente
-    const style = document.createElement('style');
-    style.textContent = `
-      .poker-gold { color: #D4AF37 !important; }
-      .bg-poker-green { background-color: #0F5132 !important; }
-      .bg-poker-dark-green { background-color: #0A3D29 !important; }
-      .text-poker-gold { color: #D4AF37 !important; }
-      .border-poker-gold { border-color: #D4AF37 !important; }
-      .text-green-400 { color: #4ADE80 !important; }
-      .text-red-400 { color: #F87171 !important; }
-      .text-blue-400 { color: #60A5FA !important; }
-      .text-gray-400 { color: #9CA3AF !important; }
-      .text-amber-700 { color: #B45309 !important; }
-      .border-gray-700 { border-color: #374151 !important; }
-      .bg-gray-700 { background-color: #374151 !important; }
+    // Aplicar estilos otimizados para alta qualidade com valores inline
+    clone.style.cssText = `
+      width: ${optimalWidth}px !important;
+      max-width: none !important;
+      font-size: 16px !important;
+      line-height: 1.5 !important;
+      padding: 24px !important;
+      margin: 0 !important;
+      background-color: #1a2e35 !important;
+      color: #FFFFFF !important;
+      font-family: system-ui, -apple-system, sans-serif !important;
+      min-height: 600px !important;
+      box-sizing: border-box !important;
     `;
-    clone.appendChild(style);
+    
+    // Aplicar cores diretamente nos elementos filhos
+    const applyInlineStyles = (element: HTMLElement) => {
+      // Aplicar cores para elementos com classes específicas
+      if (element.classList?.contains('text-poker-gold') || element.textContent?.includes('R$')) {
+        element.style.color = '#D4AF37 !important';
+      }
+      if (element.classList?.contains('bg-poker-green')) {
+        element.style.backgroundColor = '#0F5132 !important';
+      }
+      if (element.classList?.contains('bg-poker-dark-green')) {
+        element.style.backgroundColor = '#0A3D29 !important';
+      }
+      if (element.classList?.contains('text-green-400')) {
+        element.style.color = '#4ADE80 !important';
+      }
+      if (element.classList?.contains('text-red-400')) {
+        element.style.color = '#F87171 !important';
+      }
+      if (element.classList?.contains('text-blue-400')) {
+        element.style.color = '#60A5FA !important';
+      }
+      if (element.classList?.contains('text-gray-400')) {
+        element.style.color = '#9CA3AF !important';
+      }
+      if (element.classList?.contains('text-amber-700')) {
+        element.style.color = '#B45309 !important';
+      }
+      if (element.classList?.contains('border-gray-700')) {
+        element.style.borderColor = '#374151 !important';
+      }
+      if (element.classList?.contains('bg-gray-700')) {
+        element.style.backgroundColor = '#374151 !important';
+      }
+      
+      // Aplicar aos filhos
+      Array.from(element.children).forEach(child => {
+        if (child instanceof HTMLElement) {
+          applyInlineStyles(child);
+        }
+      });
+    };
+    
+    applyInlineStyles(clone);
     
     // Otimizar tabelas para alta qualidade
     const tables = clone.querySelectorAll('table');
@@ -218,12 +247,14 @@ export function useReportExport() {
     
     tables.forEach((table, tableIndex) => {
       console.log(`Processing table ${tableIndex + 1}`);
-      (table as HTMLElement).style.fontSize = '14px';
-      (table as HTMLElement).style.width = '100%';
-      (table as HTMLElement).style.tableLayout = 'auto';
-      (table as HTMLElement).style.borderCollapse = 'collapse';
-      (table as HTMLElement).style.backgroundColor = '#1a2e35';
-      (table as HTMLElement).style.color = '#FFFFFF';
+      (table as HTMLElement).style.cssText = `
+        font-size: 14px !important;
+        width: 100% !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+        background-color: #1a2e35 !important;
+        color: #FFFFFF !important;
+      `;
       
       // Ajustar células para melhor legibilidade
       const cells = table.querySelectorAll('td, th');
@@ -231,29 +262,35 @@ export function useReportExport() {
       
       cells.forEach((cell, index) => {
         const cellElement = cell as HTMLElement;
-        cellElement.style.padding = '8px 12px';
-        cellElement.style.whiteSpace = 'nowrap';
-        cellElement.style.overflow = 'visible';
-        cellElement.style.textOverflow = 'clip';
-        cellElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-        cellElement.style.minWidth = 'fit-content';
-        cellElement.style.backgroundColor = 'inherit';
-        cellElement.style.color = 'inherit';
+        cellElement.style.cssText = `
+          padding: 8px 12px !important;
+          white-space: nowrap !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          min-width: fit-content !important;
+          background-color: inherit !important;
+          color: inherit !important;
+        `;
         
         // Dar mais espaço para colunas financeiras (últimas colunas)
         const isFinancialColumn = index >= cells.length - 4;
         if (isFinancialColumn) {
-          cellElement.style.minWidth = '120px';
-          cellElement.style.textAlign = 'right';
+          cellElement.style.minWidth = '120px !important';
+          cellElement.style.textAlign = 'right !important';
         }
       });
       
       // Ajustar cabeçalhos
       const headers = table.querySelectorAll('th');
       headers.forEach(header => {
-        (header as HTMLElement).style.backgroundColor = 'rgba(41, 128, 185, 0.8)';
-        (header as HTMLElement).style.fontWeight = 'bold';
-        (header as HTMLElement).style.color = '#FFFFFF';
+        (header as HTMLElement).style.cssText = `
+          background-color: rgba(41, 128, 185, 0.8) !important;
+          font-weight: bold !important;
+          color: #FFFFFF !important;
+          padding: 8px 12px !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        `;
       });
     });
     
@@ -262,19 +299,23 @@ export function useReportExport() {
     console.log("Found grid elements:", cards.length);
     
     cards.forEach(card => {
-      (card as HTMLElement).style.display = 'grid';
-      (card as HTMLElement).style.gap = '16px';
-      (card as HTMLElement).style.marginBottom = '16px';
+      (card as HTMLElement).style.cssText = `
+        display: grid !important;
+        gap: 16px !important;
+        margin-bottom: 16px !important;
+      `;
     });
     
     // Garantir que avatares sejam visíveis
     const avatars = clone.querySelectorAll('[class*="h-16"], [class*="w-16"], [class*="h-12"], [class*="w-12"]');
     avatars.forEach(avatar => {
-      (avatar as HTMLElement).style.width = '48px';
-      (avatar as HTMLElement).style.height = '48px';
-      (avatar as HTMLElement).style.display = 'flex';
-      (avatar as HTMLElement).style.alignItems = 'center';
-      (avatar as HTMLElement).style.justifyContent = 'center';
+      (avatar as HTMLElement).style.cssText = `
+        width: 48px !important;
+        height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      `;
     });
     
     console.log("Clone element prepared with dimensions:", clone.style.width, "x", clone.style.minHeight);
@@ -319,6 +360,7 @@ export function useReportExport() {
       console.log("Found element:", reportElement);
       console.log("Element dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
       console.log("Element children count:", reportElement.children.length);
+      console.log("Element innerHTML length:", reportElement.innerHTML.length);
       
       // Verificar se o elemento tem conteúdo
       if (reportElement.children.length === 0) {
@@ -334,16 +376,17 @@ export function useReportExport() {
       highQualityElement.style.left = '-9999px';
       highQualityElement.style.top = '0';
       highQualityElement.style.zIndex = '-1';
-      highQualityElement.style.visibility = 'hidden';
+      highQualityElement.style.visibility = 'visible'; // Mudança: tornar visível para renderização
       document.body.appendChild(highQualityElement);
       
       console.log("Added temporary element to DOM");
+      console.log("Temporary element dimensions:", highQualityElement.offsetWidth, "x", highQualityElement.offsetHeight);
       
-      // Aguardar renderização completa
+      // Aguardar renderização completa - AUMENTADO
       await new Promise(resolve => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            setTimeout(resolve, 500); // tempo maior para garantir renderização
+            setTimeout(resolve, 1000); // Aumentado para 1000ms
           });
         });
       });
@@ -352,9 +395,9 @@ export function useReportExport() {
       
       // Configurações otimizadas para alta qualidade
       const canvas = await html2canvas(highQualityElement, {
-        scale: 2, // escala reduzida mas ainda alta qualidade
+        scale: 2,
         backgroundColor: '#1a2e35',
-        logging: true, // habilitar logs para debug
+        logging: true,
         useCORS: true,
         allowTaint: true,
         width: highQualityElement.offsetWidth,
@@ -368,9 +411,10 @@ export function useReportExport() {
         removeContainer: true,
         onclone: (clonedDoc) => {
           console.log("Clone document created, applying final styles...");
-          const clonedElement = clonedDoc.getElementById(reportElementId);
+          const clonedElement = clonedDoc.body.querySelector('[style*="position: absolute"]') as HTMLElement;
           if (clonedElement) {
             clonedElement.style.visibility = 'visible';
+            clonedElement.style.position = 'static';
           }
         }
       });
@@ -380,18 +424,43 @@ export function useReportExport() {
       
       console.log(`Canvas created with dimensions: ${canvas.width}x${canvas.height}`);
       
-      // Verificar se o canvas tem conteúdo
+      // Verificação melhorada de conteúdo do canvas
       const ctx = canvas.getContext('2d');
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-      const hasContent = imageData?.data.some(pixel => pixel !== 0);
-      
-      if (!hasContent) {
-        console.error("Canvas appears to be empty");
+      if (!ctx) {
+        console.error("Could not get canvas context");
         return;
+      }
+      
+      // Verificar se o canvas tem pixels não transparentes
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let hasVisibleContent = false;
+      
+      // Verificar pixels com alpha > 0 (não completamente transparentes)
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] > 0) { // canal alpha
+          hasVisibleContent = true;
+          break;
+        }
+      }
+      
+      console.log("Canvas has visible content:", hasVisibleContent);
+      
+      // MUDANÇA: Exportar mesmo se parecer vazio para debug
+      if (!hasVisibleContent) {
+        console.warn("Canvas appears to be empty, but proceeding with export for debugging");
       }
       
       // Converter para PNG com máxima qualidade
       const imgData = canvas.toDataURL('image/png', 1.0);
+      
+      // Verificar se a imagem foi gerada
+      if (imgData === 'data:,') {
+        console.error("Failed to generate image data");
+        return;
+      }
+      
+      console.log("Image data generated, size:", imgData.length, "characters");
       
       // Criar link para download
       const link = document.createElement('a');
