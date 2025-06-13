@@ -150,48 +150,94 @@ export function useReportExport() {
     return pdf;
   };
   
-  // Função para criar uma versão otimizada para mobile do relatório
-  const createMobileOptimizedElement = (originalElement: HTMLElement): HTMLElement => {
+  // Função para calcular largura dinâmica baseada no conteúdo
+  const calculateOptimalWidth = (originalElement: HTMLElement): number => {
+    const table = originalElement.querySelector('table');
+    if (!table) return 800; // largura padrão se não houver tabela
+    
+    const rows = table.querySelectorAll('tr');
+    if (rows.length === 0) return 800;
+    
+    // Contar colunas da primeira linha
+    const firstRow = rows[0];
+    const columns = firstRow.querySelectorAll('th, td').length;
+    
+    // Largura mínima por coluna baseada no tipo de dados
+    const minColumnWidth = 120; // largura adequada para dados financeiros
+    const padding = 32; // padding lateral
+    const minWidth = Math.max(800, (columns * minColumnWidth) + padding);
+    
+    return Math.min(minWidth, 1400); // máximo de 1400px para manter qualidade
+  };
+  
+  // Função para criar uma versão otimizada de alta qualidade do relatório
+  const createHighQualityElement = (originalElement: HTMLElement): HTMLElement => {
     const clone = originalElement.cloneNode(true) as HTMLElement;
     
-    // Aplicar estilos otimizados para mobile
-    clone.style.width = '390px'; // Largura padrão de mobile
-    clone.style.maxWidth = '100%';
-    clone.style.fontSize = '14px';
-    clone.style.lineHeight = '1.4';
-    clone.style.padding = '16px';
+    // Calcular largura ótima baseada no conteúdo
+    const optimalWidth = calculateOptimalWidth(originalElement);
+    
+    // Aplicar estilos otimizados para alta qualidade
+    clone.style.width = `${optimalWidth}px`;
+    clone.style.maxWidth = 'none'; // remover limitação de largura
+    clone.style.fontSize = '16px'; // fonte maior para melhor legibilidade
+    clone.style.lineHeight = '1.5';
+    clone.style.padding = '20px';
     clone.style.backgroundColor = '#1a2e35';
     clone.style.color = '#FFFFFF';
+    clone.style.fontFamily = 'system-ui, -apple-system, sans-serif';
     
-    // Otimizar tabelas para mobile
+    // Otimizar tabelas para alta qualidade
     const tables = clone.querySelectorAll('table');
     tables.forEach(table => {
-      (table as HTMLElement).style.fontSize = '11px';
+      (table as HTMLElement).style.fontSize = '14px';
       (table as HTMLElement).style.width = '100%';
+      (table as HTMLElement).style.tableLayout = 'auto'; // permitir largura natural
+      (table as HTMLElement).style.borderCollapse = 'collapse';
       
-      // Ajustar células para serem mais compactas
+      // Ajustar células para melhor legibilidade
       const cells = table.querySelectorAll('td, th');
-      cells.forEach(cell => {
-        (cell as HTMLElement).style.padding = '4px 2px';
-        (cell as HTMLElement).style.whiteSpace = 'nowrap';
-        (cell as HTMLElement).style.overflow = 'hidden';
-        (cell as HTMLElement).style.textOverflow = 'ellipsis';
+      cells.forEach((cell, index) => {
+        const cellElement = cell as HTMLElement;
+        cellElement.style.padding = '8px 12px';
+        cellElement.style.whiteSpace = 'nowrap';
+        cellElement.style.overflow = 'visible'; // permitir conteúdo visível
+        cellElement.style.textOverflow = 'clip';
+        cellElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        cellElement.style.minWidth = 'fit-content';
+        
+        // Dar mais espaço para colunas financeiras (últimas colunas)
+        const isFinancialColumn = index >= cells.length - 4; // últimas 4 colunas
+        if (isFinancialColumn) {
+          cellElement.style.minWidth = '120px';
+          cellElement.style.textAlign = 'right';
+        }
+      });
+      
+      // Ajustar cabeçalhos
+      const headers = table.querySelectorAll('th');
+      headers.forEach(header => {
+        (header as HTMLElement).style.backgroundColor = 'rgba(41, 128, 185, 0.8)';
+        (header as HTMLElement).style.fontWeight = 'bold';
+        (header as HTMLElement).style.color = '#FFFFFF';
       });
     });
     
-    // Ajustar cards para layout mobile
+    // Otimizar cards para layout horizontal
     const cards = clone.querySelectorAll('[class*="grid-cols"]');
     cards.forEach(card => {
       (card as HTMLElement).style.display = 'flex';
-      (card as HTMLElement).style.flexDirection = 'column';
-      (card as HTMLElement).style.gap = '8px';
+      (card as HTMLElement).style.flexDirection = 'row';
+      (card as HTMLElement).style.flexWrap = 'wrap';
+      (card as HTMLElement).style.gap = '16px';
+      (card as HTMLElement).style.justifyContent = 'space-between';
     });
     
-    // Ajustar avatares para serem menores
+    // Ajustar avatares para serem proporcionais
     const avatars = clone.querySelectorAll('[class*="h-16"], [class*="w-16"]');
     avatars.forEach(avatar => {
-      (avatar as HTMLElement).style.width = '40px';
-      (avatar as HTMLElement).style.height = '40px';
+      (avatar as HTMLElement).style.width = '48px';
+      (avatar as HTMLElement).style.height = '48px';
     });
     
     return clone;
@@ -217,7 +263,7 @@ export function useReportExport() {
     }
   };
   
-  // Exportar relatório como imagem otimizada para mobile
+  // Exportar relatório como imagem de alta qualidade
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
     setIsExportingImage(true);
     try {
@@ -227,33 +273,48 @@ export function useReportExport() {
         return;
       }
       
-      // Criar versão otimizada para mobile
-      const mobileElement = createMobileOptimizedElement(reportElement);
+      // Criar versão otimizada de alta qualidade
+      const highQualityElement = createHighQualityElement(reportElement);
       
       // Adicionar temporariamente ao DOM (fora da tela)
-      mobileElement.style.position = 'absolute';
-      mobileElement.style.left = '-9999px';
-      mobileElement.style.top = '0';
-      document.body.appendChild(mobileElement);
+      highQualityElement.style.position = 'absolute';
+      highQualityElement.style.left = '-9999px';
+      highQualityElement.style.top = '0';
+      highQualityElement.style.zIndex = '-1';
+      document.body.appendChild(highQualityElement);
       
-      // Aguardar um frame para garantir que o elemento seja renderizado
-      await new Promise(resolve => requestAnimationFrame(resolve));
+      // Aguardar múltiplos frames para garantir renderização completa
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setTimeout(resolve, 100); // tempo extra para fontes carregarem
+          });
+        });
+      });
       
-      const canvas = await html2canvas(mobileElement, {
-        scale: 2, // Alta resolução para mobile
+      // Configurações otimizadas para alta qualidade
+      const canvas = await html2canvas(highQualityElement, {
+        scale: 3, // escala muito alta para qualidade superior
         backgroundColor: '#1a2e35',
         logging: false,
         useCORS: true,
         allowTaint: true,
-        width: 390, // Largura mobile padrão
+        width: highQualityElement.offsetWidth,
+        height: highQualityElement.offsetHeight,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        windowWidth: highQualityElement.offsetWidth,
+        windowHeight: highQualityElement.offsetHeight,
+        foreignObjectRendering: true, // melhor renderização de texto
+        imageTimeout: 15000, // timeout maior para renderização
+        removeContainer: true
       });
       
       // Remover elemento temporário
-      document.body.removeChild(mobileElement);
+      document.body.removeChild(highQualityElement);
       
-      const imgData = canvas.toDataURL('image/png', 1.0); // PNG com máxima qualidade
+      // Converter para PNG com máxima qualidade
+      const imgData = canvas.toDataURL('image/png', 1.0);
       
       // Criar link para download
       const link = document.createElement('a');
@@ -262,6 +323,8 @@ export function useReportExport() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      console.log(`Imagem exportada com dimensões: ${canvas.width}x${canvas.height}`);
     } catch (error) {
       console.error("Error exporting image:", error);
     } finally {
