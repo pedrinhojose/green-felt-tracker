@@ -85,7 +85,7 @@ export function useSeasonReport() {
         if (playerData.photoUrl) {
           if (typeof playerData.photoUrl === 'string') {
             photoUrl = playerData.photoUrl;
-          } else if (typeof playerData.photoUrl === 'object' && 'value' in playerData.photoUrl) {
+          } else if (typeof playerData.photoUrl === 'object' && playerData.photoUrl !== null && 'value' in playerData.photoUrl) {
             const urlValue = (playerData.photoUrl as any).value;
             photoUrl = urlValue !== 'undefined' ? urlValue : undefined;
           }
@@ -131,13 +131,16 @@ export function useSeasonReport() {
     );
   };
   
-  // Exportar relatório da temporada como imagem otimizada para mobile
+  // Exportar relatório da temporada como imagem otimizada para mobile - CORRIGIDO
   const exportSeasonReportAsImage = async () => {
     if (!activeSeason) return;
     
+    console.log("=== EXPORT IMAGE DEBUG ===");
+    console.log("Calling exportReportAsImage with correct parameters");
+    
     await exportReportAsImage(
-      'season-report',
-      `Relatorio_Temporada_${activeSeason.name?.replace(/\s+/g, '_') || 'Atual'}.png`
+      'season-report', // reportElementId
+      `Relatorio_Temporada_${activeSeason.name?.replace(/\s+/g, '_') || 'Atual'}.png` // filename
     );
   };
   
@@ -157,6 +160,6 @@ export function useSeasonReport() {
     isExporting,
     isExportingImage,
     exportReportAsPdf: exportSeasonReportAsPdf,
-    exportReportAsImage: exportSeasonReportAsImage
+    exportReportAsImage: exportSeasonReportAsImage // Usar a função corrigida
   };
 }

@@ -170,44 +170,78 @@ export function useReportExport() {
     return Math.min(minWidth, 1400); // máximo de 1400px para manter qualidade
   };
   
-  // Função para criar uma versão otimizada de alta qualidade do relatório
+  // Função para criar uma versão otimizada de alta qualidade do relatório - MELHORADA
   const createHighQualityElement = (originalElement: HTMLElement): HTMLElement => {
+    console.log("=== createHighQualityElement DEBUG ===");
+    console.log("Original element dimensions:", originalElement.offsetWidth, "x", originalElement.offsetHeight);
+    
     const clone = originalElement.cloneNode(true) as HTMLElement;
     
     // Calcular largura ótima baseada no conteúdo
     const optimalWidth = calculateOptimalWidth(originalElement);
+    console.log("Optimal width calculated:", optimalWidth);
     
     // Aplicar estilos otimizados para alta qualidade
     clone.style.width = `${optimalWidth}px`;
-    clone.style.maxWidth = 'none'; // remover limitação de largura
-    clone.style.fontSize = '16px'; // fonte maior para melhor legibilidade
+    clone.style.maxWidth = 'none';
+    clone.style.fontSize = '16px';
     clone.style.lineHeight = '1.5';
-    clone.style.padding = '20px';
+    clone.style.padding = '24px';
+    clone.style.margin = '0';
     clone.style.backgroundColor = '#1a2e35';
     clone.style.color = '#FFFFFF';
     clone.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    clone.style.minHeight = '600px'; // Garantir altura mínima
+    clone.style.boxSizing = 'border-box';
+    
+    // Aplicar cores CSS personalizadas diretamente
+    const style = document.createElement('style');
+    style.textContent = `
+      .poker-gold { color: #D4AF37 !important; }
+      .bg-poker-green { background-color: #0F5132 !important; }
+      .bg-poker-dark-green { background-color: #0A3D29 !important; }
+      .text-poker-gold { color: #D4AF37 !important; }
+      .border-poker-gold { border-color: #D4AF37 !important; }
+      .text-green-400 { color: #4ADE80 !important; }
+      .text-red-400 { color: #F87171 !important; }
+      .text-blue-400 { color: #60A5FA !important; }
+      .text-gray-400 { color: #9CA3AF !important; }
+      .text-amber-700 { color: #B45309 !important; }
+      .border-gray-700 { border-color: #374151 !important; }
+      .bg-gray-700 { background-color: #374151 !important; }
+    `;
+    clone.appendChild(style);
     
     // Otimizar tabelas para alta qualidade
     const tables = clone.querySelectorAll('table');
-    tables.forEach(table => {
+    console.log("Found tables:", tables.length);
+    
+    tables.forEach((table, tableIndex) => {
+      console.log(`Processing table ${tableIndex + 1}`);
       (table as HTMLElement).style.fontSize = '14px';
       (table as HTMLElement).style.width = '100%';
-      (table as HTMLElement).style.tableLayout = 'auto'; // permitir largura natural
+      (table as HTMLElement).style.tableLayout = 'auto';
       (table as HTMLElement).style.borderCollapse = 'collapse';
+      (table as HTMLElement).style.backgroundColor = '#1a2e35';
+      (table as HTMLElement).style.color = '#FFFFFF';
       
       // Ajustar células para melhor legibilidade
       const cells = table.querySelectorAll('td, th');
+      console.log(`Found ${cells.length} cells in table ${tableIndex + 1}`);
+      
       cells.forEach((cell, index) => {
         const cellElement = cell as HTMLElement;
         cellElement.style.padding = '8px 12px';
         cellElement.style.whiteSpace = 'nowrap';
-        cellElement.style.overflow = 'visible'; // permitir conteúdo visível
+        cellElement.style.overflow = 'visible';
         cellElement.style.textOverflow = 'clip';
         cellElement.style.border = '1px solid rgba(255, 255, 255, 0.2)';
         cellElement.style.minWidth = 'fit-content';
+        cellElement.style.backgroundColor = 'inherit';
+        cellElement.style.color = 'inherit';
         
         // Dar mais espaço para colunas financeiras (últimas colunas)
-        const isFinancialColumn = index >= cells.length - 4; // últimas 4 colunas
+        const isFinancialColumn = index >= cells.length - 4;
         if (isFinancialColumn) {
           cellElement.style.minWidth = '120px';
           cellElement.style.textAlign = 'right';
@@ -223,23 +257,27 @@ export function useReportExport() {
       });
     });
     
-    // Otimizar cards para layout horizontal
-    const cards = clone.querySelectorAll('[class*="grid-cols"]');
+    // Otimizar cards para layout melhor
+    const cards = clone.querySelectorAll('[class*="grid"]');
+    console.log("Found grid elements:", cards.length);
+    
     cards.forEach(card => {
-      (card as HTMLElement).style.display = 'flex';
-      (card as HTMLElement).style.flexDirection = 'row';
-      (card as HTMLElement).style.flexWrap = 'wrap';
+      (card as HTMLElement).style.display = 'grid';
       (card as HTMLElement).style.gap = '16px';
-      (card as HTMLElement).style.justifyContent = 'space-between';
+      (card as HTMLElement).style.marginBottom = '16px';
     });
     
-    // Ajustar avatares para serem proporcionais
-    const avatars = clone.querySelectorAll('[class*="h-16"], [class*="w-16"]');
+    // Garantir que avatares sejam visíveis
+    const avatars = clone.querySelectorAll('[class*="h-16"], [class*="w-16"], [class*="h-12"], [class*="w-12"]');
     avatars.forEach(avatar => {
       (avatar as HTMLElement).style.width = '48px';
       (avatar as HTMLElement).style.height = '48px';
+      (avatar as HTMLElement).style.display = 'flex';
+      (avatar as HTMLElement).style.alignItems = 'center';
+      (avatar as HTMLElement).style.justifyContent = 'center';
     });
     
+    console.log("Clone element prepared with dimensions:", clone.style.width, "x", clone.style.minHeight);
     return clone;
   };
   
@@ -263,13 +301,28 @@ export function useReportExport() {
     }
   };
   
-  // Exportar relatório como imagem de alta qualidade
+  // Exportar relatório como imagem de alta qualidade - CORRIGIDO E MELHORADO
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
+    console.log("=== exportReportAsImage DEBUG ===");
+    console.log("Searching for element with ID:", reportElementId);
+    console.log("Target filename:", filename);
+    
     setIsExportingImage(true);
     try {
       const reportElement = document.getElementById(reportElementId);
       if (!reportElement) {
         console.error(`Element with id ${reportElementId} not found`);
+        console.log("Available elements with IDs:", Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+        return;
+      }
+      
+      console.log("Found element:", reportElement);
+      console.log("Element dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
+      console.log("Element children count:", reportElement.children.length);
+      
+      // Verificar se o elemento tem conteúdo
+      if (reportElement.children.length === 0) {
+        console.error("Element has no children, nothing to export");
         return;
       }
       
@@ -281,37 +334,61 @@ export function useReportExport() {
       highQualityElement.style.left = '-9999px';
       highQualityElement.style.top = '0';
       highQualityElement.style.zIndex = '-1';
+      highQualityElement.style.visibility = 'hidden';
       document.body.appendChild(highQualityElement);
       
-      // Aguardar múltiplos frames para garantir renderização completa
+      console.log("Added temporary element to DOM");
+      
+      // Aguardar renderização completa
       await new Promise(resolve => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            setTimeout(resolve, 100); // tempo extra para fontes carregarem
+            setTimeout(resolve, 500); // tempo maior para garantir renderização
           });
         });
       });
       
+      console.log("Starting canvas capture...");
+      
       // Configurações otimizadas para alta qualidade
       const canvas = await html2canvas(highQualityElement, {
-        scale: 3, // escala muito alta para qualidade superior
+        scale: 2, // escala reduzida mas ainda alta qualidade
         backgroundColor: '#1a2e35',
-        logging: false,
+        logging: true, // habilitar logs para debug
         useCORS: true,
         allowTaint: true,
         width: highQualityElement.offsetWidth,
-        height: highQualityElement.offsetHeight,
+        height: Math.max(highQualityElement.offsetHeight, 600),
         scrollX: 0,
         scrollY: 0,
         windowWidth: highQualityElement.offsetWidth,
-        windowHeight: highQualityElement.offsetHeight,
-        foreignObjectRendering: true, // melhor renderização de texto
-        imageTimeout: 15000, // timeout maior para renderização
-        removeContainer: true
+        windowHeight: Math.max(highQualityElement.offsetHeight, 600),
+        foreignObjectRendering: true,
+        imageTimeout: 15000,
+        removeContainer: true,
+        onclone: (clonedDoc) => {
+          console.log("Clone document created, applying final styles...");
+          const clonedElement = clonedDoc.getElementById(reportElementId);
+          if (clonedElement) {
+            clonedElement.style.visibility = 'visible';
+          }
+        }
       });
       
       // Remover elemento temporário
       document.body.removeChild(highQualityElement);
+      
+      console.log(`Canvas created with dimensions: ${canvas.width}x${canvas.height}`);
+      
+      // Verificar se o canvas tem conteúdo
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+      const hasContent = imageData?.data.some(pixel => pixel !== 0);
+      
+      if (!hasContent) {
+        console.error("Canvas appears to be empty");
+        return;
+      }
       
       // Converter para PNG com máxima qualidade
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -324,7 +401,7 @@ export function useReportExport() {
       link.click();
       document.body.removeChild(link);
       
-      console.log(`Imagem exportada com dimensões: ${canvas.width}x${canvas.height}`);
+      console.log(`Imagem exportada com sucesso: ${canvas.width}x${canvas.height}`);
     } catch (error) {
       console.error("Error exporting image:", error);
     } finally {
