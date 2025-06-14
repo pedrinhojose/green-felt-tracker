@@ -11,10 +11,29 @@ export default function BlindTimer() {
   const { activeSeason } = usePoker();
   const isMobile = useIsMobile();
   
-  console.log("=== BLIND TIMER DEBUG ===");
+  console.log("=== BLIND TIMER DEBUG - COMPONENTE ===");
   console.log("BlindTimer component rendering");
   console.log("Active season:", activeSeason?.name);
-  console.log("Blind structure from season:", activeSeason?.blindStructure);
+  console.log("Blind structure from season (RAW):", activeSeason?.blindStructure);
+  
+  // Log detalhado da estrutura de blinds RAW
+  if (activeSeason?.blindStructure) {
+    console.log("Estrutura de blinds RAW - detalhes:");
+    activeSeason.blindStructure.forEach((blind, index) => {
+      console.log(`RAW Blind ${index}:`, {
+        id: blind.id,
+        level: blind.level,
+        smallBlind: blind.smallBlind,
+        bigBlind: blind.bigBlind,
+        ante: blind.ante,
+        duration: blind.duration,
+        isBreak: blind.isBreak,
+        typeOf_level: typeof blind.level,
+        typeOf_smallBlind: typeof blind.smallBlind,
+        typeOf_bigBlind: typeof blind.bigBlind
+      });
+    });
+  }
   
   // If there's no active season or blind structure, show a fallback component
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
@@ -31,8 +50,11 @@ export default function BlindTimer() {
   // Get the blind structure from the active season
   const blindLevels = activeSeason.blindStructure;
   
+  console.log("=== BLIND TIMER DEBUG - DADOS PROCESSADOS ===");
   console.log("Using blind levels:", blindLevels);
-  console.log("First blind level details:", blindLevels[0]);
+  console.log("Quantidade de blinds:", blindLevels.length);
+  console.log("Primeiro blind (índice 0):", blindLevels[0]);
+  console.log("Segundo blind (índice 1):", blindLevels[1]);
   
   // Use custom hooks
   const {
@@ -50,9 +72,13 @@ export default function BlindTimer() {
     sortedBlindLevels,
   } = useTimerState(blindLevels);
   
+  console.log("=== BLIND TIMER DEBUG - RESULTADO DOS HOOKS ===");
   console.log("Timer state from hook:", state);
   console.log("Current level from hook:", currentLevel);
+  console.log("Current level smallBlind:", currentLevel?.smallBlind);
+  console.log("Current level bigBlind:", currentLevel?.bigBlind);
   console.log("Sorted blind levels:", sortedBlindLevels);
+  console.log("Primeiro blind ordenado:", sortedBlindLevels?.[0]);
   
   const {
     startTimer,
