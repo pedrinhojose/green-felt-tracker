@@ -15,78 +15,107 @@ export interface TimerState {
 }
 
 export function useTimerState(blindLevels: BlindLevel[]) {
-  console.log("=== TIMER STATE DEBUG - DADOS RECEBIDOS ===");
-  console.log("blindLevels recebidos:", blindLevels);
-  console.log("Tipo dos dados:", typeof blindLevels);
-  console.log("É array?", Array.isArray(blindLevels));
-  console.log("Quantidade de blinds:", blindLevels?.length);
+  console.log("=== TIMER STATE - CORREÇÃO DEFINITIVA ===");
+  console.log("blindLevels RAW recebidos:", blindLevels);
+  console.log("Quantidade:", blindLevels?.length);
   
-  // Log detalhado de cada blind recebido
-  blindLevels?.forEach((blind, index) => {
-    console.log(`Blind ${index}:`, {
-      id: blind.id,
-      level: blind.level,
-      smallBlind: blind.smallBlind,
-      bigBlind: blind.bigBlind,
-      ante: blind.ante,
-      duration: blind.duration,
-      isBreak: blind.isBreak
-    });
-  });
-
-  // Garantir que os blinds estejam ordenados corretamente pelo nível
+  // Verificar se temos dados válidos
+  if (!Array.isArray(blindLevels) || blindLevels.length === 0) {
+    console.error("ERRO: Não há blinds configurados");
+    return {
+      state: {
+        isRunning: false,
+        currentLevelIndex: 0,
+        elapsedTimeInLevel: 0,
+        totalElapsedTime: 0,
+        showAlert: false,
+        soundEnabled: true,
+      },
+      setState: () => {},
+      currentLevel: undefined,
+      nextLevel: undefined,
+      timeRemainingInLevel: 0,
+      isAlertTime: false,
+      isFinalCountdown: false,
+      isLevelJustCompleted: false,
+      isNewBlindAlert: false,
+      nextBreak: null,
+      levelsUntilBreak: null,
+      sortedBlindLevels: [],
+    };
+  }
+  
+  // ORDENAÇÃO SIMPLES E CONFIÁVEL - garantir que level 1 seja sempre índice 0
   const sortedBlindLevels = [...blindLevels].sort((a, b) => {
-    const levelA = typeof a.level === 'number' ? a.level : parseInt(String(a.level));
-    const levelB = typeof b.level === 'number' ? b.level : parseInt(String(b.level));
+    // Converter level para number se necessário
+    const levelA = typeof a.level === 'number' ? a.level : parseInt(String(a.level), 10);
+    const levelB = typeof b.level === 'number' ? b.level : parseInt(String(b.level), 10);
+    
+    // Verificar se a conversão foi bem-sucedida
+    if (isNaN(levelA) || isNaN(levelB)) {
+      console.error("ERRO: Levels inválidos encontrados:", { a: a.level, b: b.level });
+      return 0;
+    }
+    
     return levelA - levelB;
   });
   
-  console.log("=== TIMER STATE DEBUG - APÓS ORDENAÇÃO ===");
+  console.log("=== APÓS ORDENAÇÃO CORRIGIDA ===");
   console.log("Blinds ordenados:", sortedBlindLevels);
   
-  // Log detalhado dos blinds ordenados
-  sortedBlindLevels.forEach((blind, index) => {
-    console.log(`Blind ordenado ${index}:`, {
-      level: blind.level,
-      smallBlind: blind.smallBlind,
-      bigBlind: blind.bigBlind,
-      originalIndex: blindLevels.findIndex(b => b.id === blind.id)
-    });
-  });
+  // VALIDAÇÃO CRÍTICA - verificar se o primeiro blind é o correto
+  const firstBlind = sortedBlindLevels[0];
+  console.log("PRIMEIRO BLIND (índice 0):", firstBlind);
   
-  console.log("Primeiro blind após ordenação:", sortedBlindLevels[0]);
-  console.log("Segundo blind após ordenação:", sortedBlindLevels[1]);
+  if (firstBlind) {
+    console.log("Verificação do primeiro blind:");
+    console.log("- Level:", firstBlind.level);
+    console.log("- Small Blind:", firstBlind.smallBlind);
+    console.log("- Big Blind:", firstBlind.bigBlind);
+    console.log("- É o blind 100/200?", firstBlind.smallBlind === 100 && firstBlind.bigBlind === 200);
+  }
   
+  // FORÇAR ÍNDICE 0 - garantir que sempre iniciamos no primeiro blind
   const [state, setState] = useState<TimerState>({
     isRunning: false,
-    currentLevelIndex: 0, // Sempre iniciar no primeiro nível (índice 0)
+    currentLevelIndex: 0, // SEMPRE COMEÇAR NO ÍNDICE 0
     elapsedTimeInLevel: 0,
     totalElapsedTime: 0,
     showAlert: false,
     soundEnabled: true,
   });
 
-  console.log("=== TIMER STATE DEBUG - ESTADO ATUAL ===");
-  console.log("Estado do timer:", state);
-  console.log("Índice atual:", state.currentLevelIndex);
+  console.log("=== ESTADO INICIAL FORÇADO ===");
+  console.log("currentLevelIndex:", state.currentLevelIndex);
   console.log("Blind no índice atual:", sortedBlindLevels[state.currentLevelIndex]);
   
-  // Verificar se o blind no índice 0 é realmente o que esperamos
-  if (sortedBlindLevels[0]) {
-    console.log("VERIFICAÇÃO: Blind no índice 0 tem smallBlind:", sortedBlindLevels[0].smallBlind);
-    console.log("VERIFICAÇÃO: Blind no índice 0 tem bigBlind:", sortedBlindLevels[0].bigBlind);
+  // VALIDAÇÃO FINAL - confirmar que estamos acessando o blind correto
+  const currentBlindFromArray = sortedBlindLevels[state.currentLevelIndex];
+  if (currentBlindFromArray) {
+    console.log("CONFIRMAÇÃO FINAL:");
+    console.log("- Acessando índice:", state.currentLevelIndex);
+    console.log("- Blind encontrado:", {
+      level: currentBlindFromArray.level,
+      smallBlind: currentBlindFromArray.smallBlind,
+      bigBlind: currentBlindFromArray.bigBlind
+    });
+    
+    // ALERTA se não for o blind esperado
+    if (currentBlindFromArray.smallBlind !== 100 || currentBlindFromArray.bigBlind !== 200) {
+      console.error("❌ ERRO: O primeiro blind não é 100/200!");
+      console.error("Blind encontrado:", currentBlindFromArray);
+      console.error("Esperado: smallBlind=100, bigBlind=200");
+    } else {
+      console.log("✅ SUCESSO: Primeiro blind correto (100/200)");
+    }
   }
 
-  // Use our new focused hooks with sorted blind levels
+  // Use hooks with the corrected sorted blind levels
   const { timeRemainingInLevel, currentLevel, nextLevel } = useLevelTime(
     sortedBlindLevels, 
     state.currentLevelIndex, 
     state.elapsedTimeInLevel
   );
-  
-  console.log("=== TIMER STATE DEBUG - HOOKS RESULT ===");
-  console.log("useLevelTime retornou currentLevel:", currentLevel);
-  console.log("useLevelTime retornou nextLevel:", nextLevel);
   
   const { isAlertTime, isFinalCountdown, isLevelJustCompleted, isNewBlindAlert } = useTimerAlerts(
     currentLevel,
@@ -98,6 +127,10 @@ export function useTimerState(blindLevels: BlindLevel[]) {
     sortedBlindLevels,
     state.currentLevelIndex
   );
+
+  console.log("=== RESULTADO FINAL DOS HOOKS ===");
+  console.log("currentLevel retornado:", currentLevel);
+  console.log("É o blind 100/200?", currentLevel?.smallBlind === 100 && currentLevel?.bigBlind === 200);
 
   return {
     state,
@@ -111,6 +144,6 @@ export function useTimerState(blindLevels: BlindLevel[]) {
     isNewBlindAlert,
     nextBreak,
     levelsUntilBreak,
-    sortedBlindLevels, // Retornar os blinds ordenados
+    sortedBlindLevels,
   };
 }

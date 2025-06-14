@@ -12,15 +12,14 @@ export function useLevelTime(
   currentLevelIndex: number,
   elapsedTimeInLevel: number
 ): LevelTimeInfo {
-  console.log("=== LEVEL TIME DEBUG ===");
-  console.log("useLevelTime chamado com:");
-  console.log("- blindLevels length:", blindLevels?.length);
-  console.log("- currentLevelIndex:", currentLevelIndex);
-  console.log("- elapsedTimeInLevel:", elapsedTimeInLevel);
+  console.log("=== LEVEL TIME - ACESSO SIMPLIFICADO ===");
+  console.log("blindLevels length:", blindLevels?.length);
+  console.log("currentLevelIndex:", currentLevelIndex);
+  console.log("elapsedTimeInLevel:", elapsedTimeInLevel);
   
-  // Verificar se o array de blinds é válido
+  // Validação básica
   if (!Array.isArray(blindLevels) || blindLevels.length === 0) {
-    console.log("ERRO: blindLevels inválido ou vazio");
+    console.error("ERRO: Array de blinds inválido");
     return {
       timeRemainingInLevel: 0,
       currentLevel: undefined,
@@ -28,9 +27,9 @@ export function useLevelTime(
     };
   }
   
-  // Verificar se o índice é válido
+  // Validação do índice
   if (currentLevelIndex < 0 || currentLevelIndex >= blindLevels.length) {
-    console.log("ERRO: currentLevelIndex inválido:", currentLevelIndex, "para array de tamanho:", blindLevels.length);
+    console.error("ERRO: Índice inválido:", currentLevelIndex);
     return {
       timeRemainingInLevel: 0,
       currentLevel: undefined,
@@ -38,21 +37,30 @@ export function useLevelTime(
     };
   }
   
+  // ACESSO DIRETO - sem processamento adicional
   const currentLevel = blindLevels[currentLevelIndex];
   const nextLevel = blindLevels[currentLevelIndex + 1];
   
-  console.log("Acesso ao blind no índice", currentLevelIndex, ":");
-  console.log("- currentLevel:", currentLevel);
-  console.log("- currentLevel.smallBlind:", currentLevel?.smallBlind);
-  console.log("- currentLevel.bigBlind:", currentLevel?.bigBlind);
-  console.log("- nextLevel:", nextLevel);
+  console.log("ACESSO DIRETO ao índice", currentLevelIndex);
+  console.log("currentLevel encontrado:", {
+    level: currentLevel?.level,
+    smallBlind: currentLevel?.smallBlind,
+    bigBlind: currentLevel?.bigBlind,
+    duration: currentLevel?.duration
+  });
   
-  // Calcula o tempo restante no nível atual em segundos
+  // Cálculo do tempo restante
   const timeRemainingInLevel = currentLevel 
     ? Math.max(0, currentLevel.duration * 60 - elapsedTimeInLevel)
     : 0;
 
-  console.log("Tempo restante calculado:", timeRemainingInLevel);
+  console.log("Tempo restante calculado:", timeRemainingInLevel, "segundos");
+  
+  // VERIFICAÇÃO FINAL
+  if (currentLevelIndex === 0 && currentLevel) {
+    const isCorrectFirstBlind = currentLevel.smallBlind === 100 && currentLevel.bigBlind === 200;
+    console.log(isCorrectFirstBlind ? "✅ CORRETO: Primeiro blind 100/200" : "❌ ERRO: Primeiro blind incorreto");
+  }
 
   return {
     timeRemainingInLevel,
