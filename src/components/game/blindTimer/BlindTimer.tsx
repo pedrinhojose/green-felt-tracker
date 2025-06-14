@@ -11,8 +11,14 @@ export default function BlindTimer() {
   const { activeSeason } = usePoker();
   const isMobile = useIsMobile();
   
+  console.log("=== BLIND TIMER DEBUG ===");
+  console.log("BlindTimer component rendering");
+  console.log("Active season:", activeSeason?.name);
+  console.log("Blind structure from season:", activeSeason?.blindStructure);
+  
   // If there's no active season or blind structure, show a fallback component
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
+    console.log("No active season or blind structure found");
     return (
       <Card className="bg-poker-dark-green border border-poker-gold/20">
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
@@ -24,6 +30,9 @@ export default function BlindTimer() {
   
   // Get the blind structure from the active season
   const blindLevels = activeSeason.blindStructure;
+  
+  console.log("Using blind levels:", blindLevels);
+  console.log("First blind level details:", blindLevels[0]);
   
   // Use custom hooks
   const {
@@ -38,7 +47,12 @@ export default function BlindTimer() {
     isNewBlindAlert,
     nextBreak,
     levelsUntilBreak,
+    sortedBlindLevels,
   } = useTimerState(blindLevels);
+  
+  console.log("Timer state from hook:", state);
+  console.log("Current level from hook:", currentLevel);
+  console.log("Sorted blind levels:", sortedBlindLevels);
   
   const {
     startTimer,
@@ -51,7 +65,7 @@ export default function BlindTimer() {
     toggleFullScreen,
     reloadAudio,
   } = useTimerControls(
-    blindLevels,
+    sortedBlindLevels, // Usar os blinds ordenados
     state,
     setState,
     timeRemainingInLevel
@@ -72,7 +86,7 @@ export default function BlindTimer() {
             isNewBlindAlert={isNewBlindAlert}
             onProgressClick={setLevelProgress}
             onToggleFullScreen={toggleFullScreen}
-            blindLevels={blindLevels}
+            blindLevels={sortedBlindLevels} // Usar os blinds ordenados
           />
           
           <TimerControls

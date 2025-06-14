@@ -34,7 +34,7 @@ export function useTimerControls(
     playAudioSafely
   );
   
-  // Timer core functionality
+  // Timer core functionality - usar blindLevels ordenados
   const { startTimer: coreStartTimer, pauseTimer: corePauseTimer, cleanupTimer } = useTimerCore(
     blindLevels,
     state,
@@ -42,7 +42,7 @@ export function useTimerControls(
     playLevelCompleteSound
   );
   
-  // Level navigation
+  // Level navigation - usar blindLevels ordenados
   const { nextLevel, previousLevel, setLevelProgress } = useLevelNavigation(
     blindLevels,
     state,
@@ -73,7 +73,12 @@ export function useTimerControls(
 
   // Enhanced start timer that enables audio context
   const startTimer = useCallback(() => {
+    console.log("=== START TIMER DEBUG ===");
     console.log("Start timer called - habilitando contexto de áudio");
+    console.log("Current state before start:", state);
+    console.log("BlindLevels length:", blindLevels.length);
+    console.log("First blind level:", blindLevels[0]);
+    
     setGlobalAudioEnabled(true);
     enableTimerAudio();
     // Try to unlock audio on start
@@ -81,7 +86,7 @@ export function useTimerControls(
       unlockAudio();
     }, 100);
     coreStartTimer();
-  }, [coreStartTimer, setGlobalAudioEnabled, enableTimerAudio, unlockAudio]);
+  }, [coreStartTimer, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, state, blindLevels]);
 
   // Enhanced pause timer
   const pauseTimer = useCallback(() => {
@@ -107,14 +112,20 @@ export function useTimerControls(
   }, [state.soundEnabled, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, toggleSound]);
 
   const handleNextLevel = useCallback(() => {
+    console.log("=== NEXT LEVEL DEBUG ===");
     console.log("Next level called");
+    console.log("Current level index before:", state.currentLevelIndex);
+    console.log("Total blind levels:", blindLevels.length);
     nextLevel();
-  }, [nextLevel]);
+  }, [nextLevel, state.currentLevelIndex, blindLevels.length]);
 
   const handlePreviousLevel = useCallback(() => {
+    console.log("=== PREVIOUS LEVEL DEBUG ===");
     console.log("Previous level called");
+    console.log("Current level index before:", state.currentLevelIndex);
+    console.log("Can go to previous?", state.currentLevelIndex > 0);
     previousLevel();
-  }, [previousLevel]);
+  }, [previousLevel, state.currentLevelIndex]);
 
   const handleLevelProgress = useCallback((percentage: number) => {
     console.log(`Level progress adjusted to ${percentage}%`);
