@@ -98,9 +98,9 @@ export default function BlindTimer() {
   );
   
   return (
-    <Card className="bg-poker-dark-green border border-poker-gold/20 h-screen">
-      <CardContent className="p-2">
-        <div className={`space-y-${isMobile ? '4' : '6'} h-full flex flex-col justify-center`}>
+    <Card className="bg-poker-dark-green border border-poker-gold/20 h-screen flex items-center justify-center">
+      <CardContent className="p-2 w-full">
+        <div className={`space-y-${isMobile ? '4' : '6'} flex flex-col items-center`}>
           <TimerDisplay
             currentLevel={currentLevel}
             nextLevel={nextLevel}
@@ -112,7 +112,7 @@ export default function BlindTimer() {
             isNewBlindAlert={isNewBlindAlert}
             onProgressClick={setLevelProgress}
             onToggleFullScreen={toggleFullScreen}
-            blindLevels={sortedBlindLevels} // Usar os blinds ordenados
+            blindLevels={sortedBlindLevels}
           />
           
           <TimerControls
