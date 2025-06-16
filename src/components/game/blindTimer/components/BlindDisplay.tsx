@@ -25,7 +25,7 @@ export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProp
   
   return (
     <div 
-      className={`text-4xl md:text-5xl font-bold ${blindsClass} transition-all`}
+      className={`text-5xl md:text-6xl font-bold ${blindsClass} transition-all`}
       style={{ 
         textShadow: "0px 2px 4px rgba(0,0,0,0.5)", 
         color: "#FFD700" // Amarelo forte (gold) para destacar
