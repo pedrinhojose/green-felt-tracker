@@ -6,12 +6,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect } from "react";
 
 export default function TimerPage() {
   const { gameId } = useParams<{ gameId?: string }>();
-  const { activeSeason } = usePoker();
+  const { activeSeason, games, lastGame } = usePoker();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  
+  // Debug da página do timer
+  useEffect(() => {
+    console.log("=== TIMER PAGE DEBUG ===");
+    console.log("GameId da URL:", gameId);
+    console.log("Active season:", activeSeason?.name);
+    console.log("Games disponíveis:", games?.length);
+    console.log("Último jogo:", lastGame?.id);
+  }, [gameId, activeSeason, games, lastGame]);
   
   // Check if active season has a blind structure
   const hasBlindStructure = activeSeason && 

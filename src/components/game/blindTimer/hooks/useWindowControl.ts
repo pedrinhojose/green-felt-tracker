@@ -1,40 +1,62 @@
 
+import { useParams, useLocation } from "react-router-dom";
+import { usePoker } from "@/contexts/PokerContext";
+
 export function useWindowControl() {
+  const params = useParams();
+  const location = useLocation();
+  const { lastGame } = usePoker();
+  
   const openInNewWindow = () => {
     const width = 800;
     const height = 600;
     const left = (window.innerWidth - width) / 2;
     const top = (window.innerHeight - height) / 2;
     
-    // Get the current game ID from the URL
-    const currentPath = window.location.pathname;
-    const pathParts = currentPath.split('/');
+    // Detectar o gameId de várias fontes possíveis
     let gameId = '';
     
-    // Find the game ID in the URL path
-    if (currentPath.includes('/partidas/')) {
-      const gameIdIndex = pathParts.findIndex(part => part === 'partidas') + 1;
+    // 1. Tentar pegar da URL atual (se estiver na página do jogo)
+    if (params.gameId) {
+      gameId = params.gameId;
+      console.log("GameId encontrado nos parâmetros da URL:", gameId);
+    }
+    // 2. Tentar extrair da URL atual se contém um gameId
+    else if (location.pathname.includes('/game/')) {
+      const pathParts = location.pathname.split('/');
+      const gameIdIndex = pathParts.findIndex(part => part === 'game') + 1;
       if (gameIdIndex < pathParts.length) {
         gameId = pathParts[gameIdIndex];
+        console.log("GameId extraído da URL do jogo:", gameId);
       }
+    }
+    // 3. Usar o último jogo como fallback
+    else if (lastGame?.id) {
+      gameId = lastGame.id;
+      console.log("Usando último jogo como fallback:", gameId);
     }
     
     if (!gameId) {
-      console.error('Game ID not found in URL');
+      console.error('Game ID não encontrado - não é possível abrir o timer');
+      alert('Não foi possível identificar o jogo atual. Certifique-se de estar visualizando um jogo específico.');
       return;
     }
     
-    // Corrigir a URL para usar o caminho completo com base na URL atual
+    // Construir a URL correta para o timer
     const baseUrl = window.location.origin;
-    const timerUrl = `${baseUrl}/partidas/${gameId}/timer`;
+    const timerUrl = `${baseUrl}/timer/${gameId}`;
     
-    console.log("Opening timer in new window:", timerUrl);
+    console.log("Abrindo timer em nova janela:", timerUrl);
     
-    window.open(
+    const newWindow = window.open(
       timerUrl, 
       "PokerTimer",
-      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
     );
+    
+    if (!newWindow) {
+      alert('Não foi possível abrir a nova janela. Verifique se o bloqueador de pop-ups está desabilitado.');
+    }
   };
 
   // Função para alternar modo tela cheia

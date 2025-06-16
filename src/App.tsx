@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -54,7 +53,7 @@ function App() {
                       {/* Public routes */}
                       <Route path="/" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
-                      <Route path="/timer/:gameId?" element={<TimerPage />} />
+                      <Route path="/timer/:gameId" element={<TimerPage />} />
                       
                       {/* Protected routes */}
                       <Route path="/select-organization" element={
