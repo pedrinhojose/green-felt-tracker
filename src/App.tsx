@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -46,61 +47,67 @@ function App() {
         <AuthProvider>
           <Router>
             <OrganizationProvider>
-              <PokerProvider>
-                <AudioProvider>
-                  <div className="min-h-screen bg-poker-black">
-                    <Routes>
-                      {/* Public routes */}
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/timer/:gameId" element={<TimerPage />} />
-                      
-                      {/* Protected routes */}
-                      <Route path="/select-organization" element={
-                        <RequireAuth>
-                          <OrganizationSelectionPage />
-                        </RequireAuth>
-                      } />
-                      
-                      {/* Routes that require organization and use AppLayout */}
-                      <Route element={
-                        <RequireAuth>
-                          <OrganizationRequired>
+              <div className="min-h-screen bg-poker-black">
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/timer/:gameId" element={
+                    <PokerProvider>
+                      <AudioProvider>
+                        <TimerPage />
+                      </AudioProvider>
+                    </PokerProvider>
+                  } />
+                  
+                  {/* Protected routes */}
+                  <Route path="/select-organization" element={
+                    <RequireAuth>
+                      <OrganizationSelectionPage />
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Routes that require organization and use AppLayout */}
+                  <Route element={
+                    <RequireAuth>
+                      <OrganizationRequired>
+                        <PokerProvider>
+                          <AudioProvider>
                             <AppLayout />
-                          </OrganizationRequired>
-                        </RequireAuth>
-                      }>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/players" element={<PlayersManagement />} />
-                        <Route path="/season" element={<SeasonConfig />} />
-                        <Route path="/games" element={<GamesList />} />
-                        <Route path="/game/:gameId" element={<GameManagement />} />
-                        <Route path="/ranking" element={<RankingPage />} />
-                        <Route path="/seasons" element={<SeasonsList />} />
-                        <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
-                        <Route path="/seasons/:seasonId/report" element={<SeasonReport />} />
-                        <Route path="/report" element={<SeasonReport />} />
-                        <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
-                        <Route path="/organization/members" element={<OrganizationMembersPage />} />
-                        <Route path="/users" element={<UserManagement />} />
-                      </Route>
-                      
-                      {/* Organizations route (no organization required) */}
-                      <Route element={
-                        <RequireAuth>
-                          <AppLayout />
-                        </RequireAuth>
-                      }>
-                        <Route path="/organizations" element={<OrganizationsPage />} />
-                      </Route>
-                      
-                      {/* Catch all route */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                  <Toaster />
-                </AudioProvider>
-              </PokerProvider>
+                          </AudioProvider>
+                        </PokerProvider>
+                      </OrganizationRequired>
+                    </RequireAuth>
+                  }>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/players" element={<PlayersManagement />} />
+                    <Route path="/season" element={<SeasonConfig />} />
+                    <Route path="/games" element={<GamesList />} />
+                    <Route path="/game/:gameId" element={<GameManagement />} />
+                    <Route path="/ranking" element={<RankingPage />} />
+                    <Route path="/seasons" element={<SeasonsList />} />
+                    <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
+                    <Route path="/seasons/:seasonId/report" element={<SeasonReport />} />
+                    <Route path="/report" element={<SeasonReport />} />
+                    <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
+                    <Route path="/organization/members" element={<OrganizationMembersPage />} />
+                    <Route path="/users" element={<UserManagement />} />
+                  </Route>
+                  
+                  {/* Organizations route (no organization required) */}
+                  <Route element={
+                    <RequireAuth>
+                      <AppLayout />
+                    </RequireAuth>
+                  }>
+                    <Route path="/organizations" element={<OrganizationsPage />} />
+                  </Route>
+                  
+                  {/* Catch all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+              <Toaster />
             </OrganizationProvider>
           </Router>
         </AuthProvider>

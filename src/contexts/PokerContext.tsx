@@ -116,11 +116,24 @@ export function PokerProvider({ children }: { children: ReactNode }) {
         console.log("PokerContext: Inicialização concluída com sucesso");
       } catch (error) {
         console.error('PokerContext: Erro ao inicializar dados:', error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar os dados. Verifique se você tem acesso à organização selecionada.",
-          variant: "destructive",
-        });
+        // Don't show toast error for network issues - they are temporary
+        if (error instanceof Error && !error.message.includes('Load failed')) {
+          toast({
+            title: "Erro ao carregar dados",
+            description: "Não foi possível carregar os dados. Verifique se você tem acesso à organização selecionada.",
+            variant: "destructive",
+          });
+        } else {
+          console.log("PokerContext: Erro de rede detectado, tentando novamente em breve...");
+        }
+        
+        // Set default empty state on error
+        setPlayers([]);
+        setSeasons([]);
+        setActiveSeason(null);
+        setGames([]);
+        setRankings([]);
+        setLastGame(null);
       } finally {
         setIsLoading(false);
       }
