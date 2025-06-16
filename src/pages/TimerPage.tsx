@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import BlindTimer from "@/components/game/blindTimer/BlindTimer";
@@ -47,8 +46,8 @@ export default function TimerPage() {
   }
 
   return (
-    <div className={`flex items-center justify-center min-h-screen bg-poker-black timer-container ${isMobile ? 'p-2' : 'p-4'}`}>
-      <div className="w-full max-w-3xl">
+    <div className="min-h-screen bg-poker-black timer-container">
+      <div className="w-full h-full">
         <BlindTimer />
       </div>
     </div>

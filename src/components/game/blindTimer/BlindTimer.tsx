@@ -98,9 +98,9 @@ export default function BlindTimer() {
   );
   
   return (
-    <Card className="bg-poker-dark-green border border-poker-gold/20">
-      <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
-        <div className={`space-y-${isMobile ? '4' : '6'}`}>
+    <Card className="bg-poker-dark-green border border-poker-gold/20 h-screen">
+      <CardContent className="p-2">
+        <div className={`space-y-${isMobile ? '4' : '6'} h-full flex flex-col justify-center`}>
           <TimerDisplay
             currentLevel={currentLevel}
             nextLevel={nextLevel}
