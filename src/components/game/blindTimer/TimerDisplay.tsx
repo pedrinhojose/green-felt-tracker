@@ -93,7 +93,7 @@ export default function TimerDisplay({
     : 0;
 
   return (
-    <div className="text-center space-y-4 timer-container relative">
+    <div className="text-center space-y-4 timer-container relative w-full">
       {/* Botão de tela cheia */}
       <FullscreenButton onToggleFullScreen={onToggleFullScreen} />
 

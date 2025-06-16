@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
@@ -81,20 +82,23 @@ export function StatusInfo({
     }
   };
 
-  // Estilo para os elementos destacados - aumentando tamanho para igualar ao dos SB/BB
+  // Estilo para os elementos destacados - mantendo tamanho original para SB/BB e Hora Atual
   const highlightedDisplayStyle = "text-3.9xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
+  
+  // Estilo reduzido para "Próximo Nível" (40% menor)
+  const nextLevelDisplayStyle = "text-2xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
 
   return (
-    <>
+    <div className="w-full">
       <div className="grid grid-cols-3 gap-4 text-gray-300 pt-4">
         <div>
           <div className="text-xs text-gray-400">Próximo Nível</div>
           {nextLevel ? (
-            <div className={cn(highlightedDisplayStyle)}>
+            <div className={cn(nextLevelDisplayStyle)}>
               {nextLevel.isBreak ? 'INTERVALO' : `${nextLevel.smallBlind} / ${nextLevel.bigBlind}`}
             </div>
           ) : (
-            <div className={cn(highlightedDisplayStyle)}>Último Nível</div>
+            <div className={cn(nextLevelDisplayStyle)}>Último Nível</div>
           )}
         </div>
         
@@ -128,6 +132,6 @@ export function StatusInfo({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

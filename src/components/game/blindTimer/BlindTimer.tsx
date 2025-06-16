@@ -98,9 +98,9 @@ export default function BlindTimer() {
   );
   
   return (
-    <Card className="bg-poker-dark-green border border-poker-gold/20 h-screen flex items-center justify-center">
-      <CardContent className="p-2 w-full">
-        <div className={`space-y-${isMobile ? '4' : '6'} flex flex-col items-center`}>
+    <div className="w-screen h-screen bg-poker-dark-green flex items-center justify-center">
+      <div className="w-full h-full flex flex-col items-center justify-center p-2">
+        <div className={`space-y-${isMobile ? '4' : '6'} flex flex-col items-center w-full`}>
           <TimerDisplay
             currentLevel={currentLevel}
             nextLevel={nextLevel}
@@ -128,7 +128,7 @@ export default function BlindTimer() {
             onReloadAudio={reloadAudio}
           />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
