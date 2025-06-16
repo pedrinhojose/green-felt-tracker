@@ -39,53 +39,23 @@ export default function TimerDisplay({
 }: TimerDisplayProps) {
   if (!currentLevel) return null;
   
-  const { getTimeUntilBreak } = useTimerUtils();
-  const [timeUntilBreakValue, setTimeUntilBreakValue] = useState<string>("");
+  const { getCurrentTime } = useTimerUtils();
+  const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
-  // Atualiza o tempo até o intervalo a cada segundo
+  // Atualizar a hora atual a cada minuto
   useEffect(() => {
-    // Função para calcular o tempo até o intervalo
-    const calculateTimeUntilBreak = () => {
-      if (!currentLevel || !nextBreak) {
-        setTimeUntilBreakValue("");
-        return;
-      }
-      
-      try {
-        // Verificar se temos os dados necessários
-        if (!Array.isArray(currentLevel.level) && typeof currentLevel.level === 'number' && 
-            !Array.isArray(nextBreak.level) && typeof nextBreak.level === 'number' &&
-            typeof currentLevel.duration === 'number') {
-          
-          const currentLevelIndex = currentLevel.level - 1;
-          const elapsedTimeInCurrentLevel = currentLevel.duration * 60 - timeRemainingInLevel;
-          const nextBreakIndex = nextBreak.level - 1;
-          
-          // Calcular o tempo até o intervalo
-          if (blindLevels && blindLevels.length > 0) {
-            const time = getTimeUntilBreak(
-              currentLevelIndex,
-              elapsedTimeInCurrentLevel,
-              blindLevels,
-              nextBreakIndex
-            );
-            setTimeUntilBreakValue(time);
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao calcular tempo até o intervalo:", error);
-        setTimeUntilBreakValue("Cálculo indisponível");
-      }
+    const updateTime = () => {
+      setCurrentTime(getCurrentTime());
     };
 
-    // Calcular imediatamente
-    calculateTimeUntilBreak();
+    // Atualizar imediatamente
+    updateTime();
     
-    // Atualizar a cada segundo
-    const interval = setInterval(calculateTimeUntilBreak, 1000);
+    // Atualizar a cada minuto
+    const interval = setInterval(updateTime, 60000);
     
     return () => clearInterval(interval);
-  }, [currentLevel, nextBreak, blindLevels, timeRemainingInLevel, getTimeUntilBreak]);
+  }, [getCurrentTime]);
 
   // Calcular a porcentagem de tempo decorrido no nível atual
   const progressPercentage = currentLevel
@@ -97,15 +67,13 @@ export default function TimerDisplay({
       {/* Botão de tela cheia */}
       <FullscreenButton onToggleFullScreen={onToggleFullScreen} />
 
-      {/* Contador de tempo até o intervalo */}
-      {nextBreak && levelsUntilBreak && levelsUntilBreak > 0 && (
-        <div className="absolute top-1 left-1 text-left p-2 rounded-md bg-poker-navy/30">
-          <div className="text-white text-xs">Intervalo em</div>
-          <div className="text-poker-gold text-sm font-medium">
-            {timeUntilBreakValue} - {levelsUntilBreak} níveis
-          </div>
+      {/* Hora atual no canto superior esquerdo */}
+      <div className="absolute top-1 left-1 text-left p-2 rounded-md bg-poker-navy/30">
+        <div className="text-white text-xs">Hora Atual</div>
+        <div className="text-poker-gold text-lg font-medium">
+          {currentTime}
         </div>
-      )}
+      </div>
       
       {/* Nível atual */}
       <LevelHeader currentLevel={currentLevel} />
