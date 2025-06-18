@@ -117,6 +117,33 @@ export const createReportSummary = (game: Game, players = []) => {
     dinnerRow.appendChild(dinnerLabel);
     dinnerRow.appendChild(dinnerValue);
     summary.appendChild(dinnerRow);
+    
+    // Individual Dinner Cost
+    const dinnerParticipants = game.players.filter(p => p.joinedDinner).length;
+    if (dinnerParticipants > 0) {
+      const individualDinnerCost = game.dinnerCost / dinnerParticipants;
+      
+      const individualDinnerRow = document.createElement('div');
+      individualDinnerRow.style.display = 'grid';
+      individualDinnerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+      individualDinnerRow.style.gap = '2px';
+      individualDinnerRow.style.marginBottom = '8px';
+      
+      const individualDinnerLabel = document.createElement('div');
+      individualDinnerLabel.textContent = 'Valor Janta:';
+      individualDinnerLabel.style.color = '#8E9196';
+      individualDinnerLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+      
+      const individualDinnerValue = document.createElement('div');
+      individualDinnerValue.textContent = formatCurrency(individualDinnerCost);
+      individualDinnerValue.style.fontWeight = 'bold';
+      individualDinnerValue.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+      individualDinnerValue.style.textAlign = 'center'; // Centralizando o texto
+      
+      individualDinnerRow.appendChild(individualDinnerLabel);
+      individualDinnerRow.appendChild(individualDinnerValue);
+      summary.appendChild(individualDinnerRow);
+    }
   }
   
   // Total Prize
