@@ -1,4 +1,3 @@
-
 import { Game } from '../../db/models';
 import { formatCurrency } from '../dateUtils';
 
@@ -130,7 +129,7 @@ export const createReportSummary = (game: Game, players = []) => {
       individualDinnerRow.style.marginBottom = '8px';
       
       const individualDinnerLabel = document.createElement('div');
-      individualDinnerLabel.textContent = 'Valor Janta:';
+      individualDinnerLabel.textContent = 'Janta por Pessoa:';
       individualDinnerLabel.style.color = '#8E9196';
       individualDinnerLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
       
