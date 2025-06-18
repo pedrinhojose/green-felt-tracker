@@ -41,6 +41,21 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
     // Add prize pool
     doc.text(`Premiação Total: ${formatCurrency(game.totalPrizePool)}`, 14, 45);
     
+    // Add dinner information if applicable
+    let yPosition = 52;
+    if (game.dinnerCost && game.dinnerCost > 0) {
+      doc.text(`Total Janta: ${formatCurrency(game.dinnerCost)}`, 14, yPosition);
+      yPosition += 7;
+      
+      // Calculate individual dinner cost
+      const dinnerParticipants = game.players.filter(p => p.joinedDinner).length;
+      if (dinnerParticipants > 0) {
+        const individualDinnerCost = game.dinnerCost / dinnerParticipants;
+        doc.text(`Valor Janta: ${formatCurrency(individualDinnerCost)}`, 14, yPosition);
+        yPosition += 7;
+      }
+    }
+    
     // Create players table
     const playerMap = new Map(players.map(player => [player.id, player]));
     
@@ -67,7 +82,7 @@ export const exportGameReport = async (gameId: string, players: Player[]): Promi
     autoTable(doc, {
       head: [['Pos.', 'Nome', 'Buy-in', 'Rebuys', 'Add-ons', 'Janta', 'Prêmio', 'Pontos', 'Saldo']],
       body: tableData,
-      startY: 53, // Ajustado para acomodar a linha adicional da temporada
+      startY: yPosition,
       styles: { fontSize: 10, cellPadding: 3 },
       headStyles: { fillColor: [10, 59, 35] },
       alternateRowStyles: { fillColor: [240, 240, 240] },
