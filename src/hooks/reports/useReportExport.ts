@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -8,6 +9,11 @@ import { formatCurrency } from "@/lib/utils/dateUtils";
 export function useReportExport() {
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
+  
+  // Função para detectar se é mobile
+  const isMobileDevice = (): boolean => {
+    return window.innerWidth <= 768;
+  };
   
   // Função para gerar PDF profissional usando jsPDF
   const generatePdfReport = async (
@@ -150,8 +156,13 @@ export function useReportExport() {
     return pdf;
   };
   
-  // Função para calcular largura dinâmica baseada no conteúdo
-  const calculateOptimalWidth = (originalElement: HTMLElement): number => {
+  // Função para calcular largura otimizada baseada no dispositivo
+  const calculateOptimalWidth = (originalElement: HTMLElement, isMobile: boolean): number => {
+    if (isMobile) {
+      // Para mobile, usar largura fixa otimizada
+      return 375; // Largura padrão do iPhone
+    }
+    
     const table = originalElement.querySelector('table');
     if (!table) return 800; // largura padrão se não houver tabela
     
@@ -170,7 +181,160 @@ export function useReportExport() {
     return Math.min(minWidth, 1400); // máximo de 1400px para manter qualidade
   };
   
-  // Função para criar uma versão otimizada de alta qualidade do relatório - MELHORADA
+  // Função para criar uma versão otimizada para mobile
+  const createMobileOptimizedElement = (originalElement: HTMLElement): HTMLElement => {
+    console.log("=== createMobileOptimizedElement DEBUG ===");
+    console.log("Creating mobile-optimized version...");
+    
+    const clone = originalElement.cloneNode(true) as HTMLElement;
+    
+    // Aplicar estilos otimizados para mobile
+    clone.style.cssText = `
+      width: 375px !important;
+      max-width: none !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+      padding: 16px !important;
+      margin: 0 !important;
+      background-color: #1a2e35 !important;
+      color: #FFFFFF !important;
+      font-family: system-ui, -apple-system, sans-serif !important;
+      min-height: 400px !important;
+      box-sizing: border-box !important;
+      overflow-x: hidden !important;
+    `;
+    
+    // Aplicar cores diretamente nos elementos filhos
+    const applyInlineStyles = (element: HTMLElement) => {
+      // Aplicar cores para elementos com classes específicas
+      if (element.classList?.contains('text-poker-gold') || element.textContent?.includes('R$')) {
+        element.style.color = '#D4AF37 !important';
+      }
+      if (element.classList?.contains('bg-poker-green')) {
+        element.style.backgroundColor = '#0F5132 !important';
+      }
+      if (element.classList?.contains('bg-poker-dark-green')) {
+        element.style.backgroundColor = '#0A3D29 !important';
+      }
+      if (element.classList?.contains('text-green-400')) {
+        element.style.color = '#4ADE80 !important';
+      }
+      if (element.classList?.contains('text-red-400')) {
+        element.style.color = '#F87171 !important';
+      }
+      if (element.classList?.contains('text-blue-400')) {
+        element.style.color = '#60A5FA !important';
+      }
+      if (element.classList?.contains('text-gray-400')) {
+        element.style.color = '#9CA3AF !important';
+      }
+      if (element.classList?.contains('text-amber-700')) {
+        element.style.color = '#B45309 !important';
+      }
+      if (element.classList?.contains('border-gray-700')) {
+        element.style.borderColor = '#374151 !important';
+      }
+      if (element.classList?.contains('bg-gray-700')) {
+        element.style.backgroundColor = '#374151 !important';
+      }
+      
+      // Aplicar aos filhos
+      Array.from(element.children).forEach(child => {
+        if (child instanceof HTMLElement) {
+          applyInlineStyles(child);
+        }
+      });
+    };
+    
+    applyInlineStyles(clone);
+    
+    // Otimizar tabelas especificamente para mobile
+    const tables = clone.querySelectorAll('table');
+    console.log("Found tables for mobile optimization:", tables.length);
+    
+    tables.forEach((table, tableIndex) => {
+      console.log(`Processing table ${tableIndex + 1} for mobile`);
+      (table as HTMLElement).style.cssText = `
+        font-size: 10px !important;
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        background-color: #1a2e35 !important;
+        color: #FFFFFF !important;
+        margin: 0 !important;
+      `;
+      
+      // Ajustar células para mobile
+      const cells = table.querySelectorAll('td, th');
+      console.log(`Found ${cells.length} cells in table ${tableIndex + 1}`);
+      
+      cells.forEach((cell, index) => {
+        const cellElement = cell as HTMLElement;
+        const isHeader = cell.tagName === 'TH';
+        
+        // Larguras específicas para cada coluna (mobile)
+        let cellWidth = '8%'; // padrão
+        if (index === 0) cellWidth = '20%'; // Nome do jogador
+        else if (index >= 6) cellWidth = '12%'; // Colunas financeiras
+        
+        cellElement.style.cssText = `
+          padding: 4px 2px !important;
+          white-space: nowrap !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          width: ${cellWidth} !important;
+          max-width: ${cellWidth} !important;
+          font-size: ${isHeader ? '9px' : '8px'} !important;
+          background-color: inherit !important;
+          color: inherit !important;
+          text-align: ${index === 0 ? 'left' : index >= 6 ? 'right' : 'center'} !important;
+        `;
+      });
+      
+      // Ajustar cabeçalhos
+      const headers = table.querySelectorAll('th');
+      headers.forEach(header => {
+        (header as HTMLElement).style.cssText += `
+          background-color: rgba(41, 128, 185, 0.8) !important;
+          font-weight: bold !important;
+          color: #FFFFFF !important;
+          padding: 4px 2px !important;
+          font-size: 9px !important;
+        `;
+      });
+    });
+    
+    // Otimizar cards para layout mobile
+    const cards = clone.querySelectorAll('[class*="grid"]');
+    console.log("Found grid elements for mobile:", cards.length);
+    
+    cards.forEach(card => {
+      (card as HTMLElement).style.cssText = `
+        display: grid !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+        grid-template-columns: 1fr !important;
+      `;
+    });
+    
+    // Garantir que avatares sejam menores em mobile
+    const avatars = clone.querySelectorAll('[class*="h-16"], [class*="w-16"], [class*="h-12"], [class*="w-12"]');
+    avatars.forEach(avatar => {
+      (avatar as HTMLElement).style.cssText = `
+        width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      `;
+    });
+    
+    console.log("Mobile-optimized element created");
+    return clone;
+  };
+  
+  // Função para criar uma versão otimizada de alta qualidade do relatório - DESKTOP
   const createHighQualityElement = (originalElement: HTMLElement): HTMLElement => {
     console.log("=== createHighQualityElement DEBUG ===");
     console.log("Original element dimensions:", originalElement.offsetWidth, "x", originalElement.offsetHeight);
@@ -178,7 +342,7 @@ export function useReportExport() {
     const clone = originalElement.cloneNode(true) as HTMLElement;
     
     // Calcular largura ótima baseada no conteúdo
-    const optimalWidth = calculateOptimalWidth(originalElement);
+    const optimalWidth = calculateOptimalWidth(originalElement, false);
     console.log("Optimal width calculated:", optimalWidth);
     
     // Aplicar estilos otimizados para alta qualidade com valores inline
@@ -341,9 +505,9 @@ export function useReportExport() {
     }
   };
   
-  // Exportar relatório como imagem - VERSÃO SIMPLIFICADA PARA DEBUG
+  // Exportar relatório como imagem - VERSÃO OTIMIZADA PARA MOBILE
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
-    console.log("=== SIMPLE IMAGE EXPORT DEBUG ===");
+    console.log("=== OPTIMIZED IMAGE EXPORT DEBUG ===");
     console.log("Target element ID:", reportElementId);
     
     setIsExportingImage(true);
@@ -356,40 +520,50 @@ export function useReportExport() {
       
       console.log("Element found, dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
       
-      // Garantir que o elemento está visível
-      reportElement.style.position = 'static';
-      reportElement.style.visibility = 'visible';
-      reportElement.style.display = 'block';
+      // Detectar se é mobile
+      const isMobile = isMobileDevice();
+      console.log("Is mobile device:", isMobile);
       
-      // Aguardar um pouco para garantir renderização
+      // Criar versão otimizada baseada no dispositivo
+      const optimizedElement = isMobile 
+        ? createMobileOptimizedElement(reportElement)
+        : createHighQualityElement(reportElement);
+      
+      console.log("Optimized element created for:", isMobile ? 'mobile' : 'desktop');
+      
+      // Adicionar temporariamente ao DOM
+      optimizedElement.style.position = 'absolute';
+      optimizedElement.style.top = '-9999px';
+      optimizedElement.style.left = '-9999px';
+      optimizedElement.style.visibility = 'hidden';
+      document.body.appendChild(optimizedElement);
+      
+      // Aguardar renderização
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log("Starting html2canvas with simplified settings...");
+      console.log("Starting html2canvas with optimized settings...");
       
-      // Usar configurações mais simples
-      const canvas = await html2canvas(reportElement, {
-        scale: 1,
-        backgroundColor: null,
-        logging: true,
+      // Configurações otimizadas baseadas no dispositivo
+      const canvasOptions = {
+        scale: isMobile ? 2 : 1,
+        backgroundColor: '#1a2e35',
+        logging: false,
         useCORS: true,
         allowTaint: false,
-        width: reportElement.scrollWidth,
-        height: reportElement.scrollHeight,
-        windowWidth: window.innerWidth,
+        width: isMobile ? 375 : optimizedElement.scrollWidth,
+        height: optimizedElement.scrollHeight,
+        windowWidth: isMobile ? 375 : window.innerWidth,
         windowHeight: window.innerHeight,
         imageTimeout: 0,
         removeContainer: false
-      });
+      };
       
-      console.log(`Canvas created: ${canvas.width}x${canvas.height}`);
+      const canvas = await html2canvas(optimizedElement, canvasOptions);
       
-      // Verificar se há conteúdo no canvas
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        const imageData = ctx.getImageData(0, 0, Math.min(100, canvas.width), Math.min(100, canvas.height));
-        const hasContent = imageData.data.some((value, index) => index % 4 !== 3 && value !== 0);
-        console.log("Canvas has content (sample check):", hasContent);
-      }
+      console.log(`Canvas created: ${canvas.width}x${canvas.height} for ${isMobile ? 'mobile' : 'desktop'}`);
+      
+      // Remover elemento temporário
+      document.body.removeChild(optimizedElement);
       
       // Converter para PNG
       const dataURL = canvas.toDataURL('image/png', 1.0);
@@ -405,7 +579,7 @@ export function useReportExport() {
       link.click();
       document.body.removeChild(link);
       
-      console.log("Download triggered successfully");
+      console.log("Download triggered successfully for", isMobile ? 'mobile' : 'desktop', "version");
       
     } catch (error) {
       console.error("Error in image export:", error);
