@@ -155,94 +155,42 @@ export function useReportExport() {
     return pdf;
   };
   
-  // Função para criar versão otimizada para mobile - SIMPLIFICADA
-  const createMobileOptimizedElement = (originalElement: HTMLElement): HTMLElement => {
-    console.log("=== createMobileOptimizedElement DEBUG ===");
-    console.log("Creating mobile-optimized version...");
+  // Função para criar versão otimizada SIMPLIFICADA - só ajustes essenciais
+  const createOptimizedElement = (originalElement: HTMLElement, isMobile: boolean): HTMLElement => {
+    console.log("=== createOptimizedElement DEBUG ===");
+    console.log("Creating optimized version for:", isMobile ? 'mobile' : 'desktop');
     
     const clone = originalElement.cloneNode(true) as HTMLElement;
     
-    // Aplicar apenas estilos essenciais para mobile
-    clone.style.width = '375px';
-    clone.style.maxWidth = 'none';
-    clone.style.fontSize = '12px';
-    clone.style.padding = '16px';
-    clone.style.margin = '0';
-    clone.style.boxSizing = 'border-box';
-    
-    // Otimizar apenas as tabelas para mobile
-    const tables = clone.querySelectorAll('table');
-    console.log("Found tables for mobile optimization:", tables.length);
-    
-    tables.forEach((table, tableIndex) => {
-      console.log(`Processing table ${tableIndex + 1} for mobile`);
-      const tableElement = table as HTMLElement;
-      
-      // Estilos básicos da tabela
-      tableElement.style.fontSize = '10px';
-      tableElement.style.width = '100%';
-      tableElement.style.borderCollapse = 'collapse';
-      
-      // Ajustar células para mobile
-      const cells = table.querySelectorAll('td, th');
-      cells.forEach((cell, index) => {
-        const cellElement = cell as HTMLElement;
-        
-        // Larguras específicas para cada coluna (mobile)
-        if (index === 0) cellElement.style.width = '20%'; // Nome do jogador
-        else if (index >= 6) cellElement.style.width = '12%'; // Colunas financeiras
-        else cellElement.style.width = '8%'; // Outras colunas
-        
-        cellElement.style.padding = '4px 2px';
-        cellElement.style.fontSize = cell.tagName === 'TH' ? '9px' : '8px';
-        cellElement.style.textAlign = index === 0 ? 'left' : index >= 6 ? 'right' : 'center';
-      });
-    });
-    
-    console.log("Mobile-optimized element created");
-    return clone;
-  };
-  
-  // Função para criar versão de alta qualidade - SIMPLIFICADA
-  const createHighQualityElement = (originalElement: HTMLElement): HTMLElement => {
-    console.log("=== createHighQualityElement DEBUG ===");
-    
-    const clone = originalElement.cloneNode(true) as HTMLElement;
-    
-    // Aplicar estilos básicos para desktop
-    clone.style.width = '800px';
-    clone.style.fontSize = '14px';
-    clone.style.padding = '24px';
-    clone.style.margin = '0';
-    clone.style.boxSizing = 'border-box';
-    
-    console.log("High-quality element created");
-    return clone;
-  };
-  
-  // Exportar relatório como PDF otimizado para A4
-  const exportReportAsPdf = async (
-    seasonName: string,
-    seasonSummary: SeasonSummary,
-    jackpotWinners: JackpotWinner[],
-    totalJackpot: number,
-    playerStats: PlayerPerformanceStats[],
-    filename: string
-  ) => {
-    setIsExporting(true);
-    try {
-      const pdf = await generatePdfReport(seasonName, seasonSummary, jackpotWinners, totalJackpot, playerStats);
-      pdf.save(filename);
-    } catch (error) {
-      console.error("Error exporting PDF:", error);
-    } finally {
-      setIsExporting(false);
+    // Aplicar apenas ajustes mínimos e essenciais
+    if (isMobile) {
+      // Mobile: apenas reduzir largura e manter proporções
+      clone.style.width = '375px';
+      clone.style.maxWidth = '375px';
+      clone.style.fontSize = '12px';
+    } else {
+      // Desktop: manter largura original
+      clone.style.width = '800px';
+      clone.style.maxWidth = '800px';
+      clone.style.fontSize = '14px';
     }
+    
+    // Ajustes básicos comuns
+    clone.style.margin = '0';
+    clone.style.padding = '16px';
+    clone.style.boxSizing = 'border-box';
+    clone.style.backgroundColor = '#1a2e35';
+    clone.style.color = 'white';
+    
+    console.log("Optimized element created with dimensions:", clone.style.width);
+    console.log("Element content length:", clone.innerHTML.length);
+    
+    return clone;
   };
   
-  // Exportar relatório como imagem - VERSÃO CORRIGIDA
+  // Exportar relatório como imagem - VERSÃO CORRIGIDA E SIMPLIFICADA
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
-    console.log("=== CORRECTED IMAGE EXPORT DEBUG ===");
+    console.log("=== SIMPLIFIED IMAGE EXPORT DEBUG ===");
     console.log("Target element ID:", reportElementId);
     
     setIsExportingImage(true);
@@ -260,59 +208,76 @@ export function useReportExport() {
       const isMobile = isMobileDevice();
       console.log("Is mobile device:", isMobile);
       
-      // Criar versão otimizada baseada no dispositivo
-      const optimizedElement = isMobile 
-        ? createMobileOptimizedElement(reportElement)
-        : createHighQualityElement(reportElement);
+      // Criar versão otimizada com ajustes mínimos
+      const optimizedElement = createOptimizedElement(reportElement, isMobile);
       
-      console.log("Optimized element created for:", isMobile ? 'mobile' : 'desktop');
+      console.log("Optimized element created");
       console.log("Optimized element content length:", optimizedElement.innerHTML.length);
       
-      // Adicionar temporariamente ao DOM
+      // Adicionar temporariamente ao DOM para renderização
       optimizedElement.style.position = 'absolute';
       optimizedElement.style.top = '-9999px';
       optimizedElement.style.left = '0';
-      optimizedElement.style.visibility = 'hidden';
+      optimizedElement.style.visibility = 'visible'; // Mudança: tornar visível
       optimizedElement.style.zIndex = '-1';
       document.body.appendChild(optimizedElement);
       
       // Aguardar renderização
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log("Starting html2canvas...");
+      console.log("Starting html2canvas with simplified options...");
       
-      // Configurações simplificadas do html2canvas
+      // Configurações simplificadas e otimizadas do html2canvas
       const canvasOptions = {
-        scale: isMobile ? 2 : 1,
         backgroundColor: '#1a2e35',
+        scale: isMobile ? 1.5 : 1, // Reduzir escala para evitar problemas
         logging: true,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        removeContainer: true,
+        imageTimeout: 0,
+        onclone: (clonedDoc: Document) => {
+          console.log("html2canvas cloned document");
+          const clonedElement = clonedDoc.body.querySelector(`[style*="position: absolute"]`);
+          if (clonedElement) {
+            console.log("Found cloned element in document");
+          }
+        }
       };
       
       const canvas = await html2canvas(optimizedElement, canvasOptions);
       
-      console.log(`Canvas created: ${canvas.width}x${canvas.height}`);
+      console.log(`Canvas created successfully: ${canvas.width}x${canvas.height}`);
       
       // Remover elemento temporário
       document.body.removeChild(optimizedElement);
       
-      // Verificar se o canvas tem conteúdo
+      // Verificar se o canvas tem conteúdo válido
       if (canvas.width === 0 || canvas.height === 0) {
-        console.error("Canvas has no dimensions");
-        return;
+        console.error("Canvas has invalid dimensions");
+        throw new Error("Canvas dimensions are invalid");
       }
       
-      // Converter para PNG
+      // Verificar se o canvas não está vazio
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+      const hasContent = imageData?.data.some(pixel => pixel !== 0);
+      
+      if (!hasContent) {
+        console.error("Canvas appears to be empty");
+        throw new Error("Canvas content is empty");
+      }
+      
+      // Converter para PNG com qualidade máxima
       const dataURL = canvas.toDataURL('image/png', 1.0);
-      console.log("Data URL length:", dataURL.length);
+      console.log("Data URL generated, length:", dataURL.length);
       
-      if (dataURL === 'data:,') {
-        console.error("Canvas is empty");
-        return;
+      if (dataURL === 'data:,' || dataURL.length < 100) {
+        console.error("Invalid data URL generated");
+        throw new Error("Failed to generate valid image data");
       }
       
-      // Criar e baixar
+      // Criar e iniciar download
       const link = document.createElement('a');
       link.href = dataURL;
       link.download = filename;
@@ -322,10 +287,37 @@ export function useReportExport() {
       link.click();
       document.body.removeChild(link);
       
-      console.log("Download triggered successfully");
+      console.log("Download completed successfully");
       
     } catch (error) {
       console.error("Error in image export:", error);
+      
+      // Fallback: tentar exportar o elemento original sem otimizações
+      console.log("Attempting fallback export...");
+      try {
+        const originalElement = document.getElementById(reportElementId);
+        if (originalElement) {
+          const canvas = await html2canvas(originalElement, {
+            backgroundColor: '#1a2e35',
+            scale: 1,
+            logging: true
+          });
+          
+          const dataURL = canvas.toDataURL('image/png', 1.0);
+          const link = document.createElement('a');
+          link.href = dataURL;
+          link.download = filename;
+          link.style.display = 'none';
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          console.log("Fallback export completed");
+        }
+      } catch (fallbackError) {
+        console.error("Fallback export also failed:", fallbackError);
+      }
     } finally {
       setIsExportingImage(false);
     }
