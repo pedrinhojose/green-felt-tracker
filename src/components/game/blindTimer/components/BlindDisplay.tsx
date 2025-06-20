@@ -12,16 +12,13 @@ export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProp
   const isMobile = useIsMobile();
   
   // Efeito de alerta para blinds - aplicamos apenas nos primeiros 3 segundos
-  // Tamanhos responsivos para blinds
   const blindsClass = isNewBlindAlert
     ? 'animate-pulse scale-110 text-poker-gold'
     : 'text-poker-gold';
     
-  const blindsTextSize = isMobile ? 'text-3xl md:text-4xl' : 'text-5xl md:text-6xl';
-    
   if (currentLevel.isBreak) {
     return (
-      <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} text-poker-gold font-bold`} 
+      <div className="text-3xl text-poker-gold font-bold" 
         style={{ textShadow: "0px 2px 4px rgba(0,0,0,0.5)" }}>
         Pausa para Descanso
       </div>
@@ -30,7 +27,7 @@ export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProp
   
   return (
     <div 
-      className={`${blindsTextSize} font-bold ${blindsClass} transition-all ${isMobile ? 'px-2' : ''}`}
+      className={`text-5xl md:text-6xl font-bold ${blindsClass} transition-all`}
       style={{ 
         textShadow: "0px 2px 4px rgba(0,0,0,0.5)", 
         color: "#FFD700" // Amarelo forte (gold) para destacar

@@ -70,10 +70,10 @@ export default function TimerDisplay({
       {/* Botão de tela cheia */}
       <FullscreenButton onToggleFullScreen={onToggleFullScreen} />
 
-      {/* Hora atual no canto superior direito para mobile, esquerdo para desktop */}
-      <div className={`absolute ${isMobile ? 'top-1 right-1' : 'top-1 left-1'} text-left p-2 rounded-md bg-poker-navy/30`}>
+      {/* Hora atual no canto superior esquerdo */}
+      <div className="absolute top-1 left-1 text-left p-2 rounded-md bg-poker-navy/30">
         <div className="text-white text-xs">Hora Atual</div>
-        <div className={`text-poker-gold ${isMobile ? 'text-base' : 'text-lg'} font-medium`}>
+        <div className="text-poker-gold text-lg font-medium">
           {currentTime}
         </div>
       </div>

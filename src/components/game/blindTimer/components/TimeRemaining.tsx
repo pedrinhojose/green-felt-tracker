@@ -17,12 +17,9 @@ export function TimeRemaining({
   const { formatTime } = useTimerUtils();
   const isMobile = useIsMobile();
   
-  // Tamanhos responsivos para o timer
-  const timerTextSize = isMobile ? 'text-4xl md:text-5xl' : 'text-5xl md:text-7xl';
-  
   return (
     <div 
-      className={`${timerTextSize} font-bold text-white transition-all`}
+      className="text-5xl md:text-7xl font-bold text-white transition-all"
       style={{
         textShadow: "0px 3px 6px rgba(0,0,0,0.6)"
       }}
