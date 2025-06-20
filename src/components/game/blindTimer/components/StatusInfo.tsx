@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface StatusInfoProps {
   nextLevel: BlindLevel | undefined;
@@ -23,19 +24,10 @@ export function StatusInfo({
   blindLevels,
   timeRemainingInLevel
 }: StatusInfoProps) {
-  const { formatTotalTime, getCurrentTime, getTimeUntilBreak } = useTimerUtils();
-  const [currentTime, setCurrentTime] = useState(getCurrentTime());
+  const isMobile = useIsMobile();
+  const { formatTotalTime, getTimeUntilBreak } = useTimerUtils();
   const [timeUntilBreakValue, setTimeUntilBreakValue] = useState<string>("");
   
-  // Atualiza o relógio do sistema a cada minuto
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(getCurrentTime());
-    }, 60000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
   // Atualiza o tempo até o intervalo a cada segundo
   useEffect(() => {
     const calculateTimeUntilBreak = () => {
@@ -82,52 +74,68 @@ export function StatusInfo({
     }
   };
 
-  // Estilo para os elementos destacados - mantendo tamanho original para SB/BB e Hora Atual
-  const highlightedDisplayStyle = "text-3.9xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
-  
-  // Estilo reduzido para "Próximo Nível" (40% menor)
-  const nextLevelDisplayStyle = "text-2xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]";
+  // Estilos responsivos baseados no tamanho da tela
+  const nextLevelTextSize = isMobile ? "text-lg" : "text-2xl";
+  const gameTimeTextSize = isMobile ? "text-sm" : "text-sm";
+  const breakInfoTextSize = isMobile ? "text-base" : "text-xl";
+  const breakValueTextSize = isMobile ? "text-lg" : "text-3.9xl";
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-3 gap-4 text-gray-300 pt-4">
-        <div>
+      {/* Layout responsivo para as informações principais */}
+      <div className={`${isMobile ? 'flex flex-col space-y-3' : 'grid grid-cols-3 gap-4'} text-gray-300 pt-4`}>
+        <div className={isMobile ? 'text-center' : ''}>
           <div className="text-xs text-gray-400">Próximo Nível</div>
           {nextLevel ? (
-            <div className={cn(nextLevelDisplayStyle)}>
+            <div className={cn(nextLevelTextSize, "text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]")}>
               {nextLevel.isBreak ? 'INTERVALO' : `${nextLevel.smallBlind} / ${nextLevel.bigBlind}`}
             </div>
           ) : (
-            <div className={cn(nextLevelDisplayStyle)}>Último Nível</div>
+            <div className={cn(nextLevelTextSize, "text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]")}>Último Nível</div>
           )}
         </div>
         
-        <div>
+        <div className={isMobile ? 'text-center' : ''}>
           <div className="text-xs text-gray-400">Tempo de Jogo</div>
-          <div className="text-sm text-poker-gold">{formatTotalTime(totalElapsedTime)}</div>
+          <div className={cn(gameTimeTextSize, "text-poker-gold")}>{formatTotalTime(totalElapsedTime)}</div>
         </div>
         
-        <div>
-          <div className="text-xs text-gray-400">Hora Atual</div>
-          <div className={cn(highlightedDisplayStyle, "transition-all")}>{currentTime}</div>
-        </div>
+        {/* Remover Hora Atual daqui pois já está no TimerDisplay */}
+        {!isMobile && (
+          <div>
+            <div className="text-xs text-gray-400">Status</div>
+            <div className="text-sm text-poker-gold">Em Andamento</div>
+          </div>
+        )}
       </div>
       
-      {/* Próximo intervalo - DESTACADO e AUMENTADO */}
+      {/* Próximo intervalo - DESTACADO e RESPONSIVO */}
       {nextBreak && (
-        <div className="bg-poker-navy/30 rounded-lg p-2 mt-2">
-          <div className="text-gray-400 text-xl font-semibold">Próximo Intervalo</div>
+        <div className={`bg-poker-navy/30 rounded-lg p-${isMobile ? '3' : '2'} mt-${isMobile ? '4' : '2'}`}>
+          <div className={cn(breakInfoTextSize, "text-gray-400 font-semibold text-center")}>Próximo Intervalo</div>
           <div className="text-white">
             {levelsUntilBreak && levelsUntilBreak > 0 ? (
-              <div className={cn(highlightedDisplayStyle, "text-center")}>
-                Faltam {levelsUntilBreak} níveis (Nível {nextBreak.level})
-                {' - '}
-                <span className="text-poker-gold">
-                  {getTimeUntilBreakSafely()}
-                </span>
+              <div className={cn(breakValueTextSize, "text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] text-center")}>
+                {isMobile ? (
+                  <>
+                    <div>Faltam {levelsUntilBreak} níveis</div>
+                    <div className="text-sm">(Nível {nextBreak.level})</div>
+                    <div className="text-poker-gold mt-1">
+                      {getTimeUntilBreakSafely()}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    Faltam {levelsUntilBreak} níveis (Nível {nextBreak.level})
+                    {' - '}
+                    <span className="text-poker-gold">
+                      {getTimeUntilBreakSafely()}
+                    </span>
+                  </>
+                )}
               </div>
             ) : (
-              <div className={cn(highlightedDisplayStyle, "text-center")}>Próximo nível</div>
+              <div className={cn(breakValueTextSize, "text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] text-center")}>Próximo nível</div>
             )}
           </div>
         </div>

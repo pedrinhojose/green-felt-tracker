@@ -31,6 +31,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface GameHeaderProps {
   gameNumber: number;
@@ -60,6 +61,7 @@ export default function GameHeader({
   onDeleteGame,
 }: GameHeaderProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [showReportDialog, setShowReportDialog] = useState(false);
   
   // Função para finalizar o jogo e mostrar o diálogo de relatório
@@ -69,22 +71,23 @@ export default function GameHeader({
   };
   
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <div className={`flex flex-col ${isMobile ? 'space-y-4' : 'sm:flex-row'} justify-between items-start ${isMobile ? '' : 'sm:items-center'} mb-6`}>
       <div>
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-white`}>
           Partida #{gameNumber.toString().padStart(3, '0')}
         </h2>
-        <p className="text-muted-foreground">{formatDate(gameDate)}</p>
+        <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>{formatDate(gameDate)}</p>
       </div>
       
-      <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
+      <div className={`${isMobile ? 'w-full' : 'mt-4 sm:mt-0'} flex ${isMobile ? 'flex-col space-y-2' : 'flex-wrap gap-2'}`}>
         <Button
           onClick={onExportReport}
           disabled={isExporting}
           variant="outline"
-          size="sm"
+          size={isMobile ? "sm" : "sm"}
+          className={isMobile ? "w-full justify-center" : ""}
         >
-          {isExporting ? "Exportando..." : "Exportar Relatório"}
+          {isExporting ? "Exportando..." : isMobile ? "PDF" : "Exportar Relatório"}
           <FileImage className="ml-2 h-4 w-4" />
         </Button>
         
@@ -92,9 +95,10 @@ export default function GameHeader({
           onClick={onExportReportAsImage}
           disabled={isExportingImage}
           variant="outline"
-          size="sm"
+          size={isMobile ? "sm" : "sm"}
+          className={isMobile ? "w-full justify-center" : ""}
         >
-          {isExportingImage ? "Exportando..." : "Exportar Imagem"}
+          {isExportingImage ? "Exportando..." : isMobile ? "Imagem" : "Exportar Imagem"}
           <Image className="ml-2 h-4 w-4" />
         </Button>
         
@@ -102,7 +106,8 @@ export default function GameHeader({
           <Button
             onClick={() => navigate('/games')}
             variant="outline"
-            size="sm"
+            size={isMobile ? "sm" : "sm"}
+            className={isMobile ? "w-full justify-center" : ""}
           >
             Voltar
           </Button>
@@ -113,11 +118,11 @@ export default function GameHeader({
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="outline"
-                  size="sm"
+                  size={isMobile ? "sm" : "sm"}
                   disabled={isDeleting}
-                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  className={`border-red-500 text-red-500 hover:bg-red-500 hover:text-white ${isMobile ? "w-full justify-center" : ""}`}
                 >
-                  {isDeleting ? "Cancelando..." : "Cancelar Partida"}
+                  {isDeleting ? "Cancelando..." : isMobile ? "Cancelar" : "Cancelar Partida"}
                   <Trash2 className="ml-2 h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -147,9 +152,10 @@ export default function GameHeader({
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="destructive"
-                  size="sm"
+                  size={isMobile ? "sm" : "sm"}
+                  className={isMobile ? "w-full justify-center" : ""}
                 >
-                  Encerrar Partida
+                  {isMobile ? "Encerrar" : "Encerrar Partida"}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
