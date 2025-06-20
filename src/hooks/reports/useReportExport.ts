@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -154,43 +155,66 @@ export function useReportExport() {
     
     return pdf;
   };
+
+  // Função para exportar relatório como PDF - ESSA FUNÇÃO ESTAVA FALTANDO!
+  const exportReportAsPdf = async (
+    seasonName: string,
+    seasonSummary: SeasonSummary,
+    jackpotWinners: JackpotWinner[],
+    totalJackpot: number,
+    playerStats: PlayerPerformanceStats[],
+    filename: string
+  ) => {
+    console.log("=== EXPORT PDF DEBUG ===");
+    console.log("Starting PDF export...");
+    
+    setIsExporting(true);
+    try {
+      const pdf = await generatePdfReport(seasonName, seasonSummary, jackpotWinners, totalJackpot, playerStats);
+      
+      // Fazer download do PDF
+      pdf.save(filename);
+      
+      console.log("PDF export completed successfully");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
   
-  // Função para criar versão otimizada SIMPLIFICADA - só ajustes essenciais
-  const createOptimizedElement = (originalElement: HTMLElement, isMobile: boolean): HTMLElement => {
-    console.log("=== createOptimizedElement DEBUG ===");
-    console.log("Creating optimized version for:", isMobile ? 'mobile' : 'desktop');
+  // Função para criar versão simplificada sem alterações agressivas - CORRIGIDA
+  const createSimplifiedElement = (originalElement: HTMLElement, isMobile: boolean): HTMLElement => {
+    console.log("=== createSimplifiedElement DEBUG ===");
+    console.log("Creating simplified version for:", isMobile ? 'mobile' : 'desktop');
     
     const clone = originalElement.cloneNode(true) as HTMLElement;
     
-    // Aplicar apenas ajustes mínimos e essenciais
+    // Aplicar apenas ajustes mínimos para garantir que a imagem seja legível
     if (isMobile) {
-      // Mobile: apenas reduzir largura e manter proporções
+      // Mobile: reduzir largura mas manter proporções
       clone.style.width = '375px';
       clone.style.maxWidth = '375px';
-      clone.style.fontSize = '12px';
     } else {
       // Desktop: manter largura original
       clone.style.width = '800px';
       clone.style.maxWidth = '800px';
-      clone.style.fontSize = '14px';
     }
     
-    // Ajustes básicos comuns
+    // Aplicar apenas estilos essenciais sem alterar o layout original
     clone.style.margin = '0';
     clone.style.padding = '16px';
     clone.style.boxSizing = 'border-box';
-    clone.style.backgroundColor = '#1a2e35';
-    clone.style.color = 'white';
     
-    console.log("Optimized element created with dimensions:", clone.style.width);
-    console.log("Element content length:", clone.innerHTML.length);
+    console.log("Simplified element created with width:", clone.style.width);
+    console.log("Element has content:", clone.innerHTML.length > 0);
     
     return clone;
   };
   
-  // Exportar relatório como imagem - VERSÃO CORRIGIDA E SIMPLIFICADA
+  // Exportar relatório como imagem - VERSÃO MAIS SIMPLES E CONFIÁVEL
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
-    console.log("=== SIMPLIFIED IMAGE EXPORT DEBUG ===");
+    console.log("=== SIMPLE IMAGE EXPORT DEBUG ===");
     console.log("Target element ID:", reportElementId);
     
     setIsExportingImage(true);
@@ -208,49 +232,36 @@ export function useReportExport() {
       const isMobile = isMobileDevice();
       console.log("Is mobile device:", isMobile);
       
-      // Criar versão otimizada com ajustes mínimos
-      const optimizedElement = createOptimizedElement(reportElement, isMobile);
-      
-      console.log("Optimized element created");
-      console.log("Optimized element content length:", optimizedElement.innerHTML.length);
+      // Criar versão simplificada
+      const simplifiedElement = createSimplifiedElement(reportElement, isMobile);
       
       // Adicionar temporariamente ao DOM para renderização
-      optimizedElement.style.position = 'absolute';
-      optimizedElement.style.top = '-9999px';
-      optimizedElement.style.left = '0';
-      optimizedElement.style.visibility = 'visible'; // Mudança: tornar visível
-      optimizedElement.style.zIndex = '-1';
-      document.body.appendChild(optimizedElement);
+      simplifiedElement.style.position = 'absolute';
+      simplifiedElement.style.top = '-9999px';
+      simplifiedElement.style.left = '0';
+      simplifiedElement.style.visibility = 'visible';
+      simplifiedElement.style.zIndex = '-1';
+      document.body.appendChild(simplifiedElement);
       
       // Aguardar renderização
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      console.log("Starting html2canvas with simplified options...");
+      console.log("Starting html2canvas with optimized settings...");
       
-      // Configurações simplificadas e otimizadas do html2canvas
-      const canvasOptions = {
+      // Configurações do html2canvas otimizadas e mais simples
+      const canvas = await html2canvas(simplifiedElement, {
         backgroundColor: '#1a2e35',
-        scale: isMobile ? 1.5 : 1, // Reduzir escala para evitar problemas
+        scale: isMobile ? 1.5 : 1,
         logging: true,
         useCORS: true,
         allowTaint: true,
-        removeContainer: true,
-        imageTimeout: 0,
-        onclone: (clonedDoc: Document) => {
-          console.log("html2canvas cloned document");
-          const clonedElement = clonedDoc.body.querySelector(`[style*="position: absolute"]`);
-          if (clonedElement) {
-            console.log("Found cloned element in document");
-          }
-        }
-      };
-      
-      const canvas = await html2canvas(optimizedElement, canvasOptions);
+        removeContainer: true
+      });
       
       console.log(`Canvas created successfully: ${canvas.width}x${canvas.height}`);
       
       // Remover elemento temporário
-      document.body.removeChild(optimizedElement);
+      document.body.removeChild(simplifiedElement);
       
       // Verificar se o canvas tem conteúdo válido
       if (canvas.width === 0 || canvas.height === 0) {
@@ -258,17 +269,7 @@ export function useReportExport() {
         throw new Error("Canvas dimensions are invalid");
       }
       
-      // Verificar se o canvas não está vazio
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-      const hasContent = imageData?.data.some(pixel => pixel !== 0);
-      
-      if (!hasContent) {
-        console.error("Canvas appears to be empty");
-        throw new Error("Canvas content is empty");
-      }
-      
-      // Converter para PNG com qualidade máxima
+      // Converter para PNG
       const dataURL = canvas.toDataURL('image/png', 1.0);
       console.log("Data URL generated, length:", dataURL.length);
       
@@ -292,7 +293,7 @@ export function useReportExport() {
     } catch (error) {
       console.error("Error in image export:", error);
       
-      // Fallback: tentar exportar o elemento original sem otimizações
+      // Fallback: tentar exportar o elemento original
       console.log("Attempting fallback export...");
       try {
         const originalElement = document.getElementById(reportElementId);
@@ -326,7 +327,7 @@ export function useReportExport() {
   return {
     isExporting,
     isExportingImage,
-    exportReportAsPdf,
+    exportReportAsPdf, // AGORA ESTÁ DEFINIDA CORRETAMENTE!
     exportReportAsImage
   };
 }
