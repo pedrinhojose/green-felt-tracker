@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { cleanupAuthState } from '@/lib/utils/auth';
-import { GuestAccessButton } from '@/components/auth/GuestAccessButton';
+import { DemoAccessButton } from '@/components/auth/DemoAccessButton';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -218,9 +218,9 @@ export default function Auth() {
             <div className="text-center mb-3">
               <span className="text-sm text-muted-foreground">ou</span>
             </div>
-            <GuestAccessButton />
+            <DemoAccessButton />
             <p className="text-xs text-muted-foreground text-center mt-2">
-              Acesso somente leitura para explorar o sistema
+              Acesso de demonstração para explorar o sistema
             </p>
           </div>
         </CardContent>

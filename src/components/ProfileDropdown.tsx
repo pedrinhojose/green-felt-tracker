@@ -15,7 +15,7 @@ import { signOut } from "@/lib/utils/auth";
 import { User, LogOut, Eye } from "lucide-react";
 
 export function ProfileDropdown() {
-  const { user, profile } = useAuth();
+  const { user, profile, isDemoMode } = useAuth();
   const { isViewer } = useUserRole();
   
   if (!user) return null;
@@ -25,7 +25,7 @@ export function ProfileDropdown() {
     : user.email?.charAt(0).toUpperCase() || 'U';
 
   const displayName = profile?.full_name || user.email || 'Usuário';
-  const isGuestUser = isViewer() && profile?.username === 'visitante';
+  const isGuestUser = isDemoMode || (isViewer() && profile?.username === 'visitante');
 
   return (
     <DropdownMenu>
@@ -46,17 +46,22 @@ export function ProfileDropdown() {
               <p className="text-sm font-medium leading-none">
                 {displayName}
               </p>
-              {isGuestUser && (
+              {(isGuestUser || isDemoMode) && (
                 <Eye className="h-3 w-3 text-poker-gold" />
               )}
             </div>
             <p className="text-xs leading-none text-muted-foreground">
-              {isGuestUser ? 'Visitante - Acesso somente leitura' : user.email}
+              {isDemoMode 
+                ? 'Modo Demo - Acesso somente leitura' 
+                : isGuestUser 
+                  ? 'Visitante - Acesso somente leitura' 
+                  : user.email
+              }
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {!isGuestUser && (
+        {!isGuestUser && !isDemoMode && (
           <>
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
@@ -67,7 +72,14 @@ export function ProfileDropdown() {
         )}
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>{isGuestUser ? 'Sair do modo visitante' : 'Sair'}</span>
+          <span>
+            {isDemoMode 
+              ? 'Sair do modo demo' 
+              : isGuestUser 
+                ? 'Sair do modo visitante' 
+                : 'Sair'
+            }
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
