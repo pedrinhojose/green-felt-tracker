@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
 import { OrganizationSelector } from '@/components/organizations/OrganizationSelector';
-import { DemoBadge } from '@/components/DemoBadge';
+import { ViewerBadge } from '@/components/ViewerBadge';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ShieldAlert } from 'lucide-react';
 
@@ -26,16 +26,12 @@ const navItems: NavItem[] = [
 
 export default function PokerNav() {
   const location = useLocation();
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const { hasRole } = useUserRole();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Filter navigation items based on user roles and demo mode
+  // Filtragem dos itens de navegação com base nos papéis do usuário
   const filteredNavItems = navItems.filter(item => {
-    if (isDemoMode) {
-      // In demo mode, hide admin-only pages
-      return item.requiredRole !== 'admin';
-    }
     if (!item.requiredRole) return true;
     return hasRole(item.requiredRole);
   });
@@ -43,15 +39,15 @@ export default function PokerNav() {
   return (
     <header className="sticky top-0 z-50 w-full bg-poker-black/80 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-        {/* Logo and organization selector */}
+        {/* Logo e seletor de organização */}
         <div className="flex items-center gap-4">
           <Link to="/dashboard">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent">
               APA POKER
             </h1>
           </Link>
-          {!isDemoMode && <OrganizationSelector />}
-          <DemoBadge />
+          <OrganizationSelector />
+          <ViewerBadge />
         </div>
         
         {/* Mobile Menu Toggle */}
@@ -94,7 +90,7 @@ export default function PokerNav() {
             ))}
           </ul>
           
-          {/* User Profile - Desktop */}
+          {/* Perfil do Usuário - Desktop */}
           {user ? (
             <ProfileDropdown />
           ) : (
@@ -130,17 +126,17 @@ export default function PokerNav() {
               </li>
             ))}
             
-            {/* User profile for mobile */}
+            {/* Perfil do usuário para mobile */}
             {user && (
               <li className="p-4 border-b border-white/5">
                 <div className="flex items-center justify-between">
-                  <DemoBadge />
+                  <ViewerBadge />
                   <ProfileDropdown />
                 </div>
               </li>
             )}
             
-            {/* Auth link for mobile */}
+            {/* Link de autenticação para mobile */}
             {!user && (
               <li>
                 <Link
@@ -159,4 +155,5 @@ export default function PokerNav() {
   );
 }
 
+// Exportação alternativa para compatibilidade
 export { PokerNav };
