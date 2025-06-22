@@ -12,33 +12,66 @@ export function useGuestAccess() {
     try {
       setIsLoading(true);
       
-      // Tentar fazer login com a conta de visitante
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Primeiro, tentar fazer login diretamente
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: 'apapoker@visitante.com',
         password: '123456',
       });
 
-      if (error) {
-        // Se a conta não existir, criar uma nova conta de visitante
-        if (error.message.includes('Invalid login credentials')) {
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: 'apapoker@visitante.com',
-            password: '123456',
-            options: {
-              data: {
-                full_name: 'Visitante APA Poker',
-                username: 'visitante'
-              },
-              emailRedirectTo: `${window.location.origin}/`
-            }
-          });
+      if (signInData.user && !signInError) {
+        // Login bem-sucedido
+        toast({
+          title: 'Acesso de visitante ativado',
+          description: 'Você está navegando como visitante com acesso somente leitura.',
+        });
+        window.location.href = '/dashboard';
+        return;
+      }
 
-          if (signUpError) {
+      // Se o login falhou, verificar se é por credenciais inválidas
+      if (signInError && signInError.message.includes('Invalid login credentials')) {
+        // Tentar criar a conta
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: 'apapoker@visitante.com',
+          password: '123456',
+          options: {
+            data: {
+              full_name: 'Visitante APA Poker',
+              username: 'visitante'
+            }
+          }
+        });
+
+        if (signUpError) {
+          // Se falhou ao criar, pode ser porque já existe
+          if (signUpError.message.includes('User already registered')) {
+            // Tentar login novamente
+            const { data: retrySignIn, error: retryError } = await supabase.auth.signInWithPassword({
+              email: 'apapoker@visitante.com',
+              password: '123456',
+            });
+
+            if (retryError) {
+              throw new Error('Não foi possível fazer login com a conta de visitante');
+            }
+
+            if (retrySignIn.user) {
+              toast({
+                title: 'Acesso de visitante ativado',
+                description: 'Você está navegando como visitante com acesso somente leitura.',
+              });
+              window.location.href = '/dashboard';
+              return;
+            }
+          } else {
             throw signUpError;
           }
+        }
 
-          if (signUpData.user) {
-            // Adicionar papel viewer ao usuário recém-criado
+        // Se a conta foi criada com sucesso
+        if (signUpData.user) {
+          // Adicionar papel viewer manualmente usando inserção direta
+          try {
             const { error: roleError } = await supabase
               .from('user_roles')
               .insert({
@@ -49,27 +82,39 @@ export function useGuestAccess() {
             if (roleError) {
               console.error('Erro ao adicionar papel viewer:', roleError);
             }
-
-            toast({
-              title: 'Acesso de visitante ativado',
-              description: 'Você está navegando como visitante com acesso somente leitura.',
-            });
-
-            // Redirecionar para o dashboard
-            window.location.href = '/dashboard';
+          } catch (roleErr) {
+            console.error('Erro ao inserir papel:', roleErr);
           }
-        } else {
-          throw error;
-        }
-      } else if (data.user) {
-        toast({
-          title: 'Acesso de visitante ativado',
-          description: 'Você está navegando como visitante com acesso somente leitura.',
-        });
 
-        // Redirecionar para o dashboard
-        window.location.href = '/dashboard';
+          // Criar perfil manualmente se necessário
+          try {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: signUpData.user.id,
+                username: 'visitante',
+                full_name: 'Visitante APA Poker',
+                avatar_url: null
+              }, { onConflict: 'id' });
+
+            if (profileError) {
+              console.error('Erro ao criar perfil:', profileError);
+            }
+          } catch (profileErr) {
+            console.error('Erro ao inserir perfil:', profileErr);
+          }
+
+          toast({
+            title: 'Acesso de visitante ativado',
+            description: 'Você está navegando como visitante com acesso somente leitura.',
+          });
+          window.location.href = '/dashboard';
+        }
+      } else {
+        // Outro tipo de erro
+        throw signInError || new Error('Erro desconhecido no login');
       }
+
     } catch (error: any) {
       console.error('Erro no acesso de visitante:', error);
       toast({
