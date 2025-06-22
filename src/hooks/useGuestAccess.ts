@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,7 +11,7 @@ export function useGuestAccess() {
     try {
       setIsLoading(true);
       
-      // Primeiro, tentar fazer login diretamente
+      // Tentar fazer login diretamente
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: 'apapoker@visitante.com',
         password: '123456',
@@ -28,11 +27,16 @@ export function useGuestAccess() {
         return;
       }
 
-      // Se o login falhou, verificar se é por credenciais inválidas
+      // Se falhou, verificar se existe um usuário com esse email
       if (signInError && signInError.message.includes('Invalid login credentials')) {
-        // Tentar criar a conta
+        // Vamos tentar resetar a senha e criar uma nova conta
+        console.log('Tentando criar nova conta de visitante...');
+        
+        // Usar um email único baseado em timestamp para evitar conflitos
+        const uniqueEmail = `visitante-${Date.now()}@apapoker.com`;
+        
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: 'apapoker@visitante.com',
+          email: uniqueEmail,
           password: '123456',
           options: {
             data: {
@@ -43,34 +47,14 @@ export function useGuestAccess() {
         });
 
         if (signUpError) {
-          // Se falhou ao criar, pode ser porque já existe
-          if (signUpError.message.includes('User already registered')) {
-            // Tentar login novamente
-            const { data: retrySignIn, error: retryError } = await supabase.auth.signInWithPassword({
-              email: 'apapoker@visitante.com',
-              password: '123456',
-            });
-
-            if (retryError) {
-              throw new Error('Não foi possível fazer login com a conta de visitante');
-            }
-
-            if (retrySignIn.user) {
-              toast({
-                title: 'Acesso de visitante ativado',
-                description: 'Você está navegando como visitante com acesso somente leitura.',
-              });
-              window.location.href = '/dashboard';
-              return;
-            }
-          } else {
-            throw signUpError;
-          }
+          throw signUpError;
         }
 
-        // Se a conta foi criada com sucesso
         if (signUpData.user) {
-          // Adicionar papel viewer manualmente usando inserção direta
+          // Aguardar um pouco para o usuário ser criado
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Adicionar papel viewer
           try {
             const { error: roleError } = await supabase
               .from('user_roles')
@@ -86,24 +70,6 @@ export function useGuestAccess() {
             console.error('Erro ao inserir papel:', roleErr);
           }
 
-          // Criar perfil manualmente se necessário
-          try {
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: signUpData.user.id,
-                username: 'visitante',
-                full_name: 'Visitante APA Poker',
-                avatar_url: null
-              }, { onConflict: 'id' });
-
-            if (profileError) {
-              console.error('Erro ao criar perfil:', profileError);
-            }
-          } catch (profileErr) {
-            console.error('Erro ao inserir perfil:', profileErr);
-          }
-
           toast({
             title: 'Acesso de visitante ativado',
             description: 'Você está navegando como visitante com acesso somente leitura.',
@@ -111,7 +77,6 @@ export function useGuestAccess() {
           window.location.href = '/dashboard';
         }
       } else {
-        // Outro tipo de erro
         throw signInError || new Error('Erro desconhecido no login');
       }
 
