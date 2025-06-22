@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
 import { OrganizationSelector } from '@/components/organizations/OrganizationSelector';
+import { ViewerBadge } from '@/components/ViewerBadge';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ShieldAlert } from 'lucide-react';
 
@@ -46,6 +47,7 @@ export default function PokerNav() {
             </h1>
           </Link>
           <OrganizationSelector />
+          <ViewerBadge />
         </div>
         
         {/* Mobile Menu Toggle */}
@@ -128,6 +130,7 @@ export default function PokerNav() {
             {user && (
               <li className="p-4 border-b border-white/5">
                 <div className="flex items-center justify-between">
+                  <ViewerBadge />
                   <ProfileDropdown />
                 </div>
               </li>
