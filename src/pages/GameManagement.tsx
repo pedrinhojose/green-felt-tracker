@@ -14,13 +14,16 @@ import PrizePoolManager from "@/components/game/PrizePoolManager";
 import PlayersTable from "@/components/game/PlayersTable";
 import GameHeader from "@/components/game/GameHeader";
 import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
-import { UserPlus } from "lucide-react";
+import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
+import { UserPlus, UserMinus } from "lucide-react";
 
 export default function GameManagement() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
+  const [isRemovePlayerDialogOpen, setIsRemovePlayerDialogOpen] = useState(false);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
+  const [isRemovingPlayer, setIsRemovingPlayer] = useState(false);
   
   // Custom hooks for game management
   const {
@@ -48,7 +51,8 @@ export default function GameManagement() {
     updatePlayerStats,
     eliminatePlayer,
     reactivatePlayer,
-    addLatePlayer
+    addLatePlayer,
+    removePlayer
   } = usePlayerActions(game, setGame);
   
   // Prize distribution hook
@@ -65,6 +69,12 @@ export default function GameManagement() {
     return players.filter(player => !currentPlayerIds.has(player.id));
   };
   
+  // Verificar se há jogadores que podem ser removidos
+  const getRemovablePlayers = () => {
+    if (!game) return [];
+    return game.players.filter(gp => !gp.isEliminated && gp.prize === 0);
+  };
+  
   // Handler para adicionar jogador tardio
   const handleAddLatePlayer = async (playerId: string) => {
     setIsAddingPlayer(true);
@@ -72,6 +82,16 @@ export default function GameManagement() {
       await addLatePlayer(playerId);
     } finally {
       setIsAddingPlayer(false);
+    }
+  };
+  
+  // Handler para remover jogador
+  const handleRemovePlayer = async (playerId: string) => {
+    setIsRemovingPlayer(true);
+    try {
+      return await removePlayer(playerId);
+    } finally {
+      setIsRemovingPlayer(false);
     }
   };
   
@@ -129,7 +149,7 @@ export default function GameManagement() {
           {/* Blind Timer */}
           <BlindTimer />
           
-          {/* Prize Pool e Botão Add Player */}
+          {/* Prize Pool e Botões de Gerenciar Jogadores */}
           <div className={`flex ${isMobile ? 'flex-col' : 'flex-col lg:flex-row'} justify-between items-start gap-4`}>
             <div className="w-full">
               <PrizePoolManager 
@@ -142,17 +162,29 @@ export default function GameManagement() {
               />
             </div>
             
-            {/* Botão para adicionar jogador tardio */}
+            {/* Botões para gerenciar jogadores */}
             {!game.isFinished && (
-              <Button 
-                onClick={() => setIsAddPlayerDialogOpen(true)}
-                disabled={getAvailablePlayers().length === 0}
-                className={`${isMobile ? 'w-full mt-2' : 'mt-2 lg:mt-0'} bg-poker-gold hover:bg-poker-gold/80 text-black`}
-                variant="outline"
-              >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Adicionar Jogador
-              </Button>
+              <div className={`flex ${isMobile ? 'w-full flex-col' : 'flex-row'} gap-2 ${isMobile ? 'mt-2' : 'mt-2 lg:mt-0'}`}>
+                <Button 
+                  onClick={() => setIsAddPlayerDialogOpen(true)}
+                  disabled={getAvailablePlayers().length === 0}
+                  className={`${isMobile ? 'w-full' : ''} bg-poker-gold hover:bg-poker-gold/80 text-black`}
+                  variant="outline"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Adicionar Jogador
+                </Button>
+                
+                <Button 
+                  onClick={() => setIsRemovePlayerDialogOpen(true)}
+                  disabled={getRemovablePlayers().length === 0}
+                  className={`${isMobile ? 'w-full' : ''}`}
+                  variant="destructive"
+                >
+                  <UserMinus className="mr-2 h-4 w-4" />
+                  Retirar Jogador
+                </Button>
+              </div>
             )}
           </div>
           
@@ -173,6 +205,16 @@ export default function GameManagement() {
             onAddPlayer={handleAddLatePlayer}
             availablePlayers={getAvailablePlayers()}
             isLoading={isAddingPlayer}
+          />
+          
+          {/* Dialog para remover jogador */}
+          <RemovePlayerDialog
+            isOpen={isRemovePlayerDialogOpen}
+            onClose={() => setIsRemovePlayerDialogOpen(false)}
+            onRemovePlayer={handleRemovePlayer}
+            game={game}
+            players={players}
+            isLoading={isRemovingPlayer}
           />
         </div>
       )}
