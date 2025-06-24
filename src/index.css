@@ -50,10 +50,22 @@
     @apply font-poppins font-medium;
   }
 
+  /* Mobile viewport optimization */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Mobile touch optimization */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    touch-action: manipulation;
+  }
+
   /* Estilizar a barra de rolagem para o estilo Apple */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -69,19 +81,27 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
   }
+
+  /* Mobile scrollbar - thinner */
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 3px;
+      height: 3px;
+    }
+  }
 }
 
 @layer components {
   .card-dashboard {
-    @apply bg-card backdrop-blur-sm border border-opacity-20 border-white/5 rounded-xl p-6 shadow-apple hover:shadow-apple-hover transition-all duration-300 flex flex-col;
+    @apply bg-card backdrop-blur-sm border border-opacity-20 border-white/5 rounded-xl p-4 md:p-6 shadow-apple hover:shadow-apple-hover transition-all duration-300 flex flex-col;
   }
   
   .card-dashboard-header {
-    @apply text-xl font-medium text-poker-gold mb-4 border-b border-white/10 pb-3;
+    @apply text-lg md:text-xl font-medium text-poker-gold mb-3 md:mb-4 border-b border-white/10 pb-2 md:pb-3;
   }
   
   .nav-tab {
-    @apply px-4 py-2 text-center font-medium transition-all duration-200 border-b-2 hover:text-poker-gold;
+    @apply px-3 md:px-4 py-2 text-center font-medium transition-all duration-200 border-b-2 hover:text-poker-gold text-sm md:text-base;
   }
   
   .nav-tab-active {
@@ -94,6 +114,35 @@
 
   .glass-effect {
     @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl;
+  }
+
+  /* Mobile-specific utilities */
+  .mobile-container {
+    @apply px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+
+  .mobile-card {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-button {
+    @apply px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base min-h-[44px] min-w-[44px];
+  }
+
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6;
+  }
+
+  .mobile-table-container {
+    @apply -mx-3 sm:-mx-4 md:-mx-6 lg:mx-0 overflow-x-auto;
+  }
+
+  .mobile-form-spacing {
+    @apply space-y-3 sm:space-y-4 md:space-y-6;
   }
 }
 
@@ -109,4 +158,31 @@
 .text-3\.9xl {
   font-size: 2.6rem; /* text-3xl é 1.875rem, aumentado em 30% */
   line-height: 2.9rem; /* ajustado proporcionalmente */
+}
+
+/* Mobile responsive text sizes */
+@media (max-width: 640px) {
+  .text-3\.9xl {
+    font-size: 2rem;
+    line-height: 2.25rem;
+  }
+}
+
+/* Safe area support for mobile devices */
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+  
+  .safe-area-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
 }

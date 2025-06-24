@@ -38,11 +38,11 @@ export default function PlayersTable({
   
   if (isMobile) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="shadow-mobile">
+        <CardHeader className="pb-3 mobile-card">
           <CardTitle className="flex justify-between text-lg">
             <span>Jogadores</span>
-            <span>{game.players.length} participantes</span>
+            <span className="text-poker-gold">{game.players.length}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="px-3">
@@ -72,15 +72,15 @@ export default function PlayersTable({
   }
   
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="shadow-mobile">
+      <CardHeader className="pb-2 mobile-card">
         <CardTitle className="flex justify-between">
           <span>Jogadores</span>
-          <span>{game.players.length} participantes</span>
+          <span className="text-poker-gold">{game.players.length} participantes</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
+      <CardContent className="mobile-card">
+        <div className="mobile-table-container">
           <Table>
             <TableHeader>
               <PlayerTableHeader activeSeason={activeSeason} />

@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 interface RankingTableProps {
   sortedRankings: RankingEntry[];
@@ -28,6 +30,7 @@ export default function RankingTable({
   getMedalEmoji 
 }: RankingTableProps) {
   const rankingTableRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   // Calculate the starting index for the current page
   const startIndex = (currentPage - 1) * pageSize;
@@ -35,13 +38,65 @@ export default function RankingTable({
   // Get only the rankings for the current page
   const currentPageRankings = sortedRankings.slice(startIndex, startIndex + pageSize);
   
+  if (isMobile) {
+    return (
+      <Card className="shadow-mobile">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Classificação</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3">
+          <div className="space-y-2">
+            {currentPageRankings.map((ranking, index) => (
+              <Card key={ranking.playerId} className="border-poker-dark-green/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center p-0 text-xs">
+                        {getMedalEmoji(startIndex + index)}
+                      </Badge>
+                    </div>
+                    
+                    <Avatar className="h-10 w-10 flex-shrink-0">
+                      {ranking.photoUrl ? (
+                        <AvatarImage src={ranking.photoUrl} alt={ranking.playerName} />
+                      ) : null}
+                      <AvatarFallback className="bg-poker-navy text-white text-xs">
+                        {getInitials(ranking.playerName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{ranking.playerName}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {ranking.gamesPlayed} jogos
+                      </div>
+                    </div>
+                    
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-bold text-poker-gold text-sm">
+                        {ranking.totalPoints}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        pontos
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
-    <Card>
+    <Card className="shadow-mobile">
       <CardHeader className="pb-2">
         <CardTitle>Classificação</CardTitle>
       </CardHeader>
-      <CardContent className="px-4">
-        <div id="ranking-table" ref={rankingTableRef} className="overflow-x-auto">
+      <CardContent className="mobile-card">
+        <div id="ranking-table" ref={rankingTableRef} className="mobile-table-container">
           <Table>
             <TableHeader>
               <TableRow className="border-b border-poker-dark-green">

@@ -7,19 +7,21 @@ export default function AppLayout() {
   const isMobile = useIsMobile();
   
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen bg-background text-foreground w-full">
       {/* Navbar principal */}
       <PokerNav />
 
-      {/* Conteúdo principal */}
-      <main className={`flex-1 overflow-auto ${isMobile ? 'pb-2' : ''}`}>
-        <Outlet />
+      {/* Conteúdo principal - otimizado para mobile */}
+      <main className="flex-1 overflow-auto w-full">
+        <div className={`w-full ${isMobile ? 'px-3 py-2' : 'px-4 py-4'} max-w-full`}>
+          <Outlet />
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className={`border-t bg-background ${isMobile ? 'py-2' : 'py-4'}`}>
-        <div className={`container flex justify-between items-center ${isMobile ? 'px-2' : ''}`}>
-          <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
+      {/* Footer - compacto em mobile */}
+      <footer className={`border-t bg-background/80 backdrop-blur-sm ${isMobile ? 'py-2' : 'py-4'} w-full`}>
+        <div className={`mobile-container flex justify-between items-center ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <div className="text-muted-foreground">
             © {new Date().getFullYear()} APA Poker Manager
           </div>
         </div>

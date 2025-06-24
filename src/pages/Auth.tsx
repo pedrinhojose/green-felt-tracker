@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { cleanupAuthState } from '@/lib/utils/auth';
 import { GuestAccessButton } from '@/components/auth/GuestAccessButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -21,6 +22,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -117,27 +119,27 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-poker-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-poker-navy border-poker-gold/20">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-poker-black flex items-center justify-center w-full mobile-container">
+      <Card className={`w-full bg-poker-navy border-poker-gold/20 shadow-mobile ${isMobile ? 'max-w-sm mx-auto' : 'max-w-md'}`}>
+        <CardHeader className="text-center mobile-card">
+          <CardTitle className={`font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent ${isMobile ? 'text-xl' : 'text-2xl'}`}>
             APA POKER
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardDescription className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>
             Entre ou cadastre-se para continuar
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="mobile-card">
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+            <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'mb-4' : 'mb-6'}`}>
+              <TabsTrigger value="signin" className="mobile-text">Entrar</TabsTrigger>
+              <TabsTrigger value="signup" className="mobile-text">Cadastrar</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="mobile-form-spacing">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email" className="mobile-text">Email</Label>
                   <Input
                     id="signin-email"
                     type="email"
@@ -145,10 +147,11 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className={`mobile-text ${isMobile ? 'h-12' : ''}`}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Senha</Label>
+                  <Label htmlFor="signin-password" className="mobile-text">Senha</Label>
                   <Input
                     id="signin-password"
                     type="password"
@@ -156,11 +159,12 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className={`mobile-text ${isMobile ? 'h-12' : ''}`}
                   />
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-poker-gold hover:bg-amber-500"
+                  className="w-full bg-poker-gold hover:bg-amber-500 mobile-button"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Entrando...' : 'Entrar'}
@@ -169,9 +173,9 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleSignUp} className="mobile-form-spacing">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-fullname">Nome completo</Label>
+                  <Label htmlFor="signup-fullname" className="mobile-text">Nome completo</Label>
                   <Input
                     id="signup-fullname"
                     type="text"
@@ -179,10 +183,11 @@ export default function Auth() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
+                    className={`mobile-text ${isMobile ? 'h-12' : ''}`}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="mobile-text">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -190,10 +195,11 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className={`mobile-text ${isMobile ? 'h-12' : ''}`}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
+                  <Label htmlFor="signup-password" className="mobile-text">Senha</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -201,11 +207,12 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className={`mobile-text ${isMobile ? 'h-12' : ''}`}
                   />
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-poker-gold hover:bg-amber-500"
+                  className="w-full bg-poker-gold hover:bg-amber-500 mobile-button"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Cadastrando...' : 'Cadastrar'}
@@ -214,12 +221,12 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 pt-6 border-t border-poker-gold/20">
+          <div className={`border-t border-poker-gold/20 ${isMobile ? 'mt-4 pt-4' : 'mt-6 pt-6'}`}>
             <div className="text-center mb-3">
-              <span className="text-sm text-muted-foreground">ou</span>
+              <span className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>ou</span>
             </div>
             <GuestAccessButton />
-            <p className="text-xs text-muted-foreground text-center mt-2">
+            <p className={`text-muted-foreground text-center mt-2 ${isMobile ? 'text-xs' : 'text-xs'}`}>
               Acesso somente leitura para explorar o sistema
             </p>
           </div>
