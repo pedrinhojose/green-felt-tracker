@@ -29,95 +29,74 @@ export default function CircularTimerControls({
   onReloadAudio
 }: CircularTimerControlsProps) {
   return (
-    <div className="absolute bottom-8 left-0 right-0">
-      {/* Controles inferiores esquerdos */}
-      <div className="absolute bottom-0 left-8 flex gap-3">
-        <Button 
-          onClick={onToggleSound}
-          variant={soundEnabled ? "outline" : "ghost"}
-          size="icon"
-          className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-poker-gold/30 hover:bg-poker-gold/20"
-          title={soundEnabled ? "Som Ativado" : "Som Desativado"}
-        >
-          {soundEnabled ? (
-            <Bell className="h-5 w-5 text-poker-gold" />
-          ) : (
-            <BellOff className="h-5 w-5 text-gray-400" />
-          )}
-        </Button>
-        
-        {onReloadAudio && (
-          <Button
-            onClick={onReloadAudio}
-            variant="outline"
-            size="icon"
-            className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-poker-gold/30 hover:bg-poker-gold/20"
-            title="Recarregar Sons"
-          >
-            <RefreshCw className="h-5 w-5 text-poker-gold" />
-          </Button>
-        )}
-        
-        <Button 
-          onClick={onToggleFullScreen}
-          variant="outline"
-          size="icon"
-          className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-poker-gold/30 hover:bg-poker-gold/20"
-          title="Tela Cheia"
-        >
-          <Maximize2 className="h-5 w-5 text-poker-gold" />
-        </Button>
-      </div>
-
-      {/* Controles centrais */}
-      <div className="flex justify-center gap-4">
+    <div className="absolute bottom-16 left-0 right-0">
+      {/* Controles centrais - conforme a imagem */}
+      <div className="flex justify-center items-center gap-8">
+        {/* Botão Anterior */}
         <Button 
           onClick={onPrevious}
-          variant="outline"
+          variant="ghost"
           size="lg"
-          className="bg-black/50 backdrop-blur-sm border-poker-gold/30 hover:bg-poker-gold/20 text-white"
+          className="text-white hover:text-poker-gold p-4"
         >
-          <SkipBack className="mr-2 h-5 w-5" /> Anterior
+          <SkipBack className="h-8 w-8" />
         </Button>
         
-        {!isRunning ? (
-          <Button 
-            onClick={onStart}
-            size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white px-8"
-          >
-            <Play className="mr-2 h-5 w-5" /> Iniciar
-          </Button>
-        ) : (
-          <Button 
-            onClick={onPause}
-            variant="destructive"
-            size="lg"
-            className="px-8"
-          >
-            <Pause className="mr-2 h-5 w-5" /> Pausar
-          </Button>
-        )}
+        {/* Botão Principal - INICIAR/PAUSAR */}
+        <div className="mx-8">
+          {!isRunning ? (
+            <Button 
+              onClick={onStart}
+              size="lg"
+              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-black px-12 py-4 text-xl font-bold rounded-lg"
+            >
+              INICIAR
+            </Button>
+          ) : (
+            <Button 
+              onClick={onPause}
+              size="lg"
+              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-black px-12 py-4 text-xl font-bold rounded-lg"
+            >
+              PAUSAR
+            </Button>
+          )}
+        </div>
         
+        {/* Botão Próximo */}
         <Button 
           onClick={onNext}
-          variant="outline"
+          variant="ghost"
           size="lg"
-          className="bg-black/50 backdrop-blur-sm border-poker-gold/30 hover:bg-poker-gold/20 text-white"
+          className="text-white hover:text-poker-gold p-4"
         >
-          <SkipForward className="mr-2 h-5 w-5" /> Próximo
+          <SkipForward className="h-8 w-8" />
         </Button>
       </div>
 
-      {/* Controle inferior direito */}
+      {/* Botão "ABRIR EM NOVA JANELA" no canto inferior direito */}
       <div className="absolute bottom-0 right-8">
         <Button 
           onClick={onOpenNewWindow}
           variant="outline"
-          className="bg-black/50 backdrop-blur-sm border-poker-gold/30 hover:bg-poker-gold/20 text-white"
+          className="bg-transparent border-2 border-poker-gold text-poker-gold hover:bg-poker-gold hover:text-black px-6 py-3 font-bold rounded-lg"
         >
-          <ExternalLink className="mr-2 h-4 w-4" />
-          Nova Janela
+          ABRIR EM NOVA JANELA
+        </Button>
+      </div>
+
+      {/* Controles de som e fullscreen escondidos (mantendo funcionalidade) */}
+      <div className="opacity-0 pointer-events-none absolute">
+        <Button onClick={onToggleSound}>
+          {soundEnabled ? <Bell /> : <BellOff />}
+        </Button>
+        {onReloadAudio && (
+          <Button onClick={onReloadAudio}>
+            <RefreshCw />
+          </Button>
+        )}
+        <Button onClick={onToggleFullScreen}>
+          <Maximize2 />
         </Button>
       </div>
     </div>
