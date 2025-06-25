@@ -1,177 +1,94 @@
 
-/**
- * Utility functions for generating HTML elements for the ranking export
- */
+import { Season } from '../db/models';
 
 /**
- * Creates the title and header section of the ranking export
- * @param activeSeason The currently active season object
- * @returns HTML header elements with title and season information
+ * Cria o container principal para o ranking - OTIMIZADO PARA MOBILE
  */
-export const createRankingHeader = (activeSeason: any | null) => {
-  // Create header container
+export const createRankingContainer = (): HTMLDivElement => {
+  const container = document.createElement('div');
+  
+  // Remover limitações de largura fixa
+  container.style.cssText = `
+    background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #374151 100%);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-width: 600px;
+    width: max-content;
+    padding: 24px;
+    margin: 0;
+    box-sizing: border-box;
+    overflow: visible;
+    position: relative;
+  `;
+  
+  return container;
+};
+
+/**
+ * Cria o cabeçalho do ranking
+ */
+export const createRankingHeader = (activeSeason: Season | null): HTMLDivElement => {
   const header = document.createElement('div');
-  header.style.display = 'flex';
-  header.style.flexDirection = 'column';
-  header.style.alignItems = 'center';
-  header.style.marginBottom = '20px';
-  header.style.padding = '10px';
+  header.style.cssText = `
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  `;
   
-  // Título principal "Ranking de Pontos"
-  const title = document.createElement('h2');
-  title.textContent = 'Ranking de Pontos';
-  title.style.fontSize = '26px';
-  title.style.fontWeight = 'bold';
-  title.style.color = '#D4AF37'; // Cor dourada
-  title.style.margin = '0 0 10px 0';
+  const title = document.createElement('h1');
+  title.style.cssText = `
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+    color: #f59e0b;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  `;
+  title.textContent = '🏆 RANKING DE PONTOS';
   
-  // Season information
-  if (activeSeason) {
-    const seasonInfo = document.createElement('div');
-    seasonInfo.textContent = `Temporada: ${activeSeason.name}`;
-    seasonInfo.style.color = '#ffffff';
-    seasonInfo.style.fontSize = '14px';
-    seasonInfo.style.margin = '2px 0';
-    header.appendChild(seasonInfo);
-    
-    // Game number info if available
-    if (activeSeason.currentGameNumber) {
-      const gameInfo = document.createElement('div');
-      gameInfo.textContent = `Partida #${activeSeason.currentGameNumber}`;
-      gameInfo.style.color = '#ffffff';
-      gameInfo.style.fontSize = '14px';
-      gameInfo.style.margin = '2px 0';
-      header.appendChild(gameInfo);
-    }
-  }
+  const seasonName = document.createElement('p');
+  seasonName.style.cssText = `
+    font-size: 16px;
+    margin: 0 0 8px 0;
+    color: #d1d5db;
+    font-weight: 500;
+  `;
+  seasonName.textContent = activeSeason?.name || 'Temporada Atual';
   
-  // Data atual
-  const dateElement = document.createElement('div');
-  dateElement.textContent = new Date().toLocaleDateString('pt-BR');
-  dateElement.style.color = '#ffffff';
-  dateElement.style.fontSize = '16px';
-  dateElement.style.marginTop = '5px';
+  const date = document.createElement('p');
+  date.style.cssText = `
+    font-size: 12px;
+    margin: 0;
+    color: #9ca3af;
+    font-style: italic;
+  `;
+  date.textContent = `Atualizado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
   
   header.appendChild(title);
-  // Date is now appended after the season/game info
-  header.appendChild(dateElement);
+  header.appendChild(seasonName);
+  header.appendChild(date);
   
   return header;
 };
 
 /**
- * Creates a styled container for the ranking export
- * @returns A div element styled for the ranking export
+ * Cria o rodapé do ranking
  */
-export const createRankingContainer = () => {
-  const exportDiv = document.createElement('div');
-  exportDiv.id = 'ranking-export';
-  exportDiv.style.padding = '20px';
-  exportDiv.style.backgroundColor = '#111827'; // Fundo escuro como na imagem
-  exportDiv.style.borderRadius = '12px';
-  exportDiv.style.width = '100%';
-  exportDiv.style.maxWidth = '500px';  // Largura ideal para visualização
-  exportDiv.style.margin = '0 auto';
-  exportDiv.style.overflow = 'hidden';
-  exportDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-  
-  return exportDiv;
-};
-
-/**
- * Creates the table header for the ranking export
- * @returns A thead element with styled headers
- */
-export const createTableHeader = () => {
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.style.borderBottom = '1px solid #2D3748';
-  
-  // Cabeçalhos conforme a imagem: Pos., Jogador, Pontos, Partidas
-  const headers = ['#', 'Jogador', 'Pontos', 'Jogos'];
-  const columnWidths = ['50px', 'auto', '80px', '80px'];
-  const textAligns = ['center', 'left', 'center', 'center'];
-  
-  headers.forEach((headerText, index) => {
-    const th = document.createElement('th');
-    th.textContent = headerText;
-    th.style.padding = index === 0 ? '8px 8px 8px 16px' : '8px 4px';
-    th.style.textAlign = textAligns[index];
-    th.style.fontSize = '16px';
-    th.style.fontWeight = 'bold';
-    th.style.color = '#ffffff';
-    th.style.width = columnWidths[index];
-    
-    headerRow.appendChild(th);
-  });
-  
-  thead.appendChild(headerRow);
-  return thead;
-};
-
-/**
- * Creates a player avatar element (either image or initials)
- * @param ranking The ranking entry containing player data
- * @param getInitials Function to get player initials from name
- * @returns A styled div element with player avatar
- */
-export const createPlayerAvatar = (ranking: any, getInitials: (name: string) => string) => {
-  const avatarDiv = document.createElement('div');
-  avatarDiv.style.width = '32px';
-  avatarDiv.style.height = '32px';
-  avatarDiv.style.borderRadius = '50%';
-  avatarDiv.style.backgroundColor = '#1e3a8a';
-  avatarDiv.style.color = 'white';
-  avatarDiv.style.display = 'flex';
-  avatarDiv.style.alignItems = 'center';
-  avatarDiv.style.justifyContent = 'center';
-  avatarDiv.style.fontSize = '14px';
-  avatarDiv.style.fontWeight = 'bold';
-  avatarDiv.style.flexShrink = '0';
-  avatarDiv.style.border = '1px solid #2D3748';
-  
-  if (ranking.photoUrl) {
-    const img = document.createElement('img');
-    img.src = ranking.photoUrl;
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.borderRadius = '50%';
-    img.style.objectFit = 'cover';
-    avatarDiv.appendChild(img);
-  } else {
-    avatarDiv.textContent = getInitials(ranking.playerName);
-  }
-  
-  return avatarDiv;
-};
-
-/**
- * Creates a position number element for ranking display
- * @param index The player's position in the ranking (zero-based)
- * @returns A styled span element with position number
- */
-export const createPositionNumber = (index: number) => {
-  const position = document.createElement('div');
-  position.textContent = (index + 1).toString();
-  position.style.fontSize = '18px';
-  position.style.fontWeight = 'bold';
-  position.style.color = '#ffffff';
-  position.style.textAlign = 'center';
-  
-  return position;
-};
-
-/**
- * Creates a footer element for the ranking export
- * @returns A div element with footer text
- */
-export const createRankingFooter = () => {
+export const createRankingFooter = (): HTMLDivElement => {
   const footer = document.createElement('div');
-  footer.style.marginTop = '20px';
-  footer.style.textAlign = 'center';
-  footer.style.color = '#718096';
-  footer.style.fontSize = '14px';
-  footer.textContent = 'Gerado por APA Poker Gestão';
+  footer.style.cssText = `
+    text-align: center;
+    margin-top: 24px;
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+    font-size: 11px;
+    font-style: italic;
+  `;
+  
+  footer.textContent = `Ranking gerado automaticamente • ${new Date().toLocaleDateString('pt-BR')}`;
   
   return footer;
 };

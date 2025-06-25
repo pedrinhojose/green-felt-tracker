@@ -15,6 +15,23 @@ export function useReportExport() {
     return window.innerWidth <= 768;
   };
   
+  // Função para calcular largura necessária dinamicamente
+  const calculateRequiredWidth = (element: HTMLElement): number => {
+    // Criar clone temporário para medir
+    const clone = element.cloneNode(true) as HTMLElement;
+    clone.style.position = 'absolute';
+    clone.style.visibility = 'hidden';
+    clone.style.width = 'max-content';
+    clone.style.maxWidth = 'none';
+    clone.style.minWidth = 'none';
+    
+    document.body.appendChild(clone);
+    const requiredWidth = Math.max(clone.scrollWidth, clone.offsetWidth);
+    document.body.removeChild(clone);
+    
+    return requiredWidth;
+  };
+  
   // Função para gerar PDF profissional usando jsPDF
   const generatePdfReport = async (
     seasonName: string,
@@ -156,7 +173,7 @@ export function useReportExport() {
     return pdf;
   };
 
-  // Função para exportar relatório como PDF - ESSA FUNÇÃO ESTAVA FALTANDO!
+  // Função para exportar relatório como PDF
   const exportReportAsPdf = async (
     seasonName: string,
     seasonSummary: SeasonSummary,
@@ -183,38 +200,62 @@ export function useReportExport() {
     }
   };
   
-  // Função para criar versão simplificada sem alterações agressivas - CORRIGIDA
-  const createSimplifiedElement = (originalElement: HTMLElement, isMobile: boolean): HTMLElement => {
-    console.log("=== createSimplifiedElement DEBUG ===");
-    console.log("Creating simplified version for:", isMobile ? 'mobile' : 'desktop');
+  // Função para criar versão otimizada para mobile - CORRIGIDA
+  const createOptimizedElement = (originalElement: HTMLElement, isMobile: boolean): HTMLElement => {
+    console.log("=== createOptimizedElement DEBUG ===");
+    console.log("Creating optimized version for:", isMobile ? 'mobile' : 'desktop');
     
     const clone = originalElement.cloneNode(true) as HTMLElement;
     
-    // Aplicar apenas ajustes mínimos para garantir que a imagem seja legível
+    // Calcular largura necessária real
+    const requiredWidth = calculateRequiredWidth(originalElement);
+    console.log("Required width calculated:", requiredWidth);
+    
+    // Configurar largura otimizada
     if (isMobile) {
-      // Mobile: reduzir largura mas manter proporções
-      clone.style.width = '375px';
-      clone.style.maxWidth = '375px';
+      // Mobile: usar largura dinâmica com mínimo adequado
+      const mobileWidth = Math.max(requiredWidth + 80, 600); // Mínimo 600px com padding
+      clone.style.width = `${mobileWidth}px`;
+      clone.style.maxWidth = `${mobileWidth}px`;
+      clone.style.minWidth = `${mobileWidth}px`;
     } else {
-      // Desktop: manter largura original
-      clone.style.width = '800px';
-      clone.style.maxWidth = '800px';
+      // Desktop: usar largura necessária com margem
+      const desktopWidth = Math.max(requiredWidth + 60, 800);
+      clone.style.width = `${desktopWidth}px`;
+      clone.style.maxWidth = `${desktopWidth}px`;
     }
     
-    // Aplicar apenas estilos essenciais sem alterar o layout original
+    // Aplicar estilos essenciais
     clone.style.margin = '0';
-    clone.style.padding = '16px';
+    clone.style.padding = '24px';
     clone.style.boxSizing = 'border-box';
+    clone.style.overflow = 'visible';
     
-    console.log("Simplified element created with width:", clone.style.width);
-    console.log("Element has content:", clone.innerHTML.length > 0);
+    // Otimizar tabelas especificamente
+    const tables = clone.querySelectorAll('table');
+    tables.forEach(table => {
+      const tableElement = table as HTMLElement;
+      tableElement.style.tableLayout = 'auto';
+      tableElement.style.width = '100%';
+      tableElement.style.minWidth = 'max-content';
+    });
+    
+    // Otimizar containers de tabelas
+    const tableContainers = clone.querySelectorAll('.mobile-table-container, [class*="table"]');
+    tableContainers.forEach(container => {
+      const containerElement = container as HTMLElement;
+      containerElement.style.overflow = 'visible';
+      containerElement.style.width = '100%';
+    });
+    
+    console.log("Optimized element created with width:", clone.style.width);
     
     return clone;
   };
   
-  // Exportar relatório como imagem - VERSÃO MAIS SIMPLES E CONFIÁVEL
+  // Exportar relatório como imagem - VERSÃO OTIMIZADA PARA MOBILE
   const exportReportAsImage = async (reportElementId: string, filename: string) => {
-    console.log("=== SIMPLE IMAGE EXPORT DEBUG ===");
+    console.log("=== OPTIMIZED IMAGE EXPORT DEBUG ===");
     console.log("Target element ID:", reportElementId);
     
     setIsExportingImage(true);
@@ -226,42 +267,45 @@ export function useReportExport() {
       }
       
       console.log("Element found, dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
-      console.log("Element has content:", reportElement.innerHTML.length > 0);
       
       // Detectar se é mobile
       const isMobile = isMobileDevice();
       console.log("Is mobile device:", isMobile);
       
-      // Criar versão simplificada
-      const simplifiedElement = createSimplifiedElement(reportElement, isMobile);
+      // Criar versão otimizada
+      const optimizedElement = createOptimizedElement(reportElement, isMobile);
       
       // Adicionar temporariamente ao DOM para renderização
-      simplifiedElement.style.position = 'absolute';
-      simplifiedElement.style.top = '-9999px';
-      simplifiedElement.style.left = '0';
-      simplifiedElement.style.visibility = 'visible';
-      simplifiedElement.style.zIndex = '-1';
-      document.body.appendChild(simplifiedElement);
+      optimizedElement.style.position = 'absolute';
+      optimizedElement.style.top = '-99999px';
+      optimizedElement.style.left = '0';
+      optimizedElement.style.visibility = 'visible';
+      optimizedElement.style.zIndex = '-1';
+      document.body.appendChild(optimizedElement);
       
-      // Aguardar renderização
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Aguardar renderização completa
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log("Starting html2canvas with optimized settings...");
+      console.log("Starting html2canvas with mobile-optimized settings...");
       
-      // Configurações do html2canvas otimizadas e mais simples
-      const canvas = await html2canvas(simplifiedElement, {
+      // Configurações otimizadas para mobile
+      const canvas = await html2canvas(optimizedElement, {
         backgroundColor: '#1a2e35',
-        scale: isMobile ? 1.5 : 1,
+        scale: 2, // Sempre usar escala alta para qualidade
         logging: true,
         useCORS: true,
         allowTaint: true,
-        removeContainer: true
+        removeContainer: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: optimizedElement.offsetWidth,
+        windowHeight: optimizedElement.offsetHeight,
       });
       
       console.log(`Canvas created successfully: ${canvas.width}x${canvas.height}`);
       
       // Remover elemento temporário
-      document.body.removeChild(simplifiedElement);
+      document.body.removeChild(optimizedElement);
       
       // Verificar se o canvas tem conteúdo válido
       if (canvas.width === 0 || canvas.height === 0) {
@@ -269,7 +313,7 @@ export function useReportExport() {
         throw new Error("Canvas dimensions are invalid");
       }
       
-      // Converter para PNG
+      // Converter para PNG com qualidade máxima
       const dataURL = canvas.toDataURL('image/png', 1.0);
       console.log("Data URL generated, length:", dataURL.length);
       
@@ -291,17 +335,22 @@ export function useReportExport() {
       console.log("Download completed successfully");
       
     } catch (error) {
-      console.error("Error in image export:", error);
+      console.error("Error in optimized image export:", error);
       
-      // Fallback: tentar exportar o elemento original
-      console.log("Attempting fallback export...");
+      // Fallback mais robusto
+      console.log("Attempting enhanced fallback export...");
       try {
         const originalElement = document.getElementById(reportElementId);
         if (originalElement) {
+          // Fallback com configurações ainda mais conservadoras
           const canvas = await html2canvas(originalElement, {
             backgroundColor: '#1a2e35',
-            scale: 1,
-            logging: true
+            scale: 1.5,
+            logging: true,
+            useCORS: true,
+            allowTaint: true,
+            width: Math.max(originalElement.scrollWidth, 800),
+            height: originalElement.scrollHeight,
           });
           
           const dataURL = canvas.toDataURL('image/png', 1.0);
@@ -314,10 +363,10 @@ export function useReportExport() {
           link.click();
           document.body.removeChild(link);
           
-          console.log("Fallback export completed");
+          console.log("Enhanced fallback export completed");
         }
       } catch (fallbackError) {
-        console.error("Fallback export also failed:", fallbackError);
+        console.error("Enhanced fallback export also failed:", fallbackError);
       }
     } finally {
       setIsExportingImage(false);
@@ -327,7 +376,7 @@ export function useReportExport() {
   return {
     isExporting,
     isExportingImage,
-    exportReportAsPdf, // AGORA ESTÁ DEFINIDA CORRETAMENTE!
+    exportReportAsPdf,
     exportReportAsImage
   };
 }

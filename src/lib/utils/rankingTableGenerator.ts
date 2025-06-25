@@ -1,118 +1,177 @@
 
-import { RankingEntry } from "../db/models";
+import { RankingEntry } from '../db/models';
 
 /**
- * Creates a table for displaying ranking data
- * @param sortedRankings Sorted array of ranking entries
- * @param getInitials Function to get initials from player name
- * @param getMedalEmoji Optional function to get medal emoji for positions
- * @returns HTML table element with ranking data
+ * Cria a tabela do ranking otimizada para exportação - SEM CORTES LATERAIS
  */
 export const createRankingTable = (
-  sortedRankings: RankingEntry[], 
+  sortedRankings: RankingEntry[],
   getInitials: (name: string) => string,
   getMedalEmoji?: (position: number) => string
-) => {
-  // Create table element
+): HTMLTableElement => {
   const table = document.createElement('table');
-  table.style.width = '100%';
-  table.style.borderCollapse = 'collapse';
-  table.style.marginBottom = '20px';
   
-  // Create table header
-  const thead = createTableHeader();
+  // Estilo da tabela otimizado para não cortar
+  table.style.cssText = `
+    width: 100%;
+    min-width: max-content;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    table-layout: auto;
+  `;
+  
+  // Criar cabeçalho
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.style.background = 'linear-gradient(90deg, #1f2937, #374151)';
+  
+  const headers = [
+    { text: 'Pos.', width: '60px' },
+    { text: 'Jogador', width: '200px' },
+    { text: 'Jogos', width: '80px' },
+    { text: 'Pontos', width: '100px' }
+  ];
+  
+  headers.forEach(header => {
+    const th = document.createElement('th');
+    th.style.cssText = `
+      padding: 12px 16px;
+      text-align: ${header.text === 'Jogador' ? 'left' : 'center'};
+      font-weight: bold;
+      color: #f9fafb;
+      font-size: 14px;
+      border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+      min-width: ${header.width};
+      white-space: nowrap;
+    `;
+    th.textContent = header.text;
+    headerRow.appendChild(th);
+  });
+  
+  thead.appendChild(headerRow);
   table.appendChild(thead);
   
-  // Create table body
+  // Criar corpo da tabela
   const tbody = document.createElement('tbody');
   
-  // Populate table rows with ranking data
   sortedRankings.forEach((ranking, index) => {
     const row = document.createElement('tr');
-    row.style.borderBottom = '1px solid #2D3748';
+    const position = index + 1;
     
-    // Position column
-    const positionCell = document.createElement('td');
-    positionCell.style.padding = '12px 8px 12px 16px';
-    positionCell.style.verticalAlign = 'middle';
+    // Estilo alternado das linhas
+    const isEven = index % 2 === 0;
+    row.style.cssText = `
+      background: ${isEven ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.05)'};
+      transition: background-color 0.2s;
+    `;
     
-    const positionWrapper = document.createElement('div');
-    positionWrapper.style.width = '30px';
-    positionWrapper.style.height = '30px';
-    positionWrapper.style.borderRadius = '50%';
-    positionWrapper.style.backgroundColor = '#1e3a8a';
-    positionWrapper.style.color = 'white';
-    positionWrapper.style.display = 'flex';
-    positionWrapper.style.alignItems = 'center';
-    positionWrapper.style.justifyContent = 'center';
-    positionWrapper.style.fontSize = '14px';
-    positionWrapper.style.fontWeight = 'bold';
+    // Hover effect
+    row.addEventListener('mouseenter', () => {
+      row.style.background = 'rgba(245, 158, 11, 0.1)';
+    });
+    row.addEventListener('mouseleave', () => {
+      row.style.background = isEven ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.05)';
+    });
     
-    // Add medal emoji if function provided, otherwise use position number
-    positionWrapper.textContent = getMedalEmoji ? getMedalEmoji(index) : (index + 1).toString();
+    // Coluna posição
+    const posCell = document.createElement('td');
+    posCell.style.cssText = `
+      padding: 12px 16px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: ${position <= 3 ? '#f59e0b' : '#d1d5db'};
+      white-space: nowrap;
+    `;
     
-    positionCell.appendChild(positionWrapper);
-    row.appendChild(positionCell);
+    // Usar emoji se disponível, senão número
+    const positionDisplay = getMedalEmoji ? getMedalEmoji(index) : position.toString();
+    posCell.textContent = positionDisplay;
+    row.appendChild(posCell);
     
-    // Player name and avatar column
+    // Coluna jogador
     const playerCell = document.createElement('td');
-    playerCell.style.padding = '8px';
-    playerCell.style.verticalAlign = 'middle';
+    playerCell.style.cssText = `
+      padding: 12px 16px;
+      font-weight: 500;
+      color: #f9fafb;
+      font-size: 14px;
+      min-width: 200px;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    `;
     
-    const playerInfo = document.createElement('div');
-    playerInfo.style.display = 'flex';
-    playerInfo.style.alignItems = 'center';
-    playerInfo.style.gap = '8px';
+    // Container para foto e nome
+    const playerContainer = document.createElement('div');
+    playerContainer.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    `;
     
+    // Avatar do jogador
     const avatar = document.createElement('div');
-    avatar.style.width = '32px';
-    avatar.style.height = '32px';
-    avatar.style.borderRadius = '50%';
-    avatar.style.backgroundColor = '#1e3a8a';
-    avatar.style.color = 'white';
-    avatar.style.display = 'flex';
-    avatar.style.alignItems = 'center';
-    avatar.style.justifyContent = 'center';
-    avatar.style.fontSize = '14px';
-    avatar.style.fontWeight = 'bold';
+    avatar.style.cssText = `
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: ${position <= 3 ? 'linear-gradient(45deg, #f59e0b, #d97706)' : 'linear-gradient(45deg, #374151, #4b5563)'};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      color: white;
+      flex-shrink: 0;
+      border: 2px solid ${position <= 3 ? '#f59e0b' : 'rgba(255, 255, 255, 0.2)'};
+    `;
     
-    // If player has photo, use it, otherwise show initials
+    // Se tem foto, usar como background
     if (ranking.photoUrl) {
-      const img = document.createElement('img');
-      img.src = ranking.photoUrl;
-      img.style.width = '100%';
-      img.style.height = '100%';
-      img.style.objectFit = 'cover';
-      img.style.borderRadius = '50%';
-      avatar.appendChild(img);
+      avatar.style.backgroundImage = `url(${ranking.photoUrl})`;
+      avatar.style.backgroundSize = 'cover';
+      avatar.style.backgroundPosition = 'center';
+      avatar.textContent = '';
     } else {
       avatar.textContent = getInitials(ranking.playerName);
     }
     
-    const name = document.createElement('div');
-    name.textContent = ranking.playerName;
-    name.style.fontWeight = '500';
-    name.style.color = '#E5E7EB';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = ranking.playerName;
+    nameSpan.style.flexGrow = '1';
     
-    playerInfo.appendChild(avatar);
-    playerInfo.appendChild(name);
-    playerCell.appendChild(playerInfo);
+    playerContainer.appendChild(avatar);
+    playerContainer.appendChild(nameSpan);
+    playerCell.appendChild(playerContainer);
     row.appendChild(playerCell);
     
-    // Games played column
+    // Coluna jogos
     const gamesCell = document.createElement('td');
-    gamesCell.style.padding = '8px';
-    gamesCell.style.textAlign = 'center';
-    gamesCell.style.color = '#E5E7EB';
+    gamesCell.style.cssText = `
+      padding: 12px 16px;
+      text-align: center;
+      color: #d1d5db;
+      font-size: 14px;
+      white-space: nowrap;
+    `;
     gamesCell.textContent = ranking.gamesPlayed.toString();
     row.appendChild(gamesCell);
     
-    // Points column
+    // Coluna pontos
     const pointsCell = document.createElement('td');
-    pointsCell.style.padding = '8px';
-    pointsCell.style.textAlign = 'center';
-    pointsCell.style.fontWeight = 'bold';
-    pointsCell.style.color = '#D4AF37'; // Gold color for points
+    pointsCell.style.cssText = `
+      padding: 12px 16px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: #f59e0b;
+      white-space: nowrap;
+    `;
     pointsCell.textContent = ranking.totalPoints.toString();
     row.appendChild(pointsCell);
     
@@ -122,35 +181,4 @@ export const createRankingTable = (
   table.appendChild(tbody);
   
   return table;
-};
-
-/**
- * Creates the table header for the ranking
- * @returns A thead element with styled headers
- */
-const createTableHeader = () => {
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  headerRow.style.borderBottom = '1px solid #2D3748';
-  
-  // Define headers and their styling properties
-  const headers = ['#', 'Jogador', 'Jogos', 'Pontos'];
-  const columnWidths = ['50px', 'auto', '80px', '80px'];
-  const textAligns = ['center', 'left', 'center', 'center'];
-  
-  headers.forEach((headerText, index) => {
-    const th = document.createElement('th');
-    th.textContent = headerText;
-    th.style.padding = index === 0 ? '8px 8px 8px 16px' : '8px 4px';
-    th.style.textAlign = textAligns[index];
-    th.style.fontSize = '16px';
-    th.style.fontWeight = 'bold';
-    th.style.color = '#ffffff';
-    th.style.width = columnWidths[index];
-    
-    headerRow.appendChild(th);
-  });
-  
-  thead.appendChild(headerRow);
-  return thead;
 };
