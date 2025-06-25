@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -38,6 +37,7 @@ export default {
 				poker: {
 					"green": "#1A4D33",
 					"dark-green": "#0F2B1D",
+					"dark-green-deep": "#0A1F15",
 					"navy": "#1A2B48",
 					"dark-navy": "#0F1A2B",
 					"black": "#111111",

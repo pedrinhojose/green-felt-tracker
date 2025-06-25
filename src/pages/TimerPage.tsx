@@ -1,6 +1,7 @@
+
 import { useParams } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
-import BlindTimer from "@/components/game/blindTimer/BlindTimer";
+import CircularTimer from "@/components/game/blindTimer/CircularTimer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +30,7 @@ export default function TimerPage() {
 
   if (!hasBlindStructure) {
     return (
-      <div className={`flex items-center justify-center min-h-screen bg-poker-black ${isMobile ? 'p-2' : 'p-4'}`}>
+      <div className={`flex items-center justify-center min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep ${isMobile ? 'p-2' : 'p-4'}`}>
         <Card className="w-full max-w-3xl bg-poker-dark-green border border-poker-gold/20">
           <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center space-y-4`}>
             <p className={`text-white ${isMobile ? 'text-base' : 'text-lg'}`}>Estrutura de blinds não configurada para esta temporada</p>
@@ -46,9 +47,9 @@ export default function TimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-poker-black timer-container">
+    <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container">
       <div className="w-full h-full">
-        <BlindTimer />
+        <CircularTimer />
       </div>
     </div>
   );
