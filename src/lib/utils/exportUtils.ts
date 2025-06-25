@@ -1,171 +1,166 @@
 
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { Game, Player } from '../db/models';
-import { formatDate, formatCurrency } from './dateUtils';
-import { pokerDB } from '../db'; // Updated import path
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { createGameReport } from './reports/gameReportGenerator';
+import { pokerDB } from '../db';
 
-export const exportGameReport = async (gameId: string, players: Player[]): Promise<string> => {
+/**
+ * Função para calcular dimensões necessárias dinamicamente
+ */
+const calculateRequiredDimensions = (element: HTMLElement): { width: number; height: number } => {
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.style.position = 'absolute';
+  clone.style.visibility = 'hidden';
+  clone.style.width = 'max-content';
+  clone.style.height = 'auto';
+  clone.style.maxWidth = 'none';
+  clone.style.overflow = 'visible';
+  
+  document.body.appendChild(clone);
+  const requiredWidth = Math.max(clone.scrollWidth, clone.offsetWidth);
+  const requiredHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
+  document.body.removeChild(clone);
+  
+  return { width: requiredWidth, height: requiredHeight };
+};
+
+/**
+ * Exporta um relatório de partida como PDF
+ */
+export const exportGameReport = async (gameId: string, players: any[]) => {
   try {
-    // Buscar o jogo diretamente do banco de dados usando o ID
     const game = await pokerDB.getGame(gameId);
-    if (!game) {
-      throw new Error("Jogo não encontrado");
-    }
+    if (!game) throw new Error('Partida não encontrada');
     
-    // Buscar informações da temporada
-    const season = await pokerDB.getSeason(game.seasonId);
-    if (!season) {
-      throw new Error("Temporada não encontrada");
-    }
+    const season = game.seasonId ? await pokerDB.getSeason(game.seasonId) : null;
+    const seasonName = season?.name || 'Temporada Desconhecida';
     
-    const doc = new jsPDF();
+    const reportElement = await createGameReport(game, players, seasonName);
     
-    // Adiciona o plugin autoTable ao jsPDF
-    autoTable(doc, {});
-
-    // Add title
-    doc.setFontSize(18);
-    doc.text(`Relatório de Partida #${game.number.toString().padStart(3, '0')}`, 14, 22);
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.width;
+    let yPosition = 20;
     
-    // Add season name
-    doc.setFontSize(14);
-    doc.text(`Temporada: ${season.name}`, 14, 30);
+    // Cabeçalho do PDF
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.text(`RELATÓRIO DA PARTIDA #${game.number.toString().padStart(3, '0')}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
     
-    // Add date
-    doc.setFontSize(12);
-    doc.text(`Data: ${formatDate(game.date)}`, 14, 38);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.text(`Temporada: ${seasonName}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    pdf.text(`Data: ${new Date(game.date).toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
     
-    // Add prize pool
-    doc.text(`Premiação Total: ${formatCurrency(game.totalPrizePool)}`, 14, 45);
-    
-    // Add dinner information if applicable
-    let yPosition = 52;
-    if (game.dinnerCost && game.dinnerCost > 0) {
-      doc.text(`Total Janta: ${formatCurrency(game.dinnerCost)}`, 14, yPosition);
-      yPosition += 7;
-      
-      // Calculate individual dinner cost
-      const dinnerParticipants = game.players.filter(p => p.joinedDinner).length;
-      if (dinnerParticipants > 0) {
-        const individualDinnerCost = game.dinnerCost / dinnerParticipants;
-        doc.text(`Valor Janta: ${formatCurrency(individualDinnerCost)}`, 14, yPosition);
-        yPosition += 7;
-      }
-    }
-    
-    // Create players table
-    const playerMap = new Map(players.map(player => [player.id, player]));
-    
+    // Dados dos jogadores para a tabela
     const tableData = game.players.map(gamePlayer => {
-      const player = playerMap.get(gamePlayer.playerId);
+      const player = players.find(p => p.id === gamePlayer.playerId);
       return [
-        gamePlayer.position ? gamePlayer.position.toString() : '-',
-        player?.name || 'Jogador Desconhecido',
-        gamePlayer.buyIn ? 'Sim' : 'Não',
+        player?.name || 'Desconhecido',
+        gamePlayer.position?.toString() || '-',
+        gamePlayer.buyIn ? 'R$ 50,00' : '-',
         gamePlayer.rebuys.toString(),
-        gamePlayer.addons.toString(),
-        gamePlayer.joinedDinner ? 'Sim' : 'Não',
-        formatCurrency(gamePlayer.prize),
-        gamePlayer.points.toString(),
-        formatCurrency(gamePlayer.balance),
+        gamePlayer.addon ? 'R$ 25,00' : '-',
+        `R$ ${(gamePlayer.prize || 0).toFixed(2).replace('.', ',')}`
       ];
-    }).sort((a, b) => {
-      const posA = a[0] === '-' ? 999 : parseInt(a[0]);
-      const posB = b[0] === '-' ? 999 : parseInt(b[0]);
-      return posA - posB;
     });
     
-    // Usar autoTable como função independente ao invés de método do doc
-    autoTable(doc, {
-      head: [['Pos.', 'Nome', 'Buy-in', 'Rebuys', 'Add-ons', 'Janta', 'Prêmio', 'Pontos', 'Saldo']],
+    autoTable(pdf, {
+      head: [['Jogador', 'Pos.', 'Buy-in', 'Rebuys', 'Add-on', 'Prêmio']],
       body: tableData,
       startY: yPosition,
-      styles: { fontSize: 10, cellPadding: 3 },
-      headStyles: { fillColor: [10, 59, 35] },
-      alternateRowStyles: { fillColor: [240, 240, 240] },
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [155, 135, 245] }
     });
     
-    // Salva e retorna o PDF como URL de blob
-    const blobURL = doc.output('bloburl');
-    return blobURL.toString();
+    return pdf.output('blob');
   } catch (error) {
-    console.error("Erro ao gerar relatório:", error);
-    throw new Error("Falha ao gerar o relatório do jogo");
+    console.error('Erro ao exportar relatório:', error);
+    throw error;
   }
 };
 
 /**
- * Exporta o relatório do jogo como uma imagem otimizada para visualização em celular
- * @param gameId ID do jogo a ser exportado
- * @param players Lista de jogadores
- * @returns URL da imagem gerada
+ * Exporta um relatório de partida como imagem - VERSÃO CORRIGIDA PARA EVITAR CORTES
  */
-export const exportGameReportAsImage = async (gameId: string, players: Player[]): Promise<string> => {
+export const exportGameReportAsImage = async (gameId: string, players: any[]) => {
   try {
-    // Buscar o jogo do banco de dados
+    console.log("=== GAME REPORT IMAGE EXPORT DEBUG ===");
+    console.log("Starting game report image export for gameId:", gameId);
+    
     const game = await pokerDB.getGame(gameId);
-    if (!game) {
-      throw new Error("Jogo não encontrado");
-    }
+    if (!game) throw new Error('Partida não encontrada');
     
-    // Buscar informações da temporada
-    const season = await pokerDB.getSeason(game.seasonId);
-    if (!season) {
-      throw new Error("Temporada não encontrada");
-    }
+    const season = game.seasonId ? await pokerDB.getSeason(game.seasonId) : null;
+    const seasonName = season?.name || 'Temporada Desconhecida';
     
-    // Criar o elemento HTML do relatório (agora assíncrono)
-    const reportElement = await createGameReport(game, players, season.name);
+    // Criar elemento do relatório
+    const reportElement = await createGameReport(game, players, seasonName);
     
-    // Adicionar ao DOM temporariamente para captura
+    // Detectar se é mobile
+    const isMobile = window.innerWidth <= 768;
+    console.log("Is mobile device:", isMobile);
+    
+    // Calcular dimensões necessárias
     document.body.appendChild(reportElement);
+    const { width: requiredWidth, height: requiredHeight } = calculateRequiredDimensions(reportElement);
+    console.log("Required dimensions:", requiredWidth, "x", requiredHeight);
     
-    // Capturar como imagem
+    // Configurar dimensões otimizadas
+    const optimalWidth = isMobile 
+      ? Math.max(requiredWidth + 80, 600)  // Mobile: mínimo 600px + padding
+      : Math.max(requiredWidth + 60, 800); // Desktop: mínimo 800px + padding
+    
+    const optimalHeight = requiredHeight + 60; // Altura com padding extra
+    
+    reportElement.style.width = `${optimalWidth}px`;
+    reportElement.style.height = `${optimalHeight}px`;
+    reportElement.style.minWidth = `${optimalWidth}px`;
+    reportElement.style.minHeight = `${optimalHeight}px`;
+    reportElement.style.maxWidth = `${optimalWidth}px`;
+    reportElement.style.overflow = 'visible';
+    reportElement.style.position = 'absolute';
+    reportElement.style.top = '-99999px';
+    reportElement.style.left = '0';
+    reportElement.style.zIndex = '-1';
+    
+    // Aguardar renderização
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    console.log("Final export dimensions:", reportElement.offsetWidth, "x", reportElement.offsetHeight);
+    
+    // Configurações otimizadas do html2canvas
     const canvas = await html2canvas(reportElement, {
-      scale: 2, // Escala maior para melhor qualidade
-      backgroundColor: '#1A1F2C',
-      logging: false,
+      scale: 2, // Sempre usar escala alta
+      backgroundColor: '#1a1f2c',
+      logging: true,
       useCORS: true,
       allowTaint: true,
+      scrollX: 0,
+      scrollY: 0,
+      width: optimalWidth,
+      height: optimalHeight,
+      windowWidth: optimalWidth,
+      windowHeight: optimalHeight,
+      x: 0,
+      y: 0
     });
     
-    // Remover do DOM
+    console.log(`Canvas created: ${canvas.width}x${canvas.height}`);
+    
+    // Remove o elemento temporário
     document.body.removeChild(reportElement);
     
-    // Converter para URL e retornar
-    const imageUrl = canvas.toDataURL('image/png');
+    // Converte para URL e retorna
+    const imageUrl = canvas.toDataURL('image/png', 1.0);
+    console.log("Image URL generated successfully, length:", imageUrl.length);
+    
     return imageUrl;
   } catch (error) {
     console.error("Erro ao exportar relatório como imagem:", error);
-    throw new Error("Falha ao gerar a imagem do relatório");
+    throw new Error("Não foi possível exportar o relatório como imagem.");
   }
-};
-
-export const exportScreenshot = async (elementId: string): Promise<string> => {
-  const element = document.getElementById(elementId);
-  if (!element) {
-    throw new Error(`Element with ID "${elementId}" not found`);
-  }
-  
-  // Configure the options for the screenshot
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    logging: false,
-    useCORS: true,
-  });
-  
-  return canvas.toDataURL('image/png');
-};
-
-export const downloadBackup = (json: string, filename: string = 'apa-poker-backup.json') => {
-  const blob = new Blob([json], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };

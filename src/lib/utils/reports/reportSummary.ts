@@ -3,7 +3,7 @@ import { formatCurrency } from '../dateUtils';
 
 /**
  * Creates the summary section with totals and winner information
- * @param game The game object
+ * @param game The game object  
  * @param players Array of all players
  * @returns A div element with the summary
  */
@@ -11,6 +11,7 @@ export const createReportSummary = (game: Game, players = []) => {
   const summary = document.createElement('div');
   summary.style.borderTop = '1px solid rgba(255,255,255,0.2)';
   summary.style.paddingTop = '12px';
+  summary.style.paddingBottom = '20px'; // Padding extra na parte inferior
   
   // Winners section
   const winnersSection = document.createElement('div');
@@ -24,7 +25,7 @@ export const createReportSummary = (game: Game, players = []) => {
   if (top3Players.length > 0) {
     const winnersTitle = document.createElement('div');
     winnersTitle.textContent = 'VENCEDORES';
-    winnersTitle.style.fontSize = '15px'; // Aumentando o tamanho da fonte
+    winnersTitle.style.fontSize = '15px';
     winnersTitle.style.fontWeight = 'bold';
     winnersTitle.style.color = '#9b87f5';
     winnersTitle.style.marginBottom = '8px';
@@ -45,7 +46,7 @@ export const createReportSummary = (game: Game, players = []) => {
       // Create player row
       const playerRow = document.createElement('div');
       playerRow.style.display = 'grid';
-      playerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+      playerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
       playerRow.style.gap = '2px';
       
       // Position and name
@@ -59,16 +60,16 @@ export const createReportSummary = (game: Game, players = []) => {
       positionSpan.style.marginRight = '6px';
       
       if (position === 1) {
-        positionSpan.style.color = '#FFD700'; // Gold
+        positionSpan.style.color = '#FFD700';
       } else if (position === 2) {
-        positionSpan.style.color = '#C0C0C0'; // Silver
+        positionSpan.style.color = '#C0C0C0';
       } else if (position === 3) {
-        positionSpan.style.color = '#CD7F32'; // Bronze
+        positionSpan.style.color = '#CD7F32';
       }
       
       const nameSpan = document.createElement('span');
       nameSpan.textContent = playerName;
-      nameSpan.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+      nameSpan.style.fontSize = '13px';
       
       playerInfoContainer.appendChild(positionSpan);
       playerInfoContainer.appendChild(nameSpan);
@@ -77,11 +78,11 @@ export const createReportSummary = (game: Game, players = []) => {
       const prizeSpan = document.createElement('span');
       prizeSpan.textContent = formatCurrency(prize);
       prizeSpan.style.fontWeight = 'bold';
-      prizeSpan.style.fontSize = '13px'; // Aumentando o tamanho da fonte
-      prizeSpan.style.textAlign = 'center'; // Centralizando o texto
+      prizeSpan.style.fontSize = '13px';
+      prizeSpan.style.textAlign = 'center';
       
       if (position === 1) {
-        prizeSpan.style.color = '#FFD700'; // Gold
+        prizeSpan.style.color = '#FFD700';
       }
       
       playerRow.appendChild(playerInfoContainer);
@@ -98,20 +99,20 @@ export const createReportSummary = (game: Game, players = []) => {
   if (game.dinnerCost && game.dinnerCost > 0) {
     const dinnerRow = document.createElement('div');
     dinnerRow.style.display = 'grid';
-    dinnerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+    dinnerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
     dinnerRow.style.gap = '2px';
     dinnerRow.style.marginBottom = '8px';
     
     const dinnerLabel = document.createElement('div');
     dinnerLabel.textContent = 'Total Janta:';
     dinnerLabel.style.color = '#8E9196';
-    dinnerLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+    dinnerLabel.style.fontSize = '13px';
     
     const dinnerValue = document.createElement('div');
     dinnerValue.textContent = formatCurrency(game.dinnerCost);
     dinnerValue.style.fontWeight = 'bold';
-    dinnerValue.style.fontSize = '13px'; // Aumentando o tamanho da fonte
-    dinnerValue.style.textAlign = 'center'; // Centralizando o texto
+    dinnerValue.style.fontSize = '13px';
+    dinnerValue.style.textAlign = 'center';
     
     dinnerRow.appendChild(dinnerLabel);
     dinnerRow.appendChild(dinnerValue);
@@ -124,20 +125,20 @@ export const createReportSummary = (game: Game, players = []) => {
       
       const individualDinnerRow = document.createElement('div');
       individualDinnerRow.style.display = 'grid';
-      individualDinnerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+      individualDinnerRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
       individualDinnerRow.style.gap = '2px';
       individualDinnerRow.style.marginBottom = '8px';
       
       const individualDinnerLabel = document.createElement('div');
       individualDinnerLabel.textContent = 'Janta por Pessoa:';
       individualDinnerLabel.style.color = '#8E9196';
-      individualDinnerLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+      individualDinnerLabel.style.fontSize = '13px';
       
       const individualDinnerValue = document.createElement('div');
       individualDinnerValue.textContent = formatCurrency(individualDinnerCost);
       individualDinnerValue.style.fontWeight = 'bold';
-      individualDinnerValue.style.fontSize = '13px'; // Aumentando o tamanho da fonte
-      individualDinnerValue.style.textAlign = 'center'; // Centralizando o texto
+      individualDinnerValue.style.fontSize = '13px';
+      individualDinnerValue.style.textAlign = 'center';
       
       individualDinnerRow.appendChild(individualDinnerLabel);
       individualDinnerRow.appendChild(individualDinnerValue);
@@ -148,21 +149,21 @@ export const createReportSummary = (game: Game, players = []) => {
   // Total Prize
   const prizeRow = document.createElement('div');
   prizeRow.style.display = 'grid';
-  prizeRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+  prizeRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
   prizeRow.style.gap = '2px';
-  prizeRow.style.marginBottom = '12px'; // Add margin to separate from jackpot
+  prizeRow.style.marginBottom = '15px'; // Aumentando margem para dar mais espaço
   
   const prizeLabel = document.createElement('div');
   prizeLabel.textContent = 'Prêmio Total:';
   prizeLabel.style.color = '#8E9196';
-  prizeLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+  prizeLabel.style.fontSize = '13px';
   
   const prizeValue = document.createElement('div');
   prizeValue.textContent = formatCurrency(game.totalPrizePool);
   prizeValue.style.fontWeight = 'bold';
   prizeValue.style.color = '#9b87f5';
-  prizeValue.style.fontSize = '17px'; // Aumentando o tamanho da fonte
-  prizeValue.style.textAlign = 'center'; // Centralizando o texto
+  prizeValue.style.fontSize = '17px';
+  prizeValue.style.textAlign = 'center';
   
   prizeRow.appendChild(prizeLabel);
   prizeRow.appendChild(prizeValue);
@@ -173,25 +174,25 @@ export const createReportSummary = (game: Game, players = []) => {
     // Add "RETIRADO AO JACKPOT" row
     const contributionRow = document.createElement('div');
     contributionRow.style.display = 'grid';
-    contributionRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+    contributionRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
     contributionRow.style.gap = '2px';
     contributionRow.style.marginTop = '4px';
     contributionRow.style.paddingTop = '8px';
     contributionRow.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
+    contributionRow.style.marginBottom = '8px'; // Margem para separar do jackpot
     
     const contributionLabel = document.createElement('div');
     contributionLabel.textContent = 'Retirado ao Jackpot:';
     contributionLabel.style.color = '#8E9196';
-    contributionLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+    contributionLabel.style.fontSize = '13px';
     
     const contributionValue = document.createElement('div');
-    // Use a data attribute to be populated by the gameReportGenerator
     contributionValue.setAttribute('data-jackpot-contribution-placeholder', 'true');
     contributionValue.textContent = 'Carregando...';
     contributionValue.style.fontWeight = 'bold';
-    contributionValue.style.color = '#C0C0C0'; // Silver color for contribution
-    contributionValue.style.fontSize = '13px'; // Aumentando o tamanho da fonte
-    contributionValue.style.textAlign = 'center'; // Centralizando o texto
+    contributionValue.style.color = '#C0C0C0';
+    contributionValue.style.fontSize = '13px';
+    contributionValue.style.textAlign = 'center';
     
     contributionRow.appendChild(contributionLabel);
     contributionRow.appendChild(contributionValue);
@@ -200,24 +201,23 @@ export const createReportSummary = (game: Game, players = []) => {
     // Jackpot value
     const jackpotRow = document.createElement('div');
     jackpotRow.style.display = 'grid';
-    jackpotRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px'; // Alinhando com a coluna de saldo
+    jackpotRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
     jackpotRow.style.gap = '2px';
     jackpotRow.style.marginTop = '4px';
+    jackpotRow.style.marginBottom = '15px'; // Margem extra na parte inferior
     
     const jackpotLabel = document.createElement('div');
     jackpotLabel.textContent = 'Jackpot Acumulado:';
     jackpotLabel.style.color = '#8E9196';
-    jackpotLabel.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+    jackpotLabel.style.fontSize = '13px';
     
     const jackpotValue = document.createElement('div');
-    
-    // Use a data attribute to be populated by the gameReportGenerator
     jackpotValue.setAttribute('data-jackpot-placeholder', 'true');
     jackpotValue.textContent = 'Carregando...';
     jackpotValue.style.fontWeight = 'bold';
-    jackpotValue.style.color = '#FFD700'; // Gold color for jackpot
-    jackpotValue.style.fontSize = '15px'; // Aumentando o tamanho da fonte
-    jackpotValue.style.textAlign = 'center'; // Centralizando o texto
+    jackpotValue.style.color = '#FFD700';
+    jackpotValue.style.fontSize = '15px';
+    jackpotValue.style.textAlign = 'center';
     
     jackpotRow.appendChild(jackpotLabel);
     jackpotRow.appendChild(jackpotValue);
