@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
@@ -28,8 +27,7 @@ export default function LastGameCard() {
       // Importa a função de forma dinâmica
       const { exportGameReport } = await import("@/lib/utils/exportUtils");
       
-      // Estamos passando apenas o ID do jogo, já que o exportGameReport
-      // buscará o jogo completo diretamente do banco de dados
+      // Now the function returns a URL string instead of a Blob
       const pdfUrl = await exportGameReport(lastGame.id, players);
       
       // Open the PDF in a new tab

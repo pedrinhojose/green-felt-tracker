@@ -63,7 +63,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
         gamePlayer.position?.toString() || '-',
         gamePlayer.buyIn ? 'R$ 50,00' : '-',
         gamePlayer.rebuys.toString(),
-        gamePlayer.addon ? 'R$ 25,00' : '-',
+        gamePlayer.addons ? 'R$ 25,00' : '-',
         `R$ ${(gamePlayer.prize || 0).toFixed(2).replace('.', ',')}`
       ];
     });
@@ -76,7 +76,10 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       headStyles: { fillColor: [155, 135, 245] }
     });
     
-    return pdf.output('blob');
+    // Convert blob to URL for opening in new tab
+    const pdfBlob = pdf.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    return pdfUrl;
   } catch (error) {
     console.error('Erro ao exportar relatório:', error);
     throw error;
@@ -109,12 +112,12 @@ export const exportGameReportAsImage = async (gameId: string, players: any[]) =>
     const { width: requiredWidth, height: requiredHeight } = calculateRequiredDimensions(reportElement);
     console.log("Required dimensions:", requiredWidth, "x", requiredHeight);
     
-    // Configurar dimensões otimizadas
+    // Configurar dimensões otimizadas - aumentar altura para evitar cortes
     const optimalWidth = isMobile 
       ? Math.max(requiredWidth + 80, 600)  // Mobile: mínimo 600px + padding
       : Math.max(requiredWidth + 60, 800); // Desktop: mínimo 800px + padding
     
-    const optimalHeight = requiredHeight + 60; // Altura com padding extra
+    const optimalHeight = requiredHeight + 80; // Altura com padding extra aumentado
     
     reportElement.style.width = `${optimalWidth}px`;
     reportElement.style.height = `${optimalHeight}px`;
