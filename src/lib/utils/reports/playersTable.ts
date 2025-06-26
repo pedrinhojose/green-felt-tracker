@@ -15,16 +15,16 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Layout mais compacto e sem espaço após o saldo
-  tableHeader.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 40px 40px 40px 70px';
+  // Layout atualizado com 8 colunas incluindo Pontos
+  tableHeader.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 35px 40px 40px 40px 70px';
   tableHeader.style.gap = '2px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '5px 0';
-  tableHeader.style.fontSize = '12px'; // Aumentando o tamanho da fonte
+  tableHeader.style.fontSize = '12px';
   tableHeader.style.color = '#8E9196';
   
-  // Header columns
-  const headers = ['#', '', 'Jogador', 'Rebuys', '+Ons', 'Janta', 'Saldo'];
+  // Header columns - adicionando Pontos
+  const headers = ['#', '', 'Jogador', 'Pontos', 'Rebuys', '+Ons', 'Janta', 'Saldo'];
   headers.forEach((header, index) => {
     const headerCell = document.createElement('div');
     headerCell.textContent = header;
@@ -65,11 +65,11 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     const row = document.createElement('div');
     row.style.display = 'grid';
     // Usando o mesmo template de grid do cabeçalho para manter consistência
-    row.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 40px 40px 40px 70px';
+    row.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 35px 40px 40px 40px 70px';
     row.style.gap = '2px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
     row.style.padding = '8px 0';
-    row.style.fontSize = '13px'; // Aumentando o tamanho da fonte
+    row.style.fontSize = '13px';
     
     // Position
     const posCell = document.createElement('div');
@@ -120,7 +120,14 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     nameCell.style.whiteSpace = 'nowrap';
     nameCell.style.display = 'flex';
     nameCell.style.alignItems = 'center';
-    nameCell.style.paddingLeft = '0'; // Reduzir espaço à esquerda
+    nameCell.style.paddingLeft = '0';
+    
+    // Points - nova coluna
+    const pointsCell = document.createElement('div');
+    pointsCell.textContent = gamePlayer.points.toString();
+    pointsCell.style.textAlign = 'center';
+    pointsCell.style.fontWeight = 'bold';
+    pointsCell.style.color = '#F2FCE2';
     
     // Rebuys
     const rebuysCell = document.createElement('div');
@@ -148,6 +155,7 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     row.appendChild(posCell);
     row.appendChild(photoCell);
     row.appendChild(nameCell);
+    row.appendChild(pointsCell); // Nova coluna de pontos
     row.appendChild(rebuysCell);
     row.appendChild(addonsCell);
     row.appendChild(dinnerCell);

@@ -55,12 +55,13 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     pdf.text(`Data: ${new Date(game.date).toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 20;
     
-    // Dados dos jogadores para a tabela
+    // Dados dos jogadores para a tabela - incluindo coluna de pontos
     const tableData = game.players.map(gamePlayer => {
       const player = players.find(p => p.id === gamePlayer.playerId);
       return [
         player?.name || 'Desconhecido',
         gamePlayer.position?.toString() || '-',
+        gamePlayer.points.toString(), // Nova coluna de pontos
         gamePlayer.buyIn ? 'R$ 50,00' : '-',
         gamePlayer.rebuys.toString(),
         gamePlayer.addons ? 'R$ 25,00' : '-',
@@ -69,7 +70,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     });
     
     autoTable(pdf, {
-      head: [['Jogador', 'Pos.', 'Buy-in', 'Rebuys', 'Add-on', 'Prêmio']],
+      head: [['Jogador', 'Pos.', 'Pontos', 'Buy-in', 'Rebuys', 'Add-on', 'Prêmio']],
       body: tableData,
       startY: yPosition,
       styles: { fontSize: 9 },
