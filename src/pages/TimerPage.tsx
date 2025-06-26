@@ -7,12 +7,26 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect } from "react";
+import { useAudioContext } from "@/contexts/AudioContext";
 
 export default function TimerPage() {
   const { gameId } = useParams<{ gameId?: string }>();
   const { activeSeason, games, lastGame } = usePoker();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { enableTimerAudio, setGlobalAudioEnabled } = useAudioContext();
+  
+  // Enable audio when TimerPage mounts
+  useEffect(() => {
+    console.log("=== TIMER PAGE - HABILITANDO ÁUDIO ===");
+    console.log("Ativando contexto de áudio do timer");
+    enableTimerAudio();
+    setGlobalAudioEnabled(true);
+    
+    return () => {
+      console.log("Timer page desmontando - mantendo áudio ativo");
+    };
+  }, [enableTimerAudio, setGlobalAudioEnabled]);
   
   // Debug da página do timer
   useEffect(() => {

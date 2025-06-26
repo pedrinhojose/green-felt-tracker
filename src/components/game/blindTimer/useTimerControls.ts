@@ -16,7 +16,7 @@ export function useTimerControls(
   timeRemainingInLevel: number
 ) {
   // Audio context
-  const { enableTimerAudio, disableTimerAudio, setGlobalAudioEnabled } = useAudioContext();
+  const { enableTimerAudio, disableTimerAudio, setGlobalAudioEnabled, isTimerAudioActive, isAudioEnabled } = useAudioContext();
   
   // Audio setup
   const { audioRefs, playAudioSafely, unlockAudio } = useAudioEffects();
@@ -53,14 +53,23 @@ export function useTimerControls(
   
   // Enable timer audio when component mounts
   useEffect(() => {
+    console.log("=== TIMER CONTROLS - INICIALIZANDO ÁUDIO ===");
+    console.log("Estado atual do áudio:", { isTimerAudioActive, isAudioEnabled });
     console.log("Habilitando áudio do timer ao montar componente");
     enableTimerAudio();
+    setGlobalAudioEnabled(true);
+    
+    // Try to unlock audio immediately
+    setTimeout(() => {
+      console.log("Tentando desbloquear áudio após inicialização");
+      unlockAudio();
+    }, 500);
     
     return () => {
-      console.log("Desabilitando áudio do timer ao desmontar componente");
+      console.log("Timer controls desmontando - desabilitando áudio do timer");
       disableTimerAudio();
     };
-  }, [enableTimerAudio, disableTimerAudio]);
+  }, [enableTimerAudio, disableTimerAudio, setGlobalAudioEnabled]);
   
   // Cleanup on unmount
   useEffect(() => {
@@ -77,15 +86,19 @@ export function useTimerControls(
     console.log("Current state before start:", state);
     console.log("BlindLevels length:", blindLevels.length);
     console.log("First blind level:", blindLevels[0]);
+    console.log("Estado do áudio:", { isTimerAudioActive, isAudioEnabled });
     
     setGlobalAudioEnabled(true);
     enableTimerAudio();
+    
     // Try to unlock audio on start
     setTimeout(() => {
+      console.log("Desbloqueando áudio após iniciar timer");
       unlockAudio();
     }, 100);
+    
     coreStartTimer();
-  }, [coreStartTimer, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, state, blindLevels]);
+  }, [coreStartTimer, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, state, blindLevels, isTimerAudioActive, isAudioEnabled]);
 
   // Enhanced pause timer
   const pauseTimer = useCallback(() => {
@@ -96,19 +109,22 @@ export function useTimerControls(
   // Enhanced toggle sound that manages audio context
   const enhancedToggleSound = useCallback(() => {
     const newSoundState = !state.soundEnabled;
+    console.log(`=== TOGGLE SOUND ===`);
     console.log(`Som ${newSoundState ? 'ativado' : 'desativado'} pelo usuário`);
+    console.log("Estado atual do áudio:", { isTimerAudioActive, isAudioEnabled });
     
     setGlobalAudioEnabled(newSoundState);
     if (newSoundState) {
       enableTimerAudio();
       // Try to unlock audio when user enables sound
       setTimeout(() => {
+        console.log("Desbloqueando áudio após usuário ativar som");
         unlockAudio();
       }, 100);
     }
     
     toggleSound();
-  }, [state.soundEnabled, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, toggleSound]);
+  }, [state.soundEnabled, setGlobalAudioEnabled, enableTimerAudio, unlockAudio, toggleSound, isTimerAudioActive, isAudioEnabled]);
 
   const handleNextLevel = useCallback(() => {
     console.log("=== NEXT LEVEL DEBUG ===");
