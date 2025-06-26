@@ -127,7 +127,7 @@ export default function CircularTimer() {
         onNext={goToNextLevel}
         onPrevious={goToPreviousLevel}
         onToggleSound={toggleSound}
-        onOpenNewWindow={openIn NewWindow}
+        onOpenNewWindow={openInNewWindow}
         onToggleFullScreen={toggleFullScreen}
         onReloadAudio={reloadAudio}
       />
