@@ -87,6 +87,7 @@ export const buildNewSeason = (seasonData: Partial<Season>, seasonsCount: number
     financialParams: financialParams,
     blindStructure: blindStructure,
     jackpot: 0,
+    houseRules: seasonData.houseRules || '',
     createdAt: now,
   };
 };

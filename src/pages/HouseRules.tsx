@@ -121,9 +121,23 @@ export default function HouseRules() {
         </CardHeader>
         <CardContent>
           <div className="prose prose-invert max-w-none">
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans">
-              {activeSeason.houseRules}
-            </pre>
+            <div 
+              className="text-justify leading-relaxed text-base space-y-4 font-sans"
+              style={{ 
+                textAlign: 'justify',
+                lineHeight: '1.8',
+                fontSize: '16px',
+                color: '#e2e8f0'
+              }}
+            >
+              {activeSeason.houseRules.split('\n').map((paragraph, index) => (
+                paragraph.trim() !== '' && (
+                  <p key={index} className="mb-4">
+                    {paragraph}
+                  </p>
+                )
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
