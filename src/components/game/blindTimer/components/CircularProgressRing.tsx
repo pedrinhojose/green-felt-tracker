@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CircularProgressRingProps {
   progressPercentage: number;
@@ -7,7 +8,14 @@ interface CircularProgressRingProps {
 }
 
 export function CircularProgressRing({ progressPercentage, onProgressClick }: CircularProgressRingProps) {
-  const radius = 150;  // Anel maior para combinar com o timer grande
+  const isMobile = useIsMobile();
+  
+  // Ajustar tamanhos para mobile
+  const radius = isMobile ? 100 : 150;
+  const svgSize = isMobile ? 240 : 350;
+  const center = svgSize / 2;
+  const strokeWidth = isMobile ? 4 : 6;
+  
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
   
@@ -36,28 +44,28 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
 
   return (
     <svg 
-      width="350" 
-      height="350" 
+      width={svgSize} 
+      height={svgSize} 
       className="cursor-pointer transform -rotate-90"
       onClick={handleClick}
     >
       {/* Background ring */}
       <circle
-        cx="175"
-        cy="175"
+        cx={center}
+        cy={center}
         r={radius}
         stroke="rgba(255, 255, 255, 0.1)"
-        strokeWidth="6"
+        strokeWidth={strokeWidth}
         fill="transparent"
       />
       
       {/* Progress ring */}
       <circle
-        cx="175"
-        cy="175"
+        cx={center}
+        cy={center}
         r={radius}
         stroke={getStrokeColor()}
-        strokeWidth="6"
+        strokeWidth={strokeWidth}
         fill="transparent"
         strokeLinecap="round"
         strokeDasharray={circumference}

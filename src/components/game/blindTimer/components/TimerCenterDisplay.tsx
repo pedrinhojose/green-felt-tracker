@@ -1,6 +1,7 @@
 
 import React from "react";
 import { BlindLevel } from "@/lib/db/models";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TimerCenterDisplayProps {
   timeRemainingInLevel: number;
@@ -15,6 +16,8 @@ export function TimerCenterDisplay({
   showAlert,
   isNewBlindAlert 
 }: TimerCenterDisplayProps) {
+  const isMobile = useIsMobile();
+  
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = timeInSeconds % 60;
@@ -29,13 +32,13 @@ export function TimerCenterDisplay({
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center">
-      {/* Timer principal - exatamente como na imagem */}
-      <div className={`text-[120px] font-bold ${getTimeColor()} transition-colors duration-300 font-mono leading-none`}>
+      {/* Timer principal - responsivo */}
+      <div className={`${isMobile ? 'text-[60px]' : 'text-[120px]'} font-bold ${getTimeColor()} transition-colors duration-300 font-mono leading-none`}>
         {formatTime(timeRemainingInLevel)}
       </div>
       
-      {/* Label "tempo" abaixo do timer */}
-      <div className="text-poker-gold text-3xl font-normal mt-4">tempo</div>
+      {/* Label "tempo" abaixo do timer - responsivo */}
+      <div className={`text-poker-gold ${isMobile ? 'text-lg' : 'text-3xl'} font-normal ${isMobile ? 'mt-1' : 'mt-4'}`}>tempo</div>
     </div>
   );
 }
