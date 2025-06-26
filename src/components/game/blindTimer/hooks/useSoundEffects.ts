@@ -17,107 +17,118 @@ export function useSoundEffects(
   useEffect(() => {
     let alertTimeout: number;
     
-    console.log("=== SOUND EFFECTS - VERIFICAÇÃO DE ESTADO ===");
-    console.log("Condições para reproduzir som:", {
+    console.log("=== SOUND EFFECTS - DEBUG COMPLETO ===");
+    console.log("Condições atuais:", {
       isTimerAudioActive,
       isAudioEnabled,
       soundEnabled: state.soundEnabled,
       isRunning: state.isRunning,
-      timeRemainingInLevel
+      timeRemainingInLevel,
+      elapsedTimeInLevel: state.elapsedTimeInLevel
     });
     
-    // Only play sounds if timer audio is active AND sound is enabled
-    if (!isTimerAudioActive || !state.soundEnabled) {
-      console.log("Som não será reproduzido:", {
-        isTimerAudioActive,
-        soundEnabled: state.soundEnabled
-      });
+    console.log("Elementos de áudio disponíveis:", {
+      alertAudio: !!audioRefs.alertAudioRef.current,
+      countdownAudio: !!audioRefs.countdownAudioRef.current,
+      levelCompleteAudio: !!audioRefs.levelCompleteAudioRef.current
+    });
+    
+    // Condições simplificadas para debug - vamos testar apenas com soundEnabled
+    if (!state.soundEnabled) {
+      console.log("Som desabilitado pelo usuário");
       return;
     }
     
-    // Aumentar volume antes de reproduzir cada som
+    if (!state.isRunning) {
+      console.log("Timer não está rodando");
+      return;
+    }
+    
+    // Verificar se temos elementos de áudio
+    if (!audioRefs.alertAudioRef.current || !audioRefs.countdownAudioRef.current || !audioRefs.levelCompleteAudioRef.current) {
+      console.log("Elementos de áudio não estão carregados ainda");
+      return;
+    }
+    
+    // Aumentar volume e reproduzir som
     const playWithIncreasedVolume = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>) => {
+      console.log("=== TENTATIVA DE REPRODUÇÃO DE SOM ===");
       if (audioRef.current) {
+        console.log("Configurando áudio:", {
+          src: audioRef.current.src,
+          readyState: audioRef.current.readyState,
+          volume: audioRef.current.volume
+        });
+        
         // Salvar o volume original
         const originalVolume = audioRef.current.volume;
-        // Dobrar o volume (limitado a 1.0 que é o máximo)
+        // Aumentar volume
         audioRef.current.volume = Math.min(originalVolume * 2, 1.0);
+        console.log(`Volume ajustado de ${originalVolume} para ${audioRef.current.volume}`);
       }
-      await playAudioSafely(audioRef, state.soundEnabled);
+      
+      try {
+        await playAudioSafely(audioRef, state.soundEnabled);
+        console.log("Som reproduzido com sucesso");
+      } catch (error) {
+        console.error("Erro ao reproduzir som:", error);
+      }
     };
     
-    if (timeRemainingInLevel === 60 && state.isRunning) {
-      console.log("=== ALERTA DE 1 MINUTO ===");
-      // Alerta para 1 minuto restante
+    if (timeRemainingInLevel === 60) {
+      console.log("=== ALERTA DE 1 MINUTO - TENTANDO REPRODUZIR ===");
       setState(prev => ({ ...prev, showAlert: true }));
+      playWithIncreasedVolume(audioRefs.alertAudioRef);
       
-      // Tocar o alerta
-      if (state.soundEnabled) {
-        console.log("Tocando som de alerta (1 minuto restante) com volume aumentado");
-        playWithIncreasedVolume(audioRefs.alertAudioRef);
-      }
-      
-      // Limpar alerta após 3 segundos
       alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
       }, 3000); 
     } 
-    else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning) {
-      console.log(`=== CONTAGEM REGRESSIVA: ${timeRemainingInLevel} ===`);
-      // Sons de contagem regressiva
-      console.log(`Tocando som de contagem regressiva: ${timeRemainingInLevel} com volume aumentado`);
+    else if (timeRemainingInLevel <= 5 && timeRemainingInLevel > 0) {
+      console.log(`=== CONTAGEM REGRESSIVA: ${timeRemainingInLevel} - TENTANDO REPRODUZIR ===`);
       playWithIncreasedVolume(audioRefs.countdownAudioRef);
     } 
-    else if (timeRemainingInLevel === 0 && state.isRunning && state.elapsedTimeInLevel === 0) {
-      console.log("=== SOM DE CONCLUSÃO DE NÍVEL ===");
-      // Som de conclusão de nível - ajustado para tocar apenas uma vez
-      console.log("Tocando som de conclusão de nível com volume aumentado");
+    else if (timeRemainingInLevel === 0 && state.elapsedTimeInLevel === 0) {
+      console.log("=== CONCLUSÃO DE NÍVEL - TENTANDO REPRODUZIR ===");
       playWithIncreasedVolume(audioRefs.levelCompleteAudioRef);
       
-      // Destacar novos blinds por 3 segundos
       setState(prev => ({ ...prev, showAlert: true }));
       alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
       }, 3000);
     }
     
-    // Limpar o timeout quando o componente for desmontado
     return () => {
       if (alertTimeout) {
         clearTimeout(alertTimeout);
       }
     };
-  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel, isTimerAudioActive, isAudioEnabled]);
+  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel]);
 
   const toggleSound = () => {
-    // Adiciona um log para verificar quando o usuário alterna o som
     const newSoundState = !state.soundEnabled;
-    console.log(`=== TOGGLE SOUND - USER ACTION ===`);
-    console.log(`Som ${newSoundState ? 'ativado' : 'desativado'} pelo usuário`);
-    console.log("Estado do contexto:", { isTimerAudioActive, isAudioEnabled });
+    console.log(`=== TOGGLE SOUND - MUDANÇA PARA: ${newSoundState} ===`);
     
     setState(prev => ({ ...prev, soundEnabled: newSoundState }));
-    
-    // Update global audio state
     setGlobalAudioEnabled(newSoundState);
+    
+    // Teste imediato do som quando habilitado
+    if (newSoundState && audioRefs.alertAudioRef.current) {
+      console.log("Testando som imediatamente após habilitar...");
+      setTimeout(() => {
+        playAudioSafely(audioRefs.alertAudioRef, newSoundState);
+      }, 100);
+    }
   };
 
   const playLevelCompleteSound = () => {
-    console.log("=== PLAY LEVEL COMPLETE SOUND ===");
-    console.log("Verificando condições:", {
-      isTimerAudioActive,
-      soundEnabled: state.soundEnabled,
-      isAudioEnabled
-    });
+    console.log("=== PLAY LEVEL COMPLETE SOUND - CHAMADA MANUAL ===");
     
-    // Only play if timer audio is active
-    if (!isTimerAudioActive || !state.soundEnabled) {
-      console.log("Timer audio não está ativo ou som desabilitado, ignorando som de conclusão de nível");
+    if (!state.soundEnabled) {
+      console.log("Som desabilitado, não reproduzindo");
       return;
     }
     
-    console.log("Chamada para reproduzir som de conclusão de nível com volume aumentado");
-    // Aumentar volume antes de reproduzir
     if (audioRefs.levelCompleteAudioRef.current) {
       const originalVolume = audioRefs.levelCompleteAudioRef.current.volume;
       audioRefs.levelCompleteAudioRef.current.volume = Math.min(originalVolume * 2, 1.0);

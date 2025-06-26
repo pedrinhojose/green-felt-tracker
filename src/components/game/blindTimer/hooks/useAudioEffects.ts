@@ -14,117 +14,120 @@ export function useAudioEffects() {
   const countdownAudioRef = useRef<HTMLAudioElement | null>(null);
   const levelCompleteAudioRef = useRef<HTMLAudioElement | null>(null);
   
-  // Flag to control audio loading
   const audioLoadedRef = useRef<boolean>(false);
-  
-  // Use our updated GitHub audio hook
   const { audioElements, isLoading } = useLocalStorageAudio();
-  
-  // Use audio context instead of global listeners
   const { isTimerAudioActive } = useAudioContext();
   
   // Initialize audio references
   useEffect(() => {
     if (audioLoadedRef.current) return;
-    if (isLoading) return; // Wait until audio is loaded from GitHub
+    if (isLoading) return;
     
     try {
-      console.log("Inicializando elementos de áudio do GitHub");
+      console.log("=== INICIALIZANDO ÁUDIO - DEBUG COMPLETO ===");
+      console.log("Estado do carregamento:", { isLoading });
+      console.log("Elementos de áudio recebidos:", {
+        alertAudio: !!audioElements.alertAudio,
+        countdownAudio: !!audioElements.countdownAudio,
+        levelCompleteAudio: !!audioElements.levelCompleteAudio
+      });
       
-      // Assign the audio elements from GitHub to our refs
       if (audioElements.alertAudio) {
         alertAudioRef.current = audioElements.alertAudio;
-        console.log("Áudio de alerta carregado do GitHub");
+        console.log("Áudio de alerta carregado:", audioElements.alertAudio.src);
       }
       
       if (audioElements.countdownAudio) {
         countdownAudioRef.current = audioElements.countdownAudio;
-        console.log("Áudio de contagem regressiva carregado do GitHub");
+        console.log("Áudio de contagem carregado:", audioElements.countdownAudio.src);
       }
       
       if (audioElements.levelCompleteAudio) {
         levelCompleteAudioRef.current = audioElements.levelCompleteAudio;
-        console.log("Áudio de conclusão de nível carregado do GitHub");
+        console.log("Áudio de conclusão carregado:", audioElements.levelCompleteAudio.src);
       }
       
       // Add event listeners for debugging
       const addAudioEventListeners = (audio: HTMLAudioElement, name: string) => {
-        audio.addEventListener('canplaythrough', () => console.log(`Áudio ${name} carregado e pronto para reproduzir`));
-        audio.addEventListener('error', (e) => console.error(`Erro ao carregar áudio ${name}:`, e));
+        audio.addEventListener('canplaythrough', () => {
+          console.log(`Áudio ${name} pronto para reproduzir - readyState: ${audio.readyState}`);
+        });
+        audio.addEventListener('error', (e) => {
+          console.error(`Erro no áudio ${name}:`, e, audio.error);
+        });
+        audio.addEventListener('loadstart', () => {
+          console.log(`Início do carregamento do áudio ${name}`);
+        });
+        audio.addEventListener('loadeddata', () => {
+          console.log(`Dados do áudio ${name} carregados`);
+        });
       };
       
       if (alertAudioRef.current) addAudioEventListeners(alertAudioRef.current, 'alerta');
-      if (countdownAudioRef.current) addAudioEventListeners(countdownAudioRef.current, 'contagem regressiva');
-      if (levelCompleteAudioRef.current) addAudioEventListeners(levelCompleteAudioRef.current, 'conclusão de nível');
+      if (countdownAudioRef.current) addAudioEventListeners(countdownAudioRef.current, 'contagem');
+      if (levelCompleteAudioRef.current) addAudioEventListeners(levelCompleteAudioRef.current, 'conclusão');
 
-      // Mark audio as loaded
       audioLoadedRef.current = true;
-      console.log("Todos os áudios preparados para reprodução");
+      console.log("Inicialização de áudio concluída");
       
     } catch (e) {
-      console.error("Erro ao inicializar arquivos de áudio:", e);
+      console.error("Erro crítico ao inicializar áudio:", e);
     }
 
-    // Cleanup function when component unmounts
     return () => {
       console.log("Limpando referências de áudio");
-      if (alertAudioRef.current) {
-        alertAudioRef.current.pause();
-        alertAudioRef.current = null;
-      }
-      if (countdownAudioRef.current) {
-        countdownAudioRef.current.pause();
-        countdownAudioRef.current = null;
-      }
-      if (levelCompleteAudioRef.current) {
-        levelCompleteAudioRef.current.pause();
-        levelCompleteAudioRef.current = null;
-      }
+      [alertAudioRef, countdownAudioRef, levelCompleteAudioRef].forEach(ref => {
+        if (ref.current) {
+          ref.current.pause();
+          ref.current = null;
+        }
+      });
     };
   }, [audioElements, isLoading]);
 
-  // Function to forcefully play audio - even on iOS (only when timer audio is active)
+  // Function to forcefully play audio
   const forcePlayAudio = (audioElement: HTMLAudioElement) => {
-    if (!isTimerAudioActive) {
-      console.log("Áudio do timer não está ativo, ignorando reprodução");
-      return;
-    }
+    console.log("=== FORCE PLAY AUDIO ===");
+    console.log("Estado do áudio:", {
+      src: audioElement.src,
+      readyState: audioElement.readyState,
+      paused: audioElement.paused,
+      volume: audioElement.volume
+    });
     
-    // Set audio to start from beginning
     audioElement.currentTime = 0;
     
-    // Play with all the workarounds we can find
     const playPromise = audioElement.play();
     if (playPromise) {
-      playPromise.catch(error => {
-        console.warn("Erro ao reproduzir áudio:", error);
-        
-        // Special iOS workaround - add to DOM temporarily
-        if (!document.body.contains(audioElement)) {
-          document.body.appendChild(audioElement);
-          audioElement.play().catch(e => console.error("Falha na reprodução mesmo adicionando ao DOM:", e));
+      playPromise
+        .then(() => {
+          console.log("Áudio reproduzido com sucesso");
+        })
+        .catch(error => {
+          console.warn("Erro na reprodução, tentando workaround:", error);
           
-          // Remove after playing (or after time interval to be safe)
-          setTimeout(() => {
-            if (document.body.contains(audioElement)) {
-              document.body.removeChild(audioElement);
-            }
-          }, 3000);
-        }
-      });
+          // iOS/Safari workaround
+          if (!document.body.contains(audioElement)) {
+            console.log("Adicionando áudio ao DOM temporariamente");
+            document.body.appendChild(audioElement);
+            audioElement.play()
+              .then(() => console.log("Reprodução bem-sucedida após adicionar ao DOM"))
+              .catch(e => console.error("Falha mesmo após adicionar ao DOM:", e));
+            
+            setTimeout(() => {
+              if (document.body.contains(audioElement)) {
+                document.body.removeChild(audioElement);
+              }
+            }, 3000);
+          }
+        });
     }
   };
 
-  // Function to unlock audio on iOS/Safari (only when explicitly called by timer)
+  // Function to unlock audio
   const unlockAudio = () => {
-    if (!isTimerAudioActive) {
-      console.log("Áudio do timer não está ativo, não desbloqueando");
-      return;
-    }
+    console.log("=== DESBLOQUEANDO ÁUDIO ===");
     
-    console.log("Desbloqueando áudio para o timer...");
-    
-    // Create array of all our audio elements
     const audioElements = [
       alertAudioRef.current,
       countdownAudioRef.current,
@@ -132,65 +135,57 @@ export function useAudioEffects() {
     ].filter(Boolean) as HTMLAudioElement[];
     
     if (audioElements.length === 0) {
-      console.warn("Nenhum elemento de áudio disponível para desbloquear");
+      console.warn("Nenhum elemento de áudio para desbloquear");
       return;
     }
     
-    // Add all audio elements to DOM temporarily (crucial for iOS)
-    const audioContainer = document.createElement('div');
-    audioContainer.style.display = 'none';
-    document.body.appendChild(audioContainer);
+    console.log(`Desbloqueando ${audioElements.length} elementos de áudio`);
     
-    audioElements.forEach(audio => {
-      if (!audio.parentElement) {
-        audioContainer.appendChild(audio);
-      }
-      
-      // Set volume to 0 for silent unlocking
+    // Unlock each audio element
+    audioElements.forEach((audio, index) => {
       const originalVolume = audio.volume;
       audio.volume = 0.01;
       
-      // Play and immediately pause
       audio.play()
         .then(() => {
           audio.pause();
           audio.currentTime = 0;
           audio.volume = originalVolume;
-          console.log("Áudio desbloqueado com sucesso:", audio.src);
+          console.log(`Áudio ${index + 1} desbloqueado com sucesso`);
         })
         .catch(error => {
-          console.warn("Não foi possível desbloquear áudio:", error);
+          console.warn(`Falha ao desbloquear áudio ${index + 1}:`, error);
           audio.volume = originalVolume;
         });
     });
-    
-    // Remove container after a short delay (giving browser time to process)
-    setTimeout(() => {
-      if (document.body.contains(audioContainer)) {
-        document.body.removeChild(audioContainer);
-      }
-    }, 1000);
   };
 
-  // Function to safely play audio with all our workarounds (only when timer audio is active)
+  // Function to safely play audio
   const playAudioSafely = async (audioRef: React.MutableRefObject<HTMLAudioElement | null>, soundEnabled: boolean) => {
-    if (!soundEnabled || !audioRef.current || !isTimerAudioActive) {
-      console.log("Som desativado, referência de áudio não disponível ou timer audio inativo");
+    console.log("=== PLAY AUDIO SAFELY ===");
+    console.log("Condições:", { soundEnabled, hasAudio: !!audioRef.current });
+    
+    if (!soundEnabled || !audioRef.current) {
+      console.log("Condições não atendidas para reprodução");
       return;
     }
     
     try {
       const audio = audioRef.current;
       
-      // Debug para verificar se o áudio está disponível
-      console.log("Tentando reproduzir áudio:", audio.src, "Estado atual:", audio.readyState);
+      console.log("Estado do áudio antes da reprodução:", {
+        src: audio.src,
+        readyState: audio.readyState,
+        networkState: audio.networkState,
+        paused: audio.paused
+      });
       
-      // Garantir que estamos prontos para reproduzir
-      if (audio.readyState < 2) { // HAVE_CURRENT_DATA = 2
-        console.log("Áudio não está pronto, tentando pré-carregar primeiro");
-        audio.load(); // Força pré-carregamento
+      // Garantir carregamento
+      if (audio.readyState < 2) {
+        console.log("Áudio não carregado, forçando load...");
+        audio.load();
         
-        // Adicionar ao DOM temporariamente para ajudar no carregamento
+        // Adicionar ao DOM se necessário
         if (!audio.parentElement) {
           document.body.appendChild(audio);
           setTimeout(() => {
@@ -200,15 +195,13 @@ export function useAudioEffects() {
           }, 1000);
         }
         
-        // Espere um pouco para dar tempo ao carregamento
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
       
-      // Usar nosso método de força para garantir a reprodução
       forcePlayAudio(audio);
       
     } catch (error) {
-      console.error("Erro ao reproduzir áudio:", error);
+      console.error("Erro crítico na reprodução:", error);
     }
   };
 

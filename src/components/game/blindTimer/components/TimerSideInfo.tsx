@@ -27,12 +27,13 @@ export function TimerSideInfo({
   timeRemainingInLevel = 0,
   currentLevelIndex = 0
 }: TimerSideInfoProps) {
-  const { formatTotalTime, getMinutesUntilBreak } = useTimerUtils();
+  const { formatTotalTime, getMinutesUntilBreak, getCurrentTime } = useTimerUtils();
   const isMobile = useIsMobile();
   
   // Estados para atualização em tempo real
   const [displayTotalTime, setDisplayTotalTime] = useState(formatTotalTime(totalElapsedTime));
   const [minutesUntilBreak, setMinutesUntilBreak] = useState(0);
+  const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
   // Atualizar tempo total em tempo real
   useEffect(() => {
@@ -46,6 +47,15 @@ export function TimerSideInfo({
       setMinutesUntilBreak(minutes);
     }
   }, [nextBreak, timeRemainingInLevel, currentLevelIndex, blindLevels, getMinutesUntilBreak]);
+
+  // Atualizar hora atual a cada segundo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(getCurrentTime());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [getCurrentTime]);
 
   if (side === 'left') {
     // Lado esquerdo - PRÓXIMO NÍVEL (mais afastado do centro) - menos destaque
@@ -111,13 +121,21 @@ export function TimerSideInfo({
       
       {/* ANTE ATUAL */}
       {currentLevel && !currentLevel.isBreak && (
-        <div>
+        <div className={isMobile ? 'mb-1' : 'mb-2'}>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>ANTE ATUAL</h3>
           <div className={`text-white ${isMobile ? 'text-xs' : 'text-xl'} font-bold`}>
             Ante {currentLevel.ante}
           </div>
         </div>
       )}
+      
+      {/* HORA ATUAL - atualizada em tempo real */}
+      <div>
+        <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>HORA ATUAL:</h3>
+        <div className={`text-white ${isMobile ? 'text-xs' : 'text-lg'} font-bold`}>
+          {currentTime}
+        </div>
+      </div>
     </div>
   );
 }
