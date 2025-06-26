@@ -43,12 +43,12 @@ export function TimerCenterDisplay({
         {formatTime(timeRemainingInLevel)}
       </div>
       
-      {/* Label "tempo" abaixo do timer - responsivo */}
+      {/* Label "Tempo" abaixo do timer - responsivo */}
       <div 
         className={`text-poker-gold ${isMobile ? 'text-lg' : 'text-3xl'} font-normal ${isMobile ? 'mt-1' : 'mt-4'}`}
         style={{ pointerEvents: 'auto' }}
       >
-        tempo
+        Tempo
       </div>
     </div>
   );
