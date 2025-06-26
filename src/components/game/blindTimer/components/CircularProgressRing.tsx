@@ -10,9 +10,9 @@ interface CircularProgressRingProps {
 export function CircularProgressRing({ progressPercentage, onProgressClick }: CircularProgressRingProps) {
   const isMobile = useIsMobile();
   
-  // Ajustar tamanhos para mobile
-  const radius = isMobile ? 100 : 150;
-  const svgSize = isMobile ? 240 : 350;
+  // Tamanhos aumentados para deixar o timer mais dentro do círculo
+  const radius = isMobile ? 120 : 180;
+  const svgSize = isMobile ? 280 : 400;
   const center = svgSize / 2;
   const strokeWidth = isMobile ? 4 : 6;
   

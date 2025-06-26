@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import { useTimerState } from "./useTimerState";
@@ -72,10 +71,10 @@ export default function CircularTimer() {
     : 0;
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center relative timer-container">
+    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center relative timer-container overflow-hidden">
       {/* Título superior */}
-      <div className={`absolute ${isMobile ? 'top-4' : 'top-8'} left-1/2 -translate-x-1/2`}>
-        <h1 className={`${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}>
+      <div className={`absolute ${isMobile ? 'top-2' : 'top-8'} left-1/2 -translate-x-1/2`}>
+        <h1 className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}>
           APA POKER Clock
         </h1>
       </div>
@@ -97,45 +96,21 @@ export default function CircularTimer() {
         />
       </div>
 
-      {/* Informações laterais - apenas em desktop ou ajustadas para mobile */}
-      {!isMobile && (
-        <>
-          <TimerSideInfo
-            side="left"
-            nextLevel={nextLevel}
-            nextBreak={nextBreak}
-            levelsUntilBreak={levelsUntilBreak}
-          />
-          
-          <TimerSideInfo
-            side="right"
-            currentLevel={currentLevel}
-            totalElapsedTime={state.totalElapsedTime}
-            blindLevels={sortedBlindLevels}
-            timeRemainingInLevel={timeRemainingInLevel}
-          />
-        </>
-      )}
-
-      {/* Informações laterais adaptadas para mobile */}
-      {isMobile && (
-        <>
-          <TimerSideInfo
-            side="left"
-            nextLevel={nextLevel}
-            nextBreak={nextBreak}
-            levelsUntilBreak={levelsUntilBreak}
-          />
-          
-          <TimerSideInfo
-            side="right"
-            currentLevel={currentLevel}
-            totalElapsedTime={state.totalElapsedTime}
-            blindLevels={sortedBlindLevels}
-            timeRemainingInLevel={timeRemainingInLevel}
-          />
-        </>
-      )}
+      {/* Informações laterais - posicionadas mais próximas do círculo */}
+      <TimerSideInfo
+        side="left"
+        nextLevel={nextLevel}
+        nextBreak={nextBreak}
+        levelsUntilBreak={levelsUntilBreak}
+      />
+      
+      <TimerSideInfo
+        side="right"
+        currentLevel={currentLevel}
+        totalElapsedTime={state.totalElapsedTime}
+        blindLevels={sortedBlindLevels}
+        timeRemainingInLevel={timeRemainingInLevel}
+      />
 
       {/* Controles */}
       <CircularTimerControls
