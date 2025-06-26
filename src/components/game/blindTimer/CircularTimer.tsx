@@ -1,5 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePoker } from "@/contexts/PokerContext";
 import { useTimerState } from "./useTimerState";
 import { useTimerControls } from "./useTimerControls";
@@ -8,6 +9,7 @@ import { CircularProgressRing } from "./components/CircularProgressRing";
 import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
 import { TimerSideInfo } from "./components/TimerSideInfo";
 import CircularTimerControls from "./components/CircularTimerControls";
+import { AlertTriangle } from "lucide-react";
 
 export default function CircularTimer() {
   const { activeSeason } = usePoker();
@@ -59,6 +61,7 @@ export default function CircularTimer() {
     setLevelProgress,
     toggleFullScreen,
     reloadAudio,
+    hasOpenedNewWindow,
   } = useTimerControls(
     sortedBlindLevels,
     state,
@@ -73,6 +76,18 @@ export default function CircularTimer() {
 
   return (
     <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center relative timer-container overflow-hidden">
+      {/* Aviso quando nova janela foi aberta */}
+      {hasOpenedNewWindow && (
+        <div className={`absolute ${isMobile ? 'top-12' : 'top-16'} left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'w-11/12' : 'w-auto'}`}>
+          <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+              ⚠️ Timer aberto em nova janela - Cuidado para não iniciar dois timers
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {/* Título superior */}
       <div className={`absolute ${isMobile ? 'top-2' : 'top-8'} left-1/2 -translate-x-1/2`}>
         <h1 className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}>

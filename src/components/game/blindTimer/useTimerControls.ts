@@ -1,5 +1,4 @@
-
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { TimerState } from "./useTimerState";
 import { useAudioEffects } from "./hooks/useAudioEffects";
@@ -20,6 +19,9 @@ export function useTimerControls(
     soundEnabled: state.soundEnabled,
     currentLevelIndex: state.currentLevelIndex
   });
+
+  // Estado para controlar se uma nova janela foi aberta
+  const [hasOpenedNewWindow, setHasOpenedNewWindow] = useState(false);
 
   // Initialize audio effects
   const { audioRefs, playAudioSafely, unlockAudio } = useAudioEffects();
@@ -136,6 +138,7 @@ export function useTimerControls(
 
   const openInNewWindow = useCallback(() => {
     console.log("=== OPEN IN NEW WINDOW ===");
+    setHasOpenedNewWindow(true);
     windowOpenInNewWindow();
   }, [windowOpenInNewWindow]);
 
@@ -169,6 +172,7 @@ export function useTimerControls(
     openInNewWindow,
     setLevelProgress,
     toggleFullScreen,
-    reloadAudio
+    reloadAudio,
+    hasOpenedNewWindow
   };
 }
