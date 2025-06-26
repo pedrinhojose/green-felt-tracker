@@ -29,11 +29,11 @@ export function TimerSideInfo({
   const isMobile = useIsMobile();
 
   if (side === 'left') {
-    // Lado esquerdo - PRÓXIMO NÍVEL (mais próximo do círculo)
+    // Lado esquerdo - PRÓXIMO NÍVEL (bem próximo do círculo)
     return (
-      <div className={`absolute ${isMobile ? 'left-1 top-16' : 'left-8 top-1/2 -translate-y-1/2'} text-left`}>
+      <div className={`absolute ${isMobile ? 'left-1 top-14' : 'left-4 top-1/2 -translate-y-1/2'} text-left`}>
         {/* PRÓXIMO NÍVEL */}
-        <div className={isMobile ? 'mb-2' : 'mb-6'}>
+        <div className={isMobile ? 'mb-1' : 'mb-3'}>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>PRÓXIMO NÍVEL</h3>
           {nextLevel ? (
             <div className={`text-white ${isMobile ? 'text-sm' : 'text-3xl'} font-bold`}>
@@ -52,7 +52,7 @@ export function TimerSideInfo({
         
         {/* INTERVALO EM */}
         {nextBreak && levelsUntilBreak && (
-          <div className={isMobile ? 'mb-2' : 'mb-6'}>
+          <div className={isMobile ? 'mb-1' : 'mb-3'}>
             <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>INTERVALO EM</h3>
             <div className={`text-white ${isMobile ? 'text-xs' : 'text-xl'} font-bold`}>
               {nextBreak.duration} MIN ({levelsUntilBreak} BLINDS)
@@ -71,11 +71,11 @@ export function TimerSideInfo({
     );
   }
 
-  // Lado direito - NÍVEL ATUAL (mais próximo do círculo) - DESTAQUE PRINCIPAL
+  // Lado direito - NÍVEL ATUAL (bem próximo do círculo) - DESTAQUE PRINCIPAL
   return (
-    <div className={`absolute ${isMobile ? 'right-1 top-16' : 'right-8 top-1/2 -translate-y-1/2'} text-right`}>
+    <div className={`absolute ${isMobile ? 'right-1 top-14' : 'right-4 top-1/2 -translate-y-1/2'} text-right`}>
       {/* NÍVEL ATUAL - MAIOR DESTAQUE */}
-      <div className={isMobile ? 'mb-2' : 'mb-6'}>
+      <div className={isMobile ? 'mb-1' : 'mb-3'}>
         <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>NÍVEL ATUAL</h3>
         {currentLevel && (
           <div className={`text-white ${isMobile ? 'text-base' : 'text-4xl'} font-bold`}>
