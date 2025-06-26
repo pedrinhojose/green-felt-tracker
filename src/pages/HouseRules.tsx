@@ -39,9 +39,37 @@ export default function HouseRules() {
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       
-      // Split text into lines to fit page width
-      const splitText = doc.splitTextToSize(activeSeason.houseRules, 170);
-      doc.text(splitText, 20, 60);
+      let yPosition = 60;
+      const pageHeight = doc.internal.pageSize.height;
+      const marginBottom = 20;
+      
+      // Split text into paragraphs and format each one
+      const paragraphs = activeSeason.houseRules.split('\n').filter(p => p.trim() !== '');
+      
+      paragraphs.forEach((paragraph, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - marginBottom) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        // Split paragraph to fit page width with justified alignment
+        const splitText = doc.splitTextToSize(paragraph.trim(), 170);
+        
+        // Add each line of the paragraph
+        splitText.forEach((line: string, lineIndex: number) => {
+          if (yPosition > pageHeight - marginBottom) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.text(line, 20, yPosition, { align: 'justify' });
+          yPosition += 6; // Line spacing
+        });
+        
+        // Add space between paragraphs
+        yPosition += 4;
+      });
       
       // Save the PDF
       const fileName = `regras-da-casa-${activeSeason.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
