@@ -29,9 +29,9 @@ export function TimerSideInfo({
   const isMobile = useIsMobile();
 
   if (side === 'left') {
-    // Lado esquerdo - PRÓXIMO NÍVEL (colado no círculo)
+    // Lado esquerdo - PRÓXIMO NÍVEL (muito próximo do círculo)
     return (
-      <div className={`absolute ${isMobile ? 'left-0 top-12' : 'left-1 top-1/2 -translate-y-1/2'} text-left`}>
+      <div className={`absolute ${isMobile ? 'left-2 top-16' : 'left-[45%] top-1/2 -translate-y-1/2 -translate-x-full pr-4'} text-left`}>
         {/* PRÓXIMO NÍVEL */}
         <div className={isMobile ? 'mb-1' : 'mb-2'}>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>PRÓXIMO NÍVEL</h3>
@@ -71,9 +71,9 @@ export function TimerSideInfo({
     );
   }
 
-  // Lado direito - NÍVEL ATUAL (colado no círculo) - DESTAQUE PRINCIPAL
+  // Lado direito - NÍVEL ATUAL (muito próximo do círculo) - DESTAQUE PRINCIPAL
   return (
-    <div className={`absolute ${isMobile ? 'right-0 top-12' : 'right-1 top-1/2 -translate-y-1/2'} text-right`}>
+    <div className={`absolute ${isMobile ? 'right-2 top-16' : 'right-[45%] top-1/2 -translate-y-1/2 translate-x-full pl-4'} text-right`}>
       {/* NÍVEL ATUAL - MAIOR DESTAQUE */}
       <div className={isMobile ? 'mb-1' : 'mb-2'}>
         <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>NÍVEL ATUAL</h3>
