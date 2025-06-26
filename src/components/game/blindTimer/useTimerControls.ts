@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { TimerState } from "./useTimerState";
@@ -128,20 +127,36 @@ export function useTimerControls(
   }, [previousLevel, state.currentLevelIndex]);
 
   const handleLevelProgress = useCallback((percentage: number) => {
-    console.log("=== LEVEL PROGRESS HANDLER DEBUG ===");
-    console.log(`Level progress handler called with ${percentage}%`);
-    console.log("Current state:", {
+    console.log("=== TIMER CONTROLS - LEVEL PROGRESS HANDLER ===");
+    console.log(`✅ Handler chamado com sucesso! Percentage: ${percentage}%`);
+    console.log("Estado atual completo:", {
       currentLevelIndex: state.currentLevelIndex,
       elapsedTimeInLevel: state.elapsedTimeInLevel,
-      isRunning: state.isRunning
+      isRunning: state.isRunning,
+      totalElapsedTime: state.totalElapsedTime
     });
-    console.log("Current level:", blindLevels[state.currentLevelIndex]);
+    
+    // Validação básica
+    if (typeof percentage !== 'number' || isNaN(percentage)) {
+      console.error("❌ ERRO: Percentage inválida:", percentage);
+      return;
+    }
+    
+    if (percentage < 0 || percentage > 100) {
+      console.error("❌ ERRO: Percentage fora do range 0-100:", percentage);
+      return;
+    }
+    
+    console.log("✅ Percentage validada com sucesso");
+    console.log("Blind levels disponíveis:", blindLevels.length);
+    console.log("Blind level atual:", blindLevels[state.currentLevelIndex]);
     
     // Chamar a função de navegação
+    console.log("Chamando setLevelProgress...");
     setLevelProgress(percentage);
+    console.log("setLevelProgress chamado com sucesso");
     
-    console.log("Level progress handler completed");
-  }, [setLevelProgress, state.currentLevelIndex, state.elapsedTimeInLevel, state.isRunning, blindLevels]);
+  }, [setLevelProgress, state, blindLevels]);
 
   const handleReloadAudio = useCallback(() => {
     console.log("Reloading audio files");

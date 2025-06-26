@@ -1,4 +1,3 @@
-
 import { BlindLevel } from "@/lib/db/models";
 import { TimerState } from "../useTimerState";
 
@@ -59,53 +58,79 @@ export function useLevelNavigation(
   };
 
   const setLevelProgress = (percentage: number) => {
-    console.log("=== NAVEGAÇÃO - DEFINIR PROGRESSO - DETALHADO ===");
+    console.log("=== LEVEL NAVIGATION - SET LEVEL PROGRESS - DETALHADO ===");
+    console.log("🎯 Iniciando setLevelProgress");
     console.log("Percentage recebida:", percentage);
-    console.log("Estado atual:", {
-      currentLevelIndex: state.currentLevelIndex,
-      elapsedTimeInLevel: state.elapsedTimeInLevel,
-      isRunning: state.isRunning
-    });
+    console.log("Tipo da percentage:", typeof percentage);
+    
+    // Validações detalhadas
+    console.log("=== VALIDAÇÕES ===");
     
     if (!Array.isArray(blindLevels)) {
-      console.log("ERRO: Array de blinds inválido:", blindLevels);
+      console.error("❌ ERRO: blindLevels não é array:", blindLevels);
       return;
     }
+    console.log("✅ blindLevels é array válido");
+    
+    if (blindLevels.length === 0) {
+      console.error("❌ ERRO: blindLevels está vazio");
+      return;
+    }
+    console.log("✅ blindLevels tem", blindLevels.length, "elementos");
     
     if (state.currentLevelIndex < 0 || state.currentLevelIndex >= blindLevels.length) {
-      console.log("ERRO: Índice de nível inválido:", state.currentLevelIndex);
+      console.error("❌ ERRO: currentLevelIndex inválido:", state.currentLevelIndex);
       return;
     }
+    console.log("✅ currentLevelIndex válido:", state.currentLevelIndex);
     
     const currentLevel = blindLevels[state.currentLevelIndex];
-    console.log("Nível atual encontrado:", currentLevel);
-    
     if (!currentLevel) {
-      console.log("ERRO: Nível atual não encontrado");
+      console.error("❌ ERRO: currentLevel não encontrado no índice", state.currentLevelIndex);
       return;
     }
+    console.log("✅ currentLevel encontrado:", {
+      level: currentLevel.level,
+      duration: currentLevel.duration,
+      smallBlind: currentLevel.smallBlind,
+      bigBlind: currentLevel.bigBlind
+    });
     
     if (typeof currentLevel.duration !== 'number' || currentLevel.duration <= 0) {
-      console.log("ERRO: Duração do nível inválida:", currentLevel.duration);
+      console.error("❌ ERRO: duration inválida:", currentLevel.duration);
       return;
     }
+    console.log("✅ Duration válida:", currentLevel.duration, "minutos");
     
+    // Cálculos
+    console.log("=== CÁLCULOS ===");
     const totalLevelTimeInSeconds = currentLevel.duration * 60;
-    const newElapsedTime = Math.floor(totalLevelTimeInSeconds * (percentage / 100));
+    const newElapsedTime = Math.round(totalLevelTimeInSeconds * (percentage / 100));
     
-    console.log("Cálculos:");
-    console.log("- Duração do nível:", currentLevel.duration, "minutos");
-    console.log("- Tempo total em segundos:", totalLevelTimeInSeconds);
-    console.log("- Percentage:", percentage, "%");
-    console.log("- Novo tempo decorrido:", newElapsedTime);
+    console.log("Cálculos detalhados:");
+    console.log("- Duration em minutos:", currentLevel.duration);
+    console.log("- Total em segundos:", totalLevelTimeInSeconds);
+    console.log("- Percentage:", percentage + "%");
+    console.log("- Cálculo: ", totalLevelTimeInSeconds, "×", (percentage / 100), "=", newElapsedTime);
+    console.log("- Novo tempo elapsed:", newElapsedTime, "segundos");
     
-    // Validar se o novo tempo está dentro dos limites
+    // Validação final
     if (newElapsedTime < 0 || newElapsedTime > totalLevelTimeInSeconds) {
-      console.log("ERRO: Novo tempo fora dos limites:", newElapsedTime);
+      console.error("❌ ERRO: newElapsedTime fora dos limites:", {
+        newElapsedTime,
+        min: 0,
+        max: totalLevelTimeInSeconds
+      });
       return;
     }
+    console.log("✅ newElapsedTime válido");
     
-    console.log("Atualizando estado com novo tempo:", newElapsedTime);
+    // Atualizar estado
+    console.log("=== ATUALIZANDO ESTADO ===");
+    console.log("Estado antes da atualização:", {
+      elapsedTimeInLevel: state.elapsedTimeInLevel,
+      showAlert: state.showAlert
+    });
     
     setState(prev => {
       const newState = {
@@ -113,11 +138,17 @@ export function useLevelNavigation(
         elapsedTimeInLevel: newElapsedTime,
         showAlert: false,
       };
-      console.log("Estado sendo atualizado:", newState);
+      
+      console.log("✅ Estado atualizado com sucesso:");
+      console.log("Novo estado:", {
+        elapsedTimeInLevel: newState.elapsedTimeInLevel,
+        showAlert: newState.showAlert
+      });
+      
       return newState;
     });
     
-    console.log("setLevelProgress concluído com sucesso");
+    console.log("🎉 setLevelProgress concluído com SUCESSO!");
   };
 
   return {
