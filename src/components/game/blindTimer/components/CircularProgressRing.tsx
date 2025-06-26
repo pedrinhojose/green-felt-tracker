@@ -7,7 +7,7 @@ interface CircularProgressRingProps {
 }
 
 export function CircularProgressRing({ progressPercentage, onProgressClick }: CircularProgressRingProps) {
-  const radius = 120;
+  const radius = 150;  // Anel maior para combinar com o timer grande
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
   
@@ -36,46 +36,36 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
 
   return (
     <svg 
-      width="280" 
-      height="280" 
+      width="350" 
+      height="350" 
       className="cursor-pointer transform -rotate-90"
       onClick={handleClick}
     >
       {/* Background ring */}
       <circle
-        cx="140"
-        cy="140"
+        cx="175"
+        cy="175"
         r={radius}
         stroke="rgba(255, 255, 255, 0.1)"
-        strokeWidth="8"
+        strokeWidth="6"
         fill="transparent"
       />
       
       {/* Progress ring */}
       <circle
-        cx="140"
-        cy="140"
+        cx="175"
+        cy="175"
         r={radius}
         stroke={getStrokeColor()}
-        strokeWidth="8"
+        strokeWidth="6"
         fill="transparent"
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={strokeDashoffset}
         className="transition-all duration-500 ease-out"
         style={{
-          filter: 'drop-shadow(0 0 10px rgba(223, 198, 97, 0.5))',
+          filter: 'drop-shadow(0 0 15px rgba(223, 198, 97, 0.6))',
         }}
-      />
-      
-      {/* Inner glow effect */}
-      <circle
-        cx="140"
-        cy="140"
-        r={radius - 15}
-        stroke="rgba(223, 198, 97, 0.2)"
-        strokeWidth="2"
-        fill="transparent"
       />
     </svg>
   );

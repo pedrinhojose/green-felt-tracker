@@ -31,10 +31,10 @@ export function TimerSideInfo({
     return (
       <div className="absolute left-8 top-1/2 -translate-y-1/2 text-left">
         {/* PRÓXIMO NÍVEL */}
-        <div className="mb-8">
-          <h3 className="text-poker-gold text-2xl font-bold mb-4">PRÓXIMO NÍVEL</h3>
+        <div className="mb-16">
+          <h3 className="text-poker-gold text-xl font-normal mb-2">PRÓXIMO NÍVEL</h3>
           {nextLevel ? (
-            <div className="text-poker-gold text-6xl font-bold">
+            <div className="text-white text-4xl font-bold">
               {nextLevel.isBreak ? (
                 <span>INTERVALO</span>
               ) : (
@@ -42,7 +42,7 @@ export function TimerSideInfo({
               )}
             </div>
           ) : (
-            <div className="text-poker-gold text-6xl font-bold">
+            <div className="text-white text-4xl font-bold">
               FIM
             </div>
           )}
@@ -50,9 +50,9 @@ export function TimerSideInfo({
         
         {/* INTERVALO EM */}
         {nextBreak && levelsUntilBreak && (
-          <div className="mb-8">
-            <h3 className="text-poker-gold text-2xl font-bold mb-2">INTERVALO EM</h3>
-            <div className="text-poker-gold text-4xl font-bold">
+          <div className="mb-16">
+            <h3 className="text-poker-gold text-xl font-normal mb-2">INTERVALO EM</h3>
+            <div className="text-white text-3xl font-bold">
               {nextBreak.duration} MIN ({levelsUntilBreak} BLINDS)
             </div>
           </div>
@@ -60,8 +60,8 @@ export function TimerSideInfo({
         
         {/* TEMPO TOTAL DE JOGO */}
         <div>
-          <h3 className="text-white text-xl font-bold mb-2">TEMPO TOTAL DE JOGO:</h3>
-          <div className="text-white text-3xl font-bold">
+          <h3 className="text-poker-gold text-xl font-normal mb-2">TEMPO TOTAL DE JOGO:</h3>
+          <div className="text-white text-2xl font-bold">
             {formatTotalTime(totalElapsedTime)}
           </div>
         </div>
@@ -73,10 +73,10 @@ export function TimerSideInfo({
   return (
     <div className="absolute right-8 top-1/2 -translate-y-1/2 text-right">
       {/* NÍVEL ATUAL */}
-      <div className="mb-8">
-        <h3 className="text-poker-gold text-2xl font-bold mb-4">NÍVEL ATUAL</h3>
+      <div className="mb-16">
+        <h3 className="text-poker-gold text-xl font-normal mb-2">NÍVEL ATUAL</h3>
         {currentLevel && (
-          <div className="text-poker-gold text-6xl font-bold">
+          <div className="text-white text-4xl font-bold">
             {currentLevel.isBreak ? (
               <span>INTERVALO</span>
             ) : (
@@ -89,9 +89,9 @@ export function TimerSideInfo({
       {/* ANTE ATUAL */}
       {currentLevel && !currentLevel.isBreak && (
         <div>
-          <h3 className="text-poker-gold text-2xl font-bold mb-2">ANTE ATUAL</h3>
-          <div className="text-white text-4xl font-bold">
-            Ante{currentLevel.ante}
+          <h3 className="text-poker-gold text-xl font-normal mb-2">ANTE ATUAL</h3>
+          <div className="text-white text-2xl font-bold">
+            Ante {currentLevel.ante}
           </div>
         </div>
       )}

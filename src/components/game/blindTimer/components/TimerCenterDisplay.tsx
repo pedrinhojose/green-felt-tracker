@@ -29,13 +29,13 @@ export function TimerCenterDisplay({
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center">
-      {/* Label "tempo" */}
-      <div className="text-poker-gold text-2xl font-normal mb-4">tempo</div>
-      
-      {/* Timer principal - muito maior conforme a imagem */}
-      <div className={`text-8xl md:text-9xl font-bold ${getTimeColor()} transition-colors duration-300 font-mono`}>
+      {/* Timer principal - exatamente como na imagem */}
+      <div className={`text-[120px] font-bold ${getTimeColor()} transition-colors duration-300 font-mono leading-none`}>
         {formatTime(timeRemainingInLevel)}
       </div>
+      
+      {/* Label "tempo" abaixo do timer */}
+      <div className="text-poker-gold text-3xl font-normal mt-4">tempo</div>
     </div>
   );
 }
