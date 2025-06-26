@@ -1,4 +1,3 @@
-
 import { Game, Player } from '../../db/models';
 import { formatCurrency } from '../dateUtils';
 
@@ -15,8 +14,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
   // Table header
   const tableHeader = document.createElement('div');
   tableHeader.style.display = 'grid';
-  // Layout atualizado com 8 colunas incluindo Pontos
-  tableHeader.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 35px 40px 40px 40px 70px';
+  // Layout atualizado com 8 colunas incluindo Pontos - aumentando espaço da coluna Pontos
+  tableHeader.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 45px 40px 40px 40px 70px';
   tableHeader.style.gap = '2px';
   tableHeader.style.borderBottom = '1px solid rgba(255,255,255,0.15)';
   tableHeader.style.padding = '5px 0';
@@ -64,8 +63,8 @@ export const createPlayersTable = (game: Game, players: Player[]) => {
     // Player row
     const row = document.createElement('div');
     row.style.display = 'grid';
-    // Usando o mesmo template de grid do cabeçalho para manter consistência
-    row.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 35px 40px 40px 40px 70px';
+    // Usando o mesmo template de grid do cabeçalho para manter consistência - aumentando espaço da coluna Pontos
+    row.style.gridTemplateColumns = '18px 30px minmax(70px, 1fr) 45px 40px 40px 40px 70px';
     row.style.gap = '2px';
     row.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
     row.style.padding = '8px 0';
