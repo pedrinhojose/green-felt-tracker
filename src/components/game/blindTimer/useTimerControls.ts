@@ -1,9 +1,11 @@
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { TimerState } from "./useTimerState";
 import { useAudioEffects } from "./hooks/useAudioEffects";
 import { useSoundEffects } from "./hooks/useSoundEffects";
+import { useTimerCore } from "./hooks/useTimerCore";
+import { useWindowControl } from "./hooks/useWindowControl";
 
 export function useTimerControls(
   blindLevels: BlindLevel[],
@@ -31,6 +33,28 @@ export function useTimerControls(
     playAudioSafely
   );
 
+  // Initialize timer core
+  const { 
+    startTimer: coreStartTimer, 
+    pauseTimer: corePauseTimer, 
+    cleanupTimer 
+  } = useTimerCore(
+    blindLevels,
+    state,
+    setState,
+    playLevelCompleteSound
+  );
+
+  // Initialize window control
+  const { openInNewWindow: windowOpenInNewWindow, toggleFullScreen: windowToggleFullScreen } = useWindowControl();
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      cleanupTimer();
+    };
+  }, [cleanupTimer]);
+
   const startTimer = useCallback(() => {
     console.log("=== START TIMER ===");
     console.log("Tentando iniciar timer...");
@@ -38,18 +62,15 @@ export function useTimerControls(
     // Unlock audio when starting timer (important for mobile)
     unlockAudio();
     
-    setState(prev => {
-      console.log("Estado anterior:", prev);
-      const newState = { ...prev, isRunning: true };
-      console.log("Novo estado:", newState);
-      return newState;
-    });
-  }, [unlockAudio, setState]);
+    // Use the core timer start function
+    coreStartTimer();
+  }, [unlockAudio, coreStartTimer]);
 
   const pauseTimer = useCallback(() => {
     console.log("=== PAUSE TIMER ===");
-    setState(prev => ({ ...prev, isRunning: false }));
-  }, [setState]);
+    // Use the core timer pause function
+    corePauseTimer();
+  }, [corePauseTimer]);
 
   const nextLevel = useCallback(() => {
     console.log("=== NEXT LEVEL ===");
@@ -115,31 +136,13 @@ export function useTimerControls(
 
   const openInNewWindow = useCallback(() => {
     console.log("=== OPEN IN NEW WINDOW ===");
-    const url = window.location.href;
-    const newWindow = window.open(url, '_blank', 'width=1200,height=800');
-    
-    if (newWindow) {
-      console.log("Nova janela aberta com sucesso");
-    } else {
-      console.log("Falha ao abrir nova janela (popup bloqueado?)");
-    }
-  }, []);
+    windowOpenInNewWindow();
+  }, [windowOpenInNewWindow]);
 
   const toggleFullScreen = useCallback(() => {
     console.log("=== TOGGLE FULLSCREEN ===");
-    
-    if (!document.fullscreenElement) {
-      console.log("Entrando em tela cheia...");
-      document.documentElement.requestFullscreen().catch(err => {
-        console.error("Erro ao entrar em tela cheia:", err);
-      });
-    } else {
-      console.log("Saindo de tela cheia...");
-      document.exitFullscreen().catch(err => {
-        console.error("Erro ao sair de tela cheia:", err);
-      });
-    }
-  }, []);
+    windowToggleFullScreen();
+  }, [windowToggleFullScreen]);
 
   const reloadAudio = useCallback(() => {
     console.log("=== RELOAD AUDIO ===");
