@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,6 +13,7 @@ interface TimerSideInfoProps {
   levelsUntilBreak?: number | null;
   blindLevels?: BlindLevel[];
   timeRemainingInLevel?: number;
+  currentLevelIndex?: number;
 }
 
 export function TimerSideInfo({ 
@@ -23,10 +24,28 @@ export function TimerSideInfo({
   nextBreak,
   levelsUntilBreak,
   blindLevels = [],
-  timeRemainingInLevel = 0
+  timeRemainingInLevel = 0,
+  currentLevelIndex = 0
 }: TimerSideInfoProps) {
-  const { formatTotalTime } = useTimerUtils();
+  const { formatTotalTime, getMinutesUntilBreak } = useTimerUtils();
   const isMobile = useIsMobile();
+  
+  // Estados para atualização em tempo real
+  const [displayTotalTime, setDisplayTotalTime] = useState(formatTotalTime(totalElapsedTime));
+  const [minutesUntilBreak, setMinutesUntilBreak] = useState(0);
+
+  // Atualizar tempo total em tempo real
+  useEffect(() => {
+    setDisplayTotalTime(formatTotalTime(totalElapsedTime));
+  }, [totalElapsedTime, formatTotalTime]);
+
+  // Atualizar minutos até o intervalo em tempo real
+  useEffect(() => {
+    if (nextBreak && timeRemainingInLevel >= 0) {
+      const minutes = getMinutesUntilBreak(currentLevelIndex, timeRemainingInLevel, blindLevels);
+      setMinutesUntilBreak(minutes);
+    }
+  }, [nextBreak, timeRemainingInLevel, currentLevelIndex, blindLevels, getMinutesUntilBreak]);
 
   if (side === 'left') {
     // Lado esquerdo - PRÓXIMO NÍVEL (mais afastado do centro) - menos destaque
@@ -50,21 +69,21 @@ export function TimerSideInfo({
           )}
         </div>
         
-        {/* INTERVALO EM */}
+        {/* INTERVALO EM - mostra minutos até o próximo intervalo */}
         {nextBreak && levelsUntilBreak && (
           <div className={isMobile ? 'mb-1' : 'mb-2'}>
             <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>INTERVALO EM</h3>
             <div className={`text-white ${isMobile ? 'text-xs' : 'text-xl'} font-bold`}>
-              {nextBreak.duration} MIN ({levelsUntilBreak} BLINDS)
+              {minutesUntilBreak} MIN ({levelsUntilBreak} BLINDS)
             </div>
           </div>
         )}
         
-        {/* TEMPO TOTAL DE JOGO */}
+        {/* TEMPO TOTAL DE JOGO - atualizado em tempo real */}
         <div>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>TEMPO TOTAL:</h3>
           <div className={`text-white ${isMobile ? 'text-xs' : 'text-lg'} font-bold`}>
-            {formatTotalTime(totalElapsedTime)}
+            {displayTotalTime}
           </div>
         </div>
       </div>

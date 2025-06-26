@@ -24,7 +24,56 @@ export function useTimerUtils() {
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Calcula quanto tempo falta para o próximo intervalo
+  // Calcula quantos minutos faltam para o próximo intervalo - TEMPO REAL
+  const getMinutesUntilBreak = (
+    currentLevelIndex: number, 
+    timeRemainingInLevel: number,
+    blindLevels: BlindLevel[]
+  ): number => {
+    try {
+      // Validação de entrada
+      if (!Array.isArray(blindLevels) || blindLevels.length === 0) {
+        return 0;
+      }
+      
+      if (currentLevelIndex < 0 || currentLevelIndex >= blindLevels.length) {
+        return 0;
+      }
+      
+      // Encontrar o próximo intervalo
+      let nextBreakIndex = -1;
+      for (let i = currentLevelIndex + 1; i < blindLevels.length; i++) {
+        if (blindLevels[i] && blindLevels[i].isBreak) {
+          nextBreakIndex = i;
+          break;
+        }
+      }
+      
+      if (nextBreakIndex === -1) {
+        return 0; // Não há próximo intervalo
+      }
+      
+      let totalSecondsUntilBreak = 0;
+      
+      // Tempo restante no nível atual (já em segundos)
+      totalSecondsUntilBreak += timeRemainingInLevel;
+      
+      // Somar o tempo dos níveis intermediários (converter minutos para segundos)
+      for (let i = currentLevelIndex + 1; i < nextBreakIndex; i++) {
+        if (i < blindLevels.length && blindLevels[i] && typeof blindLevels[i].duration === 'number') {
+          totalSecondsUntilBreak += blindLevels[i].duration * 60;
+        }
+      }
+      
+      // Converter para minutos e arredondar para cima
+      return Math.ceil(totalSecondsUntilBreak / 60);
+    } catch (error) {
+      console.error("Erro ao calcular minutos até o intervalo:", error);
+      return 0;
+    }
+  };
+
+  // Calcula quanto tempo falta para o próximo intervalo (versão string - mantida para compatibilidade)
   const getTimeUntilBreak = (
     currentLevelIndex: number, 
     elapsedTimeInLevel: number,
@@ -80,5 +129,6 @@ export function useTimerUtils() {
     formatTotalTime,
     getCurrentTime,
     getTimeUntilBreak,
+    getMinutesUntilBreak,
   };
 }

@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
 import { useTimerState } from "./useTimerState";
@@ -102,6 +103,10 @@ export default function CircularTimer() {
         nextLevel={nextLevel}
         nextBreak={nextBreak}
         levelsUntilBreak={levelsUntilBreak}
+        totalElapsedTime={state.totalElapsedTime}
+        blindLevels={sortedBlindLevels}
+        timeRemainingInLevel={timeRemainingInLevel}
+        currentLevelIndex={state.currentLevelIndex}
       />
       
       <TimerSideInfo
@@ -110,6 +115,7 @@ export default function CircularTimer() {
         totalElapsedTime={state.totalElapsedTime}
         blindLevels={sortedBlindLevels}
         timeRemainingInLevel={timeRemainingInLevel}
+        currentLevelIndex={state.currentLevelIndex}
       />
 
       {/* Controles */}
@@ -121,7 +127,7 @@ export default function CircularTimer() {
         onNext={goToNextLevel}
         onPrevious={goToPreviousLevel}
         onToggleSound={toggleSound}
-        onOpenNewWindow={openInNewWindow}
+        onOpenNewWindow={openIn NewWindow}
         onToggleFullScreen={toggleFullScreen}
         onReloadAudio={reloadAudio}
       />
