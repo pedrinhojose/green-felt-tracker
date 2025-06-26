@@ -29,12 +29,12 @@ export function TimerSideInfo({
   const isMobile = useIsMobile();
 
   if (side === 'left') {
-    // Lado esquerdo - PRÓXIMO NÍVEL (próximo mas sem sobrepor) - 30% maior
+    // Lado esquerdo - PRÓXIMO NÍVEL (mais afastado do centro) - 30% maior
     return (
-      <div className={`absolute ${isMobile ? 'left-2 top-16' : 'left-[38%] top-1/2 -translate-y-1/2 -translate-x-full pr-6'} text-left`}>
+      <div className={`absolute ${isMobile ? 'left-2 top-16' : 'left-[32%] top-1/2 -translate-y-1/2 -translate-x-full pr-6'} text-left`}>
         {/* PRÓXIMO NÍVEL - 30% maior */}
         <div className={isMobile ? 'mb-1' : 'mb-2'}>
-          <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>PRÓXIMO NÍVEL</h3>
+          <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-base'} font-normal mb-1`}>PRÓXIMO NÍVEL</h3>
           {nextLevel ? (
             <div className={`text-white ${isMobile ? 'text-lg' : 'text-5xl'} font-bold`}>
               {nextLevel.isBreak ? (
@@ -71,12 +71,12 @@ export function TimerSideInfo({
     );
   }
 
-  // Lado direito - NÍVEL ATUAL (próximo mas sem sobrepor) - DESTAQUE PRINCIPAL - 50% maior
+  // Lado direito - NÍVEL ATUAL (mais afastado do centro) - DESTAQUE PRINCIPAL - 50% maior
   return (
-    <div className={`absolute ${isMobile ? 'right-2 top-16' : 'right-[38%] top-1/2 -translate-y-1/2 translate-x-full pl-6'} text-right`}>
+    <div className={`absolute ${isMobile ? 'right-2 top-16' : 'right-[32%] top-1/2 -translate-y-1/2 translate-x-full pl-6'} text-right`}>
       {/* NÍVEL ATUAL - MAIOR DESTAQUE - 50% maior */}
       <div className={isMobile ? 'mb-1' : 'mb-2'}>
-        <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>NÍVEL ATUAL</h3>
+        <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-lg'} font-normal mb-1`}>NÍVEL ATUAL</h3>
         {currentLevel && (
           <div className={`text-white ${isMobile ? 'text-xl' : 'text-6xl'} font-bold`}>
             {currentLevel.isBreak ? (
