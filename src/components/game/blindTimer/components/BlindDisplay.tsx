@@ -2,6 +2,7 @@
 import React from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatBlindPair, formatBlindValue } from "@/lib/utils/blindUtils";
 
 interface BlindDisplayProps {
   currentLevel: BlindLevel;
@@ -35,14 +36,16 @@ export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProp
     >
       {isMobile ? (
         <div className="flex flex-col space-y-1">
-          <div>SB: {currentLevel.smallBlind}</div>
-          <div>BB: {currentLevel.bigBlind}</div>
-          {currentLevel.ante > 0 && <div className="text-2xl">Ante: {currentLevel.ante}</div>}
+          <div>SB: {formatBlindValue(currentLevel.smallBlind)}</div>
+          <div>BB: {formatBlindValue(currentLevel.bigBlind)}</div>
+          {currentLevel.ante > 0 && (
+            <div className="text-2xl">Ante: {formatBlindValue(currentLevel.ante)}</div>
+          )}
         </div>
       ) : (
         <>
-          SB: {currentLevel.smallBlind} / BB: {currentLevel.bigBlind}
-          {currentLevel.ante > 0 && ` / Ante: ${currentLevel.ante}`}
+          SB: {formatBlindValue(currentLevel.smallBlind)} / BB: {formatBlindValue(currentLevel.bigBlind)}
+          {currentLevel.ante > 0 && ` / Ante: ${formatBlindValue(currentLevel.ante)}`}
         </>
       )}
     </div>

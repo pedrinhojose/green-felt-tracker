@@ -4,6 +4,7 @@ import { BlindLevel } from "@/lib/db/models";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
+import { formatBlindValue, parseBlindValue, isValidBlindValue } from "@/lib/utils/blindUtils";
 
 interface BlindLevelTableProps {
   blindLevels: BlindLevel[];
@@ -16,6 +17,18 @@ export function BlindLevelTable({
   updateLevel, 
   removeLevel 
 }: BlindLevelTableProps) {
+  
+  const handleBlindValueChange = (
+    index: number, 
+    field: 'smallBlind' | 'bigBlind' | 'ante', 
+    inputValue: string
+  ) => {
+    const numericValue = parseBlindValue(inputValue);
+    if (numericValue !== null) {
+      updateLevel(index, field, numericValue);
+    }
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -47,28 +60,28 @@ export function BlindLevelTable({
                 <>
                   <td className="py-3 pl-2">
                     <Input
-                      type="number"
-                      min="0"
-                      value={level.smallBlind}
-                      onChange={(e) => updateLevel(index, 'smallBlind', Number(e.target.value))}
+                      type="text"
+                      value={formatBlindValue(level.smallBlind)}
+                      onChange={(e) => handleBlindValueChange(index, 'smallBlind', e.target.value)}
+                      placeholder="ex: 1K ou 1000"
                       className="h-8 w-full"
                     />
                   </td>
                   <td className="py-3 pl-2">
                     <Input
-                      type="number"
-                      min="0"
-                      value={level.bigBlind}
-                      onChange={(e) => updateLevel(index, 'bigBlind', Number(e.target.value))}
+                      type="text"
+                      value={formatBlindValue(level.bigBlind)}
+                      onChange={(e) => handleBlindValueChange(index, 'bigBlind', e.target.value)}
+                      placeholder="ex: 2K ou 2000"
                       className="h-8 w-full"
                     />
                   </td>
                   <td className="py-3 pl-2">
                     <Input
-                      type="number"
-                      min="0"
-                      value={level.ante}
-                      onChange={(e) => updateLevel(index, 'ante', Number(e.target.value))}
+                      type="text"
+                      value={formatBlindValue(level.ante)}
+                      onChange={(e) => handleBlindValueChange(index, 'ante', e.target.value)}
+                      placeholder="ex: 500 ou 0.5K"
                       className="h-8 w-full"
                     />
                   </td>

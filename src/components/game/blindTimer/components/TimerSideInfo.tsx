@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatBlindPair, formatBlindValue } from "@/lib/utils/blindUtils";
 
 interface TimerSideInfoProps {
   side: 'left' | 'right';
@@ -69,7 +70,7 @@ export function TimerSideInfo({
               {nextLevel.isBreak ? (
                 <span>INTERVALO</span>
               ) : (
-                <span>{nextLevel.smallBlind}/{nextLevel.bigBlind}</span>
+                <span>{formatBlindPair(nextLevel.smallBlind, nextLevel.bigBlind)}</span>
               )}
             </div>
           ) : (
@@ -113,7 +114,7 @@ export function TimerSideInfo({
             {currentLevel.isBreak ? (
               <span>INTERVALO</span>
             ) : (
-              <span>{currentLevel.smallBlind}/{currentLevel.bigBlind}</span>
+              <span>{formatBlindPair(currentLevel.smallBlind, currentLevel.bigBlind)}</span>
             )}
           </div>
         )}
@@ -124,7 +125,7 @@ export function TimerSideInfo({
         <div className={isMobile ? 'mb-1' : 'mb-2'}>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>ANTE ATUAL</h3>
           <div className={`text-white ${isMobile ? 'text-xs' : 'text-xl'} font-bold`}>
-            Ante {currentLevel.ante}
+            Ante {formatBlindValue(currentLevel.ante)}
           </div>
         </div>
       )}

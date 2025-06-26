@@ -4,6 +4,7 @@ import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatBlindPair } from "@/lib/utils/blindUtils";
 
 interface StatusInfoProps {
   nextLevel: BlindLevel | undefined;
@@ -98,7 +99,7 @@ export function StatusInfo({
           <div className="text-xs text-gray-400">Próximo Nível</div>
           {nextLevel ? (
             <div className={cn("text-2xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]")}>
-              {nextLevel.isBreak ? 'INTERVALO' : `${nextLevel.smallBlind} / ${nextLevel.bigBlind}`}
+              {nextLevel.isBreak ? 'INTERVALO' : formatBlindPair(nextLevel.smallBlind, nextLevel.bigBlind)}
             </div>
           ) : (
             <div className={cn("text-2xl text-poker-gold font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]")}>Último Nível</div>
