@@ -10,6 +10,7 @@ import { SeasonBasicInfo } from "@/components/season/SeasonBasicInfo";
 import { ScoreSchemaConfig } from "@/components/season/ScoreSchemaConfig";
 import { PrizeSchemaConfig } from "@/components/season/PrizeSchemaConfig";
 import { FinancialParamsConfig } from "@/components/season/FinancialParamsConfig";
+import { HouseRulesConfig } from "@/components/season/HouseRulesConfig";
 import { JackpotCard } from "@/components/season/JackpotCard";
 import { useSeasonForm } from "@/hooks/useSeasonForm";
 import { 
@@ -101,11 +102,12 @@ export default function SeasonConfig() {
         <SeasonBasicInfo register={register} errors={errors} />
         
         <Tabs defaultValue="scores">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="scores">Pontuação</TabsTrigger>
             <TabsTrigger value="weekly">Premiação Semanal</TabsTrigger>
             <TabsTrigger value="season">Premiação Final</TabsTrigger>
             <TabsTrigger value="blinds">Estrutura de Blinds</TabsTrigger>
+            <TabsTrigger value="rules">Regras da Casa</TabsTrigger>
           </TabsList>
           
           <TabsContent value="scores">
@@ -133,6 +135,10 @@ export default function SeasonConfig() {
           
           <TabsContent value="blinds">
             <BlindLevelConfig blindLevels={blindLevels} onChange={setBlindLevels} />
+          </TabsContent>
+          
+          <TabsContent value="rules">
+            <HouseRulesConfig register={register} errors={errors} />
           </TabsContent>
         </Tabs>
         

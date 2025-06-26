@@ -50,6 +50,7 @@ export class SeasonRepository extends SupabaseCore {
           financialParams: season.financial_params as unknown as FinancialParams,
           blindStructure: season.blind_structure as unknown as BlindLevel[],
           jackpot: Number(season.jackpot),
+          houseRules: season.house_rules || '',
           createdAt: new Date(season.created_at)
         })) as Season[];
       } catch (error) {
@@ -98,6 +99,7 @@ export class SeasonRepository extends SupabaseCore {
           financialParams: data.financial_params as unknown as FinancialParams,
           blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
+          houseRules: data.house_rules || '',
           createdAt: new Date(data.created_at)
         } as Season;
       } catch (error) {
@@ -146,6 +148,7 @@ export class SeasonRepository extends SupabaseCore {
           financialParams: data.financial_params as unknown as FinancialParams,
           blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
+          houseRules: data.house_rules || '',
           createdAt: new Date(data.created_at)
         } as Season;
       } catch (error) {
@@ -177,6 +180,7 @@ export class SeasonRepository extends SupabaseCore {
           financial_params: season.financialParams as unknown as Json,
           blind_structure: season.blindStructure as unknown as Json,
           jackpot: season.jackpot,
+          house_rules: season.houseRules || '',
           created_at: season.createdAt.toISOString(),
           user_id: userId,
           organization_id: orgId

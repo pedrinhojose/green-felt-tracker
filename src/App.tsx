@@ -19,6 +19,7 @@ import GamesList from '@/pages/GamesList';
 import GameManagement from '@/pages/GameManagement';
 import TimerPage from '@/pages/TimerPage';
 import RankingPage from '@/pages/RankingPage';
+import HouseRules from '@/pages/HouseRules';
 import SeasonsList from '@/pages/SeasonsList';
 import SeasonDetails from '@/pages/SeasonDetails';
 import SeasonReport from '@/pages/SeasonReport';
@@ -85,6 +86,7 @@ function App() {
                     <Route path="/games" element={<GamesList />} />
                     <Route path="/game/:gameId" element={<GameManagement />} />
                     <Route path="/ranking" element={<RankingPage />} />
+                    <Route path="/house-rules" element={<HouseRules />} />
                     <Route path="/seasons" element={<SeasonsList />} />
                     <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
                     <Route path="/seasons/:seasonId/report" element={<SeasonReport />} />

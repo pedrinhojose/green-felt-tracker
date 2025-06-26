@@ -1,4 +1,3 @@
-
 export interface Player {
   id: string;
   name: string;
@@ -21,6 +20,7 @@ export interface Season {
   financialParams: FinancialParams;
   blindStructure: BlindLevel[];
   jackpot: number;
+  houseRules: string;
   createdAt: Date;
 }
 

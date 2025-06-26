@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
   { name: 'Jogadores', path: '/players' },
+  { name: 'Regras da Casa', path: '/house-rules' },
   { name: 'Usuários', path: '/users', requiredRole: 'admin' },
 ];
 

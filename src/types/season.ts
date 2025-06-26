@@ -19,6 +19,7 @@ export interface SeasonFormValues {
   rebuy: number;
   addon: number;
   jackpotContribution: number;
+  houseRules: string;
 }
 
 export interface SeasonFormProps {

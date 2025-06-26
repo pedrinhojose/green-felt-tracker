@@ -69,6 +69,7 @@ export function useSeasonFormSubmitter(
         weeklyPrizeSchema: weeklyPrizeEntries,
         seasonPrizeSchema: seasonPrizeEntries,
         blindStructure: validatedBlindLevels,
+        houseRules: data.houseRules || '',
         financialParams: {
           buyIn: Number(data.buyIn),
           rebuy: Number(data.rebuy),

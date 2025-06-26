@@ -260,6 +260,7 @@ export type Database = {
           end_date: string | null
           financial_params: Json
           games_per_week: number
+          house_rules: string | null
           id: string
           is_active: boolean
           jackpot: number
@@ -277,6 +278,7 @@ export type Database = {
           end_date?: string | null
           financial_params?: Json
           games_per_week?: number
+          house_rules?: string | null
           id: string
           is_active?: boolean
           jackpot?: number
@@ -294,6 +296,7 @@ export type Database = {
           end_date?: string | null
           financial_params?: Json
           games_per_week?: number
+          house_rules?: string | null
           id?: string
           is_active?: boolean
           jackpot?: number
