@@ -31,14 +31,25 @@ export function TimerCenterDisplay({
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center">
+    <div 
+      className="absolute inset-0 flex flex-col items-center justify-center"
+      style={{ pointerEvents: 'none' }}
+    >
       {/* Timer principal - responsivo */}
-      <div className={`${isMobile ? 'text-[60px]' : 'text-[120px]'} font-bold ${getTimeColor()} transition-colors duration-300 font-mono leading-none`}>
+      <div 
+        className={`${isMobile ? 'text-[60px]' : 'text-[120px]'} font-bold ${getTimeColor()} transition-colors duration-300 font-mono leading-none`}
+        style={{ pointerEvents: 'auto' }}
+      >
         {formatTime(timeRemainingInLevel)}
       </div>
       
       {/* Label "tempo" abaixo do timer - responsivo */}
-      <div className={`text-poker-gold ${isMobile ? 'text-lg' : 'text-3xl'} font-normal ${isMobile ? 'mt-1' : 'mt-4'}`}>tempo</div>
+      <div 
+        className={`text-poker-gold ${isMobile ? 'text-lg' : 'text-3xl'} font-normal ${isMobile ? 'mt-1' : 'mt-4'}`}
+        style={{ pointerEvents: 'auto' }}
+      >
+        tempo
+      </div>
     </div>
   );
 }
