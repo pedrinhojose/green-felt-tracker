@@ -13,7 +13,7 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
   const radius = isMobile ? 120 : 180;
   const svgSize = isMobile ? 280 : 400;
   const center = svgSize / 2;
-  const strokeWidth = isMobile ? 4 : 6;
+  const strokeWidth = isMobile ? 8 : 12; // Dobrado: era 4/6, agora 8/12
   
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
@@ -40,7 +40,7 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
       
       console.log("Coordenadas do clique:", { clickX, clickY });
       
-      // Verificar se está próximo do anel (área clicável mais permissiva)
+      // Verificar se está próximo do anel (área clicável ajustada para nova largura)
       const distanceFromCenter = Math.sqrt(clickX * clickX + clickY * clickY);
       const innerRadius = radius - strokeWidth * 2;
       const outerRadius = radius + strokeWidth * 2;
