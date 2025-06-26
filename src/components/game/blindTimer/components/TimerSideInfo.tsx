@@ -32,11 +32,11 @@ export function TimerSideInfo({
     // Lado esquerdo - PRÓXIMO NÍVEL (mais afastado do centro) - menos destaque
     return (
       <div className={`absolute ${isMobile ? 'left-2 top-16' : 'left-[32%] top-1/2 -translate-y-1/2 -translate-x-full pr-6'} text-left`}>
-        {/* PRÓXIMO NÍVEL - menos destaque para não confundir */}
+        {/* PRÓXIMO NÍVEL */}
         <div className={isMobile ? 'mb-1' : 'mb-2'}>
-          <h3 className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>PRÓXIMO NÍVEL</h3>
+          <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>PRÓXIMO NÍVEL</h3>
           {nextLevel ? (
-            <div className={`text-gray-300 ${isMobile ? 'text-lg' : 'text-4xl'} font-semibold`}>
+            <div className={`text-white ${isMobile ? 'text-lg' : 'text-4xl'} font-semibold`}>
               {nextLevel.isBreak ? (
                 <span>INTERVALO</span>
               ) : (
@@ -44,7 +44,7 @@ export function TimerSideInfo({
               )}
             </div>
           ) : (
-            <div className={`text-gray-300 ${isMobile ? 'text-lg' : 'text-4xl'} font-semibold`}>
+            <div className={`text-white ${isMobile ? 'text-lg' : 'text-4xl'} font-semibold`}>
               FIM
             </div>
           )}
@@ -71,16 +71,16 @@ export function TimerSideInfo({
     );
   }
 
-  // Lado direito - NÍVEL ATUAL (mais afastado do centro) - DESTAQUE MÁXIMO
+  // Lado direito - NÍVEL ATUAL (mais afastado do centro) - DESTAQUE
   return (
     <div className={`absolute ${isMobile ? 'right-2 top-16' : 'right-[32%] top-1/2 -translate-y-1/2 translate-x-full pl-6'} text-right`}>
-      {/* NÍVEL ATUAL - DESTAQUE MÁXIMO com fundo e sombra */}
-      <div className={`${isMobile ? 'mb-1' : 'mb-4'} ${!isMobile ? 'bg-poker-gold/10 border border-poker-gold/30 rounded-lg p-4' : ''}`}>
-        <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-2xl'} font-bold mb-2 ${!isMobile ? 'drop-shadow-lg' : ''}`}>
+      {/* NÍVEL ATUAL - DESTAQUE */}
+      <div className={isMobile ? 'mb-1' : 'mb-2'}>
+        <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-lg'} font-bold mb-1`}>
           NÍVEL ATUAL
         </h3>
         {currentLevel && (
-          <div className={`text-white ${isMobile ? 'text-xl' : 'text-8xl'} font-black ${!isMobile ? 'drop-shadow-2xl animate-pulse' : ''}`}>
+          <div className={`text-white ${isMobile ? 'text-xl' : 'text-6xl'} font-bold`}>
             {currentLevel.isBreak ? (
               <span>INTERVALO</span>
             ) : (
@@ -92,7 +92,7 @@ export function TimerSideInfo({
       
       {/* ANTE ATUAL */}
       {currentLevel && !currentLevel.isBreak && (
-        <div className={isMobile ? '' : 'mt-4'}>
+        <div>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>ANTE ATUAL</h3>
           <div className={`text-white ${isMobile ? 'text-xs' : 'text-xl'} font-bold`}>
             Ante {currentLevel.ante}
