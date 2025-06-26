@@ -59,31 +59,65 @@ export function useLevelNavigation(
   };
 
   const setLevelProgress = (percentage: number) => {
-    console.log("=== NAVEGAÇÃO - DEFINIR PROGRESSO ===");
-    console.log("Definindo progresso para:", percentage + "%");
+    console.log("=== NAVEGAÇÃO - DEFINIR PROGRESSO - DETALHADO ===");
+    console.log("Percentage recebida:", percentage);
+    console.log("Estado atual:", {
+      currentLevelIndex: state.currentLevelIndex,
+      elapsedTimeInLevel: state.elapsedTimeInLevel,
+      isRunning: state.isRunning
+    });
     
     if (!Array.isArray(blindLevels)) {
-      console.log("Array de blinds inválido");
+      console.log("ERRO: Array de blinds inválido:", blindLevels);
+      return;
+    }
+    
+    if (state.currentLevelIndex < 0 || state.currentLevelIndex >= blindLevels.length) {
+      console.log("ERRO: Índice de nível inválido:", state.currentLevelIndex);
       return;
     }
     
     const currentLevel = blindLevels[state.currentLevelIndex];
-    if (currentLevel && typeof currentLevel.duration === 'number') {
-      const totalLevelTimeInSeconds = currentLevel.duration * 60;
-      const newElapsedTime = Math.floor(totalLevelTimeInSeconds * (percentage / 100));
-      
-      console.log("Duração do nível atual:", currentLevel.duration, "minutos");
-      console.log("Tempo total em segundos:", totalLevelTimeInSeconds);
-      console.log("Novo tempo decorrido:", newElapsedTime);
-      
-      setState(prev => ({
+    console.log("Nível atual encontrado:", currentLevel);
+    
+    if (!currentLevel) {
+      console.log("ERRO: Nível atual não encontrado");
+      return;
+    }
+    
+    if (typeof currentLevel.duration !== 'number' || currentLevel.duration <= 0) {
+      console.log("ERRO: Duração do nível inválida:", currentLevel.duration);
+      return;
+    }
+    
+    const totalLevelTimeInSeconds = currentLevel.duration * 60;
+    const newElapsedTime = Math.floor(totalLevelTimeInSeconds * (percentage / 100));
+    
+    console.log("Cálculos:");
+    console.log("- Duração do nível:", currentLevel.duration, "minutos");
+    console.log("- Tempo total em segundos:", totalLevelTimeInSeconds);
+    console.log("- Percentage:", percentage, "%");
+    console.log("- Novo tempo decorrido:", newElapsedTime);
+    
+    // Validar se o novo tempo está dentro dos limites
+    if (newElapsedTime < 0 || newElapsedTime > totalLevelTimeInSeconds) {
+      console.log("ERRO: Novo tempo fora dos limites:", newElapsedTime);
+      return;
+    }
+    
+    console.log("Atualizando estado com novo tempo:", newElapsedTime);
+    
+    setState(prev => {
+      const newState = {
         ...prev,
         elapsedTimeInLevel: newElapsedTime,
         showAlert: false,
-      }));
-    } else {
-      console.log("Nível atual ou duração inválidos");
-    }
+      };
+      console.log("Estado sendo atualizado:", newState);
+      return newState;
+    });
+    
+    console.log("setLevelProgress concluído com sucesso");
   };
 
   return {

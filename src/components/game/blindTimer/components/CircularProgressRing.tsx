@@ -27,11 +27,27 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
   };
 
   const handleClick = (e: React.MouseEvent<SVGElement>) => {
+    console.log("=== CIRCULAR PROGRESS RING CLICK DEBUG ===");
+    console.log("Click event triggered on circular progress ring");
+    
+    // Parar propagação do evento
+    e.preventDefault();
+    e.stopPropagation();
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const x = e.clientX - centerX;
     const y = e.clientY - centerY;
+    
+    console.log("Click position:", { x, y });
+    console.log("Rect info:", { 
+      left: rect.left, 
+      top: rect.top, 
+      width: rect.width, 
+      height: rect.height 
+    });
+    console.log("Center:", { centerX, centerY });
     
     // Calcular o ângulo do clique
     let angle = Math.atan2(y, x) * 180 / Math.PI;
@@ -39,6 +55,11 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
     if (angle < 0) angle += 360;
     
     const percentage = (angle / 360) * 100;
+    
+    console.log("Calculated angle:", angle);
+    console.log("Calculated percentage:", percentage);
+    console.log("Calling onProgressClick with:", percentage);
+    
     onProgressClick(percentage);
   };
 
@@ -48,6 +69,7 @@ export function CircularProgressRing({ progressPercentage, onProgressClick }: Ci
       height={svgSize} 
       className="cursor-pointer transform -rotate-90"
       onClick={handleClick}
+      style={{ zIndex: 10 }}
     >
       {/* Background ring */}
       <circle

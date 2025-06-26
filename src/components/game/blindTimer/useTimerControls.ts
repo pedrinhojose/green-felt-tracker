@@ -128,9 +128,20 @@ export function useTimerControls(
   }, [previousLevel, state.currentLevelIndex]);
 
   const handleLevelProgress = useCallback((percentage: number) => {
-    console.log(`Level progress adjusted to ${percentage}%`);
+    console.log("=== LEVEL PROGRESS HANDLER DEBUG ===");
+    console.log(`Level progress handler called with ${percentage}%`);
+    console.log("Current state:", {
+      currentLevelIndex: state.currentLevelIndex,
+      elapsedTimeInLevel: state.elapsedTimeInLevel,
+      isRunning: state.isRunning
+    });
+    console.log("Current level:", blindLevels[state.currentLevelIndex]);
+    
+    // Chamar a função de navegação
     setLevelProgress(percentage);
-  }, [setLevelProgress]);
+    
+    console.log("Level progress handler completed");
+  }, [setLevelProgress, state.currentLevelIndex, state.elapsedTimeInLevel, state.isRunning, blindLevels]);
 
   const handleReloadAudio = useCallback(() => {
     console.log("Reloading audio files");
