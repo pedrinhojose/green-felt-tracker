@@ -105,6 +105,90 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       }
     });
     
+    // Atualizar yPosition após a tabela
+    yPosition = (pdf as any).lastAutoTable.finalY + 20;
+    
+    // Seção VENCEDORES
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(14);
+    pdf.setTextColor(155, 135, 245); // Cor roxa como na imagem
+    pdf.text('VENCEDORES', 20, yPosition);
+    yPosition += 15;
+    
+    // Encontrar os 3 primeiros colocados
+    const winners = sortedPlayers.filter(p => p.position && p.position <= 3);
+    
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+    
+    winners.forEach((gamePlayer, index) => {
+      const player = players.find(p => p.id === gamePlayer.playerId);
+      const playerName = player?.name || 'Desconhecido';
+      const position = gamePlayer.position;
+      const prize = gamePlayer.prize;
+      
+      // Cor do texto baseada na posição
+      if (position === 1) {
+        pdf.setTextColor(255, 215, 0); // Dourado
+      } else if (position === 2) {
+        pdf.setTextColor(192, 192, 192); // Prata
+      } else if (position === 3) {
+        pdf.setTextColor(205, 127, 50); // Bronze
+      }
+      
+      pdf.text(`${position}° ${playerName}`, 20, yPosition);
+      pdf.text(`R$ ${prize.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
+      yPosition += 12;
+    });
+    
+    yPosition += 10;
+    
+    // Dados da janta e prêmio total
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(128, 128, 128); // Cor cinza
+    
+    const dinnerParticipants = game.players.filter(p => p.joinedDinner);
+    const totalDinnerCost = game.dinnerCost || 0;
+    const dinnerPerPerson = dinnerParticipants.length > 0 ? totalDinnerCost / dinnerParticipants.length : 0;
+    
+    pdf.text('Total Janta:', 20, yPosition);
+    pdf.text(`R$ ${totalDinnerCost.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
+    yPosition += 12;
+    
+    pdf.text('Janta por Pessoa:', 20, yPosition);
+    pdf.text(`R$ ${dinnerPerPerson.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
+    yPosition += 12;
+    
+    pdf.setTextColor(155, 135, 245); // Cor roxa para prêmio total
+    pdf.text('Prêmio Total:', 20, yPosition);
+    pdf.text(`R$ ${game.totalPrizePool.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
+    yPosition += 20;
+    
+    // Linha divisória
+    pdf.setDrawColor(128, 128, 128);
+    pdf.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 15;
+    
+    // Dados do Jackpot
+    if (season) {
+      const playerCount = game.players.filter(p => p.buyIn).length;
+      const jackpotContribution = playerCount * (season.financialParams.jackpotContribution || 0);
+      const currentJackpot = season.jackpot || 0;
+      
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(128, 128, 128);
+      
+      pdf.text('Retirado ao Jackpot:', 20, yPosition);
+      pdf.text(`R$ ${jackpotContribution.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
+      yPosition += 12;
+      
+      pdf.setTextColor(255, 215, 0); // Dourado para jackpot acumulado
+      pdf.text('Jackpot Acumulado:', 20, yPosition);
+      pdf.text(`R$ ${currentJackpot.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
+    }
+    
     // Convert blob to URL for opening in new tab
     const pdfBlob = pdf.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
