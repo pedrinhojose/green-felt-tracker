@@ -45,11 +45,13 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     // Cabeçalho do PDF
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0); // Preto
     pdf.text(`RESULTADO DA PARTIDA #${game.number.toString().padStart(3, '0')}`, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
     
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
+    pdf.setTextColor(80, 80, 80); // Cinza escuro
     pdf.text(`Temporada: ${seasonName}`, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
     pdf.text(`Data: ${new Date(game.date).toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
@@ -81,8 +83,18 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       head: [['Pos.', 'Jogador', 'Pontos', 'Rebuys', 'Add-ons', 'Janta', 'Saldo']], // Cabeçalhos atualizados
       body: tableData,
       startY: yPosition,
-      styles: { fontSize: 8 }, // Fonte menor para acomodar mais colunas
-      headStyles: { fillColor: [155, 135, 245] },
+      styles: { 
+        fontSize: 8,
+        textColor: [0, 0, 0] // Texto preto
+      },
+      headStyles: { 
+        fillColor: [220, 220, 220], // Cinza claro para cabeçalho
+        textColor: [0, 0, 0], // Texto preto
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245] // Cinza muito claro para linhas alternadas
+      },
       columnStyles: {
         0: { cellWidth: 15, halign: 'center' }, // Pos.
         1: { cellWidth: 35 }, // Jogador
@@ -92,14 +104,12 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
         5: { cellWidth: 20, halign: 'center' }, // Janta
         6: { cellWidth: 25, halign: 'right' }, // Saldo
       },
-      // Colorir saldo baseado no valor (positivo = verde, negativo = vermelho)
+      // Remover coloração especial do saldo - manter apenas preto
       didParseCell: (data) => {
         if (data.column.index === 6 && data.section === 'body') {
           const balance = parseFloat(data.cell.text[0].replace('R$ ', '').replace(',', '.'));
           if (balance >= 0) {
-            data.cell.styles.textColor = [0, 128, 0]; // Verde
-          } else {
-            data.cell.styles.textColor = [255, 0, 0]; // Vermelho
+            data.cell.styles.fontStyle = 'bold'; // Negrito para valores positivos
           }
         }
       }
@@ -111,7 +121,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     // Seção VENCEDORES
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
-    pdf.setTextColor(155, 135, 245); // Cor roxa como na imagem
+    pdf.setTextColor(0, 0, 0); // Preto
     pdf.text('VENCEDORES', 20, yPosition);
     yPosition += 15;
     
@@ -120,6 +130,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(11);
+    pdf.setTextColor(0, 0, 0); // Texto preto
     
     winners.forEach((gamePlayer, index) => {
       const player = players.find(p => p.id === gamePlayer.playerId);
@@ -127,13 +138,11 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       const position = gamePlayer.position;
       const prize = gamePlayer.prize;
       
-      // Cor do texto baseada na posição
+      // Usar negrito para destacar posições sem cores
       if (position === 1) {
-        pdf.setTextColor(255, 215, 0); // Dourado
-      } else if (position === 2) {
-        pdf.setTextColor(192, 192, 192); // Prata
-      } else if (position === 3) {
-        pdf.setTextColor(205, 127, 50); // Bronze
+        pdf.setFont("helvetica", "bold");
+      } else {
+        pdf.setFont("helvetica", "normal");
       }
       
       pdf.text(`${position}° ${playerName}`, 20, yPosition);
@@ -146,7 +155,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     // Dados da janta e prêmio total
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
-    pdf.setTextColor(128, 128, 128); // Cor cinza
+    pdf.setTextColor(80, 80, 80); // Cinza escuro
     
     const dinnerParticipants = game.players.filter(p => p.joinedDinner);
     const totalDinnerCost = game.dinnerCost || 0;
@@ -160,7 +169,9 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     pdf.text(`R$ ${dinnerPerPerson.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
     yPosition += 12;
     
-    pdf.setTextColor(155, 135, 245); // Cor roxa para prêmio total
+    // Prêmio total em negrito
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(0, 0, 0); // Preto
     pdf.text('Prêmio Total:', 20, yPosition);
     pdf.text(`R$ ${game.totalPrizePool.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
     yPosition += 20;
@@ -178,13 +189,15 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);
-      pdf.setTextColor(128, 128, 128);
+      pdf.setTextColor(80, 80, 80); // Cinza escuro
       
       pdf.text('Retirado ao Jackpot:', 20, yPosition);
       pdf.text(`R$ ${jackpotContribution.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
       yPosition += 12;
       
-      pdf.setTextColor(255, 215, 0); // Dourado para jackpot acumulado
+      // Jackpot acumulado em negrito
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0); // Preto
       pdf.text('Jackpot Acumulado:', 20, yPosition);
       pdf.text(`R$ ${currentJackpot.toFixed(2).replace('.', ',')}`, pageWidth - 40, yPosition, { align: 'right' });
     }
