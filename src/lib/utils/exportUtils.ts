@@ -55,26 +55,54 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     pdf.text(`Data: ${new Date(game.date).toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 20;
     
-    // Dados dos jogadores para a tabela - incluindo coluna de pontos
-    const tableData = game.players.map(gamePlayer => {
+    // Ordenar jogadores por posição (igual à imagem)
+    const sortedPlayers = [...game.players]
+      .sort((a, b) => {
+        if (a.position === null) return 1;
+        if (b.position === null) return -1;
+        return a.position - b.position;
+      });
+
+    // Dados dos jogadores para a tabela - estrutura igual à imagem
+    const tableData = sortedPlayers.map(gamePlayer => {
       const player = players.find(p => p.id === gamePlayer.playerId);
       return [
-        player?.name || 'Desconhecido',
-        gamePlayer.position?.toString() || '-',
-        gamePlayer.points.toString(), // Nova coluna de pontos
-        gamePlayer.buyIn ? 'R$ 50,00' : '-',
-        gamePlayer.rebuys.toString(),
-        gamePlayer.addons ? 'R$ 25,00' : '-',
-        `R$ ${(gamePlayer.prize || 0).toFixed(2).replace('.', ',')}`
+        gamePlayer.position?.toString() || '-', // Posição
+        player?.name || 'Desconhecido', // Jogador
+        gamePlayer.points.toString(), // Pontos (nova coluna)
+        gamePlayer.rebuys.toString(), // Rebuys
+        gamePlayer.addons.toString(), // Add-ons
+        gamePlayer.joinedDinner ? 'Sim' : 'Não', // Janta (nova coluna)
+        `R$ ${gamePlayer.balance.toFixed(2).replace('.', ',')}` // Saldo (nova coluna)
       ];
     });
     
     autoTable(pdf, {
-      head: [['Jogador', 'Pos.', 'Pontos', 'Buy-in', 'Rebuys', 'Add-on', 'Prêmio']],
+      head: [['Pos.', 'Jogador', 'Pontos', 'Rebuys', 'Add-ons', 'Janta', 'Saldo']], // Cabeçalhos atualizados
       body: tableData,
       startY: yPosition,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [155, 135, 245] }
+      styles: { fontSize: 8 }, // Fonte menor para acomodar mais colunas
+      headStyles: { fillColor: [155, 135, 245] },
+      columnStyles: {
+        0: { cellWidth: 15, halign: 'center' }, // Pos.
+        1: { cellWidth: 35 }, // Jogador
+        2: { cellWidth: 20, halign: 'center' }, // Pontos
+        3: { cellWidth: 20, halign: 'center' }, // Rebuys
+        4: { cellWidth: 20, halign: 'center' }, // Add-ons
+        5: { cellWidth: 20, halign: 'center' }, // Janta
+        6: { cellWidth: 25, halign: 'right' }, // Saldo
+      },
+      // Colorir saldo baseado no valor (positivo = verde, negativo = vermelho)
+      didParseCell: (data) => {
+        if (data.column.index === 6 && data.section === 'body') {
+          const balance = parseFloat(data.cell.text[0].replace('R$ ', '').replace(',', '.'));
+          if (balance >= 0) {
+            data.cell.styles.textColor = [0, 128, 0]; // Verde
+          } else {
+            data.cell.styles.textColor = [255, 0, 0]; // Vermelho
+          }
+        }
+      }
     });
     
     // Convert blob to URL for opening in new tab
