@@ -11,17 +11,24 @@ export function useGuestAccess() {
     try {
       setIsLoading(true);
       
-      console.log('Iniciando acesso de visitante...');
+      console.log('=== INICIANDO ACESSO DE VISITANTE ===');
+      console.log('Timestamp:', new Date().toISOString());
       
       // Limpar qualquer sessão existente primeiro
       try {
+        console.log('Limpando sessão anterior...');
         await supabase.auth.signOut({ scope: 'global' });
-        console.log('Sessão anterior limpa com sucesso.');
+        console.log('✅ Sessão anterior limpa com sucesso');
       } catch (signOutError) {
-        console.log('Erro ao limpar sessão (ignorado):', signOutError);
+        console.log('⚠️ Erro ao limpar sessão (ignorado):', signOutError);
       }
       
-      console.log('Tentando fazer login com visitante@apapoker.com...');
+      // Aguardar um pouco para garantir que a limpeza foi processada
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('=== TENTANDO LOGIN DE VISITANTE ===');
+      console.log('Email: visitante@apapoker.com');
+      console.log('Senha: [HIDDEN]');
       
       // Tentar fazer login com a conta de visitante
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -29,8 +36,12 @@ export function useGuestAccess() {
         password: '123456',
       });
 
+      console.log('=== RESULTADO DO LOGIN ===');
+      console.log('Data received:', data);
+      console.log('Error received:', error);
+
       if (error) {
-        console.error('Erro detalhado no login de visitante:', {
+        console.error('❌ ERRO DETALHADO NO LOGIN:', {
           message: error.message,
           status: error.status,
           name: error.name,
@@ -46,29 +57,38 @@ export function useGuestAccess() {
           errorMessage = 'Erro de banco de dados. O usuário visitante pode não estar configurado corretamente.';
         } else if (error.message.includes('Too many requests')) {
           errorMessage = 'Muitas tentativas de login. Aguarde um momento antes de tentar novamente.';
+        } else if (error.message.includes('email_change')) {
+          errorMessage = 'Erro de configuração do usuário visitante. Contacte o administrador.';
         }
         
         throw new Error(errorMessage);
       }
 
       if (data.user) {
-        console.log('Login de visitante bem-sucedido:', data.user.email);
+        console.log('✅ LOGIN DE VISITANTE BEM-SUCEDIDO');
+        console.log('User ID:', data.user.id);
+        console.log('User Email:', data.user.email);
+        console.log('Session:', data.session ? 'Presente' : 'Ausente');
         
         toast({
           title: 'Acesso de visitante ativado',
           description: 'Você está navegando como visitante com acesso somente leitura.',
         });
         
-        // Redirecionar para o dashboard
-        console.log('Redirecionando para /dashboard...');
+        // Aguardar um pouco para garantir que o estado foi atualizado
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log('🔄 Redirecionando para /dashboard...');
         window.location.href = '/dashboard';
       } else {
-        console.error('Login aparentemente bem-sucedido mas sem dados do usuário');
+        console.error('❌ LOGIN SEM DADOS DO USUÁRIO');
+        console.log('Data completa:', data);
         throw new Error('Erro inesperado: dados do usuário não retornados.');
       }
 
     } catch (error: any) {
-      console.error('Erro no acesso de visitante:', error);
+      console.error('❌ ERRO FINAL NO ACESSO DE VISITANTE:', error);
+      console.error('Stack trace:', error.stack);
       
       toast({
         title: 'Erro no acesso de visitante',
@@ -77,6 +97,7 @@ export function useGuestAccess() {
       });
     } finally {
       setIsLoading(false);
+      console.log('=== FIM DO PROCESSO DE LOGIN ===');
     }
   };
 
