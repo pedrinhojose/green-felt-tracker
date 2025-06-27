@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export type UserProfile = {
@@ -11,32 +10,40 @@ export type UserProfile = {
 
 // Função para limpar tokens de autenticação
 export const cleanupAuthState = () => {
+  console.log('🧹 Limpando estado de autenticação...');
+  
   // Remover tokens padrão de autenticação
   localStorage.removeItem('supabase.auth.token');
   
   // Remover todas as chaves de autenticação do Supabase do localStorage
+  const keysToRemove: string[] = [];
   Object.keys(localStorage).forEach((key) => {
     if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
+      keysToRemove.push(key);
     }
   });
   
+  keysToRemove.forEach(key => {
+    localStorage.removeItem(key);
+    console.log(`Removido: ${key}`);
+  });
+  
   // Remover de sessionStorage se estiver em uso
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+  const sessionKeysToRemove: string[] = [];
+  if (typeof sessionStorage !== 'undefined') {
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        sessionKeysToRemove.push(key);
+      }
+    });
+    
+    sessionKeysToRemove.forEach(key => {
       sessionStorage.removeItem(key);
-    }
-  });
+      console.log(`Removido do sessionStorage: ${key}`);
+    });
+  }
 
-  // Limpar indexedDB relacionados ao Supabase
-  const indexedDBs = ['localforage', 'firebaseLocalStorageDb'];
-  indexedDBs.forEach(db => {
-    try {
-      indexedDB.deleteDatabase(db);
-    } catch (e) {
-      console.log(`Failed to delete IndexedDB: ${db}`, e);
-    }
-  });
+  console.log(`✅ Limpeza concluída. Removidas ${keysToRemove.length + sessionKeysToRemove.length} chaves`);
 };
 
 // Função para fazer logout
