@@ -45,7 +45,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
     // Cabeçalho do PDF
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(16);
-    pdf.text(`RELATÓRIO DA PARTIDA #${game.number.toString().padStart(3, '0')}`, pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text(`RESULTADO DA PARTIDA #${game.number.toString().padStart(3, '0')}`, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
     
     pdf.setFont("helvetica", "normal");
