@@ -71,16 +71,16 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       return [
         gamePlayer.position?.toString() || '-', // Posição
         player?.name || 'Desconhecido', // Jogador
-        gamePlayer.points.toString(), // Pontos (nova coluna)
+        gamePlayer.points.toString(), // Pontos
         gamePlayer.rebuys.toString(), // Rebuys
         gamePlayer.addons.toString(), // Add-ons
-        gamePlayer.joinedDinner ? 'Sim' : 'Não', // Janta (nova coluna)
-        `R$ ${gamePlayer.balance.toFixed(2).replace('.', ',')}` // Saldo (nova coluna)
+        gamePlayer.joinedDinner ? 'Sim' : 'Não', // Janta
+        `R$ ${gamePlayer.balance.toFixed(2).replace('.', ',')}` // Saldo
       ];
     });
     
     autoTable(pdf, {
-      head: [['Pos.', 'Jogador', 'Pontos', 'Rebuys', 'Add-ons', 'Janta', 'Saldo']], // Cabeçalhos atualizados
+      head: [['Pos.', 'Jogador', 'Pontos', 'Rebuys', 'Add-ons', 'Janta', 'Saldo']],
       body: tableData,
       startY: yPosition,
       styles: { 
@@ -104,7 +104,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
         5: { cellWidth: 20, halign: 'center' }, // Janta
         6: { cellWidth: 25, halign: 'right' }, // Saldo
       },
-      // Remover coloração especial do saldo - manter apenas preto
+      // Manter apenas formatação em preto para valores positivos
       didParseCell: (data) => {
         if (data.column.index === 6 && data.section === 'body') {
           const balance = parseFloat(data.cell.text[0].replace('R$ ', '').replace(',', '.'));
@@ -138,7 +138,7 @@ export const exportGameReport = async (gameId: string, players: any[]) => {
       const position = gamePlayer.position;
       const prize = gamePlayer.prize;
       
-      // Usar negrito para destacar posições sem cores
+      // Usar negrito para destacar posições
       if (position === 1) {
         pdf.setFont("helvetica", "bold");
       } else {
