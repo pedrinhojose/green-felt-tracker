@@ -4,6 +4,7 @@ import JackpotCard from "@/components/JackpotCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import BackupButton from "@/components/BackupButton";
+import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -62,8 +63,10 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">
+      <DashboardHeader />
+      
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-white">
           {activeSeason ? activeSeason.name : 'Bem-vindo ao APA Poker'}
         </h2>
         <p className="text-muted-foreground">

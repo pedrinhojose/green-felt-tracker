@@ -27,7 +27,7 @@ export function useGuestAccess() {
       }
       
       // Aguardar um pouco para garantir que a limpeza foi processada
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log('=== TENTANDO LOGIN DE VISITANTE ===');
       console.log('Email: visitante@apapoker.com');
@@ -49,11 +49,13 @@ export function useGuestAccess() {
         let errorMessage = 'Não foi possível ativar o acesso de visitante.';
         
         if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Credenciais de visitante inválidas. O usuário visitante pode não estar configurado corretamente.';
+          errorMessage = 'Credenciais de visitante inválidas. Entre em contato com o administrador.';
         } else if (error.message.includes('Too many requests')) {
           errorMessage = 'Muitas tentativas de login. Aguarde um momento antes de tentar novamente.';
         } else if (error.message.includes('Database error')) {
           errorMessage = 'Erro de banco de dados. Contacte o administrador.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Email do visitante não confirmado. Contacte o administrador.';
         }
         
         throw new Error(errorMessage);
@@ -63,7 +65,7 @@ export function useGuestAccess() {
         console.log('✅ LOGIN DE VISITANTE BEM-SUCEDIDO');
         console.log('User ID:', data.user.id);
         console.log('User Email:', data.user.email);
-        console.log('Session ID:', data.session.access_token ? 'Presente' : 'Ausente');
+        console.log('Session válida:', !!data.session.access_token);
         
         toast({
           title: 'Acesso de visitante ativado',
@@ -71,7 +73,7 @@ export function useGuestAccess() {
         });
         
         // Aguardar um pouco para garantir que o estado foi atualizado
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         console.log('🔄 Redirecionando para /dashboard...');
         window.location.href = '/dashboard';
