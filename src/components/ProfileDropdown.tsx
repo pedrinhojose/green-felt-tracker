@@ -25,7 +25,10 @@ export function ProfileDropdown() {
     : user.email?.charAt(0).toUpperCase() || 'U';
 
   const displayName = profile?.full_name || user.email || 'Usuário';
-  const isGuestUser = isViewer() && profile?.username === 'visitante';
+  
+  // Verificar se é usuário visitante
+  const isGuestUser = user?.email === 'visitante@apapoker.com' || 
+                      profile?.username === 'visitante';
 
   return (
     <DropdownMenu>
@@ -44,14 +47,14 @@ export function ProfileDropdown() {
           <div className="flex flex-col space-y-1">
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium leading-none">
-                {displayName}
+                {isGuestUser ? 'Visitante' : displayName}
               </p>
               {isGuestUser && (
                 <Eye className="h-3 w-3 text-poker-gold" />
               )}
             </div>
             <p className="text-xs leading-none text-muted-foreground">
-              {isGuestUser ? 'Visitante - Acesso somente leitura' : user.email}
+              {isGuestUser ? 'Acesso somente leitura' : user.email}
             </p>
           </div>
         </DropdownMenuLabel>

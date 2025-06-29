@@ -6,10 +6,12 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export function ViewerBadge() {
   const { isViewer } = useUserRole();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   // Verificar se é o usuário visitante específico ou tem role de viewer
-  const isGuestUser = profile?.username === 'visitante' || isViewer();
+  const isGuestUser = user?.email === 'visitante@apapoker.com' || 
+                      profile?.username === 'visitante' || 
+                      isViewer;
 
   if (!isGuestUser) return null;
 

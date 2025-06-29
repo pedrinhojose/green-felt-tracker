@@ -12,60 +12,48 @@ export function useGuestAccess() {
     try {
       setIsLoading(true);
       
-      console.log('=== INICIANDO ACESSO DE VISITANTE ===');
-      console.log('Timestamp:', new Date().toISOString());
+      console.log('🔵 Iniciando acesso de visitante...');
       
-      // Limpar qualquer sessão existente primeiro
-      console.log('Limpando estado de autenticação...');
+      // Limpar qualquer sessão existente
       cleanupAuthState();
       
       try {
         await supabase.auth.signOut({ scope: 'global' });
-        console.log('✅ Sessão anterior limpa');
       } catch (signOutError) {
         console.log('⚠️ Erro ao limpar sessão (ignorado):', signOutError);
       }
       
-      // Aguardar um pouco para garantir que a limpeza foi processada
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Aguardar um pouco para garantir limpeza
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      console.log('=== TENTANDO LOGIN DE VISITANTE ===');
-      console.log('Email: visitante@apapoker.com');
+      console.log('🔐 Fazendo login como visitante...');
       
-      // Tentar fazer login com a conta de visitante
+      // Fazer login com credenciais do visitante
       const { data, error } = await supabase.auth.signInWithPassword({
         email: 'visitante@apapoker.com',
         password: '123456',
       });
 
-      console.log('=== RESULTADO DO LOGIN ===');
-      console.log('Data received:', data);
-      console.log('Error received:', error);
-
       if (error) {
-        console.error('❌ ERRO NO LOGIN:', error);
+        console.error('❌ Erro no login de visitante:', error);
         
-        // Mensagens de erro mais específicas
         let errorMessage = 'Não foi possível ativar o acesso de visitante.';
         
         if (error.message.includes('Invalid login credentials')) {
           errorMessage = 'Credenciais de visitante inválidas. Entre em contato com o administrador.';
         } else if (error.message.includes('Too many requests')) {
-          errorMessage = 'Muitas tentativas de login. Aguarde um momento antes de tentar novamente.';
-        } else if (error.message.includes('Database error')) {
-          errorMessage = 'Erro de banco de dados. Contacte o administrador.';
+          errorMessage = 'Muitas tentativas de login. Aguarde um momento.';
         } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Email do visitante não confirmado. Contacte o administrador.';
+          errorMessage = 'Conta de visitante não confirmada. Entre em contato com o administrador.';
         }
         
         throw new Error(errorMessage);
       }
 
       if (data.user && data.session) {
-        console.log('✅ LOGIN DE VISITANTE BEM-SUCEDIDO');
+        console.log('✅ Login de visitante bem-sucedido!');
         console.log('User ID:', data.user.id);
-        console.log('User Email:', data.user.email);
-        console.log('Session válida:', !!data.session.access_token);
+        console.log('Email:', data.user.email);
         
         toast({
           title: 'Acesso de visitante ativado',
@@ -75,16 +63,15 @@ export function useGuestAccess() {
         // Aguardar um pouco para garantir que o estado foi atualizado
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        console.log('🔄 Redirecionando para /dashboard...');
+        // Redirecionar para o dashboard
         window.location.href = '/dashboard';
       } else {
-        console.error('❌ LOGIN SEM DADOS VÁLIDOS');
-        console.log('Data completa:', data);
+        console.error('❌ Login sem dados válidos:', data);
         throw new Error('Erro inesperado: dados de autenticação inválidos.');
       }
 
     } catch (error: any) {
-      console.error('❌ ERRO FINAL NO ACESSO DE VISITANTE:', error);
+      console.error('❌ Erro no acesso de visitante:', error);
       
       toast({
         title: 'Erro no acesso de visitante',
@@ -93,7 +80,6 @@ export function useGuestAccess() {
       });
     } finally {
       setIsLoading(false);
-      console.log('=== FIM DO PROCESSO DE LOGIN ===');
     }
   };
 
