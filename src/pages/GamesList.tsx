@@ -55,7 +55,7 @@ export default function GamesList() {
     try {
       setIsCreating(true);
       const gameId = await createGame(activeSeason.id);
-      navigate(`/game/${gameId}`);
+      navigate(`/games/${gameId}`);
     } catch (error) {
       console.error("Error creating game:", error);
       toast({
@@ -124,7 +124,7 @@ export default function GamesList() {
           {activeSeason && sortedGames.length > 0 && (
             <Button 
               variant="outline"
-              onClick={() => navigate('/report')}
+              onClick={() => navigate('/reports/season')}
               className="mr-2"
             >
               <FileText className="mr-2 h-4 w-4" />
@@ -192,7 +192,7 @@ export default function GamesList() {
                   </AlertDialogContent>
                 </AlertDialog>
               </CardHeader>
-              <CardContent onClick={() => navigate(`/game/${game.id}`)} className="cursor-pointer">
+              <CardContent onClick={() => navigate(`/games/${game.id}`)} className="cursor-pointer">
                 <p className="text-sm text-muted-foreground mb-2">{formatDate(game.date)}</p>
                 <p className="mb-1">Jogadores: {game.players.length}</p>
                 <p className="text-poker-gold font-semibold">Premiação: {formatCurrency(game.totalPrizePool)}</p>

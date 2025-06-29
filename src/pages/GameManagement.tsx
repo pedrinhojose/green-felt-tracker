@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useGameManagement } from "@/hooks/useGameManagement";
@@ -110,7 +109,7 @@ export default function GameManagement() {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <h2 className="text-2xl font-bold text-white mb-4">Partida não encontrada</h2>
-        <Button onClick={() => navigate('/partidas')}>Voltar para Lista de Partidas</Button>
+        <Button onClick={() => navigate('/games')}>Voltar para Lista de Partidas</Button>
       </div>
     );
   }
