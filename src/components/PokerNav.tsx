@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
 import { OrganizationSelector } from '@/components/organizations/OrganizationSelector';
-import { ViewerBadge } from '@/components/ViewerBadge';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ShieldAlert, Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -51,10 +50,7 @@ export default function PokerNav() {
           </Link>
           
           {!isMobile && (
-            <>
-              <OrganizationSelector />
-              <ViewerBadge />
-            </>
+            <OrganizationSelector />
           )}
         </div>
         
@@ -109,12 +105,9 @@ export default function PokerNav() {
       {/* Mobile Menu Dropdown - otimizado */}
       {isMobileMenuOpen && (
         <nav className="md:hidden bg-poker-black/95 backdrop-blur-md border-t border-white/5 animate-slide-down">
-          {/* Organização e Badge em mobile */}
+          {/* Organização em mobile */}
           <div className="px-3 py-3 border-b border-white/5">
-            <div className="flex items-center justify-between gap-2">
-              <OrganizationSelector />
-              <ViewerBadge />
-            </div>
+            <OrganizationSelector />
           </div>
           
           <ul className="flex flex-col">
