@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from '@/components/ui/toaster';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -8,28 +9,27 @@ import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { PokerProvider } from '@/contexts/PokerContext';
 import { AudioProvider } from '@/contexts/AudioContext';
 
-import { Index } from '@/pages/Index';
-import { Auth } from '@/pages/Auth';
-import { Dashboard } from '@/pages/Dashboard';
-import { SeasonConfig } from '@/pages/SeasonConfig';
-import { SeasonsList } from '@/pages/SeasonsList';
-import { SeasonDetails } from '@/pages/SeasonDetails';
-import { GamesList } from '@/pages/GamesList';
-import { GameManagement } from '@/pages/GameManagement';
-import { TimerPage } from '@/pages/TimerPage';
-import { RankingPage } from '@/pages/RankingPage';
-import { PlayersManagement } from '@/pages/PlayersManagement';
-import { HouseRules } from '@/pages/HouseRules';
-import { UserManagement } from '@/pages/UserManagement';
-import { NotFound } from '@/pages/NotFound';
-import { RequireAuth } from '@/components/RequireAuth';
-import { OrganizationRequired } from '@/components/OrganizationRequired';
+import Index from '@/pages/Index';
+import Auth from '@/pages/Auth';
+import Dashboard from '@/pages/Dashboard';
+import SeasonConfig from '@/pages/SeasonConfig';
+import SeasonsList from '@/pages/SeasonsList';
+import SeasonDetails from '@/pages/SeasonDetails';
+import GamesList from '@/pages/GamesList';
+import GameManagement from '@/pages/GameManagement';
+import TimerPage from '@/pages/TimerPage';
+import RankingPage from '@/pages/RankingPage';
+import PlayersManagement from '@/pages/PlayersManagement';
+import HouseRules from '@/pages/HouseRules';
+import UserManagement from '@/pages/UserManagement';
+import NotFound from '@/pages/NotFound';
+import RequireAuth from '@/components/RequireAuth';
 import { AppLayout } from '@/components/AppLayout';
 import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
-import { OrganizationsPage } from '@/pages/OrganizationsPage';
+import OrganizationsPage from '@/pages/OrganizationsPage';
 import { OrganizationSettingsPage } from '@/pages/OrganizationSettingsPage';
 import { OrganizationMembersPage } from '@/pages/OrganizationMembersPage';
-import { SeasonReport } from '@/pages/SeasonReport';
+import SeasonReport from '@/pages/SeasonReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
 
@@ -51,7 +51,7 @@ function App() {
                     <Route path="/organizations" element={<OrganizationsPage />} />
                     <Route path="/organization-selection" element={<OrganizationSelectionPage />} />
                     
-                    <Route element={<RequireAuth><OrganizationRequired><AppLayout /></OrganizationRequired></RequireAuth>}>
+                    <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/season" element={<SeasonConfig />} />
                       <Route path="/seasons" element={<SeasonsList />} />
