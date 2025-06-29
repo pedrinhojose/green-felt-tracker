@@ -1,118 +1,84 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "@/components/ui/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { OrganizationProvider } from "@/contexts/OrganizationContext";
-import { PokerProvider } from "@/contexts/PokerContext";
-import { AudioProvider } from "@/contexts/AudioContext";
-import RequireAuth from '@/components/RequireAuth';
-import { OrganizationRequired } from '@/components/organizations/OrganizationRequired';
-import AppLayout from '@/components/layout/AppLayout';
-import Index from '@/pages/Index';
-import Auth from '@/pages/Auth';
-import Dashboard from '@/pages/Dashboard';
-import PlayersManagement from '@/pages/PlayersManagement';
-import SeasonConfig from '@/pages/SeasonConfig';
-import GamesList from '@/pages/GamesList';
-import GameManagement from '@/pages/GameManagement';
-import TimerPage from '@/pages/TimerPage';
-import RankingPage from '@/pages/RankingPage';
-import HouseRules from '@/pages/HouseRules';
-import SeasonsList from '@/pages/SeasonsList';
-import SeasonDetails from '@/pages/SeasonDetails';
-import SeasonReport from '@/pages/SeasonReport';
-import OrganizationsPage from '@/pages/OrganizationsPage';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
+import { PokerProvider } from '@/contexts/PokerContext';
+import { AudioProvider } from '@/contexts/AudioContext';
+
+import { Index } from '@/pages/Index';
+import { Auth } from '@/pages/Auth';
+import { Dashboard } from '@/pages/Dashboard';
+import { SeasonConfig } from '@/pages/SeasonConfig';
+import { SeasonsList } from '@/pages/SeasonsList';
+import { SeasonDetails } from '@/pages/SeasonDetails';
+import { GamesList } from '@/pages/GamesList';
+import { GameManagement } from '@/pages/GameManagement';
+import { TimerPage } from '@/pages/TimerPage';
+import { RankingPage } from '@/pages/RankingPage';
+import { PlayersManagement } from '@/pages/PlayersManagement';
+import { HouseRules } from '@/pages/HouseRules';
+import { UserManagement } from '@/pages/UserManagement';
+import { NotFound } from '@/pages/NotFound';
+import { RequireAuth } from '@/components/RequireAuth';
+import { OrganizationRequired } from '@/components/OrganizationRequired';
+import { AppLayout } from '@/components/AppLayout';
 import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
-import OrganizationSettingsPage from '@/pages/OrganizationSettingsPage';
-import OrganizationMembersPage from '@/pages/OrganizationMembersPage';
-import UserManagement from '@/pages/UserManagement';
-import NotFound from '@/pages/NotFound';
-import './App.css';
+import { OrganizationsPage } from '@/pages/OrganizationsPage';
+import { OrganizationSettingsPage } from '@/pages/OrganizationSettingsPage';
+import { OrganizationMembersPage } from '@/pages/OrganizationMembersPage';
+import { SeasonReport } from '@/pages/SeasonReport';
+import PlayerStatistics from '@/pages/PlayerStatistics';
+import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <AudioProvider>
-            <Router>
-              <OrganizationProvider>
-                <div className="min-h-screen bg-poker-black">
+    <div className="min-h-screen bg-gradient-to-br from-poker-black via-slate-900 to-poker-black">
+      <QueryClientProvider client={queryClient}>
+        <Toaster />
+        <Router>
+          <AuthProvider>
+            <OrganizationProvider>
+              <PokerProvider>
+                <AudioProvider>
                   <Routes>
-                    {/* Public routes */}
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/timer/:gameId" element={
-                      <PokerProvider>
-                        <TimerPage />
-                      </PokerProvider>
-                    } />
+                    <Route path="/organizations" element={<OrganizationsPage />} />
+                    <Route path="/organization-selection" element={<OrganizationSelectionPage />} />
                     
-                    {/* Protected routes */}
-                    <Route path="/select-organization" element={
-                      <RequireAuth>
-                        <OrganizationSelectionPage />
-                      </RequireAuth>
-                    } />
-                    
-                    {/* Routes that require organization and use AppLayout */}
-                    <Route element={
-                      <RequireAuth>
-                        <OrganizationRequired>
-                          <PokerProvider>
-                            <AppLayout />
-                          </PokerProvider>
-                        </OrganizationRequired>
-                      </RequireAuth>
-                    }>
+                    <Route element={<RequireAuth><OrganizationRequired><AppLayout /></OrganizationRequired></RequireAuth>}>
                       <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/players" element={<PlayersManagement />} />
                       <Route path="/season" element={<SeasonConfig />} />
-                      <Route path="/games" element={<GamesList />} />
-                      <Route path="/game/:gameId" element={<GameManagement />} />
-                      <Route path="/ranking" element={<RankingPage />} />
-                      <Route path="/house-rules" element={<HouseRules />} />
                       <Route path="/seasons" element={<SeasonsList />} />
                       <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
-                      <Route path="/seasons/:seasonId/report" element={<SeasonReport />} />
-                      <Route path="/report" element={<SeasonReport />} />
+                      <Route path="/games" element={<GamesList />} />
+                      <Route path="/games/:gameId" element={<GameManagement />} />
+                      <Route path="/timer/:gameId" element={<TimerPage />} />
+                      <Route path="/ranking" element={<RankingPage />} />
+                      <Route path="/players" element={<PlayersManagement />} />
+                      <Route path="/statistics" element={<PlayerStatistics />} />
+                      <Route path="/statistics/player/:playerId" element={<PlayerStatisticsDetail />} />
+                      <Route path="/house-rules" element={<HouseRules />} />
+                      <Route path="/users" element={<UserManagement />} />
                       <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                       <Route path="/organization/members" element={<OrganizationMembersPage />} />
-                      <Route path="/users" element={<UserManagement />} />
+                      <Route path="/reports/season" element={<SeasonReport />} />
                     </Route>
                     
-                    {/* Organizations route (no organization required) */}
-                    <Route element={
-                      <RequireAuth>
-                        <AppLayout />
-                      </RequireAuth>
-                    }>
-                      <Route path="/organizations" element={<OrganizationsPage />} />
-                    </Route>
-                    
-                    {/* Catch all route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </div>
-                <Toaster />
-              </OrganizationProvider>
-            </Router>
-          </AudioProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                </AudioProvider>
+              </PokerProvider>
+            </OrganizationProvider>
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </div>
   );
 }
 

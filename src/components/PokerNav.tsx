@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -21,6 +20,7 @@ const navItems: NavItem[] = [
   { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
   { name: 'Jogadores', path: '/players' },
+  { name: 'Estatísticas', path: '/statistics' },
   { name: 'Regras da Casa', path: '/house-rules' },
   { name: 'Usuários', path: '/users', requiredRole: 'admin' },
 ];
