@@ -101,7 +101,7 @@ export default function SeasonsList() {
   const handleViewSeason = (seasonId: string, isActive: boolean) => {
     if (isActive) {
       // If active, go to the report page
-      navigate("/report");
+      navigate("/reports/season");
     } else {
       // If inactive or finished, go to the season details page
       navigate(`/seasons/${seasonId}`);
