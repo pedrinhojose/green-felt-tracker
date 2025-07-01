@@ -105,12 +105,12 @@ export function TimerSideInfo({
   return (
     <div className={`absolute ${isMobile ? 'right-2 top-16' : 'right-[32%] top-1/2 -translate-y-1/2 translate-x-full pl-6'} text-right`}>
       {/* NÍVEL ATUAL - DESTAQUE COM EFEITO 3D */}
-      <div className={isMobile ? 'mb-1' : 'mb-2'}>
+      <div className={isMobile ? 'mb-2' : 'mb-4'}>
         <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-lg'} font-bold mb-1`}>
           NÍVEL ATUAL
         </h3>
         {currentLevel && (
-          <div className={`text-white ${isMobile ? 'text-xl' : 'text-6xl'} font-bold`}>
+          <div className={`text-white ${isMobile ? 'text-xl' : 'text-6xl'} font-bold ${isMobile ? 'mb-3' : 'mb-6'}`}>
             {currentLevel.isBreak ? (
               <span className="current-blind-3d" data-text="INTERVALO">INTERVALO</span>
             ) : (
@@ -122,9 +122,9 @@ export function TimerSideInfo({
         )}
       </div>
       
-      {/* ANTE ATUAL */}
+      {/* ANTE ATUAL - com espaçamento adicional */}
       {currentLevel && !currentLevel.isBreak && (
-        <div className={isMobile ? 'mb-1' : 'mb-2'}>
+        <div className={isMobile ? 'mb-2 mt-4' : 'mb-3 mt-8'}>
           <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>ANTE ATUAL</h3>
           <div className={`text-white ${isMobile ? 'text-xs' : 'text-xl'} font-bold`}>
             Ante {formatBlindValue(currentLevel.ante)}
@@ -132,8 +132,8 @@ export function TimerSideInfo({
         </div>
       )}
       
-      {/* HORA ATUAL - atualizada em tempo real */}
-      <div>
+      {/* HORA ATUAL - com espaçamento adicional */}
+      <div className={isMobile ? 'mt-4' : 'mt-8'}>
         <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-sm'} font-normal mb-1`}>HORA ATUAL:</h3>
         <div className={`text-white ${isMobile ? 'text-xs' : 'text-lg'} font-bold`}>
           {currentTime}

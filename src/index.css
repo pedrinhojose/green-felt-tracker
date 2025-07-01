@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -164,19 +163,19 @@
     top: 100%;
     left: 0;
     right: 0;
-    height: 100%;
+    height: 30%;
     background: linear-gradient(
       to bottom,
-      rgba(223, 198, 97, 0.15) 0%,
-      rgba(223, 198, 97, 0.05) 30%,
-      transparent 70%
+      rgba(223, 198, 97, 0.08) 0%,
+      rgba(223, 198, 97, 0.03) 50%,
+      transparent 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    transform: scaleY(-1) translateY(-10px);
-    opacity: 0.6;
-    filter: blur(1px);
+    transform: scaleY(-1) translateY(-2px);
+    opacity: 0.3;
+    filter: blur(0.5px);
     pointer-events: none;
     z-index: -1;
   }
@@ -193,8 +192,10 @@
     }
 
     .current-blind-3d::after {
-      transform: scaleY(-1) translateY(-5px);
-      opacity: 0.4;
+      height: 25%;
+      transform: scaleY(-1) translateY(-1px);
+      opacity: 0.2;
+      filter: blur(0.3px);
     }
   }
 }
