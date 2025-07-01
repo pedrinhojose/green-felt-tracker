@@ -21,7 +21,9 @@ export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProp
     return (
       <div className="text-3xl text-poker-gold font-bold" 
         style={{ textShadow: "0px 2px 4px rgba(0,0,0,0.5)" }}>
-        Pausa para Descanso
+        <span className="current-blind-3d" data-text="Pausa para Descanso">
+          Pausa para Descanso
+        </span>
       </div>
     );
   }
@@ -36,16 +38,36 @@ export function BlindDisplay({ currentLevel, isNewBlindAlert }: BlindDisplayProp
     >
       {isMobile ? (
         <div className="flex flex-col space-y-1">
-          <div>SB: {formatBlindValue(currentLevel.smallBlind)}</div>
-          <div>BB: {formatBlindValue(currentLevel.bigBlind)}</div>
+          <div>
+            SB: <span className="current-blind-3d" data-text={formatBlindValue(currentLevel.smallBlind)}>
+              {formatBlindValue(currentLevel.smallBlind)}
+            </span>
+          </div>
+          <div>
+            BB: <span className="current-blind-3d" data-text={formatBlindValue(currentLevel.bigBlind)}>
+              {formatBlindValue(currentLevel.bigBlind)}
+            </span>
+          </div>
           {currentLevel.ante > 0 && (
-            <div className="text-2xl">Ante: {formatBlindValue(currentLevel.ante)}</div>
+            <div className="text-2xl">
+              Ante: <span className="current-blind-3d" data-text={formatBlindValue(currentLevel.ante)}>
+                {formatBlindValue(currentLevel.ante)}
+              </span>
+            </div>
           )}
         </div>
       ) : (
         <>
-          SB: {formatBlindValue(currentLevel.smallBlind)} / BB: {formatBlindValue(currentLevel.bigBlind)}
-          {currentLevel.ante > 0 && ` / Ante: ${formatBlindValue(currentLevel.ante)}`}
+          SB: <span className="current-blind-3d" data-text={formatBlindValue(currentLevel.smallBlind)}>
+            {formatBlindValue(currentLevel.smallBlind)}
+          </span> / BB: <span className="current-blind-3d" data-text={formatBlindValue(currentLevel.bigBlind)}>
+            {formatBlindValue(currentLevel.bigBlind)}
+          </span>
+          {currentLevel.ante > 0 && (
+            <> / Ante: <span className="current-blind-3d" data-text={formatBlindValue(currentLevel.ante)}>
+              {formatBlindValue(currentLevel.ante)}
+            </span></>
+          )}
         </>
       )}
     </div>

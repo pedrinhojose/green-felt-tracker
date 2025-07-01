@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -139,6 +140,16 @@ export default {
 						transform: 'translateY(0)',
 						opacity: '1'
 					}
+				},
+				'current-blind-glow': {
+					'0%': {
+						filter: 'drop-shadow(0 0 8px rgba(223, 198, 97, 0.4))',
+						textShadow: '0 2px 4px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.6), 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(223, 198, 97, 0.3)'
+					},
+					'100%': {
+						filter: 'drop-shadow(0 0 12px rgba(223, 198, 97, 0.6))',
+						textShadow: '0 2px 4px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.6), 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 25px rgba(223, 198, 97, 0.4)'
+					}
 				}
 			},
 			animation: {
@@ -146,7 +157,8 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'card-float': 'card-float 3s ease-in-out infinite',
 				'slide-up': 'slide-up 0.3s ease-out',
-				'slide-down': 'slide-down 0.3s ease-out'
+				'slide-down': 'slide-down 0.3s ease-out',
+				'current-blind-glow': 'current-blind-glow 3s ease-in-out infinite alternate'
 			},
 			fontFamily: {
 				'sans': ['SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],

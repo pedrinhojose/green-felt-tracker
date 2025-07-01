@@ -101,10 +101,10 @@ export function TimerSideInfo({
     );
   }
 
-  // Lado direito - NÍVEL ATUAL (mais afastado do centro) - DESTAQUE
+  // Lado direito - NÍVEL ATUAL (mais afastado do centro) - DESTAQUE COM EFEITO 3D
   return (
     <div className={`absolute ${isMobile ? 'right-2 top-16' : 'right-[32%] top-1/2 -translate-y-1/2 translate-x-full pl-6'} text-right`}>
-      {/* NÍVEL ATUAL - DESTAQUE */}
+      {/* NÍVEL ATUAL - DESTAQUE COM EFEITO 3D */}
       <div className={isMobile ? 'mb-1' : 'mb-2'}>
         <h3 className={`text-poker-gold ${isMobile ? 'text-xs' : 'text-lg'} font-bold mb-1`}>
           NÍVEL ATUAL
@@ -112,9 +112,11 @@ export function TimerSideInfo({
         {currentLevel && (
           <div className={`text-white ${isMobile ? 'text-xl' : 'text-6xl'} font-bold`}>
             {currentLevel.isBreak ? (
-              <span>INTERVALO</span>
+              <span className="current-blind-3d" data-text="INTERVALO">INTERVALO</span>
             ) : (
-              <span>{formatBlindPair(currentLevel.smallBlind, currentLevel.bigBlind)}</span>
+              <span className="current-blind-3d" data-text={formatBlindPair(currentLevel.smallBlind, currentLevel.bigBlind)}>
+                {formatBlindPair(currentLevel.smallBlind, currentLevel.bigBlind)}
+              </span>
             )}
           </div>
         )}

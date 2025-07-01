@@ -144,6 +144,59 @@
   .mobile-form-spacing {
     @apply space-y-3 sm:space-y-4 md:space-y-6;
   }
+
+  /* Efeito 3D para valores dos blinds do nível atual */
+  .current-blind-3d {
+    position: relative;
+    display: inline-block;
+    text-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.8),
+      0 4px 8px rgba(0, 0, 0, 0.6),
+      0 6px 12px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(223, 198, 97, 0.3);
+    filter: drop-shadow(0 0 8px rgba(223, 198, 97, 0.4));
+    animation: current-blind-glow 3s ease-in-out infinite alternate;
+  }
+
+  .current-blind-3d::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(223, 198, 97, 0.15) 0%,
+      rgba(223, 198, 97, 0.05) 30%,
+      transparent 70%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: scaleY(-1) translateY(-10px);
+    opacity: 0.6;
+    filter: blur(1px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Versão mobile do efeito 3D */
+  @media (max-width: 768px) {
+    .current-blind-3d {
+      text-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        0 3px 6px rgba(0, 0, 0, 0.4),
+        0 0 10px rgba(223, 198, 97, 0.3);
+      filter: drop-shadow(0 0 4px rgba(223, 198, 97, 0.4));
+    }
+
+    .current-blind-3d::after {
+      transform: scaleY(-1) translateY(-5px);
+      opacity: 0.4;
+    }
+  }
 }
 
 .font-inter {
