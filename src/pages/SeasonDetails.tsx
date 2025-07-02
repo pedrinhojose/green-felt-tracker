@@ -329,7 +329,7 @@ export default function SeasonDetails() {
                       {games.map(game => (
                         <li key={game.id} className="flex items-center justify-between">
                           <span>Partida #{game.number} - {formatDate(game.date)}</span>
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/game/${game.id}`)}>
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/games/${game.id}`)}>
                             Ver Detalhes
                           </Button>
                         </li>
