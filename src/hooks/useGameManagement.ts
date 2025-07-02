@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { usePoker } from "@/contexts/PokerContext";
 import { Game, Player } from "@/lib/db/models";
+import { pokerDB } from "@/lib/db";
 
 export function useGameManagement() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -29,9 +29,16 @@ export function useGameManagement() {
         console.log("useGameManagement: Carregando game:", gameId);
         setIsLoading(true);
         
-        // Find the game in the games array from context
-        const foundGame = games.find(g => g.id === gameId);
-        console.log("useGameManagement: Game encontrado:", !!foundGame);
+        // First try to find the game in the games array from context
+        let foundGame = games.find(g => g.id === gameId);
+        console.log("useGameManagement: Game encontrado no contexto:", !!foundGame);
+        
+        // If not found in context, try to load directly from database
+        if (!foundGame) {
+          console.log("useGameManagement: Game não encontrado no contexto, buscando no banco...");
+          foundGame = await pokerDB.getGame(gameId);
+          console.log("useGameManagement: Game encontrado no banco:", !!foundGame);
+        }
         
         if (foundGame) {
           setGame(foundGame);
