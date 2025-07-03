@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Player } from '../lib/db/models';
@@ -93,15 +94,35 @@ export function usePlayerFunctions() {
         };
       }
       
-      // Log for debugging - check if we have a storage URL
+      // Log melhorado para verificação da URL do Storage
       if (player.photoUrl) {
-        const isStorageUrl = player.photoUrl.includes('player-photos');
-        console.log(`Player photo is ${isStorageUrl ? 'a storage URL' : 'not a storage URL'}: ${player.photoUrl.substring(0, 50)}${player.photoUrl.length > 50 ? '...' : ''}`);
+        const isStorageUrl = player.photoUrl.includes('fotos/players');
+        console.log(`🖼️ Player photo URL verification:`, {
+          url: player.photoUrl.substring(0, 80) + (player.photoUrl.length > 80 ? '...' : ''),
+          isFromStorage: isStorageUrl,
+          bucket: 'fotos',
+          folder: 'players'
+        });
+        
+        if (isStorageUrl) {
+          console.log('✅ Photo URL is correctly stored in Supabase Storage (fotos/players)');
+        } else {
+          console.log('ℹ️ Photo URL is not from Storage or using different path');
+        }
+      } else {
+        console.log('📷 No photo URL provided - will save as NULL');
       }
       
       // Save player to database
       const id = await pokerDB.savePlayer(player);
-      console.log("Player saved successfully with ID:", id);
+      console.log("✅ Player saved successfully with ID:", id);
+      
+      // Log final verification
+      if (player.photoUrl) {
+        console.log("🔗 Final photo_url saved to database:", player.photoUrl);
+      } else {
+        console.log("🔗 photo_url saved as NULL to database");
+      }
       
       // Update local state
       setPlayers(prev => {
@@ -114,7 +135,7 @@ export function usePlayerFunctions() {
       
       return id;
     } catch (error) {
-      console.error("Error saving player:", error);
+      console.error("❌ Error saving player:", error);
       throw error; // Re-throw to be handled by the calling component
     }
   };
@@ -127,13 +148,13 @@ export function usePlayerFunctions() {
       // If player has a photo in the 'fotos' bucket, delete it
       if (player && player.photoUrl && player.photoUrl.includes('fotos')) {
         await deleteImageFromStorage(player.photoUrl, 'fotos');
-        console.log("Deleted player photo:", player.photoUrl);
+        console.log("🗑️ Deleted player photo:", player.photoUrl);
       }
       
       await pokerDB.deletePlayer(id);
       setPlayers(prev => prev.filter(p => p.id !== id));
     } catch (error) {
-      console.error("Error deleting player:", error);
+      console.error("❌ Error deleting player:", error);
       toast({
         title: "Erro ao excluir jogador",
         description: "Não foi possível excluir o jogador",

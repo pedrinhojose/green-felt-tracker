@@ -50,7 +50,7 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
   const capturePhoto = async () => {
     setIsProcessing(true);
     try {
-      console.log('📸 Iniciando captura de foto...');
+      console.log('📸 Iniciando captura de foto da câmera...');
       
       if (videoRef.current) {
         const canvas = document.createElement('canvas');
@@ -69,16 +69,24 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
           const optimizedImageUrl = await optimizeImage(imageDataUrl);
           console.log('⚡ Imagem otimizada, novo tamanho:', Math.round(optimizedImageUrl.length / 1024), 'KB');
           
-          // Upload to Supabase Storage - using 'fotos' bucket explicitly
+          // Upload to Supabase Storage - fotos bucket, players folder
+          console.log('🚀 Fazendo upload para Supabase Storage: bucket=fotos, folder=players');
           const storageUrl = await uploadImageToStorage(optimizedImageUrl, 'fotos');
-          console.log('🎯 Foto salva com sucesso! URL:', storageUrl);
+          console.log('✅ Foto capturada e salva! URL pública:', storageUrl);
+          
+          // Verify the URL format
+          if (storageUrl.includes('fotos/players')) {
+            console.log('✅ URL no formato correto: fotos/players');
+          } else {
+            console.warn('⚠️ URL pode não estar no formato esperado fotos/players');
+          }
           
           setPhotoUrl(storageUrl);
           setIsProcessing(false);
           
           toast({
             title: "Foto capturada!",
-            description: "A foto foi salva com sucesso.",
+            description: "A foto foi salva com sucesso no Storage.",
           });
           
           return storageUrl;
@@ -124,16 +132,24 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
       const optimizedImageUrl = await optimizeImage(imageDataUrl);
       console.log('⚡ Imagem otimizada');
       
-      // Upload to Supabase Storage - using 'fotos' bucket explicitly
+      // Upload to Supabase Storage - fotos bucket, players folder
+      console.log('🚀 Fazendo upload para Supabase Storage: bucket=fotos, folder=players');
       const storageUrl = await uploadImageToStorage(optimizedImageUrl, 'fotos');
-      console.log('🎯 Arquivo enviado com sucesso! URL:', storageUrl);
+      console.log('✅ Arquivo enviado com sucesso! URL pública:', storageUrl);
+      
+      // Verify the URL format
+      if (storageUrl.includes('fotos/players')) {
+        console.log('✅ URL no formato correto: fotos/players');
+      } else {
+        console.warn('⚠️ URL pode não estar no formato esperado fotos/players');
+      }
       
       setPhotoUrl(storageUrl);
       setIsProcessing(false);
       
       toast({
         title: "Foto enviada!",
-        description: "A foto foi salva com sucesso.",
+        description: "A foto foi salva com sucesso no Storage.",
       });
       
       return storageUrl;
@@ -167,7 +183,7 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
   };
 
   const clearPhoto = () => {
-    console.log('🧹 Limpando foto');
+    console.log('🧹 Limpando foto - será salvo como NULL no banco');
     setPhotoUrl(undefined);
   };
 
