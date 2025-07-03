@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { usePoker } from "@/contexts/PokerContext";
 import { Game } from "@/lib/db/models";
 
-export function useGameActions(game: Game | null, setGame: (game: Game | null) => void) {
+export function useGameActions(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { finishGame, deleteGame } = usePoker();
