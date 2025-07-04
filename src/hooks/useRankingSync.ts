@@ -5,7 +5,7 @@ import { pokerDB } from "@/lib/db";
 import { RankingEntry } from "@/lib/db/models";
 
 export function useRankingSync() {
-  const { games, activeSeason, players } = usePoker();
+  const { games, activeSeason } = usePoker();
   const { toast } = useToast();
 
   const recalculateRankings = async (seasonId?: string): Promise<RankingEntry[]> => {
@@ -16,6 +16,10 @@ export function useRankingSync() {
 
     try {
       console.log("Recalculando rankings para temporada:", seasonId);
+      
+      // Buscar dados atualizados dos jogadores diretamente do banco
+      const freshPlayers = await pokerDB.getPlayers();
+      console.log("Jogadores atualizados carregados:", freshPlayers.length);
       
       // Filtrar apenas jogos finalizados da temporada
       const finishedGames = games.filter(game => 
@@ -40,8 +44,8 @@ export function useRankingSync() {
       // Processar todos os jogos finalizados
       finishedGames.forEach(game => {
         game.players.forEach(gamePlayer => {
-          // Buscar dados do jogador
-          const player = players.find(p => p.id === gamePlayer.playerId);
+          // Buscar dados atualizados do jogador
+          const player = freshPlayers.find(p => p.id === gamePlayer.playerId);
           if (!player) return;
 
           // Buscar ou criar estatísticas do jogador
@@ -51,7 +55,7 @@ export function useRankingSync() {
             playerStat = {
               playerId: gamePlayer.playerId,
               playerName: player.name,
-              photoUrl: player.photoUrl,
+              photoUrl: player.photoUrl, // Usar dados atualizados do banco
               totalPoints: 0,
               gamesPlayed: 0,
               bestPosition: 99 // Iniciar com um valor alto
@@ -75,7 +79,7 @@ export function useRankingSync() {
         id: `${stat.playerId}-${seasonId}`,
         playerId: stat.playerId,
         playerName: stat.playerName,
-        photoUrl: stat.photoUrl,
+        photoUrl: stat.photoUrl, // Garantir que a foto esteja sincronizada
         totalPoints: stat.totalPoints,
         gamesPlayed: stat.gamesPlayed,
         bestPosition: stat.bestPosition === 99 ? 0 : stat.bestPosition,
@@ -88,6 +92,7 @@ export function useRankingSync() {
       }
 
       console.log(`Rankings recalculados e salvos: ${newRankings.length} jogadores`);
+      console.log("Fotos sincronizadas:", newRankings.filter(r => r.photoUrl).length, "de", newRankings.length);
       
       return newRankings.sort((a, b) => b.totalPoints - a.totalPoints);
     } catch (error) {
@@ -101,10 +106,48 @@ export function useRankingSync() {
     }
   };
 
+  const syncPlayerPhotosInRankings = async (seasonId?: string): Promise<void> => {
+    if (!seasonId) return;
+
+    try {
+      console.log("Sincronizando fotos dos jogadores nos rankings...");
+      
+      // Buscar dados atualizados dos jogadores
+      const freshPlayers = await pokerDB.getPlayers();
+      
+      // Buscar rankings atuais
+      const currentRankings = await pokerDB.getRankings(seasonId);
+      
+      // Atualizar fotos nos rankings
+      for (const ranking of currentRankings) {
+        const player = freshPlayers.find(p => p.id === ranking.playerId);
+        
+        if (player && player.photoUrl !== ranking.photoUrl) {
+          console.log(`Atualizando foto do jogador ${player.name}: ${ranking.photoUrl} -> ${player.photoUrl}`);
+          
+          const updatedRanking = {
+            ...ranking,
+            photoUrl: player.photoUrl,
+            playerName: player.name // Sincronizar nome também
+          };
+          
+          await pokerDB.saveRanking(updatedRanking);
+        }
+      }
+      
+      console.log("Sincronização de fotos concluída");
+    } catch (error) {
+      console.error("Erro ao sincronizar fotos dos jogadores:", error);
+    }
+  };
+
   const validateRankingConsistency = async (seasonId?: string): Promise<boolean> => {
     if (!seasonId) return true;
 
     try {
+      // Primeiro sincronizar fotos
+      await syncPlayerPhotosInRankings(seasonId);
+      
       // Obter rankings atuais do banco
       const currentRankings = await pokerDB.getRankings(seasonId);
       
@@ -142,6 +185,7 @@ export function useRankingSync() {
 
   return {
     recalculateRankings,
+    syncPlayerPhotosInRankings,
     validateRankingConsistency
   };
 }

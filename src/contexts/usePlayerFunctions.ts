@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Player } from '../lib/db/models';
@@ -41,7 +40,41 @@ export function usePlayerFunctions() {
       );
     } catch (error) {
       console.error("Error checking for duplicate names:", error);
-      return false; // Assume no duplicate on error to avoid blocking save
+      return false;
+    }
+  };
+
+  const updatePlayerRankings = async (playerId: string): Promise<void> => {
+    try {
+      // Buscar jogador atualizado
+      const updatedPlayer = await pokerDB.getPlayer(playerId);
+      if (!updatedPlayer) return;
+      
+      // Buscar todas as temporadas para atualizar rankings
+      const seasons = await pokerDB.getSeasons();
+      
+      // Atualizar rankings em todas as temporadas onde o jogador aparece
+      for (const season of seasons) {
+        const rankings = await pokerDB.getRankings(season.id);
+        const playerRanking = rankings.find(r => r.playerId === playerId);
+        
+        if (playerRanking && 
+            (playerRanking.photoUrl !== updatedPlayer.photoUrl || 
+             playerRanking.playerName !== updatedPlayer.name)) {
+          
+          console.log(`Atualizando ranking do jogador ${updatedPlayer.name} na temporada ${season.name}`);
+          
+          const updatedRanking = {
+            ...playerRanking,
+            photoUrl: updatedPlayer.photoUrl,
+            playerName: updatedPlayer.name
+          };
+          
+          await pokerDB.saveRanking(updatedRanking);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar rankings do jogador:", error);
     }
   };
 
@@ -123,6 +156,9 @@ export function usePlayerFunctions() {
       } else {
         console.log("🔗 photo_url saved as NULL to database");
       }
+      
+      // Atualizar rankings do jogador em todas as temporadas
+      await updatePlayerRankings(id);
       
       // Update local state
       setPlayers(prev => {
