@@ -10,14 +10,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils/dateUtils';
-import { Search, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Calendar, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function PlayerStatistics() {
   const { activeSeason, seasons } = usePoker();
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(activeSeason?.id || '');
-  const { playerStats } = usePlayerStats(selectedSeasonId);
+  const { playerStats, loading } = usePlayerStats(selectedSeasonId);
   const playerRatings = usePlayerRating(playerStats);
   const [searchTerm, setSearchTerm] = useState('');
   const isMobile = useIsMobile();
@@ -117,127 +118,149 @@ export default function PlayerStatistics() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-poker-black/50 border-white/10 text-white"
+            disabled={loading}
           />
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <Card className="bg-poker-black/50 border-white/10 mb-6">
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-poker-gold" />
+              <p className="text-white/70">Carregando estatísticas...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Lista de Jogadores */}
-      <div className="grid gap-4">
-        {filteredPlayers.map((playerRating, index) => {
-          const playerData = playerStats.find(p => p.playerId === playerRating.playerId);
-          if (!playerData) return null;
+      {!loading && (
+        <div className="grid gap-4">
+          {filteredPlayers.map((playerRating, index) => {
+            const playerData = playerStats.find(p => p.playerId === playerRating.playerId);
+            if (!playerData) return null;
 
-          return (
-            <Link 
-              key={playerRating.playerId}
-              to={`/statistics/player/${playerRating.playerId}?season=${selectedSeasonId}`}
-              className="block transition-transform hover:scale-[1.02]"
-            >
-              <Card className="bg-poker-black/50 border-white/10 hover:border-poker-gold/30 transition-colors">
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex items-center gap-4">
-                    {/* Posição */}
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-poker-gold/10 flex items-center justify-center">
-                        <span className="text-poker-gold font-bold text-sm md:text-base">
-                          #{index + 1}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Avatar */}
-                    <Avatar className="h-12 w-12 md:h-16 md:w-16">
-                      <AvatarImage src={playerData.photoUrl} alt={playerData.playerName} />
-                      <AvatarFallback className="bg-poker-gold text-poker-black font-bold">
-                        {getInitials(playerData.playerName)}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    {/* Informações do Jogador */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                        <div>
-                          <h3 className="font-semibold text-white text-lg md:text-xl truncate">
-                            {playerData.playerName}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <StarRating rating={playerRating.stars} size={isMobile ? 'sm' : 'md'} />
-                            <span className="text-xs md:text-sm text-white/70">
-                              Rating: {playerRating.rating}
-                            </span>
-                          </div>
+            return (
+              <Link 
+                key={playerRating.playerId}
+                to={`/statistics/player/${playerRating.playerId}?season=${selectedSeasonId}`}
+                className="block transition-transform hover:scale-[1.02]"
+              >
+                <Card className="bg-poker-black/50 border-white/10 hover:border-poker-gold/30 transition-colors">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex items-center gap-4">
+                      {/* Posição */}
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-poker-gold/10 flex items-center justify-center">
+                          <span className="text-poker-gold font-bold text-sm md:text-base">
+                            #{index + 1}
+                          </span>
                         </div>
+                      </div>
 
-                        {/* Estatísticas Principais */}
-                        <div className="flex flex-wrap gap-2 md:gap-3">
-                          <Badge variant="outline" className="border-white/20 text-white text-xs">
-                            {playerData.gamesPlayed} jogos
-                          </Badge>
-                          <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
-                            {playerData.victories} vitórias
-                          </Badge>
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${
-                              playerData.balance >= 0 
-                                ? 'border-green-500/30 text-green-400' 
-                                : 'border-red-500/30 text-red-400'
-                            }`}
-                          >
-                            <div className="flex items-center gap-1">
-                              {playerData.balance >= 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {formatCurrency(playerData.balance)}
+                      {/* Avatar */}
+                      <Avatar className="h-12 w-12 md:h-16 md:w-16">
+                        <AvatarImage src={playerData.photoUrl} alt={playerData.playerName} />
+                        <AvatarFallback className="bg-poker-gold text-poker-black font-bold">
+                          {getInitials(playerData.playerName)}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {/* Informações do Jogador */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-white text-lg md:text-xl truncate">
+                              {playerData.playerName}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <StarRating rating={playerRating.stars} size={isMobile ? 'sm' : 'md'} />
+                              <span className="text-xs md:text-sm text-white/70">
+                                Rating: {playerRating.rating}
+                              </span>
                             </div>
-                          </Badge>
+                          </div>
+
+                          {/* Estatísticas Principais */}
+                          <div className="flex flex-wrap gap-2 md:gap-3">
+                            <Badge variant="outline" className="border-white/20 text-white text-xs">
+                              {playerData.gamesPlayed} jogos
+                            </Badge>
+                            <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
+                              {playerData.victories} vitórias
+                            </Badge>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                playerData.balance >= 0 
+                                  ? 'border-green-500/30 text-green-400' 
+                                  : 'border-red-500/30 text-red-400'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1">
+                                {playerData.balance >= 0 ? (
+                                  <TrendingUp className="h-3 w-3" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3" />
+                                )}
+                                {formatCurrency(playerData.balance)}
+                              </div>
+                            </Badge>
+                          </div>
                         </div>
+
+                        {/* Métricas Detalhadas (Desktop) */}
+                        {!isMobile && (
+                          <div className="mt-3 grid grid-cols-5 gap-4 text-xs text-white/70">
+                            <div>
+                              <span className="block font-medium">Taxa Vitória</span>
+                              <span>{playerData.winRate.toFixed(1)}%</span>
+                            </div>
+                            <div>
+                              <span className="block font-medium">ROI</span>
+                              <span className={playerData.roi >= 0 ? 'text-green-400' : 'text-red-400'}>
+                                {playerData.roi.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block font-medium">ITM</span>
+                              <span>{playerData.itmRate.toFixed(1)}%</span>
+                            </div>
+                            <div>
+                              <span className="block font-medium">Pos. Média</span>
+                              <span>{playerData.averagePosition.toFixed(1)}</span>
+                            </div>
+                            <div>
+                              <span className="block font-medium">Pontos</span>
+                              <span className="text-poker-gold">{playerData.totalPoints}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
-
-                      {/* Métricas Detalhadas (Desktop) */}
-                      {!isMobile && (
-                        <div className="mt-3 grid grid-cols-5 gap-4 text-xs text-white/70">
-                          <div>
-                            <span className="block font-medium">Taxa Vitória</span>
-                            <span>{playerData.winRate.toFixed(1)}%</span>
-                          </div>
-                          <div>
-                            <span className="block font-medium">ROI</span>
-                            <span className={playerData.roi >= 0 ? 'text-green-400' : 'text-red-400'}>
-                              {playerData.roi.toFixed(1)}%
-                            </span>
-                          </div>
-                          <div>
-                            <span className="block font-medium">ITM</span>
-                            <span>{playerData.itmRate.toFixed(1)}%</span>
-                          </div>
-                          <div>
-                            <span className="block font-medium">Pos. Média</span>
-                            <span>{playerData.averagePosition.toFixed(1)}</span>
-                          </div>
-                          <div>
-                            <span className="block font-medium">Pontos</span>
-                            <span className="text-poker-gold">{playerData.totalPoints}</span>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
-      {filteredPlayers.length === 0 && (
+      {!loading && filteredPlayers.length === 0 && (
         <Card className="bg-poker-black/50 border-white/10">
           <CardContent className="flex items-center justify-center py-8">
-            <p className="text-white/70">
-              {searchTerm ? 'Nenhum jogador encontrado.' : 'Nenhum dado de estatística disponível para esta temporada.'}
-            </p>
+            <div className="text-center">
+              <p className="text-white/70 mb-2">
+                {searchTerm ? 'Nenhum jogador encontrado.' : 'Nenhum dado de estatística disponível para esta temporada.'}
+              </p>
+              {!searchTerm && (
+                <p className="text-white/50 text-sm">
+                  Esta temporada pode não ter dados de jogos ou rankings ainda.
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
