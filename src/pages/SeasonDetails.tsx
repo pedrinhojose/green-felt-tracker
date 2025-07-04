@@ -23,6 +23,14 @@ interface PlayerStat {
   totalPoints: number;
 }
 
+// Interface para os ganhadores do jackpot
+interface JackpotWinner {
+  playerId: string;
+  playerName: string;
+  position: number;
+  jackpotAmount: number;
+}
+
 export default function SeasonDetails() {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
@@ -35,6 +43,7 @@ export default function SeasonDetails() {
   const [playerStats, setPlayerStats] = useState<PlayerStat[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  const [jackpotWinners, setJackpotWinners] = useState<JackpotWinner[]>([]);
   
   // Funções auxiliares para o ranking
   const getInitials = (name: string) => {
@@ -53,6 +62,34 @@ export default function SeasonDetails() {
       case 2: return '🥉';
       default: return (position + 1).toString();
     }
+  };
+
+  // Função para calcular os ganhadores do jackpot
+  const calculateJackpotWinners = (season: Season, rankings: RankingEntry[]): JackpotWinner[] => {
+    if (!season.seasonPrizeSchema || rankings.length === 0) {
+      return [];
+    }
+
+    const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
+    const winners: JackpotWinner[] = [];
+    const totalJackpot = season.jackpot;
+
+    for (let i = 0; i < Math.min(season.seasonPrizeSchema.length, sortedRankings.length); i++) {
+      const prizeEntry = season.seasonPrizeSchema[i];
+      const ranking = sortedRankings[i];
+      
+      if (prizeEntry && ranking) {
+        const jackpotAmount = (totalJackpot * prizeEntry.percentage) / 100;
+        winners.push({
+          playerId: ranking.playerId,
+          playerName: ranking.playerName,
+          position: prizeEntry.position,
+          jackpotAmount: jackpotAmount
+        });
+      }
+    }
+
+    return winners;
   };
   
   useEffect(() => {
@@ -81,6 +118,10 @@ export default function SeasonDetails() {
         // Carregar ranking da temporada
         const rankingsData = await pokerDB.getRankings(seasonId);
         setRankings(rankingsData);
+        
+        // Calcular ganhadores do jackpot
+        const winners = calculateJackpotWinners(seasonData, rankingsData);
+        setJackpotWinners(winners);
         
         // Calcular estatísticas dos jogadores
         calculatePlayerStats(gamesData, rankingsData);
@@ -235,8 +276,27 @@ export default function SeasonDetails() {
                       
                       <div className="flex items-center text-sm">
                         <Trophy className="h-4 w-4 mr-2 text-poker-gold" />
-                        <span>Jackpot: {formatCurrency(season.jackpot)}</span>
+                        <span>Jackpot Final: {formatCurrency(season.jackpot)}</span>
                       </div>
+
+                      {/* Lista de ganhadores do jackpot */}
+                      {jackpotWinners.length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Distribuição do Jackpot:</h4>
+                          <div className="space-y-1">
+                            {jackpotWinners.map((winner, index) => (
+                              <div key={winner.playerId} className="flex justify-between items-center text-xs">
+                                <span className="text-gray-600">
+                                  {index + 1}º {winner.playerName}
+                                </span>
+                                <span className="font-medium text-poker-gold">
+                                  {formatCurrency(winner.jackpotAmount)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                   
