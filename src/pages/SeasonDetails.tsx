@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -326,15 +325,6 @@ export default function SeasonDetails() {
                           </div>
                         </div>
                       )}
-
-                      {/* Debug info temporário */}
-                      <div className="mt-4 pt-3 border-t border-red-200 bg-red-50 p-2 rounded text-xs">
-                        <div>Debug Info:</div>
-                        <div>Jackpot: {season.jackpot}</div>
-                        <div>Prize Schema: {JSON.stringify(season.seasonPrizeSchema)}</div>
-                        <div>Winners: {jackpotWinners.length}</div>
-                        <div>Rankings: {rankings.length}</div>
-                      </div>
                     </CardContent>
                   </Card>
                   
