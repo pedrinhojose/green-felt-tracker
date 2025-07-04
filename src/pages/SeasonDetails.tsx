@@ -74,16 +74,17 @@ export default function SeasonDetails() {
     const winners: JackpotWinner[] = [];
     const totalJackpot = season.jackpot;
 
+    // Distribuir prêmios baseado na ordem do ranking (1º, 2º, 3º lugar)
     for (let i = 0; i < Math.min(season.seasonPrizeSchema.length, sortedRankings.length); i++) {
       const prizeEntry = season.seasonPrizeSchema[i];
-      const ranking = sortedRankings[i];
+      const ranking = sortedRankings[i]; // i-ésimo jogador no ranking
       
       if (prizeEntry && ranking) {
         const jackpotAmount = (totalJackpot * prizeEntry.percentage) / 100;
         winners.push({
           playerId: ranking.playerId,
           playerName: ranking.playerName,
-          position: prizeEntry.position,
+          position: i + 1, // Posição no ranking (1º, 2º, 3º...)
           jackpotAmount: jackpotAmount
         });
       }
