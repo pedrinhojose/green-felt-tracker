@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -305,18 +304,6 @@ export default function SeasonDetails() {
                       <div className="flex items-center text-sm">
                         <Trophy className="h-4 w-4 mr-2 text-poker-gold" />
                         <span>Jackpot Final: {formatCurrency(season.jackpot)}</span>
-                      </div>
-
-                      {/* DEBUG: Informações visíveis */}
-                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-                        <div className="font-semibold text-blue-800 mb-2">🔍 DEBUG INFO:</div>
-                        <div className="space-y-1 text-blue-700">
-                          <div><strong>Jackpot da temporada:</strong> R$ {season.jackpot}</div>
-                          <div><strong>Schema de premiação:</strong> {season.seasonPrizeSchema ? JSON.stringify(season.seasonPrizeSchema) : 'UNDEFINED'}</div>
-                          <div><strong>Número de rankings:</strong> {rankings.length}</div>
-                          <div><strong>Número de ganhadores calculados:</strong> {jackpotWinners.length}</div>
-                          <div><strong>Ganhadores:</strong> {jackpotWinners.map(w => `${w.playerName}: R$ ${w.jackpotAmount}`).join(', ') || 'NENHUM'}</div>
-                        </div>
                       </div>
 
                       {/* Lista de ganhadores do jackpot */}
