@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -66,21 +67,38 @@ export default function SeasonDetails() {
 
   // Função para calcular os ganhadores do jackpot
   const calculateJackpotWinners = (season: Season, rankings: RankingEntry[]): JackpotWinner[] => {
+    console.log("=== Calculando ganhadores do jackpot ===");
+    console.log("Season:", season.name);
+    console.log("Jackpot total:", season.jackpot);
+    console.log("Prize schema:", season.seasonPrizeSchema);
+    console.log("Rankings recebidos:", rankings.length);
+    
     if (!season.seasonPrizeSchema || rankings.length === 0) {
+      console.log("Sem prize schema ou rankings, retornando array vazio");
       return [];
     }
 
     const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
+    console.log("Rankings ordenados:", sortedRankings.map(r => ({ name: r.playerName, points: r.totalPoints })));
+    
     const winners: JackpotWinner[] = [];
     const totalJackpot = season.jackpot;
 
+    console.log("Processando prêmios...");
     // Distribuir prêmios baseado na ordem do ranking (1º, 2º, 3º lugar)
     for (let i = 0; i < Math.min(season.seasonPrizeSchema.length, sortedRankings.length); i++) {
       const prizeEntry = season.seasonPrizeSchema[i];
       const ranking = sortedRankings[i]; // i-ésimo jogador no ranking
       
+      console.log(`Posição ${i + 1}:`, {
+        prizeEntry,
+        ranking: { name: ranking?.playerName, points: ranking?.totalPoints }
+      });
+      
       if (prizeEntry && ranking) {
         const jackpotAmount = (totalJackpot * prizeEntry.percentage) / 100;
+        console.log(`Calculando: ${totalJackpot} * ${prizeEntry.percentage} / 100 = ${jackpotAmount}`);
+        
         winners.push({
           playerId: ranking.playerId,
           playerName: ranking.playerName,
@@ -90,6 +108,7 @@ export default function SeasonDetails() {
       }
     }
 
+    console.log("Ganhadores calculados:", winners);
     return winners;
   };
   
@@ -110,6 +129,13 @@ export default function SeasonDetails() {
           navigate("/seasons");
           return;
         }
+        
+        console.log("Dados da temporada carregados:", {
+          name: seasonData.name,
+          jackpot: seasonData.jackpot,
+          prizeSchema: seasonData.seasonPrizeSchema
+        });
+        
         setSeason(seasonData);
         
         // Carregar jogos da temporada
@@ -119,6 +145,8 @@ export default function SeasonDetails() {
         // Carregar ranking da temporada
         const rankingsData = await pokerDB.getRankings(seasonId);
         setRankings(rankingsData);
+        
+        console.log("Rankings carregados:", rankingsData.map(r => ({ name: r.playerName, points: r.totalPoints })));
         
         // Calcular ganhadores do jackpot
         const winners = calculateJackpotWinners(seasonData, rankingsData);
@@ -298,6 +326,15 @@ export default function SeasonDetails() {
                           </div>
                         </div>
                       )}
+
+                      {/* Debug info temporário */}
+                      <div className="mt-4 pt-3 border-t border-red-200 bg-red-50 p-2 rounded text-xs">
+                        <div>Debug Info:</div>
+                        <div>Jackpot: {season.jackpot}</div>
+                        <div>Prize Schema: {JSON.stringify(season.seasonPrizeSchema)}</div>
+                        <div>Winners: {jackpotWinners.length}</div>
+                        <div>Rankings: {rankings.length}</div>
+                      </div>
                     </CardContent>
                   </Card>
                   
