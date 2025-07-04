@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -66,48 +67,47 @@ export default function SeasonDetails() {
 
   // Função para calcular os ganhadores do jackpot
   const calculateJackpotWinners = (season: Season, rankings: RankingEntry[]): JackpotWinner[] => {
-    console.log("=== Calculando ganhadores do jackpot ===");
-    console.log("Season:", season.name);
-    console.log("Jackpot total:", season.jackpot);
-    console.log("Prize schema:", season.seasonPrizeSchema);
-    console.log("Rankings recebidos:", rankings.length);
+    console.log("=== DEBUG: Calculando ganhadores do jackpot ===");
+    console.log("Season jackpot:", season.jackpot);
+    console.log("Season prize schema:", season.seasonPrizeSchema);
+    console.log("Rankings count:", rankings.length);
     
     if (!season.seasonPrizeSchema || rankings.length === 0) {
-      console.log("Sem prize schema ou rankings, retornando array vazio");
+      console.log("Sem prize schema ou rankings");
       return [];
     }
 
     const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
-    console.log("Rankings ordenados:", sortedRankings.map(r => ({ name: r.playerName, points: r.totalPoints })));
-    
     const winners: JackpotWinner[] = [];
     const totalJackpot = season.jackpot;
+    
+    console.log("Total jackpot para distribuir:", totalJackpot);
+    console.log("Prize schema detalhado:", season.seasonPrizeSchema);
 
-    console.log("Processando prêmios...");
-    // Distribuir prêmios baseado na ordem do ranking (1º, 2º, 3º lugar)
+    // Distribuir prêmios baseado na ordem do ranking
     for (let i = 0; i < Math.min(season.seasonPrizeSchema.length, sortedRankings.length); i++) {
       const prizeEntry = season.seasonPrizeSchema[i];
-      const ranking = sortedRankings[i]; // i-ésimo jogador no ranking
+      const ranking = sortedRankings[i];
       
-      console.log(`Posição ${i + 1}:`, {
-        prizeEntry,
-        ranking: { name: ranking?.playerName, points: ranking?.totalPoints }
-      });
+      console.log(`=== Posição ${i + 1} ===`);
+      console.log("Prize entry:", prizeEntry);
+      console.log("Ranking player:", ranking?.playerName);
+      console.log("Player points:", ranking?.totalPoints);
       
       if (prizeEntry && ranking) {
         const jackpotAmount = (totalJackpot * prizeEntry.percentage) / 100;
-        console.log(`Calculando: ${totalJackpot} * ${prizeEntry.percentage} / 100 = ${jackpotAmount}`);
+        console.log(`Cálculo: ${totalJackpot} * ${prizeEntry.percentage} / 100 = ${jackpotAmount}`);
         
         winners.push({
           playerId: ranking.playerId,
           playerName: ranking.playerName,
-          position: i + 1, // Posição no ranking (1º, 2º, 3º...)
+          position: i + 1,
           jackpotAmount: jackpotAmount
         });
       }
     }
 
-    console.log("Ganhadores calculados:", winners);
+    console.log("Winners finais:", winners);
     return winners;
   };
   
@@ -305,6 +305,18 @@ export default function SeasonDetails() {
                       <div className="flex items-center text-sm">
                         <Trophy className="h-4 w-4 mr-2 text-poker-gold" />
                         <span>Jackpot Final: {formatCurrency(season.jackpot)}</span>
+                      </div>
+
+                      {/* DEBUG: Informações visíveis */}
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+                        <div className="font-semibold text-blue-800 mb-2">🔍 DEBUG INFO:</div>
+                        <div className="space-y-1 text-blue-700">
+                          <div><strong>Jackpot da temporada:</strong> R$ {season.jackpot}</div>
+                          <div><strong>Schema de premiação:</strong> {season.seasonPrizeSchema ? JSON.stringify(season.seasonPrizeSchema) : 'UNDEFINED'}</div>
+                          <div><strong>Número de rankings:</strong> {rankings.length}</div>
+                          <div><strong>Número de ganhadores calculados:</strong> {jackpotWinners.length}</div>
+                          <div><strong>Ganhadores:</strong> {jackpotWinners.map(w => `${w.playerName}: R$ ${w.jackpotAmount}`).join(', ') || 'NENHUM'}</div>
+                        </div>
                       </div>
 
                       {/* Lista de ganhadores do jackpot */}
