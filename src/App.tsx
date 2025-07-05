@@ -10,7 +10,7 @@ import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { PokerProvider } from "@/contexts/PokerContext";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { ThemeProvider } from "@/components/ui/theme-provider";
-import { RequireAuth } from "@/components/RequireAuth";
+import RequireAuth from "@/components/RequireAuth";
 import { OrganizationRequired } from "@/components/organizations/OrganizationRequired";
 import AppLayout from "@/components/layout/AppLayout";
 import Index from "@/pages/Index";

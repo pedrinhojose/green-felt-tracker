@@ -111,17 +111,15 @@ export default function SeasonReportById() {
             gamesPlayed: 0,
             victories: 0,
             averagePosition: 0,
-            bestPosition: 10,
+            totalWinnings: 0,
+            totalInvestment: 0,
+            balance: 0,
             totalPoints: rankingPlayer.totalPoints,
-            totalSpent: 0,
-            totalWon: 0,
-            totalBuyIns: 0,
             totalRebuys: 0,
-            totalAddons: 0,
-            dinnerParticipations: 0,
-            averageSpentPerGame: 0,
-            profitLoss: 0,
-            roi: 0
+            roi: 0,
+            winRate: 0,
+            itmRate: 0,
+            biggestPrize: 0
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
         }
@@ -133,20 +131,14 @@ export default function SeasonReportById() {
           playerStat.victories++;
         }
         
-        if (gamePlayer.position < playerStat.bestPosition) {
-          playerStat.bestPosition = gamePlayer.position;
-        }
-        
         // Calcular gastos e ganhos
-        const totalSpent = (gamePlayer.buyIns || 0) + (gamePlayer.rebuys || 0) + (gamePlayer.addons || 0);
-        playerStat.totalSpent += totalSpent;
-        playerStat.totalWon += gamePlayer.prize || 0;
-        playerStat.totalBuyIns += gamePlayer.buyIns || 0;
+        const totalSpent = (gamePlayer.buyIn ? 1 : 0) + (gamePlayer.rebuys || 0) + (gamePlayer.addons || 0);
+        playerStat.totalInvestment += totalSpent;
+        playerStat.totalWinnings += gamePlayer.prize || 0;
         playerStat.totalRebuys += gamePlayer.rebuys || 0;
-        playerStat.totalAddons += gamePlayer.addons || 0;
         
-        if (gamePlayer.joinedDinner) {
-          playerStat.dinnerParticipations++;
+        if (gamePlayer.prize && gamePlayer.prize > playerStat.biggestPrize) {
+          playerStat.biggestPrize = gamePlayer.prize;
         }
       });
     });
@@ -162,9 +154,13 @@ export default function SeasonReportById() {
         playerStat.averagePosition = sum / playerGames.length;
       }
       
-      playerStat.averageSpentPerGame = playerStat.gamesPlayed > 0 ? playerStat.totalSpent / playerStat.gamesPlayed : 0;
-      playerStat.profitLoss = playerStat.totalWon - playerStat.totalSpent;
-      playerStat.roi = playerStat.totalSpent > 0 ? (playerStat.profitLoss / playerStat.totalSpent) * 100 : 0;
+      playerStat.balance = playerStat.totalWinnings - playerStat.totalInvestment;
+      playerStat.roi = playerStat.totalInvestment > 0 ? (playerStat.balance / playerStat.totalInvestment) * 100 : 0;
+      playerStat.winRate = playerStat.gamesPlayed > 0 ? (playerStat.victories / playerStat.gamesPlayed) * 100 : 0;
+      
+      // Calculate ITM rate (assuming top 3 positions are "in the money")
+      const itmCount = playerGames.filter(game => game.position <= 3).length;
+      playerStat.itmRate = playerStat.gamesPlayed > 0 ? (itmCount / playerStat.gamesPlayed) * 100 : 0;
     });
     
     return Array.from(playerStatsMap.values()).sort((a, b) => b.totalPoints - a.totalPoints);
@@ -175,7 +171,7 @@ export default function SeasonReportById() {
     const totalPlayers = new Set(gamesData.flatMap(game => game.players.map(p => p.playerId))).size;
     const totalPrizePool = gamesData.reduce((sum, game) => sum + game.totalPrizePool, 0);
     const totalBuyIns = gamesData.reduce((sum, game) => 
-      sum + game.players.reduce((gameSum, player) => gameSum + (player.buyIns || 0), 0), 0);
+      sum + game.players.reduce((gameSum, player) => gameSum + (player.buyIn ? 1 : 0), 0), 0);
     const totalRebuys = gamesData.reduce((sum, game) => 
       sum + game.players.reduce((gameSum, player) => gameSum + (player.rebuys || 0), 0), 0);
     const totalAddons = gamesData.reduce((sum, game) => 
