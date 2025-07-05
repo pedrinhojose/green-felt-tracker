@@ -3,13 +3,14 @@ import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import React from 'react';
 
 interface RequireAuthProps {
   children: React.ReactNode;
   requiredRole?: 'admin' | 'player' | 'viewer';
 }
 
-export default function RequireAuth({ children, requiredRole }: RequireAuthProps) {
+const RequireAuth: React.FC<RequireAuthProps> = ({ children, requiredRole }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   const { hasRole, isCheckingRole } = useUserRole();
@@ -38,4 +39,6 @@ export default function RequireAuth({ children, requiredRole }: RequireAuthProps
   
   // Se há usuário e tem o papel necessário (ou não necessita de papel específico), renderize o conteúdo protegido
   return <>{children}</>;
-}
+};
+
+export default RequireAuth;
