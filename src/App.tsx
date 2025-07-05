@@ -31,7 +31,7 @@ import SeasonReportById from "@/pages/SeasonReportById";
 import TimerPage from "@/pages/TimerPage";
 import HouseRules from "@/pages/HouseRules";
 import NotFound from "@/pages/NotFound";
-import OrganizationSelectionPage from "@/pages/OrganizationSelectionPage";
+import { OrganizationSelectionPage } from "@/pages/OrganizationSelectionPage";
 import OrganizationsPage from "@/pages/OrganizationsPage";
 import OrganizationSettingsPage from "@/pages/OrganizationSettingsPage";
 import OrganizationMembersPage from "@/pages/OrganizationMembersPage";
