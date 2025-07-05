@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Trophy, Trash, FileText } from "lucide-react";
+import { Calendar, ChevronRight, Trophy, Trash } from "lucide-react";
 import { formatDate } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
@@ -108,11 +108,6 @@ export default function SeasonsList() {
     }
   };
   
-  const handleSeasonReport = (seasonId: string) => {
-    // Navigate to season report for the specific season
-    navigate(`/seasons/${seasonId}/report`);
-  };
-  
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6 flex justify-between items-center">
@@ -206,22 +201,7 @@ export default function SeasonsList() {
                       </div>
                     )}
                     
-                    <div className="mt-4 flex justify-end gap-2">
-                      {status === "finished" && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="flex items-center text-poker-gold hover:bg-poker-gold/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSeasonReport(season.id);
-                          }}
-                        >
-                          <FileText className="h-4 w-4 mr-1" />
-                          Relatório
-                        </Button>
-                      )}
-                      
+                    <div className="mt-4 flex justify-end">
                       <Button 
                         variant="ghost" 
                         size="sm" 

@@ -4,13 +4,12 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
-import React from 'react';
 
 interface OrganizationRequiredProps {
   children: React.ReactNode;
 }
 
-const OrganizationRequired = ({ children }: React.PropsWithChildren<OrganizationRequiredProps>) => {
+export function OrganizationRequired({ children }: OrganizationRequiredProps) {
   const { isLoading, organizations, currentOrganization } = useOrganization();
   const { user, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
@@ -80,6 +79,4 @@ const OrganizationRequired = ({ children }: React.PropsWithChildren<Organization
   }
   
   return <>{children}</>;
-};
-
-export { OrganizationRequired };
+}
