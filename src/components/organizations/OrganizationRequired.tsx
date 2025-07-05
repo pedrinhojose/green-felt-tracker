@@ -10,7 +10,7 @@ interface OrganizationRequiredProps {
   children: React.ReactNode;
 }
 
-const OrganizationRequired: React.FC<OrganizationRequiredProps> = ({ children }) => {
+const OrganizationRequired = ({ children }: React.PropsWithChildren<OrganizationRequiredProps>) => {
   const { isLoading, organizations, currentOrganization } = useOrganization();
   const { user, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();

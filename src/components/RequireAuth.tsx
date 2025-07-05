@@ -10,7 +10,7 @@ interface RequireAuthProps {
   requiredRole?: 'admin' | 'player' | 'viewer';
 }
 
-const RequireAuth: React.FC<RequireAuthProps> = ({ children, requiredRole }) => {
+const RequireAuth = ({ children, requiredRole }: React.PropsWithChildren<RequireAuthProps>) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   const { hasRole, isCheckingRole } = useUserRole();
