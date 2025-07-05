@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: 'Painel', path: '/dashboard' },
   { name: 'Configuração', path: '/season' },
+  { name: 'Temporadas', path: '/seasons' },
   { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
   { name: 'Jogadores', path: '/players' },

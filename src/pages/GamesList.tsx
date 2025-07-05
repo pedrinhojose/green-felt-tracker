@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { usePoker } from "@/contexts/PokerContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText, List, Trash } from "lucide-react";
+import { FileText, Trash } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -112,15 +111,6 @@ export default function GamesList() {
         </div>
         
         <div className="flex gap-2 mt-4 sm:mt-0">
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/seasons')}
-            className="mr-2"
-          >
-            <List className="mr-2 h-4 w-4" />
-            Ver Temporadas
-          </Button>
-          
           {activeSeason && sortedGames.length > 0 && (
             <Button 
               variant="outline"
