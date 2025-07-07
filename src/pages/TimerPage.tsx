@@ -2,15 +2,12 @@
 import { useParams } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import CircularTimer from "@/components/game/blindTimer/CircularTimer";
-import SimpleTimerControls from "@/components/game/blindTimer/SimpleTimerControls";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAudioContext } from "@/contexts/AudioContext";
-import { useTimerState } from "@/components/game/blindTimer/useTimerState";
-import { useTimerControls } from "@/components/game/blindTimer/useTimerControls";
 
 export default function TimerPage() {
   const { gameId } = useParams<{ gameId?: string }>();
@@ -45,33 +42,6 @@ export default function TimerPage() {
     activeSeason.blindStructure && 
     activeSeason.blindStructure.length > 0;
 
-  console.log("=== TIMER PAGE - DEBUG CONTROLES ===");
-  console.log("hasBlindStructure:", hasBlindStructure);
-
-  // Initialize timer state and controls if we have blind structure
-  const timerState = hasBlindStructure ? useTimerState(activeSeason.blindStructure) : null;
-  
-  console.log("timerState criado:", !!timerState);
-  console.log("timerState details:", timerState ? {
-    hasState: !!timerState.state,
-    hasSortedLevels: !!timerState.sortedBlindLevels,
-    levelsCount: timerState.sortedBlindLevels?.length || 0
-  } : 'null');
-
-  const timerControls = hasBlindStructure && timerState ? useTimerControls(
-    timerState.sortedBlindLevels,
-    timerState.state,
-    timerState.setState,
-    timerState.timeRemainingInLevel
-  ) : null;
-
-  console.log("timerControls criado:", !!timerControls);
-  console.log("timerControls functions:", timerControls ? {
-    hasStartTimer: typeof timerControls.startTimer === 'function',
-    hasPauseTimer: typeof timerControls.pauseTimer === 'function',
-    hasNextLevel: typeof timerControls.nextLevel === 'function'
-  } : 'null');
-
   if (!hasBlindStructure) {
     return (
       <div className={`flex items-center justify-center min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep ${isMobile ? 'p-2' : 'p-4'}`}>
@@ -90,45 +60,11 @@ export default function TimerPage() {
     );
   }
 
-  // Funções de fallback para garantir que os controles sempre funcionem
-  const fallbackControls = {
-    startTimer: () => console.log("Fallback: Start timer"),
-    pauseTimer: () => console.log("Fallback: Pause timer"),
-    nextLevel: () => console.log("Fallback: Next level"),
-    previousLevel: () => console.log("Fallback: Previous level"),
-    toggleSound: () => console.log("Fallback: Toggle sound"),
-    openInNewWindow: () => console.log("Fallback: Open new window"),
-    toggleFullScreen: () => console.log("Fallback: Toggle fullscreen"),
-    reloadAudio: () => console.log("Fallback: Reload audio"),
-    hasOpenedNewWindow: false
-  };
-
-  const fallbackState = {
-    isRunning: false,
-    soundEnabled: true
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container relative">
+    <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container">
       <div className="w-full h-full">
-        <CircularTimer 
-          timerState={timerState}
-          timerControls={timerControls}
-        />
+        <CircularTimer />
       </div>
-      
-      {/* Novos controles simples - SEMPRE VISÍVEIS */}
-      <SimpleTimerControls
-        isRunning={timerState?.state?.isRunning || fallbackState.isRunning}
-        soundEnabled={timerState?.state?.soundEnabled || fallbackState.soundEnabled}
-        onStart={timerControls?.startTimer || fallbackControls.startTimer}
-        onPause={timerControls?.pauseTimer || fallbackControls.pauseTimer}
-        onNext={timerControls?.nextLevel || fallbackControls.nextLevel}
-        onPrevious={timerControls?.previousLevel || fallbackControls.previousLevel}
-        onToggleSound={timerControls?.toggleSound || fallbackControls.toggleSound}
-        onOpenNewWindow={timerControls?.openInNewWindow || fallbackControls.openInNewWindow}
-        onToggleFullScreen={timerControls?.toggleFullScreen || fallbackControls.toggleFullScreen}
-      />
     </div>
   );
 }

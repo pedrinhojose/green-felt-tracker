@@ -33,34 +33,34 @@ export default function CircularTimerControls({
 
   return (
     <>
-      {/* Controles principais - FIXED na borda inferior */}
-      <div className={`fixed bottom-0 left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'pb-2' : 'pb-4'}`}>
-        <div className={`flex justify-center items-center ${isMobile ? 'gap-4' : 'gap-8'}`}>
+      {/* Controles centrais na parte inferior */}
+      <div className={`absolute ${isMobile ? 'bottom-6' : 'bottom-12'} left-1/2 -translate-x-1/2`}>
+        <div className={`flex justify-center items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
           {/* Botão ANTERIOR */}
           <Button 
             onClick={onPrevious}
             variant="ghost"
-            size={isMobile ? "default" : "lg"}
-            className={`text-white hover:text-poker-gold ${isMobile ? 'p-3' : 'p-4'} bg-transparent border border-white/30 rounded-lg hover:border-poker-gold/50`}
+            size={isMobile ? "sm" : "lg"}
+            className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded-lg hover:border-poker-gold/50`}
           >
-            <SkipBack className={`${isMobile ? 'h-5 w-5' : 'h-7 w-7'}`} />
+            <SkipBack className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
           </Button>
           
           {/* Botão Principal - INICIAR/PAUSAR */}
           {!isRunning ? (
             <Button 
               onClick={onStart}
-              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-6 py-3 text-base' : 'px-10 py-4 text-xl'} font-bold rounded-lg`}
+              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-4 py-2 text-sm' : 'px-8 py-3 text-lg'} font-bold rounded-lg`}
             >
-              <Play className={`${isMobile ? 'h-4 w-4 mr-2' : 'h-6 w-6 mr-3'}`} />
+              <Play className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-5 w-5 mr-2'}`} />
               INICIAR
             </Button>
           ) : (
             <Button 
               onClick={onPause}
-              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-6 py-3 text-base' : 'px-10 py-4 text-xl'} font-bold rounded-lg`}
+              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-4 py-2 text-sm' : 'px-8 py-3 text-lg'} font-bold rounded-lg`}
             >
-              <Pause className={`${isMobile ? 'h-4 w-4 mr-2' : 'h-6 w-6 mr-3'}`} />
+              <Pause className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-5 w-5 mr-2'}`} />
               PAUSAR
             </Button>
           )}
@@ -69,61 +69,58 @@ export default function CircularTimerControls({
           <Button 
             onClick={onNext}
             variant="ghost"
-            size={isMobile ? "default" : "lg"}
-            className={`text-white hover:text-poker-gold ${isMobile ? 'p-3' : 'p-4'} bg-transparent border border-white/30 rounded-lg hover:border-poker-gold/50`}
+            size={isMobile ? "sm" : "lg"}
+            className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded-lg hover:border-poker-gold/50`}
           >
-            <SkipForward className={`${isMobile ? 'h-5 w-5' : 'h-7 w-7'}`} />
+            <SkipForward className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
           </Button>
         </div>
       </div>
 
-      {/* Controles de áudio/sistema - FIXED no canto inferior esquerdo */}
-      <div className={`fixed bottom-0 left-0 flex gap-2 z-40 ${isMobile ? 'p-1' : 'p-2'}`}>
-        {/* Botão Som */}
+      {/* Botão "ABRIR EM NOVA JANELA" no canto inferior direito */}
+      <div className={`absolute ${isMobile ? 'bottom-4 right-4' : 'bottom-8 right-8'}`}>
+        <Button 
+          onClick={onOpenNewWindow}
+          variant="outline"
+          className={`bg-transparent border border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'} font-normal rounded`}
+        >
+          <ExternalLink className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
+          {isMobile ? 'NOVA JANELA' : 'ABRIR EM NOVA JANELA'}
+        </Button>
+      </div>
+
+      {/* Controles adicionais no canto inferior esquerdo */}
+      <div className={`absolute ${isMobile ? 'bottom-4 left-4' : 'bottom-8 left-8'} flex gap-2`}>
         <Button 
           onClick={onToggleSound}
           variant="ghost"
           size="icon"
-          className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-9 w-9' : 'h-12 w-12'}`}
+          className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
           title={soundEnabled ? "Som Ativado" : "Som Desativado"}
         >
-          {soundEnabled ? <Bell className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} /> : <BellOff className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />}
+          {soundEnabled ? <Bell className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} /> : <BellOff className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />}
         </Button>
         
-        {/* Botão Recarregar Som */}
         {onReloadAudio && (
           <Button
             onClick={onReloadAudio}
             variant="ghost"
             size="icon"
-            className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-9 w-9' : 'h-12 w-12'}`}
+            className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
             title="Recarregar Sons"
           >
-            <RefreshCw className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+            <RefreshCw className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           </Button>
         )}
         
-        {/* Botão Tela Cheia */}
         <Button 
           onClick={onToggleFullScreen}
           variant="ghost"
           size="icon"
-          className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-9 w-9' : 'h-12 w-12'}`}
+          className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
           title="Tela Cheia"
         >
-          <Maximize2 className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-        </Button>
-      </div>
-
-      {/* Botão "ABRIR EM NOVA JANELA" - FIXED no canto inferior direito */}
-      <div className={`fixed bottom-0 right-0 z-40 ${isMobile ? 'p-1' : 'p-2'}`}>
-        <Button 
-          onClick={onOpenNewWindow}
-          variant="outline"
-          className={`bg-transparent border border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} font-normal rounded`}
-        >
-          <ExternalLink className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
-          {isMobile ? 'NOVA JANELA' : 'ABRIR EM NOVA JANELA'}
+          <Maximize2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
         </Button>
       </div>
     </>
