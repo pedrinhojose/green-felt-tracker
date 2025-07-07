@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -50,27 +51,27 @@ export default function SeasonDetails() {
   // Usar o hook usePlayerStats para obter dados detalhados de performance
   const { playerStats: detailedPlayerStats, loading: statsLoading } = usePlayerStats(seasonId);
   
-  // Funções auxiliares para o ranking
-  const getInitials = (name: string) => {
+  // Memoizar funções auxiliares para evitar re-renders
+  const getInitials = useCallback((name: string) => {
     return name
       .split(' ')
       .map(word => word[0])
       .join('')
       .toUpperCase()
       .substring(0, 2);
-  };
+  }, []);
   
-  const getMedalEmoji = (position: number) => {
+  const getMedalEmoji = useCallback((position: number) => {
     switch (position) {
       case 0: return '🥇';
       case 1: return '🥈';
       case 2: return '🥉';
       default: return (position + 1).toString();
     }
-  };
+  }, []);
 
-  // Função para calcular os ganhadores do jackpot
-  const calculateJackpotWinners = (season: Season, rankings: RankingEntry[]): JackpotWinner[] => {
+  // Memoizar função de cálculo do jackpot
+  const calculateJackpotWinners = useCallback((season: Season, rankings: RankingEntry[]): JackpotWinner[] => {
     console.log("=== DEBUG: Calculando ganhadores do jackpot ===");
     console.log("Season jackpot:", season.jackpot);
     console.log("Season prize schema:", season.seasonPrizeSchema);
@@ -131,68 +132,10 @@ export default function SeasonDetails() {
 
     console.log("Winners finais:", winners);
     return winners;
-  };
-  
-  useEffect(() => {
-    if (!seasonId) return;
-    
-    const loadSeasonDetails = async () => {
-      try {
-        setLoading(true);
-        // Carregar dados da temporada
-        const seasonData = await pokerDB.getSeason(seasonId);
-        if (!seasonData) {
-          toast({
-            title: "Erro",
-            description: "Temporada não encontrada.",
-            variant: "destructive",
-          });
-          navigate("/seasons");
-          return;
-        }
-        
-        console.log("Dados da temporada carregados:", {
-          name: seasonData.name,
-          jackpot: seasonData.jackpot,
-          isActive: seasonData.isActive,
-          prizeSchema: seasonData.seasonPrizeSchema,
-          financialParams: seasonData.financialParams
-        });
-        
-        setSeason(seasonData);
-        
-        // Carregar jogos da temporada
-        const gamesData = await pokerDB.getGames(seasonId);
-        setGames(gamesData);
-        
-        // Carregar ranking da temporada
-        const rankingsData = await pokerDB.getRankings(seasonId);
-        setRankings(rankingsData);
-        
-        console.log("Rankings carregados:", rankingsData.map(r => ({ name: r.playerName, points: r.totalPoints })));
-        
-        // Calcular ganhadores do jackpot (agora com a lógica corrigida de contribuição real)
-        const winners = calculateJackpotWinners(seasonData, rankingsData);
-        setJackpotWinners(winners);
-        
-        // Calcular estatísticas dos jogadores
-        calculatePlayerStats(gamesData, rankingsData);
-      } catch (error) {
-        console.error("Error loading season details:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os detalhes da temporada.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadSeasonDetails();
-  }, [seasonId, navigate, toast]);
-  
-  const calculatePlayerStats = (gamesData: Game[], rankingsData: RankingEntry[]) => {
+  }, [games]);
+
+  // Memoizar função de cálculo de estatísticas
+  const calculatePlayerStats = useCallback((gamesData: Game[], rankingsData: RankingEntry[]) => {
     if (!gamesData.length) return;
     
     // Ordenar ranking por pontos (decrescente)
@@ -212,12 +155,12 @@ export default function SeasonDetails() {
         if (!playerStat) {
           playerStat = {
             playerId: gamePlayer.playerId,
-            playerName: rankingPlayer.playerName, // Use o nome do jogador do ranking
-            photoUrl: rankingPlayer.photoUrl, // Use a foto do jogador do ranking
+            playerName: rankingPlayer.playerName,
+            photoUrl: rankingPlayer.photoUrl,
             gamesPlayed: 0,
             victories: 0,
             averagePosition: 0,
-            bestPosition: 10, // Iniciar com um valor alto
+            bestPosition: 10,
             totalPoints: 0
           };
           playerStatsMap.set(gamePlayer.playerId, playerStat);
@@ -243,12 +186,10 @@ export default function SeasonDetails() {
       const playerStat = playerStatsMap.get(rankingEntry.playerId);
       if (playerStat) {
         playerStat.totalPoints = rankingEntry.totalPoints;
-        // Verificar se averagePosition existe no rankingEntry
         if ('averagePosition' in rankingEntry) {
           playerStat.averagePosition = (rankingEntry as any).averagePosition;
         } else {
-          // Calcular média com base nos jogos se não existir no ranking
-          const playerGames = games
+          const playerGames = gamesData
             .flatMap(game => game.players)
             .filter(player => player.playerId === rankingEntry.playerId);
           
@@ -267,21 +208,107 @@ export default function SeasonDetails() {
       .sort((a, b) => b.totalPoints - a.totalPoints);
     
     setPlayerStats(playerStatsArray);
-  };
+  }, []);
   
-  if (loading) {
-    return <div className="text-center text-white">Carregando detalhes da temporada...</div>;
-  }
+  // Salvar posição do scroll antes de re-render
+  const saveScrollPosition = useCallback(() => {
+    if (seasonId) {
+      sessionStorage.setItem(`scroll-${seasonId}`, window.scrollY.toString());
+    }
+  }, [seasonId]);
+
+  // Restaurar posição do scroll
+  const restoreScrollPosition = useCallback(() => {
+    if (seasonId) {
+      const savedPosition = sessionStorage.getItem(`scroll-${seasonId}`);
+      if (savedPosition) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedPosition));
+        }, 100);
+      }
+    }
+  }, [seasonId]);
+
+  // Otimizar useEffect principal removendo dependências instáveis
+  useEffect(() => {
+    if (!seasonId) return;
+    
+    const loadSeasonDetails = async () => {
+      try {
+        // Salvar posição atual do scroll
+        saveScrollPosition();
+        
+        setLoading(true);
+        
+        // Carregar dados da temporada
+        const seasonData = await pokerDB.getSeason(seasonId);
+        if (!seasonData) {
+          toast({
+            title: "Erro",
+            description: "Temporada não encontrada.",
+            variant: "destructive",
+          });
+          navigate("/seasons");
+          return;
+        }
+        
+        console.log("Dados da temporada carregados:", {
+          name: seasonData.name,
+          jackpot: seasonData.jackpot,
+          isActive: seasonData.isActive,
+          prizeSchema: seasonData.seasonPrizeSchema,
+          financialParams: seasonData.financialParams
+        });
+        
+        // Carregar jogos da temporada
+        const gamesData = await pokerDB.getGames(seasonId);
+        
+        // Carregar ranking da temporada
+        const rankingsData = await pokerDB.getRankings(seasonId);
+        
+        console.log("Rankings carregados:", rankingsData.map(r => ({ name: r.playerName, points: r.totalPoints })));
+        
+        // Calcular ganhadores do jackpot
+        const winners = calculateJackpotWinners(seasonData, rankingsData);
+        
+        // Calcular estatísticas dos jogadores
+        calculatePlayerStats(gamesData, rankingsData);
+        
+        // Atualizar todos os estados de uma vez para evitar múltiplos re-renders
+        setSeason(seasonData);
+        setGames(gamesData);
+        setRankings(rankingsData);
+        setJackpotWinners(winners);
+        
+        // Restaurar posição do scroll após carregar os dados
+        setTimeout(() => {
+          restoreScrollPosition();
+        }, 200);
+        
+      } catch (error) {
+        console.error("Error loading season details:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os detalhes da temporada.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadSeasonDetails();
+  }, [seasonId]); // Removidas dependências instáveis
   
-  if (!season) {
-    return <div className="text-center text-white">Temporada não encontrada.</div>;
-  }
+  // Memoizar rankings ordenados
+  const sortedRankings = useMemo(() => {
+    return [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
+  }, [rankings]);
   
-  // Ordenar rankings por total de pontos
-  const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
-  
-  // Calcular o jackpot total para exibição (corrigido para usar contribuição real)
-  const getTotalJackpotForDisplay = () => {
+  // Memoizar cálculo do jackpot para exibição
+  const totalJackpotForDisplay = useMemo(() => {
+    if (!season) return 0;
+    
     if (season.isActive) {
       return season.jackpot;
     }
@@ -292,7 +319,25 @@ export default function SeasonDetails() {
       const jackpotContribution = season.financialParams.jackpotContribution || 0;
       return total + (playerCount * jackpotContribution);
     }, 0);
-  };
+  }, [season, games]);
+
+  // Salvar scroll position quando o usuário faz scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      saveScrollPosition();
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [saveScrollPosition]);
+  
+  if (loading) {
+    return <div className="text-center text-white">Carregando detalhes da temporada...</div>;
+  }
+  
+  if (!season) {
+    return <div className="text-center text-white">Temporada não encontrada.</div>;
+  }
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -342,7 +387,7 @@ export default function SeasonDetails() {
                       
                       <div className="flex items-center text-sm">
                         <Trophy className="h-4 w-4 mr-2 text-poker-gold" />
-                        <span>Jackpot Total: {formatCurrency(getTotalJackpotForDisplay())}</span>
+                        <span>Jackpot Total: {formatCurrency(totalJackpotForDisplay)}</span>
                       </div>
 
                       {/* Lista de ganhadores do jackpot */}

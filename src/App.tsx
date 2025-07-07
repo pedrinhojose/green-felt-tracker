@@ -40,7 +40,12 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-poker-black via-slate-900 to-poker-black">
       <QueryClientProvider client={queryClient}>
         <Toaster />
-        <Router>
+        <Router 
+          future={{ 
+            v7_startTransition: true,
+            v7_relativeSplatPath: true 
+          }}
+        >
           <AuthProvider>
             <OrganizationProvider>
               <PokerProvider>
