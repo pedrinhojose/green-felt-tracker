@@ -45,14 +45,32 @@ export default function TimerPage() {
     activeSeason.blindStructure && 
     activeSeason.blindStructure.length > 0;
 
+  console.log("=== TIMER PAGE - DEBUG CONTROLES ===");
+  console.log("hasBlindStructure:", hasBlindStructure);
+
   // Initialize timer state and controls if we have blind structure
   const timerState = hasBlindStructure ? useTimerState(activeSeason.blindStructure) : null;
+  
+  console.log("timerState criado:", !!timerState);
+  console.log("timerState details:", timerState ? {
+    hasState: !!timerState.state,
+    hasSortedLevels: !!timerState.sortedBlindLevels,
+    levelsCount: timerState.sortedBlindLevels?.length || 0
+  } : 'null');
+
   const timerControls = hasBlindStructure && timerState ? useTimerControls(
     timerState.sortedBlindLevels,
     timerState.state,
     timerState.setState,
     timerState.timeRemainingInLevel
   ) : null;
+
+  console.log("timerControls criado:", !!timerControls);
+  console.log("timerControls functions:", timerControls ? {
+    hasStartTimer: typeof timerControls.startTimer === 'function',
+    hasPauseTimer: typeof timerControls.pauseTimer === 'function',
+    hasNextLevel: typeof timerControls.nextLevel === 'function'
+  } : 'null');
 
   if (!hasBlindStructure) {
     return (
@@ -72,6 +90,24 @@ export default function TimerPage() {
     );
   }
 
+  // Funções de fallback para garantir que os controles sempre funcionem
+  const fallbackControls = {
+    startTimer: () => console.log("Fallback: Start timer"),
+    pauseTimer: () => console.log("Fallback: Pause timer"),
+    nextLevel: () => console.log("Fallback: Next level"),
+    previousLevel: () => console.log("Fallback: Previous level"),
+    toggleSound: () => console.log("Fallback: Toggle sound"),
+    openInNewWindow: () => console.log("Fallback: Open new window"),
+    toggleFullScreen: () => console.log("Fallback: Toggle fullscreen"),
+    reloadAudio: () => console.log("Fallback: Reload audio"),
+    hasOpenedNewWindow: false
+  };
+
+  const fallbackState = {
+    isRunning: false,
+    soundEnabled: true
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container relative">
       <div className="w-full h-full">
@@ -81,21 +117,19 @@ export default function TimerPage() {
         />
       </div>
       
-      {/* Controles renderizados fora da hierarquia transform */}
-      {timerControls && (
-        <CircularTimerControls
-          isRunning={timerState.state.isRunning}
-          soundEnabled={timerState.state.soundEnabled}
-          onStart={timerControls.startTimer}
-          onPause={timerControls.pauseTimer}
-          onNext={timerControls.nextLevel}
-          onPrevious={timerControls.previousLevel}
-          onToggleSound={timerControls.toggleSound}
-          onOpenNewWindow={timerControls.openInNewWindow}
-          onToggleFullScreen={timerControls.toggleFullScreen}
-          onReloadAudio={timerControls.reloadAudio}
-        />
-      )}
+      {/* Controles renderizados fora da hierarquia transform - SEMPRE VISÍVEIS */}
+      <CircularTimerControls
+        isRunning={timerState?.state?.isRunning || fallbackState.isRunning}
+        soundEnabled={timerState?.state?.soundEnabled || fallbackState.soundEnabled}
+        onStart={timerControls?.startTimer || fallbackControls.startTimer}
+        onPause={timerControls?.pauseTimer || fallbackControls.pauseTimer}
+        onNext={timerControls?.nextLevel || fallbackControls.nextLevel}
+        onPrevious={timerControls?.previousLevel || fallbackControls.previousLevel}
+        onToggleSound={timerControls?.toggleSound || fallbackControls.toggleSound}
+        onOpenNewWindow={timerControls?.openInNewWindow || fallbackControls.openInNewWindow}
+        onToggleFullScreen={timerControls?.toggleFullScreen || fallbackControls.toggleFullScreen}
+        onReloadAudio={timerControls?.reloadAudio || fallbackControls.reloadAudio}
+      />
     </div>
   );
 }
