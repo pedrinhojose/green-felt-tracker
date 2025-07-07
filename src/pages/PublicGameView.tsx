@@ -104,16 +104,22 @@ export default function PublicGameView() {
           .order('total_points', { ascending: false });
 
         if (!rankingsError && rankingsData) {
-          const convertedRankings: RankingEntry[] = rankingsData.map(r => ({
-            id: r.id,
-            playerId: r.player_id,
-            playerName: r.player_name,
-            photoUrl: r.photo_url,
-            totalPoints: r.total_points,
-            gamesPlayed: r.games_played,
-            bestPosition: r.best_position,
-            seasonId: r.season_id
-          }));
+          const convertedRankings: RankingEntry[] = rankingsData.map(r => {
+            // Buscar foto atualizada dos dados dos jogadores carregados
+            const player = players.find(p => p.id === r.player_id);
+            const photoUrl = player?.photoUrl || r.photo_url;
+            
+            return {
+              id: r.id,
+              playerId: r.player_id,
+              playerName: r.player_name,
+              photoUrl: photoUrl,
+              totalPoints: r.total_points,
+              gamesPlayed: r.games_played,
+              bestPosition: r.best_position,
+              seasonId: r.season_id
+            };
+          });
           
           setRankings(convertedRankings);
         }
@@ -127,7 +133,7 @@ export default function PublicGameView() {
     if (game) {
       loadSeasonRankings();
     }
-  }, [game]);
+  }, [game, players]);
 
   if (loading) {
     return (
@@ -393,24 +399,29 @@ export default function PublicGameView() {
                         <TableCell className="font-medium">
                           {index + 1}º
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            {ranking.photoUrl ? (
-                              <img 
-                                src={ranking.photoUrl} 
-                                alt={ranking.playerName} 
-                                className="w-6 h-6 rounded-full mr-2"
-                              />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                                <span className="text-xs font-semibold">
-                                  {ranking.playerName.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                            {ranking.playerName}
-                          </div>
-                        </TableCell>
+                         <TableCell>
+                           <div className="flex items-center">
+                             {ranking.photoUrl ? (
+                               <img 
+                                 src={ranking.photoUrl} 
+                                 alt={ranking.playerName} 
+                                 className="w-6 h-6 rounded-full mr-2 object-cover"
+                                 onError={(e) => {
+                                   console.log('Erro ao carregar foto:', ranking.photoUrl);
+                                   (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                   const nextSibling = e.currentTarget.nextElementSibling as HTMLElement;
+                                   if (nextSibling) nextSibling.style.display = 'flex';
+                                 }}
+                               />
+                             ) : null}
+                             <div className={`w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2 ${ranking.photoUrl ? 'hidden' : ''}`}>
+                               <span className="text-xs font-semibold">
+                                 {ranking.playerName.charAt(0)}
+                               </span>
+                             </div>
+                             {ranking.playerName}
+                           </div>
+                         </TableCell>
                         <TableCell className="text-right font-semibold text-primary">
                           {ranking.totalPoints}
                         </TableCell>
