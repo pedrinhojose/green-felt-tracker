@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Image, ArrowLeft } from "lucide-react";
+import { FileText, Image, ArrowLeft, Share } from "lucide-react";
 import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
 import SeasonPrizePoolSummary from "@/components/reports/SeasonPrizePoolSummary";
 import JackpotWinnersCard from "@/components/reports/JackpotWinnersCard";
 import BestWorstPlayersCard from "@/components/reports/BestWorstPlayersCard";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
+import { useShareableLink } from "@/hooks/useShareableLink";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function SeasonReport() {
@@ -44,6 +45,8 @@ export default function SeasonReport() {
     exportReportAsPdf,
     exportReportAsImage
   } = useSeasonReport();
+  
+  const { generateShareableLink, isGenerating } = useShareableLink();
   
   console.log("Season report data retrieved:");
   console.log("- playerStats count:", playerStats?.length || 0);
@@ -87,6 +90,16 @@ export default function SeasonReport() {
       console.error("Error exporting image:", error);
     }
   };
+
+  const handleExportLink = async () => {
+    try {
+      if (activeSeason?.id) {
+        await generateShareableLink(activeSeason.id);
+      }
+    } catch (error) {
+      console.error("Error generating shareable link:", error);
+    }
+  };
   
   return (
     <div className={`container mx-auto ${isMobile ? 'px-1 py-2' : 'px-4 py-6'}`}>
@@ -128,6 +141,17 @@ export default function SeasonReport() {
             >
               {isExportingImage ? "Exportando..." : "Exportar Imagem"}
               <Image className="ml-2 h-4 w-4" />
+            </Button>
+
+            <Button
+              onClick={handleExportLink}
+              disabled={isGenerating}
+              variant="outline"
+              size="sm"
+              className={isMobile ? 'flex-1' : ''}
+            >
+              {isGenerating ? "Gerando..." : "Exportar Link"}
+              <Share className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
