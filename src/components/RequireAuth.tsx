@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 
 interface RequireAuthProps {
-  children: JSX.Element;
+  children: React.ReactNode;
   requiredRole?: 'admin' | 'player' | 'viewer';
 }
 
@@ -37,5 +37,5 @@ export default function RequireAuth({ children, requiredRole }: RequireAuthProps
   }
   
   // Se há usuário e tem o papel necessário (ou não necessita de papel específico), renderize o conteúdo protegido
-  return children;
+  return <>{children}</>;
 }
