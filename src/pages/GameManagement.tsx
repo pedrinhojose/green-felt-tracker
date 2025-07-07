@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGameManagement } from "@/hooks/useGameManagement";
 import { usePlayerActions } from "@/hooks/usePlayerActions";
 import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
+import { useGameShareableLink } from "@/hooks/useGameShareableLink";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -60,6 +61,9 @@ export default function GameManagement() {
     distributeWinningsByPrize
   } = usePrizeDistribution(game, setGame);
   
+  // Game shareable link hook
+  const { generateShareableLink, isGenerating: isGeneratingLink } = useGameShareableLink();
+  
   // Filtrar jogadores que ainda não estão na partida
   const getAvailablePlayers = () => {
     if (!game || !players) return [];
@@ -94,6 +98,13 @@ export default function GameManagement() {
     }
   };
   
+  // Handler para exportar link
+  const handleExportLink = async () => {
+    if (game?.id) {
+      await generateShareableLink(game.id);
+    }
+  };
+  
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -125,8 +136,10 @@ export default function GameManagement() {
           isExportingImage={isExportingImage}
           isFinishing={isFinishing}
           isDeleting={isDeleting}
+          isGeneratingLink={isGeneratingLink}
           onExportReport={handleExportReport}
           onExportReportAsImage={handleExportReportAsImage}
+          onExportLink={handleExportLink}
           onFinishGame={handleFinishGame}
           onDeleteGame={handleDeleteGame}
         />

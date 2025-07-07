@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
-import { FileImage, Image, Trash2 } from "lucide-react";
+import { FileImage, Image, Trash2, Share } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -41,8 +41,10 @@ interface GameHeaderProps {
   isExportingImage: boolean;
   isFinishing: boolean;
   isDeleting: boolean;
+  isGeneratingLink: boolean;
   onExportReport: () => void;
   onExportReportAsImage: () => void;
+  onExportLink: () => void;
   onFinishGame: () => void;
   onDeleteGame: () => void;
 }
@@ -55,8 +57,10 @@ export default function GameHeader({
   isExportingImage,
   isFinishing,
   isDeleting,
+  isGeneratingLink,
   onExportReport,
   onExportReportAsImage,
+  onExportLink,
   onFinishGame,
   onDeleteGame,
 }: GameHeaderProps) {
@@ -101,6 +105,19 @@ export default function GameHeader({
           {isExportingImage ? "Exportando..." : isMobile ? "Imagem" : "Exportar Imagem"}
           <Image className="ml-2 h-4 w-4" />
         </Button>
+        
+        {isFinished && (
+          <Button
+            onClick={onExportLink}
+            disabled={isGeneratingLink}
+            variant="outline"
+            size={isMobile ? "sm" : "sm"}
+            className={isMobile ? "w-full justify-center" : ""}
+          >
+            {isGeneratingLink ? "Gerando..." : isMobile ? "Link" : "Exportar Link"}
+            <Share className="ml-2 h-4 w-4" />
+          </Button>
+        )}
         
         {isFinished ? (
           <Button

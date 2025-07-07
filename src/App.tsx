@@ -33,6 +33,7 @@ import SeasonReport from '@/pages/SeasonReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
 import PublicSeasonView from '@/pages/PublicSeasonView';
+import PublicGameView from '@/pages/PublicGameView';
 
 const queryClient = new QueryClient();
 
@@ -57,8 +58,9 @@ function App() {
                     <Route path="/organizations" element={<OrganizationsPage />} />
                     <Route path="/organization-selection" element={<OrganizationSelectionPage />} />
                     
-                    {/* Rota pública sem autenticação */}
+                    {/* Rotas públicas sem autenticação */}
                     <Route path="/public/season/:shareToken" element={<PublicSeasonView />} />
+                    <Route path="/public/game/:shareToken" element={<PublicGameView />} />
                     
                     <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
                       <Route path="/dashboard" element={<Dashboard />} />

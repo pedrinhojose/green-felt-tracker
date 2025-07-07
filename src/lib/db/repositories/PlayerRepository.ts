@@ -42,7 +42,14 @@ export class PlayerRepository extends SupabaseCore {
         }
         
         return data.map(player => ({
-          ...player,
+          id: player.id,
+          name: player.name,
+          photoUrl: player.photo_url,
+          phone: player.phone,
+          city: player.city,
+          userId: player.user_id,
+          organizationId: player.organization_id,
+          photoBase64: player.photo_base64,
           createdAt: new Date(player.created_at)
         })) as Player[];
       } catch (error) {
@@ -85,7 +92,14 @@ export class PlayerRepository extends SupabaseCore {
         if (!data) return undefined;
         
         return {
-          ...data,
+          id: data.id,
+          name: data.name,
+          photoUrl: data.photo_url,
+          phone: data.phone,
+          city: data.city,
+          userId: data.user_id,
+          organizationId: data.organization_id,
+          photoBase64: data.photo_base64,
           createdAt: new Date(data.created_at)
         } as Player;
       } catch (error) {

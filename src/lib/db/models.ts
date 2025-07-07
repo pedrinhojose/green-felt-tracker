@@ -4,6 +4,9 @@ export interface Player {
   photoUrl?: string;
   phone?: string;
   city?: string;
+  userId: string;
+  organizationId?: string;
+  photoBase64?: string;
   createdAt: Date;
 }
 

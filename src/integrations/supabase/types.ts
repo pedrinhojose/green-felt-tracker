@@ -24,6 +24,7 @@ export type Database = {
           number: number
           organization_id: string | null
           players: Json
+          public_share_token: string | null
           season_id: string
           total_prize_pool: number
           user_id: string
@@ -37,6 +38,7 @@ export type Database = {
           number: number
           organization_id?: string | null
           players?: Json
+          public_share_token?: string | null
           season_id: string
           total_prize_pool?: number
           user_id: string
@@ -50,6 +52,7 @@ export type Database = {
           number?: number
           organization_id?: string | null
           players?: Json
+          public_share_token?: string | null
           season_id?: string
           total_prize_pool?: number
           user_id?: string

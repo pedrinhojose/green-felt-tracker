@@ -123,6 +123,8 @@ export function usePlayerFunctions() {
           photoUrl: playerData.photoUrl,
           phone: playerData.phone,
           city: playerData.city,
+          userId: '',
+          organizationId: '',
           createdAt: now,
         };
       }
