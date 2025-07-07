@@ -90,7 +90,7 @@ export default function CircularTimer() {
       >
         {/* Aviso quando nova janela foi aberta */}
         {hasOpenedNewWindow && (
-          <div className={`absolute ${isMobile ? 'top-12' : 'top-16'} left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'w-11/12' : 'w-auto'}`}>
+          <div className={`absolute ${isMobile ? 'top-12 left-4 right-4' : 'top-16 left-1/2 -translate-x-1/2'} z-50`}>
             <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg backdrop-blur-sm">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
@@ -101,7 +101,7 @@ export default function CircularTimer() {
         )}
 
         {/* Título superior com efeito 3D */}
-        <div className={`absolute ${isMobile ? 'top-2' : 'top-8'} left-1/2 -translate-x-1/2`}>
+        <div className={`absolute ${isMobile ? 'top-2 left-1/2 -translate-x-1/2' : 'top-8 left-1/2 -translate-x-1/2'} z-20`}>
           <h1 
             className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}
             style={{
@@ -115,7 +115,7 @@ export default function CircularTimer() {
 
         {/* Container principal circular com profundidade */}
         <div 
-          className="relative transform-gpu"
+          className="relative transform-gpu z-10"
           style={{
             transform: 'translateZ(50px)',
           }}
@@ -135,33 +135,31 @@ export default function CircularTimer() {
           />
         </div>
 
-        {/* Informações laterais com profundidade */}
-        <div style={{ transform: 'translateZ(20px)' }}>
-          <TimerSideInfo
-            side="left"
-            nextLevel={nextLevel}
-            nextBreak={nextBreak}
-            levelsUntilBreak={levelsUntilBreak}
-            totalElapsedTime={state.totalElapsedTime}
-            blindLevels={sortedBlindLevels}
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevelIndex={state.currentLevelIndex}
-          />
-        </div>
+        {/* Informações laterais reorganizadas */}
+        <TimerSideInfo
+          side="left"
+          nextLevel={nextLevel}
+          nextBreak={nextBreak}
+          levelsUntilBreak={levelsUntilBreak}
+          totalElapsedTime={state.totalElapsedTime}
+          blindLevels={sortedBlindLevels}
+          timeRemainingInLevel={timeRemainingInLevel}
+          currentLevelIndex={state.currentLevelIndex}
+        />
         
-        <div style={{ transform: 'translateZ(20px)' }}>
-          <TimerSideInfo
-            side="right"
-            currentLevel={currentLevel}
-            totalElapsedTime={state.totalElapsedTime}
-            blindLevels={sortedBlindLevels}
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevelIndex={state.currentLevelIndex}
-          />
-        </div>
+        <TimerSideInfo
+          side="right"
+          currentLevel={currentLevel}
+          totalElapsedTime={state.totalElapsedTime}
+          blindLevels={sortedBlindLevels}
+          timeRemainingInLevel={timeRemainingInLevel}
+          currentLevelIndex={state.currentLevelIndex}
+          nextBreak={nextBreak}
+          levelsUntilBreak={levelsUntilBreak}
+        />
 
         {/* Controles com elevação */}
-        <div style={{ transform: 'translateZ(30px)' }}>
+        <div style={{ transform: 'translateZ(30px)' }} className="z-30">
           <CircularTimerControls
             isRunning={state.isRunning}
             soundEnabled={state.soundEnabled}
