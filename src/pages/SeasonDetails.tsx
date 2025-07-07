@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { RankingTable } from "@/components/ranking/RankingTable";
 import { RankingExporter } from "@/components/ranking/RankingExporter";
 import { usePlayerStats } from "@/hooks/reports/usePlayerStats";
 import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -44,12 +44,15 @@ export default function SeasonDetails() {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerStats, setPlayerStats] = useState<PlayerStat[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const [pageSize] = useState(10);
   const [jackpotWinners, setJackpotWinners] = useState<JackpotWinner[]>([]);
   
   // Usar o hook usePlayerStats para obter dados detalhados de performance
   const { playerStats: detailedPlayerStats, loading: statsLoading } = usePlayerStats(seasonId);
+  
+  // Usar hook de scroll restoration
+  useScrollRestoration(seasonId);
   
   // Memoizar funções auxiliares para evitar re-renders
   const getInitials = useCallback((name: string) => {
@@ -70,44 +73,58 @@ export default function SeasonDetails() {
     }
   }, []);
 
-  // Memoizar função de cálculo do jackpot
-  const calculateJackpotWinners = useCallback((season: Season, rankings: RankingEntry[]): JackpotWinner[] => {
-    console.log("=== DEBUG: Calculando ganhadores do jackpot ===");
-    console.log("Season jackpot:", season.jackpot);
-    console.log("Season prize schema:", season.seasonPrizeSchema);
+  // Função corrigida para calcular ganhadores do jackpot
+  const calculateJackpotWinners = useCallback((season: Season, rankings: RankingEntry[], games: Game[]): JackpotWinner[] => {
+    console.log("=== DEBUG: Calculando ganhadores do jackpot CORRIGIDO ===");
+    console.log("Season:", {
+      name: season.name,
+      jackpot: season.jackpot,
+      isActive: season.isActive,
+      prizeSchema: season.seasonPrizeSchema,
+      financialParams: season.financialParams
+    });
     console.log("Rankings count:", rankings.length);
-    console.log("Season is active:", season.isActive);
-    console.log("Season financial params:", season.financialParams);
+    console.log("Games count:", games.length);
     
-    if (!season.seasonPrizeSchema || rankings.length === 0) {
-      console.log("Sem prize schema ou rankings");
+    // Verificar se há dados necessários
+    if (!season.seasonPrizeSchema || !Array.isArray(season.seasonPrizeSchema) || season.seasonPrizeSchema.length === 0) {
+      console.log("❌ Sem prize schema válido");
+      return [];
+    }
+    
+    if (!rankings || rankings.length === 0) {
+      console.log("❌ Sem rankings válidos");
       return [];
     }
 
+    // Ordenar rankings por pontos (decrescente)
     const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
-    const winners: JackpotWinner[] = [];
+    console.log("Sorted rankings:", sortedRankings.map(r => ({ 
+      name: r.playerName, 
+      points: r.totalPoints 
+    })));
     
-    // Para temporadas encerradas, calcular com base na contribuição real do jackpot
-    // Para temporadas ativas, usar o jackpot atual
+    // Calcular o jackpot total
     let totalJackpot = season.jackpot;
     
-    // Se a temporada está encerrada e o jackpot é 0, calcular com base na contribuição dos jogos
-    if (!season.isActive && season.jackpot === 0) {
-      // Calcular o jackpot total com base na contribuição real por jogo
+    // Para temporadas encerradas com jackpot zerado, calcular com base na contribuição real
+    if (!season.isActive && season.jackpot === 0 && games.length > 0) {
       totalJackpot = games.reduce((total, game) => {
-        const playerCount = game.players.length;
-        const jackpotContribution = season.financialParams.jackpotContribution || 0;
+        const playerCount = game.players?.length || 0;
+        const jackpotContribution = season.financialParams?.jackpotContribution || 0;
         const gameJackpot = playerCount * jackpotContribution;
         console.log(`Jogo ${game.number}: ${playerCount} jogadores x R$ ${jackpotContribution} = R$ ${gameJackpot}`);
         return total + gameJackpot;
       }, 0);
-      console.log("Temporada encerrada - Jackpot calculado pela contribuição real:", totalJackpot);
+      console.log("Jackpot calculado pela contribuição real:", totalJackpot);
     }
     
     console.log("Total jackpot para distribuir:", totalJackpot);
-    console.log("Prize schema detalhado:", season.seasonPrizeSchema);
+    console.log("Prize schema:", season.seasonPrizeSchema);
 
-    // Distribuir prêmios baseado na ordem do ranking
+    const winners: JackpotWinner[] = [];
+    
+    // Distribuir prêmios baseado na ordem do ranking e no prize schema
     for (let i = 0; i < Math.min(season.seasonPrizeSchema.length, sortedRankings.length); i++) {
       const prizeEntry = season.seasonPrizeSchema[i];
       const ranking = sortedRankings[i];
@@ -117,7 +134,7 @@ export default function SeasonDetails() {
       console.log("Ranking player:", ranking?.playerName);
       console.log("Player points:", ranking?.totalPoints);
       
-      if (prizeEntry && ranking) {
+      if (prizeEntry && ranking && prizeEntry.percentage > 0) {
         const jackpotAmount = (totalJackpot * prizeEntry.percentage) / 100;
         console.log(`Cálculo: ${totalJackpot} * ${prizeEntry.percentage} / 100 = ${jackpotAmount}`);
         
@@ -127,12 +144,19 @@ export default function SeasonDetails() {
           position: i + 1,
           jackpotAmount: jackpotAmount
         });
+        
+        console.log(`✅ Adicionado: ${ranking.playerName} - R$ ${jackpotAmount.toFixed(2)}`);
+      } else {
+        console.log(`❌ Dados inválidos para posição ${i + 1}`);
       }
     }
 
     console.log("Winners finais:", winners);
+    const totalDistribuido = winners.reduce((sum, w) => sum + w.jackpotAmount, 0);
+    console.log("Total distribuído:", totalDistribuido);
+    
     return winners;
-  }, [games]);
+  }, []);
 
   // Memoizar função de cálculo de estatísticas
   const calculatePlayerStats = useCallback((gamesData: Game[], rankingsData: RankingEntry[]) => {
@@ -262,19 +286,23 @@ export default function SeasonDetails() {
         
         // Carregar jogos da temporada
         const gamesData = await pokerDB.getGames(seasonId);
+        console.log("Jogos carregados:", gamesData.length);
         
         // Carregar ranking da temporada
         const rankingsData = await pokerDB.getRankings(seasonId);
+        console.log("Rankings carregados:", rankingsData.map(r => ({ 
+          name: r.playerName, 
+          points: r.totalPoints 
+        })));
         
-        console.log("Rankings carregados:", rankingsData.map(r => ({ name: r.playerName, points: r.totalPoints })));
-        
-        // Calcular ganhadores do jackpot
-        const winners = calculateJackpotWinners(seasonData, rankingsData);
+        // Calcular ganhadores do jackpot com a função corrigida
+        const winners = calculateJackpotWinners(seasonData, rankingsData, gamesData);
+        console.log("Ganhadores calculados:", winners);
         
         // Calcular estatísticas dos jogadores
         calculatePlayerStats(gamesData, rankingsData);
         
-        // Atualizar todos os estados de uma vez para evitar múltiplos re-renders
+        // Atualizar todos os estados
         setSeason(seasonData);
         setGames(gamesData);
         setRankings(rankingsData);
@@ -298,7 +326,7 @@ export default function SeasonDetails() {
     };
     
     loadSeasonDetails();
-  }, [seasonId]); // Removidas dependências instáveis
+  }, [seasonId, calculateJackpotWinners, calculatePlayerStats, navigate, toast, restoreScrollPosition, saveScrollPosition]);
   
   // Memoizar rankings ordenados
   const sortedRankings = useMemo(() => {
@@ -390,7 +418,7 @@ export default function SeasonDetails() {
                         <span>Jackpot Total: {formatCurrency(totalJackpotForDisplay)}</span>
                       </div>
 
-                      {/* Lista de ganhadores do jackpot */}
+                      {/* Lista de ganhadores do jackpot CORRIGIDA */}
                       {jackpotWinners.length > 0 && (
                         <div className="mt-4 pt-3 border-t border-gray-200">
                           <h4 className="text-sm font-medium text-gray-700 mb-2">Distribuição do Jackpot:</h4>
@@ -405,6 +433,14 @@ export default function SeasonDetails() {
                                 </span>
                               </div>
                             ))}
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-gray-100">
+                            <div className="flex justify-between items-center text-xs font-semibold">
+                              <span className="text-gray-700">Total Distribuído:</span>
+                              <span className="text-poker-gold">
+                                {formatCurrency(jackpotWinners.reduce((sum, w) => sum + w.jackpotAmount, 0))}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       )}
