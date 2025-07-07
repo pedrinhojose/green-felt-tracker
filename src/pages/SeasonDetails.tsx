@@ -76,6 +76,7 @@ export default function SeasonDetails() {
     console.log("Season prize schema:", season.seasonPrizeSchema);
     console.log("Rankings count:", rankings.length);
     console.log("Season is active:", season.isActive);
+    console.log("Season financial params:", season.financialParams);
     
     if (!season.seasonPrizeSchema || rankings.length === 0) {
       console.log("Sem prize schema ou rankings");
@@ -85,17 +86,21 @@ export default function SeasonDetails() {
     const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
     const winners: JackpotWinner[] = [];
     
-    // Para temporadas encerradas, calcular com base no jackpot total que existia
+    // Para temporadas encerradas, calcular com base na contribuição real do jackpot
     // Para temporadas ativas, usar o jackpot atual
     let totalJackpot = season.jackpot;
     
-    // Se a temporada está encerrada e o jackpot é 0, calcular com base nos jogos
+    // Se a temporada está encerrada e o jackpot é 0, calcular com base na contribuição dos jogos
     if (!season.isActive && season.jackpot === 0) {
-      // Calcular o jackpot total com base nos jogos da temporada
+      // Calcular o jackpot total com base na contribuição real por jogo
       totalJackpot = games.reduce((total, game) => {
-        return total + game.totalPrizePool;
+        const playerCount = game.players.length;
+        const jackpotContribution = season.financialParams.jackpotContribution || 0;
+        const gameJackpot = playerCount * jackpotContribution;
+        console.log(`Jogo ${game.number}: ${playerCount} jogadores x R$ ${jackpotContribution} = R$ ${gameJackpot}`);
+        return total + gameJackpot;
       }, 0);
-      console.log("Temporada encerrada - Jackpot calculado dos jogos:", totalJackpot);
+      console.log("Temporada encerrada - Jackpot calculado pela contribuição real:", totalJackpot);
     }
     
     console.log("Total jackpot para distribuir:", totalJackpot);
@@ -150,7 +155,8 @@ export default function SeasonDetails() {
           name: seasonData.name,
           jackpot: seasonData.jackpot,
           isActive: seasonData.isActive,
-          prizeSchema: seasonData.seasonPrizeSchema
+          prizeSchema: seasonData.seasonPrizeSchema,
+          financialParams: seasonData.financialParams
         });
         
         setSeason(seasonData);
@@ -165,7 +171,7 @@ export default function SeasonDetails() {
         
         console.log("Rankings carregados:", rankingsData.map(r => ({ name: r.playerName, points: r.totalPoints })));
         
-        // Calcular ganhadores do jackpot (agora com a lógica corrigida)
+        // Calcular ganhadores do jackpot (agora com a lógica corrigida de contribuição real)
         const winners = calculateJackpotWinners(seasonData, rankingsData);
         setJackpotWinners(winners);
         
@@ -274,14 +280,18 @@ export default function SeasonDetails() {
   // Ordenar rankings por total de pontos
   const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
   
-  // Calcular o jackpot total para exibição
+  // Calcular o jackpot total para exibição (corrigido para usar contribuição real)
   const getTotalJackpotForDisplay = () => {
     if (season.isActive) {
       return season.jackpot;
     }
     
-    // Para temporadas encerradas, calcular com base nos jogos
-    return games.reduce((total, game) => total + game.totalPrizePool, 0);
+    // Para temporadas encerradas, calcular com base na contribuição real do jackpot
+    return games.reduce((total, game) => {
+      const playerCount = game.players.length;
+      const jackpotContribution = season.financialParams.jackpotContribution || 0;
+      return total + (playerCount * jackpotContribution);
+    }, 0);
   };
   
   return (
