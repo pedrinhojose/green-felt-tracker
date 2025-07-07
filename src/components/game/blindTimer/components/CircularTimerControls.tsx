@@ -77,18 +77,6 @@ export default function CircularTimerControls({
         </div>
       </div>
 
-      {/* Botão "ABRIR EM NOVA JANELA" no canto inferior direito */}
-      <div className={`absolute ${isMobile ? 'bottom-4 right-4' : 'bottom-8 right-8'}`}>
-        <Button 
-          onClick={onOpenNewWindow}
-          variant="outline"
-          className={`bg-transparent border border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} font-normal rounded`}
-        >
-          <ExternalLink className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
-          {isMobile ? 'NOVA JANELA' : 'ABRIR EM NOVA JANELA'}
-        </Button>
-      </div>
-
       {/* Controles de áudio/sistema no canto inferior esquerdo */}
       <div className={`absolute ${isMobile ? 'bottom-4 left-4' : 'bottom-8 left-8'} flex gap-2`}>
         {/* Botão Som */}
@@ -124,6 +112,18 @@ export default function CircularTimerControls({
           title="Tela Cheia"
         >
           <Maximize2 className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+        </Button>
+      </div>
+
+      {/* Botão "ABRIR EM NOVA JANELA" no canto inferior direito */}
+      <div className={`absolute ${isMobile ? 'bottom-4 right-4' : 'bottom-8 right-8'}`}>
+        <Button 
+          onClick={onOpenNewWindow}
+          variant="outline"
+          className={`bg-transparent border border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} font-normal rounded`}
+        >
+          <ExternalLink className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
+          {isMobile ? 'NOVA JANELA' : 'ABRIR EM NOVA JANELA'}
         </Button>
       </div>
     </>
