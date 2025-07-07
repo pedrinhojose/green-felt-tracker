@@ -332,6 +332,11 @@ export default function SeasonDetails() {
   const sortedRankings = useMemo(() => {
     return [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
   }, [rankings]);
+
+  // Memoizar jogos ordenados por data (mais recente primeiro)
+  const sortedGames = useMemo(() => {
+    return [...games].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [games]);
   
   // Memoizar cálculo do jackpot para exibição
   const totalJackpotForDisplay = useMemo(() => {
@@ -638,9 +643,9 @@ export default function SeasonDetails() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {games.length > 0 ? (
+                  {sortedGames.length > 0 ? (
                     <ul className="list-none space-y-2">
-                      {games.map(game => (
+                      {sortedGames.map(game => (
                         <li key={game.id} className="flex items-center justify-between">
                           <span>Partida #{game.number} - {formatDate(game.date)}</span>
                           <Button variant="outline" size="sm" onClick={() => navigate(`/games/${game.id}`)}>
