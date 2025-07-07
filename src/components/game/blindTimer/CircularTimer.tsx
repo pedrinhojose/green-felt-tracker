@@ -76,18 +76,9 @@ export default function CircularTimer() {
     : 0;
 
   return (
-    <div className="w-screen h-screen relative timer-container overflow-hidden">
-      {/* Background com efeitos 3D e profundidade */}
-      <BackgroundEffects />
-      
-      {/* Container principal com perspective 3D */}
-      <div 
-        className="w-full h-full flex items-center justify-center relative"
-        style={{ 
-          background: 'radial-gradient(ellipse at center, rgba(26, 77, 51, 0.8) 0%, rgba(15, 43, 29, 0.9) 50%, rgba(10, 31, 21, 1) 100%)',
-          perspective: '1200px',
-        }}
-      >
+    <div className="w-screen h-screen relative timer-container overflow-hidden bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep">
+      {/* Container principal simplificado */}
+      <div className="w-full h-full flex items-center justify-center relative">
         {/* Aviso quando nova janela foi aberta */}
         {hasOpenedNewWindow && (
           <div className={`absolute ${isMobile ? 'top-12 left-4 right-4' : 'top-16 left-1/2 -translate-x-1/2'} z-50`}>
@@ -100,26 +91,15 @@ export default function CircularTimer() {
           </div>
         )}
 
-        {/* Título superior com efeito 3D */}
+        {/* Título superior simplificado */}
         <div className={`absolute ${isMobile ? 'top-2 left-1/2 -translate-x-1/2' : 'top-8 left-1/2 -translate-x-1/2'} z-20`}>
-          <h1 
-            className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}
-            style={{
-              textShadow: '0 4px 8px rgba(0,0,0,0.8), 0 0 20px rgba(223, 198, 97, 0.4)',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
-            }}
-          >
+          <h1 className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}>
             APA POKER Clock
           </h1>
         </div>
 
-        {/* Container principal circular com profundidade */}
-        <div 
-          className="relative transform-gpu z-10"
-          style={{
-            transform: 'translateZ(50px)',
-          }}
-        >
+        {/* Container principal circular simplificado */}
+        <div className="relative z-10">
           {/* Anel de progresso 3D */}
           <CircularProgressRing
             progressPercentage={progressPercentage}
@@ -158,8 +138,8 @@ export default function CircularTimer() {
           levelsUntilBreak={levelsUntilBreak}
         />
 
-        {/* Controles com elevação */}
-        <div style={{ transform: 'translateZ(30px)' }} className="z-30">
+        {/* Controles simplificados */}
+        <div className="z-30">
           <CircularTimerControls
             isRunning={state.isRunning}
             soundEnabled={state.soundEnabled}
