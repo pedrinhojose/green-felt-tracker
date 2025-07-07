@@ -2,7 +2,7 @@
 import { useParams } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import CircularTimer from "@/components/game/blindTimer/CircularTimer";
-import CircularTimerControls from "@/components/game/blindTimer/components/CircularTimerControls";
+import SimpleTimerControls from "@/components/game/blindTimer/SimpleTimerControls";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -117,8 +117,8 @@ export default function TimerPage() {
         />
       </div>
       
-      {/* Controles renderizados fora da hierarquia transform - SEMPRE VISÍVEIS */}
-      <CircularTimerControls
+      {/* Novos controles simples - SEMPRE VISÍVEIS */}
+      <SimpleTimerControls
         isRunning={timerState?.state?.isRunning || fallbackState.isRunning}
         soundEnabled={timerState?.state?.soundEnabled || fallbackState.soundEnabled}
         onStart={timerControls?.startTimer || fallbackControls.startTimer}
@@ -128,7 +128,6 @@ export default function TimerPage() {
         onToggleSound={timerControls?.toggleSound || fallbackControls.toggleSound}
         onOpenNewWindow={timerControls?.openInNewWindow || fallbackControls.openInNewWindow}
         onToggleFullScreen={timerControls?.toggleFullScreen || fallbackControls.toggleFullScreen}
-        onReloadAudio={timerControls?.reloadAudio || fallbackControls.reloadAudio}
       />
     </div>
   );
