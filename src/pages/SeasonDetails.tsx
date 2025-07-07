@@ -75,6 +75,7 @@ export default function SeasonDetails() {
     console.log("Season jackpot:", season.jackpot);
     console.log("Season prize schema:", season.seasonPrizeSchema);
     console.log("Rankings count:", rankings.length);
+    console.log("Season is active:", season.isActive);
     
     if (!season.seasonPrizeSchema || rankings.length === 0) {
       console.log("Sem prize schema ou rankings");
@@ -83,7 +84,19 @@ export default function SeasonDetails() {
 
     const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
     const winners: JackpotWinner[] = [];
-    const totalJackpot = season.jackpot;
+    
+    // Para temporadas encerradas, calcular com base no jackpot total que existia
+    // Para temporadas ativas, usar o jackpot atual
+    let totalJackpot = season.jackpot;
+    
+    // Se a temporada está encerrada e o jackpot é 0, calcular com base nos jogos
+    if (!season.isActive && season.jackpot === 0) {
+      // Calcular o jackpot total com base nos jogos da temporada
+      totalJackpot = games.reduce((total, game) => {
+        return total + game.totalPrizePool;
+      }, 0);
+      console.log("Temporada encerrada - Jackpot calculado dos jogos:", totalJackpot);
+    }
     
     console.log("Total jackpot para distribuir:", totalJackpot);
     console.log("Prize schema detalhado:", season.seasonPrizeSchema);
@@ -136,6 +149,7 @@ export default function SeasonDetails() {
         console.log("Dados da temporada carregados:", {
           name: seasonData.name,
           jackpot: seasonData.jackpot,
+          isActive: seasonData.isActive,
           prizeSchema: seasonData.seasonPrizeSchema
         });
         
@@ -151,7 +165,7 @@ export default function SeasonDetails() {
         
         console.log("Rankings carregados:", rankingsData.map(r => ({ name: r.playerName, points: r.totalPoints })));
         
-        // Calcular ganhadores do jackpot
+        // Calcular ganhadores do jackpot (agora com a lógica corrigida)
         const winners = calculateJackpotWinners(seasonData, rankingsData);
         setJackpotWinners(winners);
         
@@ -260,6 +274,16 @@ export default function SeasonDetails() {
   // Ordenar rankings por total de pontos
   const sortedRankings = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
   
+  // Calcular o jackpot total para exibição
+  const getTotalJackpotForDisplay = () => {
+    if (season.isActive) {
+      return season.jackpot;
+    }
+    
+    // Para temporadas encerradas, calcular com base nos jogos
+    return games.reduce((total, game) => total + game.totalPrizePool, 0);
+  };
+  
   return (
     <div className="container mx-auto px-4 py-6">
       <Button variant="ghost" onClick={() => navigate("/seasons")} className="mb-4">
@@ -308,7 +332,7 @@ export default function SeasonDetails() {
                       
                       <div className="flex items-center text-sm">
                         <Trophy className="h-4 w-4 mr-2 text-poker-gold" />
-                        <span>Jackpot Final: {formatCurrency(season.jackpot)}</span>
+                        <span>Jackpot Total: {formatCurrency(getTotalJackpotForDisplay())}</span>
                       </div>
 
                       {/* Lista de ganhadores do jackpot */}
