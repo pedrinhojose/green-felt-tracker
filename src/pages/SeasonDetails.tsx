@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Calendar, Trophy, Users } from "lucide-react";
+import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
@@ -349,6 +349,69 @@ export default function SeasonDetails() {
     }, 0);
   }, [season, games]);
 
+  // Memoizar cálculo das estatísticas adicionais
+  const additionalStats = useMemo(() => {
+    if (!season || !games.length) return null;
+
+    // Calcular total arrecadado
+    const totalRevenue = games.reduce((total, game) => {
+      const playerCount = game.players.length;
+      const buyInValue = season.financialParams.buyIn || 0;
+      const rebuyValue = season.financialParams.rebuy || 0;
+      const addonValue = season.financialParams.addon || 0;
+      
+      const gameBuyIns = playerCount * buyInValue;
+      const gameRebuys = game.players.reduce((sum, p) => sum + p.rebuys, 0) * rebuyValue;
+      const gameAddons = game.players.reduce((sum, p) => sum + p.addons, 0) * addonValue;
+      
+      return total + gameBuyIns + gameRebuys + gameAddons;
+    }, 0);
+
+    // Encontrar maior prize pool
+    const biggestPrizePool = games.reduce((max, game) => {
+      return Math.max(max, game.totalPrizePool);
+    }, 0);
+
+    // Calcular jogador com mais vitórias
+    const victoryCount = new Map<string, { name: string; victories: number }>();
+    
+    games.forEach(game => {
+      game.players.forEach(gamePlayer => {
+        if (gamePlayer.position === 1) {
+          // Encontrar o nome do jogador no ranking
+          const rankingPlayer = rankings.find(r => r.playerId === gamePlayer.playerId);
+          const playerName = rankingPlayer?.playerName || 'Jogador Desconhecido';
+          
+          const current = victoryCount.get(gamePlayer.playerId);
+          if (current) {
+            current.victories++;
+          } else {
+            victoryCount.set(gamePlayer.playerId, { name: playerName, victories: 1 });
+          }
+        }
+      });
+    });
+
+    let mostVictoriousPlayer = { name: 'Nenhum', victories: 0 };
+    victoryCount.forEach(player => {
+      if (player.victories > mostVictoriousPlayer.victories) {
+        mostVictoriousPlayer = player;
+      }
+    });
+
+    // Calcular total de re-buys
+    const totalRebuys = games.reduce((total, game) => {
+      return total + game.players.reduce((sum, p) => sum + p.rebuys, 0);
+    }, 0);
+
+    return {
+      totalRevenue,
+      biggestPrizePool,
+      mostVictoriousPlayer,
+      totalRebuys
+    };
+  }, [season, games, rankings]);
+
   // Salvar scroll position quando o usuário faz scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -461,6 +524,30 @@ export default function SeasonDetails() {
                         <Calendar className="h-4 w-4 mr-2" />
                         <span>Total de Partidas: {games.length}</span>
                       </div>
+
+                      {additionalStats && (
+                        <>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <DollarSign className="h-3 w-3 mr-2" />
+                            <span>Total Arrecadado: {formatCurrency(additionalStats.totalRevenue)}</span>
+                          </div>
+                          
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Trophy className="h-3 w-3 mr-2" />
+                            <span>Maior Prize Pool: {formatCurrency(additionalStats.biggestPrizePool)}</span>
+                          </div>
+                          
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Award className="h-3 w-3 mr-2" />
+                            <span>Mais Vitórias: {additionalStats.mostVictoriousPlayer.name} ({additionalStats.mostVictoriousPlayer.victories})</span>
+                          </div>
+                          
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <RotateCcw className="h-3 w-3 mr-2" />
+                            <span>Total Re-buys: {additionalStats.totalRebuys}</span>
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
