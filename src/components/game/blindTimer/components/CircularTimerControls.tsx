@@ -33,8 +33,8 @@ export default function CircularTimerControls({
 
   return (
     <>
-      {/* Controles principais centralizados abaixo do arco */}
-      <div className={`absolute ${isMobile ? 'bottom-8' : 'bottom-12'} left-1/2 -translate-x-1/2`}>
+      {/* Controles principais centralizados bem mais baixos */}
+      <div className={`absolute ${isMobile ? 'bottom-20' : 'bottom-28'} left-1/2 -translate-x-1/2 z-20`}>
         <div className={`flex justify-center items-center ${isMobile ? 'gap-4' : 'gap-8'}`}>
           {/* Botão ANTERIOR */}
           <Button 
