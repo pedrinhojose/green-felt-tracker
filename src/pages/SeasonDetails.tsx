@@ -10,6 +10,8 @@ import { Season, Game, GamePlayer, RankingEntry } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
 import { RankingTable } from "@/components/ranking/RankingTable";
 import { RankingExporter } from "@/components/ranking/RankingExporter";
+import { usePlayerStats } from "@/hooks/reports/usePlayerStats";
+import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -44,6 +46,9 @@ export default function SeasonDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [jackpotWinners, setJackpotWinners] = useState<JackpotWinner[]>([]);
+  
+  // Usar o hook usePlayerStats para obter dados detalhados de performance
+  const { playerStats: detailedPlayerStats, loading: statsLoading } = usePlayerStats(seasonId);
   
   // Funções auxiliares para o ranking
   const getInitials = (name: string) => {
@@ -371,6 +376,26 @@ export default function SeasonDetails() {
                         </li>
                       ))}
                     </ul>
+                  </CardContent>
+                </Card>
+
+                {/* Nova seção: Desempenho dos Jogadores */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Desempenho dos Jogadores</CardTitle>
+                    <CardDescription>
+                      Estatísticas detalhadas de performance dos jogadores durante a temporada.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {statsLoading ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-poker-gold mx-auto mb-2"></div>
+                        <p className="text-sm text-muted-foreground">Carregando estatísticas...</p>
+                      </div>
+                    ) : (
+                      <PlayerPerformanceTable playerStats={detailedPlayerStats} />
+                    )}
                   </CardContent>
                 </Card>
               </div>
