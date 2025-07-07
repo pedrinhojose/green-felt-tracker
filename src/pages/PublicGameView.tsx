@@ -2,16 +2,18 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trophy, Users, Calendar, DollarSign } from "lucide-react";
+import { Trophy, Users, Calendar, DollarSign, Utensils } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
-import { Game, Player } from "@/lib/db/models";
+import { Game, Player, RankingEntry } from "@/lib/db/models";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function PublicGameView() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const [game, setGame] = useState<Game | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRankings, setLoadingRankings] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,6 +88,46 @@ export default function PublicGameView() {
 
     loadPublicGameData();
   }, [shareToken]);
+
+  // Carregar ranking da temporada
+  useEffect(() => {
+    const loadSeasonRankings = async () => {
+      if (!game?.seasonId) return;
+
+      try {
+        setLoadingRankings(true);
+        
+        const { data: rankingsData, error: rankingsError } = await supabase
+          .from('rankings')
+          .select('*')
+          .eq('season_id', game.seasonId)
+          .order('total_points', { ascending: false });
+
+        if (!rankingsError && rankingsData) {
+          const convertedRankings: RankingEntry[] = rankingsData.map(r => ({
+            id: r.id,
+            playerId: r.player_id,
+            playerName: r.player_name,
+            photoUrl: r.photo_url,
+            totalPoints: r.total_points,
+            gamesPlayed: r.games_played,
+            bestPosition: r.best_position,
+            seasonId: r.season_id
+          }));
+          
+          setRankings(convertedRankings);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar rankings:', error);
+      } finally {
+        setLoadingRankings(false);
+      }
+    };
+
+    if (game) {
+      loadSeasonRankings();
+    }
+  }, [game]);
 
   if (loading) {
     return (
@@ -221,6 +263,34 @@ export default function PublicGameView() {
           </Card>
         )}
 
+        {/* Valor Total da Janta */}
+        {game.dinnerCost && dinnerParticipants > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Utensils className="h-5 w-5 mr-2 text-primary" />
+                Valor Total da Janta
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Valor Total</p>
+                  <p className="text-xl font-bold text-primary">{formatCurrency(game.dinnerCost)}</p>
+                </div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Participantes</p>
+                  <p className="text-xl font-bold">{dinnerParticipants}</p>
+                </div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Valor Individual</p>
+                  <p className="text-xl font-bold text-primary">{formatCurrency(dinnerCostPerPlayer)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Classificação Completa */}
         <Card>
           <CardHeader>
@@ -292,6 +362,72 @@ export default function PublicGameView() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Ranking Completo da Temporada */}
+        {rankings.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Trophy className="h-5 w-5 mr-2 text-yellow-500" />
+                Ranking da Temporada
+                {loadingRankings && (
+                  <div className="ml-2 animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary"></div>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Pos.</TableHead>
+                      <TableHead>Jogador</TableHead>
+                      <TableHead className="text-right">Pontos</TableHead>
+                      <TableHead className="text-right">Jogos</TableHead>
+                      <TableHead className="text-right">Melhor Pos.</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankings.map((ranking, index) => (
+                      <TableRow key={ranking.id}>
+                        <TableCell className="font-medium">
+                          {index + 1}º
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {ranking.photoUrl ? (
+                              <img 
+                                src={ranking.photoUrl} 
+                                alt={ranking.playerName} 
+                                className="w-6 h-6 rounded-full mr-2"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                                <span className="text-xs font-semibold">
+                                  {ranking.playerName.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                            {ranking.playerName}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-primary">
+                          {ranking.totalPoints}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {ranking.gamesPlayed}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {ranking.bestPosition}º
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-4">
