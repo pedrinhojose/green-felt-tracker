@@ -2,12 +2,15 @@
 import { useParams } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import CircularTimer from "@/components/game/blindTimer/CircularTimer";
+import CircularTimerControls from "@/components/game/blindTimer/components/CircularTimerControls";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAudioContext } from "@/contexts/AudioContext";
+import { useTimerState } from "@/components/game/blindTimer/useTimerState";
+import { useTimerControls } from "@/components/game/blindTimer/useTimerControls";
 
 export default function TimerPage() {
   const { gameId } = useParams<{ gameId?: string }>();
@@ -42,6 +45,15 @@ export default function TimerPage() {
     activeSeason.blindStructure && 
     activeSeason.blindStructure.length > 0;
 
+  // Initialize timer state and controls if we have blind structure
+  const timerState = hasBlindStructure ? useTimerState(activeSeason.blindStructure) : null;
+  const timerControls = hasBlindStructure && timerState ? useTimerControls(
+    timerState.sortedBlindLevels,
+    timerState.state,
+    timerState.setState,
+    timerState.timeRemainingInLevel
+  ) : null;
+
   if (!hasBlindStructure) {
     return (
       <div className={`flex items-center justify-center min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep ${isMobile ? 'p-2' : 'p-4'}`}>
@@ -61,10 +73,29 @@ export default function TimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container">
+    <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container relative">
       <div className="w-full h-full">
-        <CircularTimer />
+        <CircularTimer 
+          timerState={timerState}
+          timerControls={timerControls}
+        />
       </div>
+      
+      {/* Controles renderizados fora da hierarquia transform */}
+      {timerControls && (
+        <CircularTimerControls
+          isRunning={timerState.state.isRunning}
+          soundEnabled={timerState.state.soundEnabled}
+          onStart={timerControls.startTimer}
+          onPause={timerControls.pauseTimer}
+          onNext={timerControls.nextLevel}
+          onPrevious={timerControls.previousLevel}
+          onToggleSound={timerControls.toggleSound}
+          onOpenNewWindow={timerControls.openInNewWindow}
+          onToggleFullScreen={timerControls.toggleFullScreen}
+          onReloadAudio={timerControls.reloadAudio}
+        />
+      )}
     </div>
   );
 }

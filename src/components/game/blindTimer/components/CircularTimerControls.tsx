@@ -33,8 +33,8 @@ export default function CircularTimerControls({
 
   return (
     <>
-      {/* Controles principais literalmente na borda inferior */}
-      <div className={`fixed bottom-0 left-1/2 -translate-x-1/2 z-20 ${isMobile ? 'pb-2' : 'pb-4'}`}>
+      {/* Controles principais - FIXED na borda inferior */}
+      <div className={`fixed bottom-0 left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'pb-2' : 'pb-4'}`}>
         <div className={`flex justify-center items-center ${isMobile ? 'gap-4' : 'gap-8'}`}>
           {/* Botão ANTERIOR */}
           <Button 
@@ -77,8 +77,8 @@ export default function CircularTimerControls({
         </div>
       </div>
 
-      {/* Controles de áudio/sistema literalmente no canto inferior esquerdo */}
-      <div className={`fixed bottom-0 left-0 flex gap-2 z-10 ${isMobile ? 'p-1' : 'p-2'}`}>
+      {/* Controles de áudio/sistema - FIXED no canto inferior esquerdo */}
+      <div className={`fixed bottom-0 left-0 flex gap-2 z-40 ${isMobile ? 'p-1' : 'p-2'}`}>
         {/* Botão Som */}
         <Button 
           onClick={onToggleSound}
@@ -115,8 +115,8 @@ export default function CircularTimerControls({
         </Button>
       </div>
 
-      {/* Botão "ABRIR EM NOVA JANELA" literalmente no canto inferior direito */}
-      <div className={`fixed bottom-0 right-0 z-10 ${isMobile ? 'p-1' : 'p-2'}`}>
+      {/* Botão "ABRIR EM NOVA JANELA" - FIXED no canto inferior direito */}
+      <div className={`fixed bottom-0 right-0 z-40 ${isMobile ? 'p-1' : 'p-2'}`}>
         <Button 
           onClick={onOpenNewWindow}
           variant="outline"

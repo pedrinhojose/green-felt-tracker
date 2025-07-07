@@ -2,28 +2,30 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePoker } from "@/contexts/PokerContext";
-import { useTimerState } from "./useTimerState";
-import { useTimerControls } from "./useTimerControls";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CircularProgressRing } from "./components/CircularProgressRing";
 import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
 import { TimerSideInfo } from "./components/TimerSideInfo";
 import { BackgroundEffects } from "./components/BackgroundEffects";
-import CircularTimerControls from "./components/CircularTimerControls";
 import { AlertTriangle } from "lucide-react";
 
-export default function CircularTimer() {
+interface CircularTimerProps {
+  timerState: any;
+  timerControls: any;
+}
+
+export default function CircularTimer({ timerState, timerControls }: CircularTimerProps) {
   const { activeSeason } = usePoker();
   const isMobile = useIsMobile();
   
   console.log("=== CIRCULAR TIMER DEBUG ===");
   console.log("CircularTimer component rendering");
   console.log("Active season:", activeSeason?.name);
-  console.log("Blind structure from season:", activeSeason?.blindStructure);
+  console.log("Timer state:", timerState);
   
-  // Se não há temporada ativa ou estrutura de blinds, mostrar fallback
-  if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
-    console.log("No active season or blind structure found");
+  // Se não há dados do timer, mostrar fallback
+  if (!timerState || !timerState.sortedBlindLevels || timerState.sortedBlindLevels.length === 0) {
+    console.log("No timer state or blind structure found");
     return (
       <Card className="bg-poker-dark-green border border-poker-gold/20">
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
@@ -32,47 +34,10 @@ export default function CircularTimer() {
       </Card>
     );
   }
-  
-  // Obter a estrutura de blinds da temporada ativa
-  const blindLevels = activeSeason.blindStructure;
-  
-  // Usar hooks customizados
-  const {
-    state,
-    setState,
-    currentLevel,
-    nextLevel,
-    timeRemainingInLevel,
-    isAlertTime,
-    isFinalCountdown,
-    isLevelJustCompleted,
-    isNewBlindAlert,
-    nextBreak,
-    levelsUntilBreak,
-    sortedBlindLevels,
-  } = useTimerState(blindLevels);
-  
-  const {
-    startTimer,
-    pauseTimer,
-    nextLevel: goToNextLevel,
-    previousLevel: goToPreviousLevel,
-    toggleSound,
-    openInNewWindow,
-    setLevelProgress,
-    toggleFullScreen,
-    reloadAudio,
-    hasOpenedNewWindow,
-  } = useTimerControls(
-    sortedBlindLevels,
-    state,
-    setState,
-    timeRemainingInLevel
-  );
 
   // Calcular a porcentagem de progresso
-  const progressPercentage = currentLevel
-    ? 100 - (timeRemainingInLevel / (currentLevel.duration * 60)) * 100
+  const progressPercentage = timerState.currentLevel
+    ? 100 - (timerState.timeRemainingInLevel / (timerState.currentLevel.duration * 60)) * 100
     : 0;
 
   return (
@@ -80,7 +45,7 @@ export default function CircularTimer() {
       {/* Background com efeitos 3D e profundidade */}
       <BackgroundEffects />
       
-      {/* Container principal com perspective 3D */}
+      {/* Container principal com perspective 3D - SEM CONTROLES */}
       <div 
         className="w-full h-full flex items-center justify-center relative"
         style={{ 
@@ -89,7 +54,7 @@ export default function CircularTimer() {
         }}
       >
         {/* Aviso quando nova janela foi aberta */}
-        {hasOpenedNewWindow && (
+        {timerControls?.hasOpenedNewWindow && (
           <div className={`absolute ${isMobile ? 'top-12 left-4 right-4' : 'top-16 left-1/2 -translate-x-1/2'} z-50`}>
             <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg backdrop-blur-sm">
               <AlertTriangle className="h-4 w-4" />
@@ -123,56 +88,40 @@ export default function CircularTimer() {
           {/* Anel de progresso 3D */}
           <CircularProgressRing
             progressPercentage={progressPercentage}
-            onProgressClick={setLevelProgress}
+            onProgressClick={timerControls?.setLevelProgress}
           />
           
           {/* Display central flutuante */}
           <TimerCenterDisplay
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevel={currentLevel}
-            showAlert={state.showAlert}
-            isNewBlindAlert={isNewBlindAlert}
+            timeRemainingInLevel={timerState.timeRemainingInLevel}
+            currentLevel={timerState.currentLevel}
+            showAlert={timerState.state.showAlert}
+            isNewBlindAlert={timerState.isNewBlindAlert}
           />
         </div>
 
         {/* Informações laterais reorganizadas */}
         <TimerSideInfo
           side="left"
-          nextLevel={nextLevel}
-          nextBreak={nextBreak}
-          levelsUntilBreak={levelsUntilBreak}
-          totalElapsedTime={state.totalElapsedTime}
-          blindLevels={sortedBlindLevels}
-          timeRemainingInLevel={timeRemainingInLevel}
-          currentLevelIndex={state.currentLevelIndex}
+          nextLevel={timerState.nextLevel}
+          nextBreak={timerState.nextBreak}
+          levelsUntilBreak={timerState.levelsUntilBreak}
+          totalElapsedTime={timerState.state.totalElapsedTime}
+          blindLevels={timerState.sortedBlindLevels}
+          timeRemainingInLevel={timerState.timeRemainingInLevel}
+          currentLevelIndex={timerState.state.currentLevelIndex}
         />
         
         <TimerSideInfo
           side="right"
-          currentLevel={currentLevel}
-          totalElapsedTime={state.totalElapsedTime}
-          blindLevels={sortedBlindLevels}
-          timeRemainingInLevel={timeRemainingInLevel}
-          currentLevelIndex={state.currentLevelIndex}
-          nextBreak={nextBreak}
-          levelsUntilBreak={levelsUntilBreak}
+          currentLevel={timerState.currentLevel}
+          totalElapsedTime={timerState.state.totalElapsedTime}
+          blindLevels={timerState.sortedBlindLevels}
+          timeRemainingInLevel={timerState.timeRemainingInLevel}
+          currentLevelIndex={timerState.state.currentLevelIndex}
+          nextBreak={timerState.nextBreak}
+          levelsUntilBreak={timerState.levelsUntilBreak}
         />
-
-        {/* Controles com elevação */}
-        <div style={{ transform: 'translateZ(30px)' }} className="z-30">
-          <CircularTimerControls
-            isRunning={state.isRunning}
-            soundEnabled={state.soundEnabled}
-            onStart={startTimer}
-            onPause={pauseTimer}
-            onNext={goToNextLevel}
-            onPrevious={goToPreviousLevel}
-            onToggleSound={toggleSound}
-            onOpenNewWindow={openInNewWindow}
-            onToggleFullScreen={toggleFullScreen}
-            onReloadAudio={reloadAudio}
-          />
-        </div>
       </div>
     </div>
   );
