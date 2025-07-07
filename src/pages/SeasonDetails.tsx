@@ -527,23 +527,23 @@ export default function SeasonDetails() {
 
                       {additionalStats && (
                         <>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <DollarSign className="h-3 w-3 mr-2" />
+                          <div className="flex items-center text-sm">
+                            <DollarSign className="h-4 w-4 mr-2" />
                             <span>Total Arrecadado: {formatCurrency(additionalStats.totalRevenue)}</span>
                           </div>
                           
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Trophy className="h-3 w-3 mr-2" />
+                          <div className="flex items-center text-sm">
+                            <Trophy className="h-4 w-4 mr-2" />
                             <span>Maior Prize Pool: {formatCurrency(additionalStats.biggestPrizePool)}</span>
                           </div>
                           
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Award className="h-3 w-3 mr-2" />
+                          <div className="flex items-center text-sm">
+                            <Award className="h-4 w-4 mr-2" />
                             <span>Mais Vitórias: {additionalStats.mostVictoriousPlayer.name} ({additionalStats.mostVictoriousPlayer.victories})</span>
                           </div>
                           
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <RotateCcw className="h-3 w-3 mr-2" />
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <RotateCcw className="h-4 w-4 mr-2" />
                             <span>Total Re-buys: {additionalStats.totalRebuys}</span>
                           </div>
                         </>
