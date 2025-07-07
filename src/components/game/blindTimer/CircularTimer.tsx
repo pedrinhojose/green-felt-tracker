@@ -6,24 +6,17 @@ import { useTimerState } from "./useTimerState";
 import { useTimerControls } from "./useTimerControls";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CircularProgressRing } from "./components/CircularProgressRing";
-import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
-import { TimerSideInfo } from "./components/TimerSideInfo";
-import { BackgroundEffects } from "./components/BackgroundEffects";
-import CircularTimerControls from "./components/CircularTimerControls";
+import TimerControls from "./TimerControls";
 import { AlertTriangle } from "lucide-react";
+import { useTimerUtils } from "./useTimerUtils";
+import { useEffect, useState } from "react";
 
 export default function CircularTimer() {
   const { activeSeason } = usePoker();
   const isMobile = useIsMobile();
   
-  console.log("=== CIRCULAR TIMER DEBUG ===");
-  console.log("CircularTimer component rendering");
-  console.log("Active season:", activeSeason?.name);
-  console.log("Blind structure from season:", activeSeason?.blindStructure);
-  
   // Se não há temporada ativa ou estrutura de blinds, mostrar fallback
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
-    console.log("No active season or blind structure found");
     return (
       <Card className="bg-poker-dark-green border border-poker-gold/20">
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
@@ -43,10 +36,6 @@ export default function CircularTimer() {
     currentLevel,
     nextLevel,
     timeRemainingInLevel,
-    isAlertTime,
-    isFinalCountdown,
-    isLevelJustCompleted,
-    isNewBlindAlert,
     nextBreak,
     levelsUntilBreak,
     sortedBlindLevels,
@@ -70,111 +59,159 @@ export default function CircularTimer() {
     timeRemainingInLevel
   );
 
+  const { getCurrentTime } = useTimerUtils();
+  const [currentTime, setCurrentTime] = useState(getCurrentTime());
+
+  // Atualizar a hora atual a cada minuto
+  useEffect(() => {
+    const updateTime = () => {
+      setCurrentTime(getCurrentTime());
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, [getCurrentTime]);
+
   // Calcular a porcentagem de progresso
   const progressPercentage = currentLevel
     ? 100 - (timeRemainingInLevel / (currentLevel.duration * 60)) * 100
     : 0;
 
-  return (
-    <div className="w-screen h-screen relative timer-container overflow-hidden">
-      {/* Background com efeitos 3D e profundidade */}
-      <BackgroundEffects />
-      
-      {/* Container principal com perspective 3D */}
-      <div 
-        className="w-full h-full flex items-center justify-center relative"
-        style={{ 
-          background: 'radial-gradient(ellipse at center, rgba(26, 77, 51, 0.8) 0%, rgba(15, 43, 29, 0.9) 50%, rgba(10, 31, 21, 1) 100%)',
-          perspective: '1200px',
-        }}
-      >
-        {/* Aviso quando nova janela foi aberta */}
-        {hasOpenedNewWindow && (
-          <div className={`absolute ${isMobile ? 'top-12' : 'top-16'} left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'w-11/12' : 'w-auto'}`}>
-            <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg backdrop-blur-sm">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
-                ⚠️ Timer aberto em nova janela - Cuidado para não iniciar dois timers
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
+  const formatTime = (timeInSeconds: number) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
-        {/* Título superior com efeito 3D */}
-        <div className={`absolute ${isMobile ? 'top-2' : 'top-8'} left-1/2 -translate-x-1/2`}>
-          <h1 
-            className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}
-            style={{
-              textShadow: '0 4px 8px rgba(0,0,0,0.8), 0 0 20px rgba(223, 198, 97, 0.4)',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
-            }}
-          >
-            APA POKER Clock
-          </h1>
+  const formatBlindText = (blind: number) => {
+    if (blind >= 1000) {
+      return `${(blind / 1000).toFixed(blind % 1000 === 0 ? 0 : 1)}K`;
+    }
+    return blind.toString();
+  };
+
+  return (
+    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container relative">
+      {/* Aviso quando nova janela foi aberta */}
+      {hasOpenedNewWindow && (
+        <div className={`absolute ${isMobile ? 'top-12' : 'top-16'} left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'w-11/12' : 'w-auto'}`}>
+          <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+              ⚠️ Timer aberto em nova janela - Cuidado para não iniciar dois timers
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
+      {/* Hora atual no canto superior esquerdo */}
+      <div className="absolute top-4 left-4 text-left p-2 rounded-md bg-poker-navy/30">
+        <div className="text-white text-xs">Hora Atual</div>
+        <div className="text-poker-gold text-lg font-medium">
+          {currentTime}
+        </div>
+      </div>
+
+      {/* Título */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2">
+        <h1 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold text-poker-gold text-center`}>
+          APA POKER Clock
+        </h1>
+      </div>
+
+      {/* Container principal */}
+      <div className="w-full h-full flex items-center justify-center relative">
+        
+        {/* Informações lado esquerdo */}
+        <div className={`absolute ${isMobile ? 'left-2 top-32' : 'left-8 top-1/2 -translate-y-1/2'} text-white space-y-4`}>
+          <div className="text-center">
+            <div className="text-sm text-poker-gold">Nível Atual</div>
+            <div className="text-2xl font-bold">
+              {currentLevel?.isBreak ? 'INTERVALO' : `Nível ${currentLevel?.level || 1}`}
+            </div>
+          </div>
+          
+          {currentLevel && !currentLevel.isBreak && (
+            <div className="text-center">
+              <div className="text-sm text-poker-gold">Blinds</div>
+              <div className="text-xl font-bold">
+                {formatBlindText(currentLevel.smallBlind)}/{formatBlindText(currentLevel.bigBlind)}
+                {currentLevel.ante > 0 && ` (${formatBlindText(currentLevel.ante)})`}
+              </div>
+            </div>
+          )}
+
+          {nextBreak && (
+            <div className="text-center">
+              <div className="text-sm text-poker-gold">Próximo Intervalo</div>
+              <div className="text-lg">
+                {levelsUntilBreak === 1 ? 'Próximo nível' : `${levelsUntilBreak} níveis`}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Container principal circular com profundidade */}
-        <div 
-          className="relative transform-gpu"
-          style={{
-            transform: 'translateZ(50px)',
-          }}
-        >
-          {/* Anel de progresso 3D */}
+        {/* Timer circular central */}
+        <div className="relative">
           <CircularProgressRing
             progressPercentage={progressPercentage}
             onProgressClick={setLevelProgress}
           />
           
-          {/* Display central flutuante */}
-          <TimerCenterDisplay
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevel={currentLevel}
-            showAlert={state.showAlert}
-            isNewBlindAlert={isNewBlindAlert}
-          />
+          {/* Tempo no centro */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className={`${isMobile ? 'text-4xl' : 'text-6xl'} font-bold text-white font-mono`}>
+              {formatTime(timeRemainingInLevel)}
+            </div>
+            <div className={`text-poker-gold ${isMobile ? 'text-sm' : 'text-lg'} mt-2`}>
+              Tempo
+            </div>
+          </div>
         </div>
 
-        {/* Informações laterais com profundidade */}
-        <div style={{ transform: 'translateZ(20px)' }}>
-          <TimerSideInfo
-            side="left"
-            nextLevel={nextLevel}
-            nextBreak={nextBreak}
-            levelsUntilBreak={levelsUntilBreak}
-            totalElapsedTime={state.totalElapsedTime}
-            blindLevels={sortedBlindLevels}
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevelIndex={state.currentLevelIndex}
-          />
-        </div>
-        
-        <div style={{ transform: 'translateZ(20px)' }}>
-          <TimerSideInfo
-            side="right"
-            currentLevel={currentLevel}
-            totalElapsedTime={state.totalElapsedTime}
-            blindLevels={sortedBlindLevels}
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevelIndex={state.currentLevelIndex}
-          />
-        </div>
+        {/* Informações lado direito */}
+        <div className={`absolute ${isMobile ? 'right-2 top-32' : 'right-8 top-1/2 -translate-y-1/2'} text-white space-y-4`}>
+          {nextLevel && (
+            <div className="text-center">
+              <div className="text-sm text-poker-gold">Próximo Nível</div>
+              <div className="text-lg font-bold">
+                {nextLevel.isBreak ? 'INTERVALO' : `Nível ${nextLevel.level}`}
+              </div>
+              {!nextLevel.isBreak && (
+                <div className="text-sm">
+                  {formatBlindText(nextLevel.smallBlind)}/{formatBlindText(nextLevel.bigBlind)}
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Controles com elevação */}
-        <div style={{ transform: 'translateZ(30px)' }}>
-          <CircularTimerControls
-            isRunning={state.isRunning}
-            soundEnabled={state.soundEnabled}
-            onStart={startTimer}
-            onPause={pauseTimer}
-            onNext={goToNextLevel}
-            onPrevious={goToPreviousLevel}
-            onToggleSound={toggleSound}
-            onOpenNewWindow={openInNewWindow}
-            onToggleFullScreen={toggleFullScreen}
-            onReloadAudio={reloadAudio}
-          />
+          <div className="text-center">
+            <div className="text-sm text-poker-gold">Tempo Total</div>
+            <div className="text-lg">{formatTime(state.totalElapsedTime)}</div>
+          </div>
+
+          <div className="text-center">
+            <div className="text-sm text-poker-gold">Jogadores</div>
+            <div className="text-lg">Em jogo</div>
+          </div>
         </div>
+      </div>
+
+      {/* Controles na parte inferior */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <TimerControls
+          isRunning={state.isRunning}
+          soundEnabled={state.soundEnabled}
+          onStart={startTimer}
+          onPause={pauseTimer}
+          onNext={goToNextLevel}
+          onPrevious={goToPreviousLevel}
+          onToggleSound={toggleSound}
+          onOpenNewWindow={openInNewWindow}
+          onToggleFullScreen={toggleFullScreen}
+          onReloadAudio={reloadAudio}
+        />
       </div>
     </div>
   );
