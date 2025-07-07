@@ -216,6 +216,11 @@ export default function PublicSeasonView() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="mb-6 text-center p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 rounded-lg border border-yellow-500/20">
+                <p className="text-sm text-muted-foreground mb-2">Valor Total do Jackpot</p>
+                <p className="text-3xl font-bold text-yellow-500">{formatCurrency(totalJackpot)}</p>
+              </div>
+              
               <div className="space-y-3">
                 {jackpotWinners.map((winner, index) => (
                   <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
@@ -242,7 +247,7 @@ export default function PublicSeasonView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {rankings.slice(0, 10).map((player, index) => (
+              {rankings.map((player, index) => (
                 <div key={player.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center">
                     <span className="font-semibold mr-3 min-w-[2rem]">
@@ -269,12 +274,6 @@ export default function PublicSeasonView() {
                 </div>
               ))}
             </div>
-            
-            {rankings.length > 10 && (
-              <p className="text-center text-muted-foreground mt-4 text-sm">
-                ... e mais {rankings.length - 10} jogadores
-              </p>
-            )}
           </CardContent>
         </Card>
 
