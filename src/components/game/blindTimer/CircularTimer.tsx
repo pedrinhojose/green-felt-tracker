@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CircularProgressRing } from "./components/CircularProgressRing";
 import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
 import { TimerSideInfo } from "./components/TimerSideInfo";
+import { BackgroundEffects } from "./components/BackgroundEffects";
 import CircularTimerControls from "./components/CircularTimerControls";
 import { AlertTriangle } from "lucide-react";
 
@@ -75,77 +76,106 @@ export default function CircularTimer() {
     : 0;
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center relative timer-container overflow-hidden">
-      {/* Aviso quando nova janela foi aberta */}
-      {hasOpenedNewWindow && (
-        <div className={`absolute ${isMobile ? 'top-12' : 'top-16'} left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'w-11/12' : 'w-auto'}`}>
-          <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
-              ⚠️ Timer aberto em nova janela - Cuidado para não iniciar dois timers
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-
-      {/* Título superior */}
-      <div className={`absolute ${isMobile ? 'top-2' : 'top-8'} left-1/2 -translate-x-1/2`}>
-        <h1 className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}>
-          APA POKER Clock
-        </h1>
-      </div>
-
-      {/* Container principal circular */}
-      <div className="relative">
-        {/* Anel de progresso */}
-        <CircularProgressRing
-          progressPercentage={progressPercentage}
-          onProgressClick={setLevelProgress}
-        />
-        
-        {/* Display central */}
-        <TimerCenterDisplay
-          timeRemainingInLevel={timeRemainingInLevel}
-          currentLevel={currentLevel}
-          showAlert={state.showAlert}
-          isNewBlindAlert={isNewBlindAlert}
-        />
-      </div>
-
-      {/* Informações laterais - posicionadas mais próximas do círculo */}
-      <TimerSideInfo
-        side="left"
-        nextLevel={nextLevel}
-        nextBreak={nextBreak}
-        levelsUntilBreak={levelsUntilBreak}
-        totalElapsedTime={state.totalElapsedTime}
-        blindLevels={sortedBlindLevels}
-        timeRemainingInLevel={timeRemainingInLevel}
-        currentLevelIndex={state.currentLevelIndex}
-      />
+    <div className="w-screen h-screen relative timer-container overflow-hidden">
+      {/* Background com efeitos 3D e profundidade */}
+      <BackgroundEffects />
       
-      <TimerSideInfo
-        side="right"
-        currentLevel={currentLevel}
-        totalElapsedTime={state.totalElapsedTime}
-        blindLevels={sortedBlindLevels}
-        timeRemainingInLevel={timeRemainingInLevel}
-        currentLevelIndex={state.currentLevelIndex}
-      />
+      {/* Container principal com perspective 3D */}
+      <div 
+        className="w-full h-full flex items-center justify-center relative"
+        style={{ 
+          background: 'radial-gradient(ellipse at center, rgba(26, 77, 51, 0.8) 0%, rgba(15, 43, 29, 0.9) 50%, rgba(10, 31, 21, 1) 100%)',
+          perspective: '1200px',
+        }}
+      >
+        {/* Aviso quando nova janela foi aberta */}
+        {hasOpenedNewWindow && (
+          <div className={`absolute ${isMobile ? 'top-12' : 'top-16'} left-1/2 -translate-x-1/2 z-50 ${isMobile ? 'w-11/12' : 'w-auto'}`}>
+            <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg backdrop-blur-sm">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                ⚠️ Timer aberto em nova janela - Cuidado para não iniciar dois timers
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
 
-      {/* Controles */}
-      <CircularTimerControls
-        isRunning={state.isRunning}
-        soundEnabled={state.soundEnabled}
-        onStart={startTimer}
-        onPause={pauseTimer}
-        onNext={goToNextLevel}
-        onPrevious={goToPreviousLevel}
-        onToggleSound={toggleSound}
-        onOpenNewWindow={openInNewWindow}
-        onToggleFullScreen={toggleFullScreen}
-        onReloadAudio={reloadAudio}
-      />
+        {/* Título superior com efeito 3D */}
+        <div className={`absolute ${isMobile ? 'top-2' : 'top-8'} left-1/2 -translate-x-1/2`}>
+          <h1 
+            className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}
+            style={{
+              textShadow: '0 4px 8px rgba(0,0,0,0.8), 0 0 20px rgba(223, 198, 97, 0.4)',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
+            }}
+          >
+            APA POKER Clock
+          </h1>
+        </div>
+
+        {/* Container principal circular com profundidade */}
+        <div 
+          className="relative transform-gpu"
+          style={{
+            transform: 'translateZ(50px)',
+          }}
+        >
+          {/* Anel de progresso 3D */}
+          <CircularProgressRing
+            progressPercentage={progressPercentage}
+            onProgressClick={setLevelProgress}
+          />
+          
+          {/* Display central flutuante */}
+          <TimerCenterDisplay
+            timeRemainingInLevel={timeRemainingInLevel}
+            currentLevel={currentLevel}
+            showAlert={state.showAlert}
+            isNewBlindAlert={isNewBlindAlert}
+          />
+        </div>
+
+        {/* Informações laterais com profundidade */}
+        <div style={{ transform: 'translateZ(20px)' }}>
+          <TimerSideInfo
+            side="left"
+            nextLevel={nextLevel}
+            nextBreak={nextBreak}
+            levelsUntilBreak={levelsUntilBreak}
+            totalElapsedTime={state.totalElapsedTime}
+            blindLevels={sortedBlindLevels}
+            timeRemainingInLevel={timeRemainingInLevel}
+            currentLevelIndex={state.currentLevelIndex}
+          />
+        </div>
+        
+        <div style={{ transform: 'translateZ(20px)' }}>
+          <TimerSideInfo
+            side="right"
+            currentLevel={currentLevel}
+            totalElapsedTime={state.totalElapsedTime}
+            blindLevels={sortedBlindLevels}
+            timeRemainingInLevel={timeRemainingInLevel}
+            currentLevelIndex={state.currentLevelIndex}
+          />
+        </div>
+
+        {/* Controles com elevação */}
+        <div style={{ transform: 'translateZ(30px)' }}>
+          <CircularTimerControls
+            isRunning={state.isRunning}
+            soundEnabled={state.soundEnabled}
+            onStart={startTimer}
+            onPause={pauseTimer}
+            onNext={goToNextLevel}
+            onPrevious={goToPreviousLevel}
+            onToggleSound={toggleSound}
+            onOpenNewWindow={openInNewWindow}
+            onToggleFullScreen={toggleFullScreen}
+            onReloadAudio={reloadAudio}
+          />
+        </div>
+      </div>
     </div>
   );
 }
