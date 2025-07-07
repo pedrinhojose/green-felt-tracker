@@ -271,6 +271,7 @@ export type Database = {
           jackpot: number
           name: string
           organization_id: string | null
+          public_share_token: string | null
           score_schema: Json
           season_prize_schema: Json
           start_date: string
@@ -289,6 +290,7 @@ export type Database = {
           jackpot?: number
           name: string
           organization_id?: string | null
+          public_share_token?: string | null
           score_schema?: Json
           season_prize_schema?: Json
           start_date: string
@@ -307,6 +309,7 @@ export type Database = {
           jackpot?: number
           name?: string
           organization_id?: string | null
+          public_share_token?: string | null
           score_schema?: Json
           season_prize_schema?: Json
           start_date?: string

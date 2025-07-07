@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw } from "lucide-react";
+import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw, Download, Image, Share2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
@@ -13,6 +13,8 @@ import { RankingExporter } from "@/components/ranking/RankingExporter";
 import { usePlayerStats } from "@/hooks/reports/usePlayerStats";
 import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useSeasonReport } from "@/hooks/useSeasonReport";
+import { useShareableLink } from "@/hooks/useShareableLink";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -50,6 +52,10 @@ export default function SeasonDetails() {
   
   // Usar o hook usePlayerStats para obter dados detalhados de performance
   const { playerStats: detailedPlayerStats, loading: statsLoading } = usePlayerStats(seasonId);
+  
+  // Hooks para exportação e links compartilháveis
+  const { exportReportAsPdf, exportReportAsImage, isExporting, isExportingImage } = useSeasonReport();
+  const { generateShareableLink, isGenerating } = useShareableLink();
   
   // Usar hook de scroll restoration
   useScrollRestoration(seasonId);
@@ -437,10 +443,48 @@ export default function SeasonDetails() {
   
   return (
     <div className="container mx-auto px-4 py-6">
-      <Button variant="ghost" onClick={() => navigate("/seasons")} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar para Temporadas
-      </Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <Button variant="ghost" onClick={() => navigate("/seasons")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Temporadas
+        </Button>
+        
+        {/* Botões de Exportação */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportReportAsPdf}
+            disabled={isExporting}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? "Gerando PDF..." : "Exportar PDF"}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportReportAsImage}
+            disabled={isExportingImage}
+            className="flex items-center gap-2"
+          >
+            <Image className="h-4 w-4" />
+            {isExportingImage ? "Gerando Imagem..." : "Exportar Imagem"}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => generateShareableLink(seasonId!)}
+            disabled={isGenerating}
+            className="flex items-center gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            {isGenerating ? "Gerando Link..." : "Gerar Link"}
+          </Button>
+        </div>
+      </div>
       
       <Card>
         <CardHeader>
