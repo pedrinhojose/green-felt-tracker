@@ -120,6 +120,12 @@ export default function PublicGameView() {
 
   const sortedPlayers = [...game.players].sort((a, b) => a.position - b.position);
   const winners = sortedPlayers.filter(p => p.prize > 0);
+  
+  // Calcular custo individual da janta
+  const dinnerParticipants = game.players.filter(p => p.joinedDinner).length;
+  const dinnerCostPerPlayer = game.dinnerCost && dinnerParticipants > 0 
+    ? game.dinnerCost / dinnerParticipants 
+    : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -231,6 +237,7 @@ export default function PublicGameView() {
                     <TableHead className="text-right">Prêmio</TableHead>
                     <TableHead className="text-right">Rebuys</TableHead>
                     <TableHead className="text-right">Add-ons</TableHead>
+                    <TableHead className="text-right">Janta</TableHead>
                     <TableHead className="text-right">Saldo</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -269,6 +276,9 @@ export default function PublicGameView() {
                       </TableCell>
                       <TableCell className="text-right">
                         {player.addons || 0}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {player.joinedDinner ? formatCurrency(dinnerCostPerPlayer) : '-'}
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${
                         player.balance >= 0 ? 'text-green-600' : 'text-red-600'
