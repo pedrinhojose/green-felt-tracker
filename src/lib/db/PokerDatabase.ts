@@ -173,6 +173,13 @@ class PokerDatabase {
   }
 
   // Game methods
+  async getGameNumbers(seasonId: string): Promise<number[]> {
+    console.log("PokerDatabase.getGameNumbers: Buscando números de games para season:", seasonId);
+    const result = await this.gameRepository.getGameNumbers(seasonId);
+    console.log("PokerDatabase.getGameNumbers: Resultado:", result.length, "números encontrados");
+    return result;
+  }
+
   async getGames(seasonId: string): Promise<Game[]> {
     console.log("PokerDatabase.getGames: Iniciando busca de games para season:", seasonId);
     const result = await this.gameRepository.getGames(seasonId);

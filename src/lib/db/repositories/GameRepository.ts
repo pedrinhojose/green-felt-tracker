@@ -18,6 +18,42 @@ export class GameRepository extends SupabaseCore {
     }
   }
 
+  async getGameNumbers(seasonId: string): Promise<number[]> {
+    if (this.useSupabase) {
+      try {
+        const orgId = this.getCurrentOrganizationId();
+        
+        if (!orgId) {
+          console.warn("GameRepository.getGameNumbers: No organization selected, returning empty list");
+          return [];
+        }
+        
+        // Query only the number field for performance
+        const { data, error } = await supabase
+          .from('games')
+          .select('number')
+          .eq('season_id', seasonId)
+          .eq('organization_id', orgId)
+          .order('number', { ascending: true });
+          
+        if (error) {
+          console.error("GameRepository.getGameNumbers: Supabase error:", error);
+          throw error;
+        }
+        
+        return data?.map(game => game.number) || [];
+      } catch (error) {
+        console.error("GameRepository.getGameNumbers: Error fetching game numbers from Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      const games = await (await this.idbDb).getAllFromIndex('games', 'by-season', seasonId);
+      return games.map(game => game.number).sort((a, b) => a - b);
+    }
+    
+    return [];
+  }
+
   async getGames(seasonId: string): Promise<Game[]> {
     if (this.useSupabase) {
       try {

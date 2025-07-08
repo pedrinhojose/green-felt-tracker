@@ -12,9 +12,29 @@ export function useGameFunctions(
   const [games, setGames] = useState<Game[]>([]);
   const [lastGame, setLastGame] = useState<Game | null>(null);
 
+  const findNextAvailableNumber = (existingNumbers: number[]): number => {
+    if (existingNumbers.length === 0) {
+      return 1;
+    }
+    
+    // Sort numbers to ensure proper order
+    const sortedNumbers = [...existingNumbers].sort((a, b) => a - b);
+    
+    // Find the first gap in the sequence
+    for (let i = 0; i < sortedNumbers.length; i++) {
+      const expectedNumber = i + 1;
+      if (sortedNumbers[i] !== expectedNumber) {
+        return expectedNumber;
+      }
+    }
+    
+    // If no gaps, return the next sequential number
+    return sortedNumbers.length + 1;
+  };
+
   const getGameNumber = async (seasonId: string) => {
-    const games = await pokerDB.getGames(seasonId);
-    return games.length + 1;
+    const gameNumbers = await pokerDB.getGameNumbers(seasonId);
+    return findNextAvailableNumber(gameNumbers);
   };
 
   const createGame = async (seasonId: string) => {
