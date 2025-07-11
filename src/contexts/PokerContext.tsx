@@ -181,12 +181,45 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     games: games.length
   });
 
-  // Don't provide context until organization context is ready
+  // Always provide context, but with empty state while org is loading
   if (orgLoading) {
-    console.log("PokerProvider: Aguardando carregamento das organizações...");
-    return <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold"></div>
-    </div>;
+    console.log("PokerProvider: Organização carregando, fornecendo contexto vazio...");
+    const emptyContextValue: PokerContextProps = {
+      // Players
+      players: [],
+      getPlayer: async () => undefined,
+      savePlayer: async () => '',
+      deletePlayer: async () => {},
+      
+      // Seasons
+      seasons: [],
+      activeSeason: null,
+      createSeason: async () => '',
+      updateSeason: async () => {},
+      endSeason: async () => {},
+      
+      // Games
+      games: [],
+      lastGame: null,
+      createGame: async () => '',
+      updateGame: async () => {},
+      deleteGame: async () => false,
+      finishGame: async () => {},
+      
+      // Rankings
+      rankings: [],
+      
+      // Utilities
+      isLoading: true,
+      exportBackup: async () => {},
+      getGameNumber: async () => 1,
+    };
+    
+    return (
+      <PokerContext.Provider value={emptyContextValue}>
+        {children}
+      </PokerContext.Provider>
+    );
   }
 
   return (
