@@ -28,10 +28,13 @@ export class RankingRepository extends SupabaseCore {
           return [];
         }
         
-        // Simple query - RLS policies will handle the filtering
+        // JOIN with players to ensure only rankings of existing players are returned
         const { data, error } = await supabase
           .from('rankings')
-          .select('*')
+          .select(`
+            *,
+            players!inner(id, name)
+          `)
           .eq('season_id', seasonId)
           .eq('organization_id', orgId);
           

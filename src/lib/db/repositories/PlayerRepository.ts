@@ -186,7 +186,33 @@ export class PlayerRepository extends SupabaseCore {
           console.log("Deleted player photo:", player.photoUrl);
         }
         
-        // RLS policies will handle access control
+        // Delete rankings from active season only (preserve historical data)
+        // First, get the active season for this organization
+        const { data: activeSeason } = await supabase
+          .from('seasons')
+          .select('id')
+          .eq('organization_id', orgId)
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (activeSeason) {
+          // Delete rankings only from the active season
+          const { error: rankingError } = await supabase
+            .from('rankings')
+            .delete()
+            .eq('player_id', id)
+            .eq('season_id', activeSeason.id)
+            .eq('organization_id', orgId);
+            
+          if (rankingError) {
+            console.error("Error deleting player rankings from active season:", rankingError);
+            // Don't throw error here, continue with player deletion
+          } else {
+            console.log("Deleted player rankings from active season:", activeSeason.id);
+          }
+        }
+        
+        // Delete the player
         const { error } = await supabase
           .from('players')
           .delete()
@@ -195,11 +221,32 @@ export class PlayerRepository extends SupabaseCore {
           
         if (error) throw error;
         
+        console.log("Player deleted successfully:", id);
+        
       } catch (error) {
         console.error("Error deleting player from Supabase:", error);
         throw error;
       }
     } else if (this.idbDb) {
+      // For IndexedDB, we need to implement similar logic
+      // Get all rankings for this player and delete only from active season
+      const allRankings = await (await this.idbDb).getAll('rankings');
+      const playerRankings = allRankings.filter(r => r.playerId === id);
+      
+      // Get active season
+      const allSeasons = await (await this.idbDb).getAll('seasons');
+      const activeSeason = allSeasons.find(s => s.isActive);
+      
+      if (activeSeason) {
+        // Delete rankings only from active season
+        for (const ranking of playerRankings) {
+          if (ranking.seasonId === activeSeason.id) {
+            await (await this.idbDb).delete('rankings', ranking.id);
+          }
+        }
+      }
+      
+      // Delete the player
       await (await this.idbDb).delete('players', id);
     }
   }
