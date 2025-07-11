@@ -15,9 +15,9 @@ const PokerContext = createContext<PokerContextProps | undefined>(undefined);
 
 export function PokerProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const { currentOrganization } = useOrganization();
+  const { currentOrganization, isLoading: orgLoading } = useOrganization();
   
-  console.log("PokerProvider: Renderizando com organização:", currentOrganization?.name || 'nenhuma');
+  console.log("PokerProvider: Renderizando com organização:", currentOrganization?.name || 'nenhuma', "orgLoading:", orgLoading);
   
   // Initialize all the hooks
   const { 
@@ -180,6 +180,14 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     activeSeason: activeSeason?.name || 'nenhuma',
     games: games.length
   });
+
+  // Don't provide context until organization context is ready
+  if (orgLoading) {
+    console.log("PokerProvider: Aguardando carregamento das organizações...");
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold"></div>
+    </div>;
+  }
 
   return (
     <PokerContext.Provider value={contextValue}>
