@@ -28,21 +28,52 @@ export class RankingRepository extends SupabaseCore {
           return [];
         }
         
-        // JOIN with players to ensure only rankings of existing players are returned
+        console.log("RankingRepository: Buscando rankings para seasonId:", seasonId, "orgId:", orgId);
+        
+        // First, try simple query without JOIN to debug
         const { data, error } = await supabase
           .from('rankings')
-          .select(`
-            *,
-            players!inner(id, name)
-          `)
+          .select('*')
           .eq('season_id', seasonId)
           .eq('organization_id', orgId);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase query error:", error);
+          throw error;
+        }
         
-        console.log("Ranking data from Supabase:", data);
+        console.log("Rankings raw data from Supabase:", data);
+        console.log("Number of rankings found:", data?.length || 0);
         
-        return data.map(ranking => ({
+        if (!data || data.length === 0) {
+          console.warn("No rankings found for seasonId:", seasonId, "orgId:", orgId);
+          return [];
+        }
+        
+        // Verify that players still exist by getting current players
+        const { data: players, error: playersError } = await supabase
+          .from('players')
+          .select('id, name')
+          .eq('organization_id', orgId);
+          
+        if (playersError) {
+          console.error("Error fetching players:", playersError);
+        }
+        
+        console.log("Current players:", players?.length || 0);
+        
+        // Filter rankings to only include existing players
+        const validRankings = data.filter(ranking => {
+          const playerExists = players?.some(player => player.id === ranking.player_id);
+          if (!playerExists) {
+            console.warn("Player not found for ranking:", ranking.player_id, ranking.player_name);
+          }
+          return playerExists;
+        });
+        
+        console.log("Valid rankings after player filter:", validRankings.length);
+        
+        const mappedRankings = validRankings.map(ranking => ({
           id: ranking.id,
           playerId: ranking.player_id,
           playerName: ranking.player_name,
@@ -52,6 +83,14 @@ export class RankingRepository extends SupabaseCore {
           bestPosition: ranking.best_position,
           seasonId: ranking.season_id
         })).sort((a, b) => b.totalPoints - a.totalPoints);
+        
+        console.log("Final mapped and sorted rankings:", mappedRankings.map(r => ({
+          name: r.playerName,
+          points: r.totalPoints,
+          games: r.gamesPlayed
+        })));
+        
+        return mappedRankings;
       } catch (error) {
         console.error("Error fetching rankings from Supabase:", error);
         return [];
