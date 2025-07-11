@@ -4,6 +4,8 @@ import { RankingEntry } from '../models';
 import { PokerDB } from '../schema/PokerDBSchema';
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseCore } from '../core/SupabaseCore';
+import { SupabaseQueryInterceptor } from '../../utils/supabaseQueryInterceptor';
+import { sanitizeUUID, debugUUID } from '../../utils/uuidUtils';
 
 export class RankingRepository extends SupabaseCore {
   private idbDb: Promise<IDBPDatabase<PokerDB>> | null = null;
@@ -28,25 +30,48 @@ export class RankingRepository extends SupabaseCore {
           return [];
         }
         
-        console.log("RankingRepository: Buscando rankings para seasonId:", seasonId, "orgId:", orgId);
+        // Sanitizar e validar parâmetros
+        const sanitizedSeasonId = sanitizeUUID(seasonId);
+        const sanitizedOrgId = sanitizeUUID(orgId);
+        
+        if (!sanitizedSeasonId || !sanitizedOrgId) {
+          console.error("Invalid UUID parameters:", { 
+            seasonId: { original: seasonId, sanitized: sanitizedSeasonId },
+            orgId: { original: orgId, sanitized: sanitizedOrgId }
+          });
+          return [];
+        }
+        
+        debugUUID(seasonId, 'getRankingsBySeasonAndOrganization - seasonId');
+        debugUUID(orgId, 'getRankingsBySeasonAndOrganization - orgId');
+        
+        console.log("RankingRepository: Buscando rankings para seasonId:", sanitizedSeasonId, "orgId:", sanitizedOrgId);
+        
+        // Interceptar e sanitizar query
+        const queryParams = { season_id: sanitizedSeasonId, organization_id: sanitizedOrgId };
+        const sanitizedParams = SupabaseQueryInterceptor.sanitizeQueryParams('rankings', 'select', queryParams);
         
         // First, try simple query without JOIN to debug
         const { data, error } = await supabase
           .from('rankings')
           .select('*')
-          .eq('season_id', seasonId)
-          .eq('organization_id', orgId);
+          .eq('season_id', sanitizedParams.season_id)
+          .eq('organization_id', sanitizedParams.organization_id);
           
         if (error) {
           console.error("Supabase query error:", error);
+          SupabaseQueryInterceptor.validateResponse('rankings', 'select', { error });
           throw error;
         }
+        
+        // Validar resposta
+        SupabaseQueryInterceptor.validateResponse('rankings', 'select', { data, error });
         
         console.log("Rankings raw data from Supabase:", data);
         console.log("Number of rankings found:", data?.length || 0);
         
         if (!data || data.length === 0) {
-          console.warn("No rankings found for seasonId:", seasonId, "orgId:", orgId);
+          console.warn("No rankings found for seasonId:", sanitizedSeasonId, "orgId:", sanitizedOrgId);
           return [];
         }
         
@@ -54,7 +79,7 @@ export class RankingRepository extends SupabaseCore {
         const { data: players, error: playersError } = await supabase
           .from('players')
           .select('id, name')
-          .eq('organization_id', orgId);
+          .eq('organization_id', sanitizedOrgId);
           
         if (playersError) {
           console.error("Error fetching players:", playersError);

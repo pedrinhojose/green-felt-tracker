@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { generateSafeUUID, sanitizeUUID, debugUUID } from '@/lib/utils/uuidUtils';
+import { monitorUUID } from '@/lib/utils/uuidMonitor';
 
 export function useShareableLink() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -54,17 +55,31 @@ export function useShareableLink() {
     try {
       setIsGenerating(true);
       
-      console.log('Gerando link compartilhável para temporada:', seasonId);
+      // Validar e sanitizar o seasonId
+      const sanitizedSeasonId = sanitizeUUID(seasonId);
+      if (!sanitizedSeasonId) {
+        console.error('ID da temporada inválido:', seasonId);
+        toast({
+          title: "Erro",
+          description: "ID da temporada inválido.",
+          variant: "destructive",
+        });
+        return null;
+      }
       
-      // Gerar token único
-      const shareToken = uuidv4();
+      debugUUID(seasonId, 'generateShareableLink - seasonId');
+      console.log('Gerando link compartilhável para temporada:', sanitizedSeasonId);
+      
+      // Gerar token único com validação
+      const shareToken = generateSafeUUID();
+      debugUUID(shareToken, 'generateShareableLink - shareToken');
       console.log('Token gerado:', shareToken);
       
-      // Atualizar temporada com o token
+      // Atualizar temporada com o token usando ID sanitizado
       const { error } = await supabase
         .from('seasons')
         .update({ public_share_token: shareToken })
-        .eq('id', seasonId);
+        .eq('id', sanitizedSeasonId);
 
       if (error) {
         console.error('Erro ao gerar token de compartilhamento:', error);
@@ -130,10 +145,24 @@ export function useShareableLink() {
     try {
       setIsGenerating(true);
       
+      // Validar e sanitizar o seasonId
+      const sanitizedSeasonId = sanitizeUUID(seasonId);
+      if (!sanitizedSeasonId) {
+        console.error('ID da temporada inválido:', seasonId);
+        toast({
+          title: "Erro",
+          description: "ID da temporada inválido.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      debugUUID(seasonId, 'removeShareableLink - seasonId');
+      
       const { error } = await supabase
         .from('seasons')
         .update({ public_share_token: null })
-        .eq('id', seasonId);
+        .eq('id', sanitizedSeasonId);
 
       if (error) {
         console.error('Erro ao remover token de compartilhamento:', error);
@@ -165,8 +194,8 @@ export function useShareableLink() {
   };
 
   return {
-    generateShareableLink,
-    removeShareableLink,
+    generateShareableLink: monitorUUID(generateShareableLink, 'useShareableLink.generateShareableLink'),
+    removeShareableLink: monitorUUID(removeShareableLink, 'useShareableLink.removeShareableLink'),
     isGenerating
   };
 }

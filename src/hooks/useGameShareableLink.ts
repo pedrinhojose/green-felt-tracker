@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { generateSafeUUID, sanitizeUUID, debugUUID } from '@/lib/utils/uuidUtils';
+import { monitorUUID } from '@/lib/utils/uuidMonitor';
 
 export function useGameShareableLink() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -54,17 +55,31 @@ export function useGameShareableLink() {
     try {
       setIsGenerating(true);
       
-      console.log('Gerando link compartilhável para game:', gameId);
+      // Validar e sanitizar o gameId
+      const sanitizedGameId = sanitizeUUID(gameId);
+      if (!sanitizedGameId) {
+        console.error('ID do jogo inválido:', gameId);
+        toast({
+          title: "Erro",
+          description: "ID do jogo inválido.",
+          variant: "destructive",
+        });
+        return null;
+      }
       
-      // Gerar token único
-      const shareToken = uuidv4();
+      debugUUID(gameId, 'generateShareableLink - gameId');
+      console.log('Gerando link compartilhável para game:', sanitizedGameId);
+      
+      // Gerar token único com validação
+      const shareToken = generateSafeUUID();
+      debugUUID(shareToken, 'generateShareableLink - shareToken');
       console.log('Token gerado:', shareToken);
       
-      // Atualizar partida com o token
+      // Atualizar partida com o token usando ID sanitizado
       const { error } = await supabase
         .from('games')
         .update({ public_share_token: shareToken })
-        .eq('id', gameId);
+        .eq('id', sanitizedGameId);
 
       if (error) {
         console.error('Erro ao gerar token de compartilhamento:', error);
@@ -130,10 +145,24 @@ export function useGameShareableLink() {
     try {
       setIsGenerating(true);
       
+      // Validar e sanitizar o gameId
+      const sanitizedGameId = sanitizeUUID(gameId);
+      if (!sanitizedGameId) {
+        console.error('ID do jogo inválido:', gameId);
+        toast({
+          title: "Erro",
+          description: "ID do jogo inválido.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      debugUUID(gameId, 'removeShareableLink - gameId');
+      
       const { error } = await supabase
         .from('games')
         .update({ public_share_token: null })
-        .eq('id', gameId);
+        .eq('id', sanitizedGameId);
 
       if (error) {
         console.error('Erro ao remover token de compartilhamento:', error);
@@ -165,8 +194,8 @@ export function useGameShareableLink() {
   };
 
   return {
-    generateShareableLink,
-    removeShareableLink,
+    generateShareableLink: monitorUUID(generateShareableLink, 'useGameShareableLink.generateShareableLink'),
+    removeShareableLink: monitorUUID(removeShareableLink, 'useGameShareableLink.removeShareableLink'),
     isGenerating
   };
 }
