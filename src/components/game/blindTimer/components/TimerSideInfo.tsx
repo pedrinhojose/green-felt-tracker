@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useTimerUtils } from "../useTimerUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatBlindPair, formatBlindValue } from "@/lib/utils/blindUtils";
+import { usePoker } from "@/contexts/PokerContext";
 
 interface TimerSideInfoProps {
   side: 'left' | 'right';
@@ -30,11 +31,32 @@ export function TimerSideInfo({
 }: TimerSideInfoProps) {
   const { formatTotalTime, getMinutesUntilBreak, getCurrentTime } = useTimerUtils();
   const isMobile = useIsMobile();
+  const { activeSeason, lastGame } = usePoker();
   
   // Estados para atualização em tempo real
   const [displayTotalTime, setDisplayTotalTime] = useState(formatTotalTime(totalElapsedTime));
   const [minutesUntilBreak, setMinutesUntilBreak] = useState(0);
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
+
+  // Calcular prêmios em tempo real
+  const livePrizes = useMemo(() => {
+    if (!activeSeason?.weeklyPrizeSchema || !lastGame?.totalPrizePool) return [];
+    
+    const totalPrizePool = lastGame.totalPrizePool;
+    const prizeSchema = activeSeason.weeklyPrizeSchema;
+    
+    // Filtrar apenas os 3 primeiros lugares
+    const topThreePrizes = prizeSchema
+      .filter(prize => prize.position <= 3)
+      .sort((a, b) => a.position - b.position)
+      .map(prize => ({
+        position: prize.position,
+        value: (totalPrizePool * prize.percentage) / 100,
+        percentage: prize.percentage
+      }));
+    
+    return topThreePrizes;
+  }, [activeSeason?.weeklyPrizeSchema, lastGame?.totalPrizePool]);
 
   // Atualizar tempo total em tempo real
   useEffect(() => {
@@ -98,15 +120,36 @@ export function TimerSideInfo({
             </div>
           )}
           
-          {/* TEMPO TOTAL - apenas no desktop */}
+          {/* TEMPO TOTAL E PRÊMIOS - apenas no desktop */}
           {!isMobile && (
             <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
               <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
                 TEMPO TOTAL
               </h3>
-              <div className="text-white text-xl font-bold">
+              <div className="text-white text-xl font-bold mb-3">
                 {displayTotalTime}
               </div>
+              
+              {/* PRÊMIOS EM JOGO */}
+              {livePrizes.length > 0 && (
+                <div className="border-t border-white/20 pt-3">
+                  <h4 className="text-poker-gold text-sm font-normal mb-2 uppercase tracking-wide">
+                    PRÊMIOS EM JOGO
+                  </h4>
+                  <div className="space-y-1">
+                    {livePrizes.map((prize) => (
+                      <div key={prize.position} className="flex justify-between items-center">
+                        <span className="text-white/70 text-sm">
+                          {prize.position}º
+                        </span>
+                        <span className="text-white text-sm font-bold">
+                          R$ {prize.value.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -158,23 +201,46 @@ export function TimerSideInfo({
         
         {/* INFORMAÇÕES ADICIONAIS - apenas no mobile */}
         {isMobile && (
-          <div className="flex gap-3 transform scale-110">
-            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 flex-1">
-              <h3 className="text-poker-gold text-sm font-normal mb-1 uppercase">
-                TEMPO TOTAL
-              </h3>
-              <div className="text-white text-base font-bold">
-                {displayTotalTime}
-              </div>
-            </div>
-            
-            {nextBreak && levelsUntilBreak && (
+          <div className="space-y-3 transform scale-110">
+            <div className="flex gap-3">
               <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 flex-1">
                 <h3 className="text-poker-gold text-sm font-normal mb-1 uppercase">
-                  INTERVALO
+                  TEMPO TOTAL
                 </h3>
                 <div className="text-white text-base font-bold">
-                  {minutesUntilBreak} MIN
+                  {displayTotalTime}
+                </div>
+              </div>
+              
+              {nextBreak && levelsUntilBreak && (
+                <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 flex-1">
+                  <h3 className="text-poker-gold text-sm font-normal mb-1 uppercase">
+                    INTERVALO
+                  </h3>
+                  <div className="text-white text-base font-bold">
+                    {minutesUntilBreak} MIN
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* PRÊMIOS EM JOGO - mobile */}
+            {livePrizes.length > 0 && (
+              <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
+                <h3 className="text-poker-gold text-sm font-normal mb-2 uppercase">
+                  PRÊMIOS EM JOGO
+                </h3>
+                <div className="flex justify-between text-xs">
+                  {livePrizes.map((prize) => (
+                    <div key={prize.position} className="text-center">
+                      <div className="text-white/70 mb-1">
+                        {prize.position}º
+                      </div>
+                      <div className="text-white font-bold">
+                        R$ {prize.value.toFixed(0)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
