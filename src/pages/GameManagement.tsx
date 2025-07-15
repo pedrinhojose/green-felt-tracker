@@ -171,6 +171,7 @@ export default function GameManagement() {
                 initialDinnerCost={dinnerCost}
                 game={game}
                 players={players}
+                activeSeason={activeSeason}
               />
             </div>
             
