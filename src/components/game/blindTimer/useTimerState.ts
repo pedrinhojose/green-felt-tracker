@@ -1,9 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BlindLevel } from "@/lib/db/models";
 import { useLevelTime } from "./hooks/useLevelTime";
 import { useTimerAlerts } from "./hooks/useTimerAlerts";
 import { useBreakInfo } from "./hooks/useBreakInfo";
+import { useTimerPersistence, generateBlindLevelsHash } from "./hooks/useTimerPersistence";
+import { useTimerDiagnostics } from "./hooks/useTimerDiagnostics";
 
 export interface TimerState {
   isRunning: boolean;
@@ -14,10 +16,12 @@ export interface TimerState {
   soundEnabled: boolean;
 }
 
-export function useTimerState(blindLevels: BlindLevel[]) {
+export function useTimerState(blindLevels: BlindLevel[], seasonId?: string, gameId?: string) {
   console.log("=== TIMER STATE - CORREÇÃO DEFINITIVA ===");
   console.log("blindLevels RAW recebidos:", blindLevels);
   console.log("Quantidade:", blindLevels?.length);
+  console.log("Season ID:", seasonId);
+  console.log("Game ID:", gameId);
   
   // Verificar se temos dados válidos
   if (!Array.isArray(blindLevels) || blindLevels.length === 0) {
@@ -85,6 +89,61 @@ export function useTimerState(blindLevels: BlindLevel[]) {
     soundEnabled: true,
   });
 
+  // Gerar hash dos blind levels para detectar mudanças
+  const blindLevelsHash = generateBlindLevelsHash(sortedBlindLevels);
+  
+  // Hooks de persistência e diagnóstico
+  const persistence = useTimerPersistence(
+    state, 
+    setState, 
+    seasonId || '', 
+    gameId, 
+    blindLevelsHash
+  );
+  
+  const { diagnostics, logCriticalEvent } = useTimerDiagnostics(
+    state, 
+    sortedBlindLevels, 
+    seasonId
+  );
+
+  // Tentar recuperar estado salvo na inicialização
+  useEffect(() => {
+    if (!seasonId || !blindLevelsHash) return;
+    
+    console.log("🔄 Tentando recuperar estado salvo do timer...");
+    const savedState = persistence.recoverTimerState();
+    
+    if (savedState) {
+      console.log("✅ Estado recuperado com sucesso:", savedState);
+      setState(savedState.state);
+      logCriticalEvent('TIMER_STATE_RECOVERED', savedState);
+    } else {
+      console.log("ℹ️ Nenhum estado salvo encontrado, iniciando do zero");
+    }
+  }, [seasonId, blindLevelsHash, persistence, logCriticalEvent]);
+
+  // Detectar mudanças críticas no contexto
+  useEffect(() => {
+    if (sortedBlindLevels.length === 0) {
+      logCriticalEvent('BLIND_LEVELS_EMPTY', { seasonId });
+      return;
+    }
+    
+    if (state.currentLevelIndex >= sortedBlindLevels.length) {
+      logCriticalEvent('INVALID_LEVEL_INDEX', { 
+        currentIndex: state.currentLevelIndex, 
+        maxIndex: sortedBlindLevels.length - 1 
+      });
+      
+      // Corrigir índice inválido
+      setState(prev => ({
+        ...prev,
+        currentLevelIndex: Math.min(prev.currentLevelIndex, sortedBlindLevels.length - 1)
+      }));
+    }
+  }, [sortedBlindLevels, state.currentLevelIndex, logCriticalEvent, seasonId]);
+
   console.log("=== ESTADO INICIAL FORÇADO ===");
   console.log("currentLevelIndex:", state.currentLevelIndex);
   console.log("Blind no índice atual:", sortedBlindLevels[state.currentLevelIndex]);
@@ -145,5 +204,9 @@ export function useTimerState(blindLevels: BlindLevel[]) {
     nextBreak,
     levelsUntilBreak,
     sortedBlindLevels,
+    // Novos recursos de persistência e diagnóstico
+    persistence,
+    diagnostics,
+    logCriticalEvent,
   };
 }

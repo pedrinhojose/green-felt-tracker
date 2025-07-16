@@ -10,11 +10,15 @@ import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
 import { TimerSideInfo } from "./components/TimerSideInfo";
 import { BackgroundEffects } from "./components/BackgroundEffects";
 import CircularTimerControls from "./components/CircularTimerControls";
-import { AlertTriangle } from "lucide-react";
+import { TimerRecoveryPanel } from "./components/TimerRecoveryPanel";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Settings } from "lucide-react";
+import { useState } from "react";
 
 export default function CircularTimer() {
-  const { activeSeason } = usePoker();
+  const { activeSeason, lastGame } = usePoker();
   const isMobile = useIsMobile();
+  const [showRecoveryPanel, setShowRecoveryPanel] = useState(false);
   
   console.log("=== CIRCULAR TIMER DEBUG ===");
   console.log("CircularTimer component rendering");
@@ -36,7 +40,7 @@ export default function CircularTimer() {
   // Obter a estrutura de blinds da temporada ativa
   const blindLevels = activeSeason.blindStructure;
   
-  // Usar hooks customizados
+  // Usar hooks customizados com persistência
   const {
     state,
     setState,
@@ -50,7 +54,10 @@ export default function CircularTimer() {
     nextBreak,
     levelsUntilBreak,
     sortedBlindLevels,
-  } = useTimerState(blindLevels);
+    persistence,
+    diagnostics,
+    logCriticalEvent,
+  } = useTimerState(blindLevels, activeSeason.id, lastGame?.id);
   
   const {
     startTimer,
@@ -75,8 +82,62 @@ export default function CircularTimer() {
     ? 100 - (timeRemainingInLevel / (currentLevel.duration * 60)) * 100
     : 0;
 
+  // Funções de recuperação
+  const handleRecoverState = () => {
+    const saved = persistence.recoverTimerState();
+    if (saved) {
+      setState(saved.state);
+      logCriticalEvent('MANUAL_RECOVERY', saved);
+    }
+  };
+  
+  const handleRestoreBackup = () => {
+    const success = persistence.restoreFromBackup();
+    if (success) {
+      logCriticalEvent('BACKUP_RESTORED');
+    }
+  };
+  
+  const handleGetDiagnosticReport = () => {
+    console.log("📊 Diagnostic Report:", diagnostics);
+    // Copiar para clipboard se possível
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(JSON.stringify(diagnostics, null, 2));
+    }
+  };
+  
+  const handleClearData = () => {
+    persistence.clearPersistedData();
+    logCriticalEvent('DATA_CLEARED');
+  };
+
   return (
     <div className="w-screen h-screen relative timer-container overflow-hidden bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep">
+      {/* Recovery Panel */}
+      {showRecoveryPanel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute -top-2 -right-2 text-white hover:bg-white/10"
+              onClick={() => setShowRecoveryPanel(false)}
+            >
+              ✕
+            </Button>
+            <TimerRecoveryPanel
+              currentState={state}
+              savedState={persistence.recoverTimerState()}
+              diagnostics={diagnostics}
+              onRecover={handleRecoverState}
+              onRestoreBackup={handleRestoreBackup}
+              onClearData={handleClearData}
+              onGetDiagnosticReport={handleGetDiagnosticReport}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Container principal simplificado */}
       <div className="w-full h-full flex items-center justify-center relative">
         {/* Aviso quando nova janela foi aberta */}
@@ -90,6 +151,19 @@ export default function CircularTimer() {
             </Alert>
           </div>
         )}
+
+        {/* Botão de Estado do Timer */}
+        <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-8 right-8'} z-50`}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowRecoveryPanel(true)}
+            className="flex items-center gap-2 bg-background/10 border-white/20 text-white hover:bg-background/20"
+          >
+            <Settings className="h-4 w-4" />
+            {!isMobile && 'Estado Timer'}
+          </Button>
+        </div>
 
         {/* Título superior simplificado */}
         <div className={`absolute ${isMobile ? 'top-2 left-1/2 -translate-x-1/2' : 'top-8 left-1/2 -translate-x-1/2'} z-20`}>
