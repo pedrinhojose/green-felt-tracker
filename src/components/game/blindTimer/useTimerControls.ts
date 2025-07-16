@@ -58,29 +58,55 @@ export function useTimerControls(
   }, [cleanupTimer]);
 
   const startTimer = useCallback(() => {
-    console.log("=== START TIMER ===");
+    console.log("=== START TIMER - CORREÇÃO DEFINITIVA ===");
     console.log("Tentando iniciar timer...");
     console.log("Estado atual:", state);
     console.log("Blind levels:", blindLevels?.length || 0);
     
-    // Validação antes de iniciar
+    // Validação básica - apenas verificar se existem blind levels
     if (!blindLevels || blindLevels.length === 0) {
       console.error("❌ ERRO: Não é possível iniciar - blind levels não configurados");
       return;
     }
     
-    // Verificar se o estado atual é válido
-    if (state.currentLevelIndex >= blindLevels.length) {
-      console.error("❌ ERRO: Índice do nível atual inválido");
+    // FORÇAR SEMPRE INICIAR DO NÍVEL 0 - correção definitiva
+    if (state.currentLevelIndex !== 0) {
+      console.log("⚠️ CORREÇÃO: Forçando timer a começar do nível 0");
+      setState(prev => ({
+        ...prev,
+        currentLevelIndex: 0,
+        elapsedTimeInLevel: 0,
+        totalElapsedTime: 0,
+        showAlert: false,
+        isRunning: false // Resetar para garantir estado limpo
+      }));
+      
+      // Aguardar atualização do estado antes de iniciar
+      setTimeout(() => {
+        console.log("✅ Estado corrigido, iniciando timer...");
+        unlockAudio();
+        coreStartTimer();
+      }, 100);
       return;
     }
+    
+    // Verificar se o primeiro blind é válido
+    const firstBlind = blindLevels[0];
+    if (!firstBlind) {
+      console.error("❌ ERRO: Primeiro blind não encontrado");
+      return;
+    }
+    
+    console.log("✅ INICIANDO TIMER:");
+    console.log("- Nível atual:", 0);
+    console.log("- Blind:", `${firstBlind.smallBlind}/${firstBlind.bigBlind}`);
     
     // Unlock audio when starting timer (important for mobile)
     unlockAudio();
     
     // Use the core timer start function
     coreStartTimer();
-  }, [unlockAudio, coreStartTimer, state, blindLevels]);
+  }, [unlockAudio, coreStartTimer, state, blindLevels, setState]);
 
   const pauseTimer = useCallback(() => {
     console.log("=== PAUSE TIMER ===");
@@ -178,11 +204,24 @@ export function useTimerControls(
   }, [unlockAudio, state.soundEnabled, audioRefs.alertAudioRef, playAudioSafely]);
 
   const resetTimer = useCallback(() => {
-    console.log("=== RESET TIMER ===");
+    console.log("=== RESET TIMER - CORREÇÃO DEFINITIVA ===");
     console.log("Resetando timer para o primeiro nível");
     
     // Pause timer first
     corePauseTimer();
+    
+    // Limpar dados persistidos - força reset completo
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('timer_state_') || key.startsWith('timer_backup_')) {
+          localStorage.removeItem(key);
+          console.log(`✅ Removido: ${key}`);
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao limpar localStorage:", error);
+    }
     
     // Reset state to initial values
     setState(prev => ({
@@ -194,7 +233,7 @@ export function useTimerControls(
       showAlert: false
     }));
     
-    console.log("✅ Timer resetado com sucesso");
+    console.log("✅ Timer resetado com sucesso - dados persistidos limpos");
   }, [corePauseTimer, setState]);
 
   return {
