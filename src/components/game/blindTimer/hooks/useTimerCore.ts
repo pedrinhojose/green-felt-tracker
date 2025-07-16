@@ -12,61 +12,24 @@ export function useTimerCore(
   const timerRef = useRef<number | null>(null);
 
   const startTimer = useCallback(() => {
-    console.log("=== TIMER CORE - INICIANDO ===");
-    console.log("Blind levels disponíveis:", blindLevels?.length || 0);
-    console.log("Estado atual:", state);
-    
-    // Validação robusta dos blind levels
-    if (!Array.isArray(blindLevels) || blindLevels.length === 0) {
-      console.error("❌ ERRO: Blind levels não configurados ou vazios");
-      return;
-    }
-    
-    // Verificar se o nível atual é válido
-    const currentLevel = blindLevels[state.currentLevelIndex];
-    if (!currentLevel) {
-      console.error("❌ ERRO: Nível atual inválido", state.currentLevelIndex);
-      return;
-    }
-    
-    if (typeof currentLevel.duration !== 'number' || currentLevel.duration <= 0) {
-      console.error("❌ ERRO: Duração do nível inválida", currentLevel);
-      return;
-    }
-    
-    console.log("✅ Validação dos blind levels passou");
-    console.log("Nível atual:", currentLevel);
+    console.log("Timer starting...");
     
     // Clear any existing interval
     if (timerRef.current) {
-      console.log("Limpando timer existente");
+      console.log("Clearing existing timer interval");
       clearInterval(timerRef.current);
-      timerRef.current = null;
     }
     
-    // Force timer to running state immediately
-    setState(prev => {
-      console.log("Forçando estado para isRunning: true");
-      return { ...prev, isRunning: true };
-    });
+    // Set timer to running state
+    setState(prev => ({ ...prev, isRunning: true }));
+    console.log("Timer state set to running");
     
     // Start a new interval
     timerRef.current = window.setInterval(() => {
-      console.log("=== TIMER TICK ===");
       setState(prev => {
-        // Safety check: if timer is not running anymore, stop
-        if (!prev.isRunning) {
-          console.log("⚠️ Timer não está mais rodando, parando interval");
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
-          return prev;
-        }
-        
-        // Double-check blind levels inside interval
+        // Check if blind levels are configured
         if (!Array.isArray(blindLevels) || blindLevels.length === 0) {
-          console.error("❌ TICK: Blind levels perdidos");
+          console.log("No blind levels found, stopping timer");
           return prev;
         }
         
@@ -75,19 +38,18 @@ export function useTimerCore(
         
         // Check if current level is valid
         if (!currentLevel || typeof currentLevel.duration !== 'number') {
-          console.error("❌ TICK: Nível atual inválido", prev.currentLevelIndex);
+          console.log("Invalid current level, stopping timer");
           return prev;
         }
         
-        const totalLevelTime = currentLevel.duration * 60;
-        console.log(`Timer tick: ${newElapsedTimeInLevel}s / ${totalLevelTime}s (Level ${currentLevel.level})`);
+        console.log(`Timer tick: ${newElapsedTimeInLevel}s / ${currentLevel.duration * 60}s`);
         
         // If we've exceeded the current level's time
-        if (newElapsedTimeInLevel >= totalLevelTime) {
+        if (newElapsedTimeInLevel >= currentLevel.duration * 60) {
           // Check if there's a next level
           if (prev.currentLevelIndex < blindLevels.length - 1) {
             // Play level completion sound if sound is enabled
-            console.log("✅ Nível completo, mudando para próximo");
+            console.log("Level complete, moving to next level");
             playLevelCompleteSound();
             
             return {
@@ -99,7 +61,7 @@ export function useTimerCore(
             };
           } else {
             // End of all levels
-            console.log("✅ Todos os níveis completos, parando timer");
+            console.log("All levels complete, stopping timer");
             if (timerRef.current) {
               clearInterval(timerRef.current);
               timerRef.current = null;
@@ -121,8 +83,8 @@ export function useTimerCore(
       });
     }, 1000);
     
-    console.log("✅ Timer interval configurado:", timerRef.current);
-  }, [blindLevels, state, setState, playLevelCompleteSound]);
+    console.log("Timer interval set", timerRef.current);
+  }, [blindLevels, setState, playLevelCompleteSound]);
 
   const pauseTimer = useCallback(() => {
     console.log("Pausing timer");
