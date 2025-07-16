@@ -1,35 +1,41 @@
-
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePoker } from "@/contexts/PokerContext";
-import { useTimerState } from "./useTimerState";
-import { useTimerControls } from "./useTimerControls";
+import CircularTimer from "./CircularTimer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { CircularProgressRing } from "./components/CircularProgressRing";
-import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
-import { TimerSideInfo } from "./components/TimerSideInfo";
-import { BackgroundEffects } from "./components/BackgroundEffects";
-import CircularTimerControls from "./components/CircularTimerControls";
-import { TimerRecoveryPanel } from "./components/TimerRecoveryPanel";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Settings } from "lucide-react";
-import { useState } from "react";
 
-export default function CircularTimer() {
-  const { activeSeason, lastGame } = usePoker();
+export default function BlindTimer() {
+  const { activeSeason } = usePoker();
   const isMobile = useIsMobile();
-  const [showRecoveryPanel, setShowRecoveryPanel] = useState(false);
   
-  console.log("=== CIRCULAR TIMER DEBUG ===");
-  console.log("CircularTimer component rendering");
+  console.log("=== BLIND TIMER DEBUG - COMPONENTE ===");
+  console.log("BlindTimer component rendering");
   console.log("Active season:", activeSeason?.name);
-  console.log("Blind structure from season:", activeSeason?.blindStructure);
+  console.log("Blind structure from season (RAW):", activeSeason?.blindStructure);
   
-  // Se não há temporada ativa ou estrutura de blinds, mostrar fallback
+  // Log detalhado da estrutura de blinds RAW
+  if (activeSeason?.blindStructure) {
+    console.log("Estrutura de blinds RAW - detalhes:");
+    activeSeason.blindStructure.forEach((blind, index) => {
+      console.log(`RAW Blind ${index}:`, {
+        id: blind.id,
+        level: blind.level,
+        smallBlind: blind.smallBlind,
+        bigBlind: blind.bigBlind,
+        ante: blind.ante,
+        duration: blind.duration,
+        isBreak: blind.isBreak,
+        typeOf_level: typeof blind.level,
+        typeOf_smallBlind: typeof blind.smallBlind,
+        typeOf_bigBlind: typeof blind.bigBlind
+      });
+    });
+  }
+  
+  // If there's no active season or blind structure, show a fallback component
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
     console.log("No active season or blind structure found");
     return (
-      <Card className="bg-poker-dark-green border border-poker-gold/20">
+      <Card className="bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep border border-poker-gold/20">
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
           <p className="text-white">Estrutura de blinds não configurada para esta temporada</p>
         </CardContent>
@@ -37,198 +43,10 @@ export default function CircularTimer() {
     );
   }
   
-  // Obter a estrutura de blinds da temporada ativa
-  const blindLevels = activeSeason.blindStructure;
-  
-  // Usar hooks customizados com persistência
-  const {
-    state,
-    setState,
-    currentLevel,
-    nextLevel,
-    timeRemainingInLevel,
-    isAlertTime,
-    isFinalCountdown,
-    isLevelJustCompleted,
-    isNewBlindAlert,
-    nextBreak,
-    levelsUntilBreak,
-    sortedBlindLevels,
-    persistence,
-    diagnostics,
-    logCriticalEvent,
-  } = useTimerState(blindLevels, activeSeason.id, lastGame?.id);
-  
-  const {
-    startTimer,
-    pauseTimer,
-    nextLevel: goToNextLevel,
-    previousLevel: goToPreviousLevel,
-    toggleSound,
-    openInNewWindow,
-    setLevelProgress,
-    toggleFullScreen,
-    reloadAudio,
-    resetTimer,
-    hasOpenedNewWindow,
-  } = useTimerControls(
-    sortedBlindLevels,
-    state,
-    setState,
-    timeRemainingInLevel
-  );
-
-  // Calcular a porcentagem de progresso
-  const progressPercentage = currentLevel
-    ? 100 - (timeRemainingInLevel / (currentLevel.duration * 60)) * 100
-    : 0;
-
-  // Funções de recuperação
-  const handleRecoverState = () => {
-    const saved = persistence.recoverTimerState();
-    if (saved) {
-      setState(saved.state);
-      logCriticalEvent('MANUAL_RECOVERY', saved);
-    }
-  };
-  
-  const handleRestoreBackup = () => {
-    const success = persistence.restoreFromBackup();
-    if (success) {
-      logCriticalEvent('BACKUP_RESTORED');
-    }
-  };
-  
-  const handleGetDiagnosticReport = () => {
-    console.log("📊 Diagnostic Report:", diagnostics);
-    // Copiar para clipboard se possível
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(JSON.stringify(diagnostics, null, 2));
-    }
-  };
-  
-  const handleClearData = () => {
-    persistence.clearPersistedData();
-    logCriticalEvent('DATA_CLEARED');
-  };
-
   return (
-    <div className="w-screen h-screen relative timer-container overflow-hidden bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep">
-      {/* Recovery Panel */}
-      {showRecoveryPanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute -top-2 -right-2 text-white hover:bg-white/10"
-              onClick={() => setShowRecoveryPanel(false)}
-            >
-              ✕
-            </Button>
-            <TimerRecoveryPanel
-              currentState={state}
-              savedState={persistence.recoverTimerState()}
-              diagnostics={diagnostics}
-              onRecover={handleRecoverState}
-              onRestoreBackup={handleRestoreBackup}
-              onClearData={handleClearData}
-              onGetDiagnosticReport={handleGetDiagnosticReport}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Container principal simplificado */}
-      <div className="w-full h-full flex items-center justify-center relative">
-        {/* Aviso quando nova janela foi aberta */}
-        {hasOpenedNewWindow && (
-          <div className={`absolute ${isMobile ? 'top-12 left-4 right-4' : 'top-16 left-1/2 -translate-x-1/2'} z-50`}>
-            <Alert className="bg-yellow-500/90 border-yellow-600 text-black shadow-lg backdrop-blur-sm">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
-                ⚠️ Timer aberto em nova janela - Cuidado para não iniciar dois timers
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
-
-        {/* Botão de Estado do Timer */}
-        <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-8 right-8'} z-50`}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowRecoveryPanel(true)}
-            className="flex items-center gap-2 bg-background/10 border-white/20 text-white hover:bg-background/20"
-          >
-            <Settings className="h-4 w-4" />
-            {!isMobile && 'Estado Timer'}
-          </Button>
-        </div>
-
-        {/* Título superior simplificado */}
-        <div className={`absolute ${isMobile ? 'top-2 left-1/2 -translate-x-1/2' : 'top-8 left-1/2 -translate-x-1/2'} z-20`}>
-          <h1 className={`${isMobile ? 'text-lg' : 'text-3xl md:text-4xl'} font-bold text-poker-gold text-center`}>
-            APA POKER Clock
-          </h1>
-        </div>
-
-        {/* Container principal circular simplificado */}
-        <div className="relative z-10">
-          {/* Anel de progresso 3D */}
-          <CircularProgressRing
-            progressPercentage={progressPercentage}
-            onProgressClick={setLevelProgress}
-          />
-          
-          {/* Display central flutuante */}
-          <TimerCenterDisplay
-            timeRemainingInLevel={timeRemainingInLevel}
-            currentLevel={currentLevel}
-            showAlert={state.showAlert}
-            isNewBlindAlert={isNewBlindAlert}
-          />
-        </div>
-
-        {/* Informações laterais reorganizadas */}
-        <TimerSideInfo
-          side="left"
-          nextLevel={nextLevel}
-          nextBreak={nextBreak}
-          levelsUntilBreak={levelsUntilBreak}
-          totalElapsedTime={state.totalElapsedTime}
-          blindLevels={sortedBlindLevels}
-          timeRemainingInLevel={timeRemainingInLevel}
-          currentLevelIndex={state.currentLevelIndex}
-        />
-        
-        <TimerSideInfo
-          side="right"
-          currentLevel={currentLevel}
-          totalElapsedTime={state.totalElapsedTime}
-          blindLevels={sortedBlindLevels}
-          timeRemainingInLevel={timeRemainingInLevel}
-          currentLevelIndex={state.currentLevelIndex}
-          nextBreak={nextBreak}
-          levelsUntilBreak={levelsUntilBreak}
-        />
-
-        {/* Controles simplificados */}
-        <div className="z-30">
-          <CircularTimerControls
-            isRunning={state.isRunning}
-            soundEnabled={state.soundEnabled}
-            onStart={startTimer}
-            onPause={pauseTimer}
-            onNext={goToNextLevel}
-            onPrevious={goToPreviousLevel}
-            onToggleSound={toggleSound}
-            onOpenNewWindow={openInNewWindow}
-            onToggleFullScreen={toggleFullScreen}
-            onReloadAudio={reloadAudio}
-            onReset={resetTimer}
-          />
-        </div>
+    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center">
+      <div className="w-full h-full flex flex-col items-center justify-center">
+        <CircularTimer />
       </div>
     </div>
   );

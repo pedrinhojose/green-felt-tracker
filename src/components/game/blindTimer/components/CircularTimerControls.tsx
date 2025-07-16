@@ -1,22 +1,26 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw, ExternalLink } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, ExternalLink, RotateCcw } from "lucide-react";
+import { useWindowControl } from "../hooks/useWindowControl";
 import { useIsMobile } from "@/hooks/use-mobile";
-import TimerResetButton from "./TimerResetButton";
+import { BlindLevel } from "@/lib/db/models";
+import { Slider } from "@/components/ui/slider";
 
 interface CircularTimerControlsProps {
   isRunning: boolean;
   soundEnabled: boolean;
   onStart: () => void;
   onPause: () => void;
-  onNext: () => void;
-  onPrevious: () => void;
+  onNextLevel: () => void;
+  onPreviousLevel: () => void;
   onToggleSound: () => void;
   onOpenNewWindow: () => void;
   onToggleFullScreen: () => void;
-  onReloadAudio?: () => void;
-  onReset?: () => void;
+  onReloadAudio: () => void;
+  setLevelProgress: (percentage: number) => void;
+  currentLevel: BlindLevel | null;
+  isLastLevel: boolean;
+  isMobile: boolean;
 }
 
 export default function CircularTimerControls({
@@ -24,112 +28,118 @@ export default function CircularTimerControls({
   soundEnabled,
   onStart,
   onPause,
-  onNext,
-  onPrevious,
+  onNextLevel,
+  onPreviousLevel,
   onToggleSound,
   onOpenNewWindow,
   onToggleFullScreen,
   onReloadAudio,
-  onReset
+  setLevelProgress,
+  currentLevel,
+  isLastLevel,
+  isMobile
 }: CircularTimerControlsProps) {
-  const isMobile = useIsMobile();
+  const { openInNewWindow: windowOpenInNewWindow } = useWindowControl();
+  
+  const handleProgressChange = (value: number[]) => {
+    setLevelProgress(value[0]);
+  };
 
   return (
-    <>
-      {/* Controles centrais na parte inferior */}
-      <div className={`absolute ${isMobile ? 'bottom-6' : 'bottom-12'} left-1/2 -translate-x-1/2`}>
-        <div className={`flex justify-center items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
-          {/* Botão ANTERIOR */}
-          <Button 
-            onClick={onPrevious}
+    <div className={`fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 ${isMobile ? 'pb-6' : 'pb-8'}`}>
+      <div className="max-w-4xl mx-auto">
+        {/* Level Progress Slider */}
+        {currentLevel && (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-white text-sm">Progresso do Nível</span>
+              <span className="text-white text-sm">
+                {currentLevel.duration} min
+              </span>
+            </div>
+            <Slider
+              value={[0]}
+              onValueChange={handleProgressChange}
+              max={100}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Main Controls */}
+        <div className="flex justify-center items-center gap-4 mb-4">
+          <Button
+            onClick={onPreviousLevel}
             variant="ghost"
-            size={isMobile ? "sm" : "lg"}
-            className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded-lg hover:border-poker-gold/50`}
+            size="icon"
+            className="text-white hover:text-poker-gold bg-transparent border border-white/30 rounded hover:border-poker-gold/50"
+            disabled={isRunning}
           >
-            <SkipBack className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
+            <SkipBack className="h-5 w-5" />
           </Button>
-          
-          {/* Botão Principal - INICIAR/PAUSAR */}
+
           {!isRunning ? (
-            <Button 
+            <Button
               onClick={onStart}
-              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-4 py-2 text-sm' : 'px-8 py-3 text-lg'} font-bold rounded-lg`}
+              size="lg"
+              className="bg-poker-gold text-black hover:bg-poker-gold/80 px-8 py-3 text-lg font-bold"
             >
-              <Play className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-5 w-5 mr-2'}`} />
+              <Play className="h-5 w-5 mr-2" />
               INICIAR
             </Button>
           ) : (
-            <Button 
+            <Button
               onClick={onPause}
-              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-4 py-2 text-sm' : 'px-8 py-3 text-lg'} font-bold rounded-lg`}
+              size="lg"
+              className="bg-red-600 text-white hover:bg-red-700 px-8 py-3 text-lg font-bold"
             >
-              <Pause className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-5 w-5 mr-2'}`} />
+              <Pause className="h-5 w-5 mr-2" />
               PAUSAR
             </Button>
           )}
-          
-          {/* Botão PRÓXIMO */}
-          <Button 
-            onClick={onNext}
+
+          <Button
+            onClick={onNextLevel}
             variant="ghost"
-            size={isMobile ? "sm" : "lg"}
-            className={`text-white hover:text-poker-gold ${isMobile ? 'p-2' : 'p-3'} bg-transparent border border-white/30 rounded-lg hover:border-poker-gold/50`}
+            size="icon"
+            className="text-white hover:text-poker-gold bg-transparent border border-white/30 rounded hover:border-poker-gold/50"
+            disabled={isRunning || isLastLevel}
           >
-            <SkipForward className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
+            <SkipForward className="h-5 w-5" />
           </Button>
         </div>
-      </div>
 
-      {/* Botão "ABRIR EM NOVA JANELA" no canto inferior direito */}
-      <div className={`absolute ${isMobile ? 'bottom-4 right-4' : 'bottom-8 right-8'}`}>
-        <Button 
-          onClick={onOpenNewWindow}
-          variant="outline"
-          className={`bg-transparent border border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'} font-normal rounded`}
-        >
-          <ExternalLink className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
-          {isMobile ? 'NOVA JANELA' : 'ABRIR EM NOVA JANELA'}
-        </Button>
-      </div>
+        {/* Secondary Controls */}
+        <div className="flex justify-center items-center gap-2">
+          <Button
+            onClick={onToggleSound}
+            variant="ghost"
+            size="icon"
+            className="text-white hover:text-poker-gold bg-transparent border border-white/30 rounded hover:border-poker-gold/50"
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
 
-      {/* Controles adicionais no canto inferior esquerdo */}
-      <div className={`absolute ${isMobile ? 'bottom-4 left-4' : 'bottom-8 left-8'} flex gap-2`}>
-        <Button 
-          onClick={onToggleSound}
-          variant="ghost"
-          size="icon"
-          className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
-          title={soundEnabled ? "Som Ativado" : "Som Desativado"}
-        >
-          {soundEnabled ? <Bell className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} /> : <BellOff className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />}
-        </Button>
-        
-        {onReloadAudio && (
           <Button
             onClick={onReloadAudio}
             variant="ghost"
             size="icon"
-            className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
-            title="Recarregar Sons"
+            className="text-white hover:text-poker-gold bg-transparent border border-white/30 rounded hover:border-poker-gold/50"
           >
-            <RefreshCw className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+            <RotateCcw className="h-4 w-4" />
           </Button>
-        )}
-        
-        <Button 
-          onClick={onToggleFullScreen}
-          variant="ghost"
-          size="icon"
-          className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
-          title="Tela Cheia"
-        >
-          <Maximize2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-        </Button>
-        
-        {onReset && (
-          <TimerResetButton onReset={onReset} />
-        )}
+
+          <Button
+            onClick={onOpenNewWindow}
+            variant="ghost"
+            size="icon"
+            className="text-white hover:text-poker-gold bg-transparent border border-white/30 rounded hover:border-poker-gold/50"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

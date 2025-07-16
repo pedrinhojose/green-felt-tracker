@@ -12,15 +12,15 @@ export function useTimerControls(
   setState: React.Dispatch<React.SetStateAction<TimerState>>,
   timeRemainingInLevel: number
 ) {
-  console.log("=== useTimerControls - INICIALIZANDO ===");
-  console.log("Blind levels recebidos:", blindLevels?.length || 0);
-  console.log("Estado atual:", {
+  console.log("=== useTimerControls DEBUG ===");
+  console.log("Blind levels received:", blindLevels?.length || 0);
+  console.log("Current state:", {
     isRunning: state.isRunning,
     soundEnabled: state.soundEnabled,
     currentLevelIndex: state.currentLevelIndex
   });
 
-  // Estado para controlar se uma nova janela foi aberta
+  // State to track if a new window has been opened
   const [hasOpenedNewWindow, setHasOpenedNewWindow] = useState(false);
 
   // Initialize audio effects
@@ -58,55 +58,32 @@ export function useTimerControls(
   }, [cleanupTimer]);
 
   const startTimer = useCallback(() => {
-    console.log("=== START TIMER - CORREÇÃO DEFINITIVA ===");
-    console.log("Tentando iniciar timer...");
-    console.log("Estado atual:", state);
-    console.log("Blind levels:", blindLevels?.length || 0);
+    console.log("=== START TIMER ===");
+    console.log("Attempting to start timer");
+    console.log("Current state:", state);
+    console.log("Blind levels:", blindLevels?.length);
     
-    // Validação básica - apenas verificar se existem blind levels
     if (!blindLevels || blindLevels.length === 0) {
-      console.error("❌ ERRO: Não é possível iniciar - blind levels não configurados");
+      console.error("Cannot start timer - empty blind structure");
       return;
     }
     
-    // FORÇAR SEMPRE INICIAR DO NÍVEL 0 - correção definitiva
+    // Always start from level 0
     if (state.currentLevelIndex !== 0) {
-      console.log("⚠️ CORREÇÃO: Forçando timer a começar do nível 0");
+      console.log("Forcing start from level 0");
       setState(prev => ({
         ...prev,
         currentLevelIndex: 0,
         elapsedTimeInLevel: 0,
         totalElapsedTime: 0,
-        showAlert: false,
-        isRunning: false // Resetar para garantir estado limpo
+        isRunning: false
       }));
-      
-      // Aguardar atualização do estado antes de iniciar
-      setTimeout(() => {
-        console.log("✅ Estado corrigido, iniciando timer...");
-        unlockAudio();
-        coreStartTimer();
-      }, 100);
       return;
     }
     
-    // Verificar se o primeiro blind é válido
-    const firstBlind = blindLevels[0];
-    if (!firstBlind) {
-      console.error("❌ ERRO: Primeiro blind não encontrado");
-      return;
-    }
-    
-    console.log("✅ INICIANDO TIMER:");
-    console.log("- Nível atual:", 0);
-    console.log("- Blind:", `${firstBlind.smallBlind}/${firstBlind.bigBlind}`);
-    
-    // Unlock audio when starting timer (important for mobile)
-    unlockAudio();
-    
-    // Use the core timer start function
+    console.log("Starting timer at level 0");
     coreStartTimer();
-  }, [unlockAudio, coreStartTimer, state, blindLevels, setState]);
+  }, [blindLevels, state, setState, coreStartTimer]);
 
   const pauseTimer = useCallback(() => {
     console.log("=== PAUSE TIMER ===");
@@ -116,11 +93,11 @@ export function useTimerControls(
 
   const nextLevel = useCallback(() => {
     console.log("=== NEXT LEVEL ===");
-    console.log("Avançando para próximo nível...");
+    console.log("Advancing to next level...");
     
     if (state.currentLevelIndex < blindLevels.length - 1) {
       const newIndex = state.currentLevelIndex + 1;
-      console.log(`Mudando do nível ${state.currentLevelIndex} para ${newIndex}`);
+      console.log(`Moving from level ${state.currentLevelIndex} to ${newIndex}`);
       
       setState(prev => ({
         ...prev,
@@ -131,21 +108,21 @@ export function useTimerControls(
       
       // Play sound when manually advancing level
       if (state.soundEnabled) {
-        console.log("Reproduzindo som de conclusão de nível (manual)");
+        console.log("Playing level complete sound (manual)");
         setTimeout(() => playLevelCompleteSound(), 100);
       }
     } else {
-      console.log("Já no último nível, não é possível avançar");
+      console.log("Already at last level, cannot advance");
     }
   }, [state.currentLevelIndex, state.soundEnabled, blindLevels.length, setState, playLevelCompleteSound]);
 
   const previousLevel = useCallback(() => {
     console.log("=== PREVIOUS LEVEL ===");
-    console.log("Voltando para nível anterior...");
+    console.log("Going back to previous level...");
     
     if (state.currentLevelIndex > 0) {
       const newIndex = state.currentLevelIndex - 1;
-      console.log(`Mudando do nível ${state.currentLevelIndex} para ${newIndex}`);
+      console.log(`Moving from level ${state.currentLevelIndex} to ${newIndex}`);
       
       setState(prev => ({
         ...prev,
@@ -154,20 +131,20 @@ export function useTimerControls(
         showAlert: false
       }));
     } else {
-      console.log("Já no primeiro nível, não é possível voltar");
+      console.log("Already at first level, cannot go back");
     }
   }, [state.currentLevelIndex, setState]);
 
   const setLevelProgress = useCallback((percentage: number) => {
     console.log("=== SET LEVEL PROGRESS ===");
-    console.log(`Definindo progresso para ${percentage}%`);
+    console.log(`Setting progress to ${percentage}%`);
     
     const currentLevel = blindLevels[state.currentLevelIndex];
     if (currentLevel) {
       const totalLevelTime = currentLevel.duration * 60;
       const newElapsedTime = Math.floor((percentage / 100) * totalLevelTime);
       
-      console.log(`Tempo total do nível: ${totalLevelTime}s, novo tempo decorrido: ${newElapsedTime}s`);
+      console.log(`Level total time: ${totalLevelTime}s, new elapsed time: ${newElapsedTime}s`);
       
       setState(prev => ({
         ...prev,
@@ -189,64 +166,30 @@ export function useTimerControls(
 
   const reloadAudio = useCallback(() => {
     console.log("=== RELOAD AUDIO ===");
-    console.log("Tentando recarregar arquivos de áudio...");
+    console.log("Attempting to reload audio files...");
     
     // Force audio unlock
     unlockAudio();
     
     // Test audio playback
     if (state.soundEnabled && audioRefs.alertAudioRef.current) {
-      console.log("Testando reprodução após reload...");
+      console.log("Testing playback after reload...");
       setTimeout(() => {
         playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
       }, 500);
     }
   }, [unlockAudio, state.soundEnabled, audioRefs.alertAudioRef, playAudioSafely]);
 
-  const resetTimer = useCallback(() => {
-    console.log("=== RESET TIMER - CORREÇÃO DEFINITIVA ===");
-    console.log("Resetando timer para o primeiro nível");
-    
-    // Pause timer first
-    corePauseTimer();
-    
-    // Limpar dados persistidos - força reset completo
-    try {
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith('timer_state_') || key.startsWith('timer_backup_')) {
-          localStorage.removeItem(key);
-          console.log(`✅ Removido: ${key}`);
-        }
-      });
-    } catch (error) {
-      console.error("Erro ao limpar localStorage:", error);
-    }
-    
-    // Reset state to initial values
-    setState(prev => ({
-      ...prev,
-      isRunning: false,
-      currentLevelIndex: 0,
-      elapsedTimeInLevel: 0,
-      totalElapsedTime: 0,
-      showAlert: false
-    }));
-    
-    console.log("✅ Timer resetado com sucesso - dados persistidos limpos");
-  }, [corePauseTimer, setState]);
-
   return {
     startTimer,
     pauseTimer,
     nextLevel,
     previousLevel,
+    setLevelProgress,
     toggleSound,
     openInNewWindow,
-    setLevelProgress,
     toggleFullScreen,
     reloadAudio,
-    resetTimer,
     hasOpenedNewWindow
   };
 }
