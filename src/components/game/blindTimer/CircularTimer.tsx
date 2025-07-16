@@ -69,6 +69,7 @@ export default function CircularTimer() {
     setLevelProgress,
     toggleFullScreen,
     reloadAudio,
+    resetTimer,
     hasOpenedNewWindow,
   } = useTimerControls(
     sortedBlindLevels,
@@ -225,6 +226,7 @@ export default function CircularTimer() {
             onOpenNewWindow={openInNewWindow}
             onToggleFullScreen={toggleFullScreen}
             onReloadAudio={reloadAudio}
+            onReset={resetTimer}
           />
         </div>
       </div>

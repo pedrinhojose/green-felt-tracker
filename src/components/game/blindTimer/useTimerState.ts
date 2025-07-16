@@ -114,14 +114,41 @@ export function useTimerState(blindLevels: BlindLevel[], seasonId?: string, game
     console.log("🔄 Tentando recuperar estado salvo do timer...");
     const savedState = persistence.recoverTimerState();
     
-    if (savedState) {
-      console.log("✅ Estado recuperado com sucesso:", savedState);
-      setState(savedState.state);
-      logCriticalEvent('TIMER_STATE_RECOVERED', savedState);
+    if (savedState && savedState.state) {
+      // Validar se o estado recuperado é válido
+      const isValidState = savedState.state.currentLevelIndex >= 0 && 
+                          savedState.state.currentLevelIndex < sortedBlindLevels.length;
+      
+      if (isValidState) {
+        console.log("✅ Estado recuperado e validado com sucesso:", savedState);
+        setState(savedState.state);
+        logCriticalEvent('TIMER_STATE_RECOVERED', savedState);
+      } else {
+        console.log("⚠️ Estado recuperado é inválido, forçando reset");
+        persistence.clearPersistedData();
+        setState(prev => ({
+          ...prev,
+          isRunning: false,
+          currentLevelIndex: 0,
+          elapsedTimeInLevel: 0,
+          totalElapsedTime: 0,
+          showAlert: false
+        }));
+        logCriticalEvent('INVALID_STATE_RESET', { savedState });
+      }
     } else {
       console.log("ℹ️ Nenhum estado salvo encontrado, iniciando do zero");
+      // Garantir que o estado esteja limpo
+      setState(prev => ({
+        ...prev,
+        isRunning: false,
+        currentLevelIndex: 0,
+        elapsedTimeInLevel: 0,
+        totalElapsedTime: 0,
+        showAlert: false
+      }));
     }
-  }, [seasonId, blindLevelsHash, persistence, logCriticalEvent]);
+  }, [seasonId, blindLevelsHash, persistence, logCriticalEvent, sortedBlindLevels.length]);
 
   // Detectar mudanças críticas no contexto
   useEffect(() => {

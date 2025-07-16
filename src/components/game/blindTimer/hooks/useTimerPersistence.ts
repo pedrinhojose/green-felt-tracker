@@ -23,6 +23,9 @@ export function useTimerPersistence(
   useEffect(() => {
     if (!seasonId || !blindLevelsHash) return;
 
+    console.log("=== PERSISTENCE - SALVANDO ESTADO ===");
+    console.log("Estado sendo persistido:", state);
+
     const persistedState: PersistedTimerState = {
       state,
       timestamp: Date.now(),
@@ -33,38 +36,55 @@ export function useTimerPersistence(
 
     try {
       localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(persistedState));
-      console.log("🔄 Timer state persisted:", persistedState);
+      console.log("✅ Estado persistido com sucesso");
     } catch (error) {
-      console.error("❌ Failed to persist timer state:", error);
+      console.error("❌ Erro ao persistir estado:", error);
     }
   }, [state, seasonId, gameId, blindLevelsHash]);
 
   // Recuperar estado salvo
   const recoverTimerState = useCallback(() => {
+    console.log("=== PERSISTENCE - RECUPERANDO ESTADO ===");
+    
     try {
       const saved = localStorage.getItem(TIMER_STORAGE_KEY);
-      if (!saved) return null;
+      if (!saved) {
+        console.log("Nenhum estado salvo encontrado");
+        return null;
+      }
 
       const persistedState: PersistedTimerState = JSON.parse(saved);
+      console.log("Estado recuperado:", persistedState);
       
       // Verificar se é da mesma temporada e estrutura de blinds
       if (persistedState.seasonId !== seasonId || 
           persistedState.blindLevelsHash !== blindLevelsHash) {
-        console.log("⚠️ Saved state is from different season/blinds, ignoring");
+        console.log("⚠️ Estado é de temporada/blinds diferente, ignorando");
+        console.log("Saved:", { seasonId: persistedState.seasonId, hash: persistedState.blindLevelsHash });
+        console.log("Current:", { seasonId, blindLevelsHash });
         return null;
       }
 
       // Verificar se não é muito antigo (mais de 1 hora)
       const hourAgo = Date.now() - (60 * 60 * 1000);
       if (persistedState.timestamp < hourAgo) {
-        console.log("⚠️ Saved state is too old, ignoring");
+        console.log("⚠️ Estado muito antigo, ignorando");
         return null;
       }
 
-      console.log("✅ Valid saved state found:", persistedState);
+      // Validar estrutura do estado
+      if (!persistedState.state || typeof persistedState.state.currentLevelIndex !== 'number') {
+        console.log("⚠️ Estado corrompido, limpando dados");
+        localStorage.removeItem(TIMER_STORAGE_KEY);
+        return null;
+      }
+
+      console.log("✅ Estado válido encontrado:", persistedState);
       return persistedState;
     } catch (error) {
-      console.error("❌ Failed to recover timer state:", error);
+      console.error("❌ Erro ao recuperar estado:", error);
+      // Limpar dados corrompidos
+      localStorage.removeItem(TIMER_STORAGE_KEY);
       return null;
     }
   }, [seasonId, blindLevelsHash]);

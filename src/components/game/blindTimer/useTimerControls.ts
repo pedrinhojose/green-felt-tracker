@@ -60,13 +60,27 @@ export function useTimerControls(
   const startTimer = useCallback(() => {
     console.log("=== START TIMER ===");
     console.log("Tentando iniciar timer...");
+    console.log("Estado atual:", state);
+    console.log("Blind levels:", blindLevels?.length || 0);
+    
+    // Validação antes de iniciar
+    if (!blindLevels || blindLevels.length === 0) {
+      console.error("❌ ERRO: Não é possível iniciar - blind levels não configurados");
+      return;
+    }
+    
+    // Verificar se o estado atual é válido
+    if (state.currentLevelIndex >= blindLevels.length) {
+      console.error("❌ ERRO: Índice do nível atual inválido");
+      return;
+    }
     
     // Unlock audio when starting timer (important for mobile)
     unlockAudio();
     
     // Use the core timer start function
     coreStartTimer();
-  }, [unlockAudio, coreStartTimer]);
+  }, [unlockAudio, coreStartTimer, state, blindLevels]);
 
   const pauseTimer = useCallback(() => {
     console.log("=== PAUSE TIMER ===");
@@ -163,6 +177,26 @@ export function useTimerControls(
     }
   }, [unlockAudio, state.soundEnabled, audioRefs.alertAudioRef, playAudioSafely]);
 
+  const resetTimer = useCallback(() => {
+    console.log("=== RESET TIMER ===");
+    console.log("Resetando timer para o primeiro nível");
+    
+    // Pause timer first
+    corePauseTimer();
+    
+    // Reset state to initial values
+    setState(prev => ({
+      ...prev,
+      isRunning: false,
+      currentLevelIndex: 0,
+      elapsedTimeInLevel: 0,
+      totalElapsedTime: 0,
+      showAlert: false
+    }));
+    
+    console.log("✅ Timer resetado com sucesso");
+  }, [corePauseTimer, setState]);
+
   return {
     startTimer,
     pauseTimer,
@@ -173,6 +207,7 @@ export function useTimerControls(
     setLevelProgress,
     toggleFullScreen,
     reloadAudio,
+    resetTimer,
     hasOpenedNewWindow
   };
 }

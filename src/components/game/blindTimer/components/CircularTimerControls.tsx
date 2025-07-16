@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw, ExternalLink } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import TimerResetButton from "./TimerResetButton";
 
 interface CircularTimerControlsProps {
   isRunning: boolean;
@@ -15,6 +16,7 @@ interface CircularTimerControlsProps {
   onOpenNewWindow: () => void;
   onToggleFullScreen: () => void;
   onReloadAudio?: () => void;
+  onReset?: () => void;
 }
 
 export default function CircularTimerControls({
@@ -27,7 +29,8 @@ export default function CircularTimerControls({
   onToggleSound,
   onOpenNewWindow,
   onToggleFullScreen,
-  onReloadAudio
+  onReloadAudio,
+  onReset
 }: CircularTimerControlsProps) {
   const isMobile = useIsMobile();
 
@@ -122,6 +125,10 @@ export default function CircularTimerControls({
         >
           <Maximize2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
         </Button>
+        
+        {onReset && (
+          <TimerResetButton onReset={onReset} />
+        )}
       </div>
     </>
   );
