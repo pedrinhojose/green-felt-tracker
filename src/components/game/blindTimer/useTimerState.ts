@@ -88,11 +88,18 @@ export function useTimerState(blindLevels: BlindLevel[], seasonId?: string, game
   const nextLevel = sortedBlindLevels?.[state.currentLevelIndex + 1] || null;
   const isLastLevel = state.currentLevelIndex === sortedBlindLevels.length - 1;
   
-  // Use timer alerts hook
-  const { showNextLevelAlert, showBreakAlert } = useTimerAlerts(currentLevel, state);
+  // Calculate time remaining in current level
+  const timeRemainingInLevel = currentLevel ? 
+    Math.max(0, (currentLevel.duration * 60) - state.elapsedTimeInLevel) : 0;
+  
+  // Use timer alerts hook with correct parameters
+  const alertState = useTimerAlerts(currentLevel, timeRemainingInLevel, state);
   
   // Use break info hook
-  const { isBreakTime, breakInfo } = useBreakInfo(sortedBlindLevels, state.currentLevelIndex);
+  const breakInfo = useBreakInfo(sortedBlindLevels, state.currentLevelIndex);
+  
+  // Check if current level is a break
+  const isBreakTime = currentLevel?.isBreak || false;
   
   return {
     state,
@@ -100,10 +107,10 @@ export function useTimerState(blindLevels: BlindLevel[], seasonId?: string, game
     currentLevel,
     nextLevel,
     isLastLevel,
-    showNextLevelAlert,
-    showBreakAlert,
+    showNextLevelAlert: alertState.isNewBlindAlert,
+    showBreakAlert: alertState.showAlert,
     isBreakTime,
-    breakInfo,
+    breakInfo: breakInfo.nextBreak,
     sortedBlindLevels
   };
 }

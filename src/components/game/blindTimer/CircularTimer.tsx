@@ -1,35 +1,27 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
-import CircularTimer from "./CircularTimer";
+import { useParams } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTimerState } from "./useTimerState";
+import { useTimerControls } from "./useTimerControls";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Settings, ExternalLink } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CircularProgressRing } from "./components/CircularProgressRing";
+import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
+import { TimerSideInfo } from "./components/TimerSideInfo";
+import CircularTimerControls from "./components/CircularTimerControls";
 
-export default function BlindTimer() {
+export default function CircularTimer() {
   const { activeSeason } = usePoker();
+  const { gameId } = useParams<{ gameId?: string }>();
   const isMobile = useIsMobile();
   
-  console.log("=== BLIND TIMER DEBUG - COMPONENTE ===");
-  console.log("BlindTimer component rendering");
+  console.log("=== CIRCULAR TIMER DEBUG ===");
   console.log("Active season:", activeSeason?.name);
-  console.log("Blind structure from season (RAW):", activeSeason?.blindStructure);
-  
-  // Log detalhado da estrutura de blinds RAW
-  if (activeSeason?.blindStructure) {
-    console.log("Estrutura de blinds RAW - detalhes:");
-    activeSeason.blindStructure.forEach((blind, index) => {
-      console.log(`RAW Blind ${index}:`, {
-        id: blind.id,
-        level: blind.level,
-        smallBlind: blind.smallBlind,
-        bigBlind: blind.bigBlind,
-        ante: blind.ante,
-        duration: blind.duration,
-        isBreak: blind.isBreak,
-        typeOf_level: typeof blind.level,
-        typeOf_smallBlind: typeof blind.smallBlind,
-        typeOf_bigBlind: typeof blind.bigBlind
-      });
-    });
-  }
+  console.log("Game ID:", gameId);
+  console.log("Is mobile:", isMobile);
+  console.log("Blind structure:", activeSeason?.blindStructure);
   
   // If there's no active season or blind structure, show a fallback component
   if (!activeSeason || !activeSeason.blindStructure || activeSeason.blindStructure.length === 0) {
@@ -43,11 +35,119 @@ export default function BlindTimer() {
     );
   }
   
+  // Get the blind structure from the active season
+  const blindLevels = activeSeason.blindStructure;
+  
+  console.log("=== BLIND LEVELS DEBUG ===");
+  console.log("Blind levels count:", blindLevels.length);
+  console.log("First blind level:", blindLevels[0]);
+  console.log("Last blind level:", blindLevels[blindLevels.length - 1]);
+  
+  // Use the timer state hook
+  const {
+    state,
+    setState,
+    currentLevel,
+    nextLevel,
+    isLastLevel,
+    showNextLevelAlert,
+    showBreakAlert,
+    isBreakTime,
+    breakInfo,
+    sortedBlindLevels
+  } = useTimerState(blindLevels, activeSeason.id, gameId);
+  
+  // Use timer controls hook
+  const {
+    startTimer,
+    pauseTimer,
+    nextLevel: goToNextLevel,
+    previousLevel: goToPreviousLevel,
+    setLevelProgress,
+    toggleSound,
+    openInNewWindow,
+    toggleFullScreen,
+    reloadAudio,
+    hasOpenedNewWindow
+  } = useTimerControls(sortedBlindLevels, state, setState, 0);
+  
+  // Calculate progress percentage for the circular ring
+  const progressPercentage = currentLevel ? 
+    ((state.elapsedTimeInLevel / (currentLevel.duration * 60)) * 100) : 0;
+  
+  console.log("=== PROGRESS CALCULATION DEBUG ===");
+  console.log("Current level duration:", currentLevel?.duration);
+  console.log("Elapsed time in level:", state.elapsedTimeInLevel);
+  console.log("Progress percentage:", progressPercentage);
+  
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center">
-      <div className="w-full h-full flex flex-col items-center justify-center">
-        <CircularTimer />
+    <div className="w-full h-full bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Alert for new window */}
+      {hasOpenedNewWindow && (
+        <div className="absolute top-4 left-4 right-4 z-40">
+          <Alert className="bg-yellow-500/20 border-yellow-500/50">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            <AlertDescription className="text-yellow-100">
+              Timer aberto em nova janela. Feche esta aba ou a nova janela para evitar conflitos.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
+      {/* Title */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold text-white mb-2">Timer de Blinds</h1>
+        <p className="text-white/70">Temporada: {activeSeason.name}</p>
       </div>
+      
+      {/* Main Timer Container */}
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-8 w-full max-w-7xl px-4">
+        {/* Circular Progress Ring */}
+        <div className="relative">
+          <CircularProgressRing
+            progressPercentage={progressPercentage}
+            onProgressClick={setLevelProgress}
+          />
+        </div>
+        
+        {/* Timer Center Display */}
+        <TimerCenterDisplay
+          timeRemainingInLevel={currentLevel ? Math.max(0, (currentLevel.duration * 60) - state.elapsedTimeInLevel) : 0}
+          currentLevel={currentLevel}
+          showAlert={state.showAlert}
+          isNewBlindAlert={showNextLevelAlert}
+        />
+        
+        {/* Side Information */}
+        <TimerSideInfo
+          side="right"
+          currentLevel={currentLevel}
+          totalElapsedTime={state.totalElapsedTime}
+          blindLevels={sortedBlindLevels}
+          timeRemainingInLevel={currentLevel ? Math.max(0, (currentLevel.duration * 60) - state.elapsedTimeInLevel) : 0}
+          currentLevelIndex={state.currentLevelIndex}
+          nextBreak={breakInfo}
+          levelsUntilBreak={null}
+        />
+      </div>
+      
+      {/* Timer Controls */}
+      <CircularTimerControls
+        isRunning={state.isRunning}
+        soundEnabled={state.soundEnabled}
+        onStart={startTimer}
+        onPause={pauseTimer}
+        onNextLevel={goToNextLevel}
+        onPreviousLevel={goToPreviousLevel}
+        onToggleSound={toggleSound}
+        onOpenNewWindow={openInNewWindow}
+        onToggleFullScreen={toggleFullScreen}
+        onReloadAudio={reloadAudio}
+        setLevelProgress={setLevelProgress}
+        currentLevel={currentLevel}
+        isLastLevel={isLastLevel}
+        isMobile={isMobile}
+      />
     </div>
   );
 }
