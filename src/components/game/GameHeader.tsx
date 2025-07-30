@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
-import { FileImage, Image, Trash2, Share } from "lucide-react";
+import { FileImage, Image, Trash2, Share, Edit3, Save, X } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -42,11 +42,15 @@ interface GameHeaderProps {
   isFinishing: boolean;
   isDeleting: boolean;
   isGeneratingLink: boolean;
+  isEditingFinishedGame?: boolean;
   onExportReport: () => void;
   onExportReportAsImage: () => void;
   onExportLink: () => void;
   onFinishGame: () => void;
   onDeleteGame: () => void;
+  onReopenGame?: () => void;
+  onSaveEditedGame?: () => void;
+  onCancelEdit?: () => void;
 }
 
 export default function GameHeader({
@@ -58,11 +62,15 @@ export default function GameHeader({
   isFinishing,
   isDeleting,
   isGeneratingLink,
+  isEditingFinishedGame = false,
   onExportReport,
   onExportReportAsImage,
   onExportLink,
   onFinishGame,
   onDeleteGame,
+  onReopenGame,
+  onSaveEditedGame,
+  onCancelEdit,
 }: GameHeaderProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -79,6 +87,11 @@ export default function GameHeader({
       <div>
         <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-white`}>
           Partida #{gameNumber.toString().padStart(3, '0')}
+          {isEditingFinishedGame && (
+            <span className="ml-2 text-sm bg-orange-500 text-white px-2 py-1 rounded">
+              EDITANDO
+            </span>
+          )}
         </h2>
         <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>{formatDate(gameDate)}</p>
       </div>
@@ -119,16 +132,53 @@ export default function GameHeader({
           </Button>
         )}
         
-        {isFinished ? (
-          <Button
-            onClick={() => navigate('/games')}
-            variant="outline"
-            size={isMobile ? "sm" : "sm"}
-            className={isMobile ? "w-full justify-center" : ""}
-          >
-            Voltar
-          </Button>
-        ) : (
+        {/* Botões específicos para edição de partida finalizada */}
+        {isEditingFinishedGame && (
+          <>
+            <Button
+              onClick={onSaveEditedGame}
+              variant="default"
+              size={isMobile ? "sm" : "sm"}
+              className={`${isMobile ? "w-full justify-center" : ""} bg-green-600 hover:bg-green-700`}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {isMobile ? "Salvar" : "Salvar Alterações"}
+            </Button>
+            
+            <Button
+              onClick={onCancelEdit}
+              variant="outline"
+              size={isMobile ? "sm" : "sm"}
+              className={`${isMobile ? "w-full justify-center" : ""} border-red-500 text-red-500 hover:bg-red-500 hover:text-white`}
+            >
+              <X className="mr-2 h-4 w-4" />
+              {isMobile ? "Cancelar" : "Cancelar Edição"}
+            </Button>
+          </>
+        )}
+
+        {isFinished && !isEditingFinishedGame ? (
+          <>
+            <Button
+              onClick={onReopenGame}
+              variant="outline"
+              size={isMobile ? "sm" : "sm"}
+              className={`${isMobile ? "w-full justify-center" : ""} border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white`}
+            >
+              <Edit3 className="mr-2 h-4 w-4" />
+              {isMobile ? "Editar" : "Editar Partida"}
+            </Button>
+            
+            <Button
+              onClick={() => navigate('/games')}
+              variant="outline"
+              size={isMobile ? "sm" : "sm"}
+              className={isMobile ? "w-full justify-center" : ""}
+            >
+              Voltar
+            </Button>
+          </>
+        ) : !isFinished && !isEditingFinishedGame ? (
           <>
             {/* Botão para cancelar partida */}
             <AlertDialog>
@@ -194,7 +244,7 @@ export default function GameHeader({
               </AlertDialogContent>
             </AlertDialog>
           </>
-        )}
+        ) : null}
         
         {/* Sheet for report export after finishing game */}
         <Sheet open={showReportDialog} onOpenChange={setShowReportDialog}>

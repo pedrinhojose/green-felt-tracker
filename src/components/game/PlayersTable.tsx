@@ -14,6 +14,7 @@ interface PlayersTableProps {
   onEliminatePlayer: (playerId: string) => void;
   onReactivatePlayer: (playerId: string) => void;
   onUpdatePlayerStats: (playerId: string, field: keyof GamePlayer, value: any) => void;
+  isEditingFinishedGame?: boolean;
 }
 
 export default function PlayersTable({
@@ -23,6 +24,7 @@ export default function PlayersTable({
   onEliminatePlayer,
   onReactivatePlayer,
   onUpdatePlayerStats,
+  isEditingFinishedGame = false,
 }: PlayersTableProps) {
   const isMobile = useIsMobile();
   
@@ -52,17 +54,17 @@ export default function PlayersTable({
               if (!player) return null;
               
               return (
-                <PlayerMobileCard
-                  key={gamePlayer.playerId}
-                  gamePlayer={gamePlayer}
-                  player={player}
-                  dinnerSharePerPlayer={dinnerSharePerPlayer}
-                  activeSeason={activeSeason}
-                  isFinished={game.isFinished}
-                  onEliminatePlayer={onEliminatePlayer}
-                  onReactivatePlayer={onReactivatePlayer}
-                  onUpdatePlayerStats={onUpdatePlayerStats}
-                />
+                  <PlayerMobileCard
+                    key={gamePlayer.playerId}
+                    gamePlayer={gamePlayer}
+                    player={player}
+                    dinnerSharePerPlayer={dinnerSharePerPlayer}
+                    activeSeason={activeSeason}
+                    isFinished={game.isFinished && !isEditingFinishedGame}
+                    onEliminatePlayer={onEliminatePlayer}
+                    onReactivatePlayer={onReactivatePlayer}
+                    onUpdatePlayerStats={onUpdatePlayerStats}
+                  />
               );
             })}
           </div>
@@ -97,7 +99,7 @@ export default function PlayersTable({
                     player={player}
                     dinnerSharePerPlayer={dinnerSharePerPlayer}
                     activeSeason={activeSeason}
-                    isFinished={game.isFinished}
+                    isFinished={game.isFinished && !isEditingFinishedGame}
                     onEliminatePlayer={onEliminatePlayer}
                     onReactivatePlayer={onReactivatePlayer}
                     onUpdatePlayerStats={onUpdatePlayerStats}

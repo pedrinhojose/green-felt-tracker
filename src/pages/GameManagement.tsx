@@ -4,6 +4,7 @@ import { useGameManagement } from "@/hooks/useGameManagement";
 import { usePlayerActions } from "@/hooks/usePlayerActions";
 import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useGameShareableLink } from "@/hooks/useGameShareableLink";
+import { useEditFinishedGame } from "@/hooks/useEditFinishedGame";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -64,6 +65,14 @@ export default function GameManagement() {
   // Game shareable link hook
   const { generateShareableLink, isGenerating: isGeneratingLink } = useGameShareableLink();
   
+  // Edit finished game hook
+  const { 
+    isEditingFinishedGame, 
+    reopenGameForEditing, 
+    saveEditedGame, 
+    cancelEdit 
+  } = useEditFinishedGame();
+  
   // Filtrar jogadores que ainda não estão na partida
   const getAvailablePlayers = () => {
     if (!game || !players) return [];
@@ -104,6 +113,34 @@ export default function GameManagement() {
       await generateShareableLink(game.id);
     }
   };
+
+  // Handlers para edição de partida finalizada
+  const handleReopenGame = async () => {
+    if (game) {
+      await reopenGameForEditing(game);
+    }
+  };
+
+  const handleSaveEditedGame = async () => {
+    if (game) {
+      const success = await saveEditedGame(game, async () => {
+        // Atualizar rankings após salvar
+        // Esta função será chamada pelo hook interno
+      });
+      if (success) {
+        // Recarregar a página para mostrar os dados atualizados
+        window.location.reload();
+      }
+    }
+  };
+
+  const handleCancelEdit = async () => {
+    const success = await cancelEdit();
+    if (success) {
+      // Recarregar a página para mostrar os dados originais
+      window.location.reload();
+    }
+  };
   
   if (isLoading) {
     return (
@@ -137,11 +174,15 @@ export default function GameManagement() {
           isFinishing={isFinishing}
           isDeleting={isDeleting}
           isGeneratingLink={isGeneratingLink}
+          isEditingFinishedGame={isEditingFinishedGame}
           onExportReport={handleExportReport}
           onExportReportAsImage={handleExportReportAsImage}
           onExportLink={handleExportLink}
           onFinishGame={handleFinishGame}
           onDeleteGame={handleDeleteGame}
+          onReopenGame={handleReopenGame}
+          onSaveEditedGame={handleSaveEditedGame}
+          onCancelEdit={handleCancelEdit}
         />
       )}
       
@@ -158,6 +199,19 @@ export default function GameManagement() {
       ) : (
         // Game management screen
         <div className={`space-y-${isMobile ? '4' : '6'}`}>
+          {/* Aviso de edição de partida finalizada */}
+          {isEditingFinishedGame && (
+            <div className="bg-orange-500/10 border border-orange-500 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                <h3 className="text-orange-500 font-semibold">Editando Partida Finalizada</h3>
+              </div>
+              <p className="text-orange-300 text-sm mt-1">
+                Você está editando uma partida já finalizada. Os rankings e jackpot foram temporariamente revertidos. 
+                Não esqueça de <strong>salvar as alterações</strong> quando terminar.
+              </p>
+            </div>
+          )}
           {/* Blind Timer */}
           <BlindTimer />
           
@@ -176,7 +230,7 @@ export default function GameManagement() {
             </div>
             
             {/* Botões para gerenciar jogadores */}
-            {!game.isFinished && (
+            {(!game.isFinished || isEditingFinishedGame) && (
               <div className={`flex ${isMobile ? 'w-full flex-col' : 'flex-row'} gap-2 ${isMobile ? 'mt-2' : 'mt-2 lg:mt-0'}`}>
                 <Button 
                   onClick={() => setIsAddPlayerDialogOpen(true)}
@@ -209,6 +263,7 @@ export default function GameManagement() {
             onEliminatePlayer={eliminatePlayer}
             onReactivatePlayer={reactivatePlayer}
             onUpdatePlayerStats={updatePlayerStats}
+            isEditingFinishedGame={isEditingFinishedGame}
           />
           
           {/* Dialog para adicionar jogador tardio */}
