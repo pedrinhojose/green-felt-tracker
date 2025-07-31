@@ -10,8 +10,8 @@ interface CircularProgressRingProps {
 export function CircularProgressRing({ progressPercentage, onProgressClick }: CircularProgressRingProps) {
   const isMobile = useIsMobile();
   
-  const radius = isMobile ? 120 : 180;
-  const svgSize = isMobile ? 280 : 400;
+  const radius = isMobile ? 100 : 180;
+  const svgSize = isMobile ? 240 : 400;
   const center = svgSize / 2;
   const strokeWidth = isMobile ? 8 : 12;
   const shadowRadius = radius + 15;

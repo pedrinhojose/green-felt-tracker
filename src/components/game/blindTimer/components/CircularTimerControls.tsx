@@ -34,7 +34,7 @@ export default function CircularTimerControls({
   return (
     <>
       {/* Controles centrais na parte inferior */}
-      <div className={`absolute ${isMobile ? 'bottom-6' : 'bottom-12'} left-1/2 -translate-x-1/2`}>
+      <div className={`absolute ${isMobile ? 'bottom-2' : 'bottom-12'} left-1/2 -translate-x-1/2`}>
         <div className={`flex justify-center items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
           {/* Botão ANTERIOR */}
           <Button 
@@ -78,7 +78,7 @@ export default function CircularTimerControls({
       </div>
 
       {/* Botão "ABRIR EM NOVA JANELA" no canto inferior direito */}
-      <div className={`absolute ${isMobile ? 'bottom-4 right-4' : 'bottom-8 right-8'}`}>
+      <div className={`absolute ${isMobile ? 'bottom-12 right-2' : 'bottom-8 right-8'}`}>
         <Button 
           onClick={onOpenNewWindow}
           variant="outline"
@@ -90,7 +90,7 @@ export default function CircularTimerControls({
       </div>
 
       {/* Controles adicionais no canto inferior esquerdo */}
-      <div className={`absolute ${isMobile ? 'bottom-4 left-4' : 'bottom-8 left-8'} flex gap-2`}>
+      <div className={`absolute ${isMobile ? 'bottom-12 left-2' : 'bottom-8 left-8'} flex gap-2`}>
         <Button 
           onClick={onToggleSound}
           variant="ghost"

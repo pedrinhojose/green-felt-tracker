@@ -7,7 +7,7 @@ import { formatBlindPair, formatBlindValue } from "@/lib/utils/blindUtils";
 import { usePoker } from "@/contexts/PokerContext";
 
 interface TimerSideInfoProps {
-  side: 'left' | 'right';
+  side: 'left' | 'right' | 'mobile-top';
   currentLevel?: BlindLevel;
   nextLevel?: BlindLevel;
   totalElapsedTime?: number;
