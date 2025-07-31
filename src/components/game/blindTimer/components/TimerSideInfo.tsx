@@ -80,18 +80,81 @@ export function TimerSideInfo({
     return () => clearInterval(interval);
   }, [getCurrentTime]);
 
-  if (side === 'left') {
-    // Lado esquerdo - PRÓXIMO NÍVEL E INFORMAÇÕES AUXILIARES
+  // MOBILE-TOP - Layout horizontal compacto
+  if (side === 'mobile-top') {
     return (
-      <div className={`absolute ${isMobile ? 'top-4 left-4 right-4' : 'left-8 top-1/2 -translate-y-1/2'} text-left z-10`}>
-        <div className={`${isMobile ? 'flex flex-col space-y-3' : 'space-y-4'}`}>
+      <div className="w-full bg-black/30 backdrop-blur-md rounded-lg p-3">
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          {/* Coluna 1: Nível Atual e Próximo */}
+          <div className="space-y-2">
+            {currentLevel && (
+              <div className="bg-black/20 rounded p-2">
+                <div className="text-poker-gold font-semibold">Atual</div>
+                <div className="text-white font-bold">
+                  {currentLevel.isBreak ? 'INTERVALO' : formatBlindPair(currentLevel.smallBlind, currentLevel.bigBlind)}
+                </div>
+                {currentLevel.ante && currentLevel.ante > 0 && (
+                  <div className="text-poker-gold/80">Ante: {formatBlindValue(currentLevel.ante)}</div>
+                )}
+              </div>
+            )}
+            
+            {nextLevel && (
+              <div className="bg-black/20 rounded p-2">
+                <div className="text-poker-gold font-semibold">Próximo</div>
+                <div className="text-white font-bold">
+                  {nextLevel.isBreak ? 'INTERVALO' : formatBlindPair(nextLevel.smallBlind, nextLevel.bigBlind)}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Coluna 2: Tempo e Prêmios */}
+          <div className="space-y-2">
+            <div className="bg-black/20 rounded p-2">
+              <div className="text-poker-gold font-semibold">Tempo Total</div>
+              <div className="text-white font-bold font-mono">{displayTotalTime}</div>
+            </div>
+
+            {livePrizes && livePrizes.length > 0 && (
+              <div className="bg-black/20 rounded p-2">
+                <div className="text-poker-gold font-semibold">1º Lugar</div>
+                <div className="text-white font-bold">R$ {livePrizes[0]?.value.toFixed(0)}</div>
+              </div>
+            )}
+            
+            {nextBreak && (
+              <div className="bg-black/20 rounded p-2">
+                <div className="text-poker-gold font-semibold">Intervalo</div>
+                <div className="text-white font-bold">
+                  {levelsUntilBreak === 1 ? '1 nível' : `${levelsUntilBreak} níveis`}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Linha inferior com horário */}
+        <div className="mt-2 pt-2 border-t border-white/10 text-center">
+          <span className="text-poker-gold font-semibold">Horário: </span>
+          <span className="text-white font-mono">{currentTime}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // DESKTOP - Lado esquerdo
+  if (side === 'left') {
+    return (
+      <div className="absolute left-8 top-1/2 -translate-y-1/2 text-left z-10">
+        <div className="space-y-4">
           {/* PRÓXIMO NÍVEL */}
-          <div className={`${isMobile ? 'bg-black/20 backdrop-blur-sm rounded-lg p-3' : 'bg-black/30 backdrop-blur-md rounded-xl p-4'} transform scale-110`}>
-            <h3 className={`text-poker-gold ${isMobile ? 'text-sm' : 'text-base'} font-normal mb-1 uppercase tracking-wide`}>
+          <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
+            <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
               PRÓXIMO NÍVEL
             </h3>
             {nextLevel ? (
-              <div className={`text-white ${isMobile ? 'text-base' : 'text-3xl'} font-semibold`}>
+              <div className="text-white text-3xl font-semibold">
                 {nextLevel.isBreak ? (
                   <span>INTERVALO</span>
                 ) : (
@@ -99,14 +162,14 @@ export function TimerSideInfo({
                 )}
               </div>
             ) : (
-              <div className={`text-white ${isMobile ? 'text-base' : 'text-3xl'} font-semibold`}>
+              <div className="text-white text-3xl font-semibold">
                 FIM
               </div>
             )}
           </div>
           
-          {/* INTERVALO EM - apenas no desktop */}
-          {!isMobile && nextBreak && levelsUntilBreak && (
+          {/* INTERVALO EM */}
+          {nextBreak && levelsUntilBreak && (
             <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
               <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
                 INTERVALO EM
@@ -120,54 +183,52 @@ export function TimerSideInfo({
             </div>
           )}
           
-          {/* TEMPO TOTAL E PRÊMIOS - apenas no desktop */}
-          {!isMobile && (
-            <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
-              <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
-                TEMPO TOTAL
-              </h3>
-              <div className="text-white text-xl font-bold mb-3">
-                {displayTotalTime}
-              </div>
-              
-              {/* PRÊMIOS EM JOGO */}
-              {livePrizes.length > 0 && (
-                <div className="border-t border-white/20 pt-3">
-                  <h4 className="text-poker-gold text-sm font-normal mb-2 uppercase tracking-wide">
-                    PRÊMIOS EM JOGO
-                  </h4>
-                  <div className="space-y-1">
-                    {livePrizes.map((prize) => (
-                      <div key={prize.position} className="flex justify-between items-center">
-                        <span className="text-white/70 text-sm">
-                          {prize.position}º
-                        </span>
-                        <span className="text-white text-sm font-bold">
-                          R$ {prize.value.toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* TEMPO TOTAL E PRÊMIOS */}
+          <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
+            <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
+              TEMPO TOTAL
+            </h3>
+            <div className="text-white text-xl font-bold mb-3">
+              {displayTotalTime}
             </div>
-          )}
+            
+            {/* PRÊMIOS EM JOGO */}
+            {livePrizes.length > 0 && (
+              <div className="border-t border-white/20 pt-3">
+                <h4 className="text-poker-gold text-sm font-normal mb-2 uppercase tracking-wide">
+                  PRÊMIOS EM JOGO
+                </h4>
+                <div className="space-y-1">
+                  {livePrizes.map((prize) => (
+                    <div key={prize.position} className="flex justify-between items-center">
+                      <span className="text-white/70 text-sm">
+                        {prize.position}º
+                      </span>
+                      <span className="text-white text-sm font-bold">
+                        R$ {prize.value.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
-  // Lado direito - NÍVEL ATUAL E INFORMAÇÕES PRINCIPAIS
+  // DESKTOP - Lado direito
   return (
-    <div className={`absolute ${isMobile ? 'bottom-4 left-4 right-4' : 'right-8 top-1/2 -translate-y-1/2'} text-right z-10`}>
-      <div className={`${isMobile ? 'flex flex-col space-y-3' : 'space-y-4'}`}>
+    <div className="absolute right-8 top-1/2 -translate-y-1/2 text-right z-10">
+      <div className="space-y-4">
         {/* NÍVEL ATUAL - DESTAQUE PRINCIPAL */}
-        <div className={`${isMobile ? 'bg-black/30 backdrop-blur-md rounded-lg p-4' : 'bg-black/40 backdrop-blur-lg rounded-xl p-6'} transform scale-110`}>
-          <h3 className={`text-poker-gold ${isMobile ? 'text-base' : 'text-2xl'} font-bold mb-2 uppercase tracking-wide`}>
+        <div className="bg-black/40 backdrop-blur-lg rounded-xl p-6 transform scale-110">
+          <h3 className="text-poker-gold text-2xl font-bold mb-2 uppercase tracking-wide">
             NÍVEL ATUAL
           </h3>
           {currentLevel && (
-            <div className={`text-white ${isMobile ? 'text-xl' : 'text-5xl'} font-bold`}>
+            <div className="text-white text-5xl font-bold">
               {currentLevel.isBreak ? (
                 <span 
                   className="current-blind-3d" 
@@ -186,78 +247,28 @@ export function TimerSideInfo({
             </div>
           )}
           
-          {/* ANTE ATUAL - dentro do mesmo container */}
+          {/* ANTE ATUAL */}
           {currentLevel && !currentLevel.isBreak && (
             <div className="mt-3">
-              <h4 className={`text-poker-gold ${isMobile ? 'text-sm' : 'text-base'} font-normal mb-1`}>
+              <h4 className="text-poker-gold text-base font-normal mb-1">
                 ANTE
               </h4>
-              <div className={`text-white ${isMobile ? 'text-base' : 'text-2xl'} font-bold`}>
+              <div className="text-white text-2xl font-bold">
                 {formatBlindValue(currentLevel.ante)}
               </div>
             </div>
           )}
         </div>
         
-        {/* INFORMAÇÕES ADICIONAIS - apenas no mobile */}
-        {isMobile && (
-          <div className="space-y-3 transform scale-110">
-            <div className="flex gap-3">
-              <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 flex-1">
-                <h3 className="text-poker-gold text-sm font-normal mb-1 uppercase">
-                  TEMPO TOTAL
-                </h3>
-                <div className="text-white text-base font-bold">
-                  {displayTotalTime}
-                </div>
-              </div>
-              
-              {nextBreak && levelsUntilBreak && (
-                <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 flex-1">
-                  <h3 className="text-poker-gold text-sm font-normal mb-1 uppercase">
-                    INTERVALO
-                  </h3>
-                  <div className="text-white text-base font-bold">
-                    {minutesUntilBreak} MIN
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* PRÊMIOS EM JOGO - mobile */}
-            {livePrizes.length > 0 && (
-              <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
-                <h3 className="text-poker-gold text-sm font-normal mb-2 uppercase">
-                  PRÊMIOS EM JOGO
-                </h3>
-                <div className="flex justify-between text-xs">
-                  {livePrizes.map((prize) => (
-                    <div key={prize.position} className="text-center">
-                      <div className="text-white/70 mb-1">
-                        {prize.position}º
-                      </div>
-                      <div className="text-white font-bold">
-                        R$ {prize.value.toFixed(0)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* HORA ATUAL */}
+        <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
+          <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
+            HORA ATUAL
+          </h3>
+          <div className="text-white text-xl font-bold">
+            {currentTime}
           </div>
-        )}
-        
-        {/* HORA ATUAL - apenas no desktop */}
-        {!isMobile && (
-          <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 transform scale-110">
-            <h3 className="text-poker-gold text-base font-normal mb-1 uppercase tracking-wide">
-              HORA ATUAL
-            </h3>
-            <div className="text-white text-xl font-bold">
-              {currentTime}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

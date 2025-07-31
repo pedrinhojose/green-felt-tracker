@@ -38,12 +38,12 @@ export function TimerCenterDisplay({
       {/* Container simplificado */}
       <div className="relative">
         {/* Timer principal simplificado */}
-        <div className={`${isMobile ? 'text-[60px]' : 'text-[120px]'} font-bold ${getTimeColor()} transition-all duration-300 font-mono leading-none text-center`}>
+        <div className={`${isMobile ? 'text-[40px]' : 'text-[120px]'} font-bold ${getTimeColor()} transition-all duration-300 font-mono leading-none text-center`}>
           {formatTime(timeRemainingInLevel)}
         </div>
         
         {/* Label "Tempo" simplificado */}
-        <div className={`text-poker-gold ${isMobile ? 'text-lg' : 'text-3xl'} font-normal ${isMobile ? 'mt-1' : 'mt-4'} text-center`}>
+        <div className={`text-poker-gold ${isMobile ? 'text-sm' : 'text-3xl'} font-normal ${isMobile ? 'mt-1' : 'mt-4'} text-center`}>
           Tempo
         </div>
       </div>
