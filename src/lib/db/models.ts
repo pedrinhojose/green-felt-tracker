@@ -24,6 +24,7 @@ export interface Season {
   blindStructure: BlindLevel[];
   jackpot: number;
   houseRules: string;
+  hostSchedule: HostScheduleEntry[];
   createdAt: Date;
 }
 
@@ -89,4 +90,20 @@ export interface RankingEntry {
   gamesPlayed: number;
   bestPosition: number;
   seasonId: string; // Adicionando o campo seasonId obrigatório
+}
+
+export interface HostScheduleEntry {
+  id: string;
+  playerId: string;
+  playerName: string;
+  scheduledDate: Date;
+  status: 'scheduled' | 'confirmed' | 'cancelled' | 'completed';
+  gameId?: string;
+  notes?: string;
+}
+
+export interface HostScheduleConfig {
+  startDate: Date;
+  endDate: Date;
+  frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
 }

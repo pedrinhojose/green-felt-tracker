@@ -12,7 +12,8 @@ export function useSeasonFormSubmitter(
   scoreEntries: ScoreEntry[],
   weeklyPrizeEntries: PrizeEntry[],
   seasonPrizeEntries: PrizeEntry[],
-  blindLevels: any[]
+  blindLevels: any[],
+  hostSchedule?: any[]
 ) {
   const { toast } = useToast();
   
@@ -75,7 +76,8 @@ export function useSeasonFormSubmitter(
           rebuy: Number(data.rebuy),
           addon: Number(data.addon),
           jackpotContribution: Number(data.jackpotContribution)
-        }
+        },
+        hostSchedule: hostSchedule || []
       };
       
       if (isCreating) {

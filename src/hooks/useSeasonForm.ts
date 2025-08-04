@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Season, BlindLevel } from "@/lib/db/models";
+import { Season, BlindLevel, HostScheduleEntry } from "@/lib/db/models";
 import { SeasonFormValues, ScoreEntry, PrizeEntry } from "@/types/season";
 import { useSeasonFormInitializer } from "./season/useSeasonFormInitializer";
 import { useSeasonFormSubmitter } from "./season/useSeasonFormSubmitter";
@@ -17,6 +17,7 @@ export function useSeasonForm(
   const [weeklyPrizeEntries, setWeeklyPrizeEntries] = useState<PrizeEntry[]>([]);
   const [seasonPrizeEntries, setSeasonPrizeEntries] = useState<PrizeEntry[]>([]);
   const [blindLevels, setBlindLevels] = useState<BlindLevel[]>([]);
+  const [hostSchedule, setHostSchedule] = useState<HostScheduleEntry[]>([]);
   
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<SeasonFormValues>();
 
@@ -28,7 +29,8 @@ export function useSeasonForm(
     setScoreEntries, 
     setWeeklyPrizeEntries, 
     setSeasonPrizeEntries, 
-    setBlindLevels
+    setBlindLevels,
+    setHostSchedule
   );
 
   // Form submission handler
@@ -40,7 +42,8 @@ export function useSeasonForm(
     scoreEntries,
     weeklyPrizeEntries,
     seasonPrizeEntries,
-    blindLevels
+    blindLevels,
+    hostSchedule
   );
 
   const onSubmit = async (data: SeasonFormValues) => {
@@ -59,6 +62,8 @@ export function useSeasonForm(
     setSeasonPrizeEntries,
     blindLevels,
     setBlindLevels,
+    hostSchedule,
+    setHostSchedule,
     onSubmit,
     isSubmitting
   };

@@ -71,7 +71,8 @@ export default function PublicSeasonView() {
           seasonPrizeSchema: seasonData.season_prize_schema as any,
           weeklyPrizeSchema: seasonData.weekly_prize_schema as any,
           financialParams: seasonData.financial_params as any,
-          blindStructure: seasonData.blind_structure as any
+          blindStructure: seasonData.blind_structure as any,
+          hostSchedule: (seasonData.host_schedule as any) || []
         };
 
         const convertedRankings: RankingEntry[] = (rankingsData || []).map(r => ({

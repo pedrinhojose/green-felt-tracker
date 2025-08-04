@@ -12,7 +12,8 @@ export function useSeasonFormInitializer(
   setScoreEntries: (entries: ScoreEntry[]) => void,
   setWeeklyPrizeEntries: (entries: PrizeEntry[]) => void,
   setSeasonPrizeEntries: (entries: PrizeEntry[]) => void,
-  setBlindLevels: (levels: BlindLevel[]) => void
+  setBlindLevels: (levels: BlindLevel[]) => void,
+  setHostSchedule?: (schedule: any[]) => void
 ) {
   // Initialize form when component loads
   useEffect(() => {
@@ -38,8 +39,8 @@ export function useSeasonFormInitializer(
         return level;
       });
       
-      setBlindLevels(blindStructureWithIds || []);
-      console.log("Loaded blind levels:", blindStructureWithIds);
+      setBlindLevels(blindStructureWithIds);
+      setHostSchedule?.(activeSeason.hostSchedule || []);
     } else {
       // Default values for new season
       const today = new Date().toISOString().split('T')[0];
