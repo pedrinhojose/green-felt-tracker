@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function SeasonConfig() {
-  const { activeSeason, createSeason, updateSeason, endSeason } = usePoker();
+  const { activeSeason, createSeason, updateSeason, endSeason, players } = usePoker();
   const [isCreating, setIsCreating] = useState(!activeSeason);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -42,6 +42,9 @@ export default function SeasonConfig() {
     setSeasonPrizeEntries,
     blindLevels, 
     setBlindLevels,
+    hostSchedule,
+    setHostSchedule,
+    
     onSubmit,
   } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason);
 
@@ -138,7 +141,14 @@ export default function SeasonConfig() {
           </TabsContent>
           
           <TabsContent value="rules">
-            <HouseRulesConfig register={register} errors={errors} />
+            <HouseRulesConfig 
+              register={register} 
+              errors={errors}
+              season={activeSeason}
+              players={players}
+              hostSchedule={hostSchedule}
+              onUpdateHostSchedule={setHostSchedule}
+            />
           </TabsContent>
         </Tabs>
         
