@@ -4,6 +4,7 @@ import JackpotCard from "@/components/JackpotCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import BackupButton from "@/components/BackupButton";
+import RestoreButton from "@/components/RestoreButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
 import { AlertCircle } from "lucide-react";
@@ -82,8 +83,14 @@ export default function Dashboard() {
         <LastGameCard />
       </div>
       
-      <div className="mt-6">
-        <BackupButton />
+      <div className="mt-8">
+        <div className="bg-poker-navy/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Gerenciamento de Dados</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <BackupButton />
+            <RestoreButton />
+          </div>
+        </div>
       </div>
     </>
   );

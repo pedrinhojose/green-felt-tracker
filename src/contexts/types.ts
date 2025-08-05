@@ -29,5 +29,6 @@ export interface PokerContextProps {
   // Utilities
   isLoading: boolean;
   exportBackup: () => Promise<void>;
+  importBackup: (backupJson: string) => Promise<void>;
   getGameNumber: (seasonId: string) => Promise<number>;
 }

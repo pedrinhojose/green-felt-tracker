@@ -35,9 +35,33 @@ export function usePokerUtils() {
     }
   };
 
+  const importBackup = async (backupJson: string) => {
+    try {
+      await pokerDB.importBackup(backupJson);
+      
+      toast({
+        title: "Backup Restaurado",
+        description: "O backup foi restaurado com sucesso. A página será recarregada.",
+      });
+      
+      // Reload the page to refresh all data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error('Error importing backup:', error);
+      toast({
+        title: "Erro na Restauração",
+        description: error instanceof Error ? error.message : "Não foi possível restaurar o backup.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     isLoading,
     setIsLoading,
-    exportBackup
+    exportBackup,
+    importBackup
   };
 }

@@ -36,7 +36,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   } = useRankingFunctions();
   
   const { 
-    isLoading, setIsLoading, exportBackup 
+    isLoading, setIsLoading, exportBackup, importBackup 
   } = usePokerUtils();
   
   const { 
@@ -171,6 +171,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     // Utilities
     isLoading,
     exportBackup,
+    importBackup,
     getGameNumber,
   };
 
@@ -212,6 +213,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       // Utilities
       isLoading: true,
       exportBackup: async () => {},
+      importBackup: async () => {},
       getGameNumber: async () => 1,
     };
     

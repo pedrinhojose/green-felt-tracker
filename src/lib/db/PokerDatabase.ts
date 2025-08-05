@@ -222,6 +222,10 @@ class PokerDatabase {
   async exportBackup(): Promise<string> {
     return this.backupService.exportBackup();
   }
+
+  async importBackup(backupJson: string): Promise<void> {
+    return this.backupService.importBackup(backupJson);
+  }
 }
 
 export const pokerDB = PokerDatabase.getInstance();
