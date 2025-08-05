@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Trophy, Trash } from "lucide-react";
+import { Calendar, ChevronRight, Trophy, Trash, Settings } from "lucide-react";
 import { formatDate } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
@@ -150,34 +150,48 @@ export default function SeasonsList() {
                     {getStatusBadge(status)}
                   </CardTitle>
                   
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-500/10 hover:text-red-600 p-1 h-auto">
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir temporada</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir esta temporada? Esta ação não pode ser desfeita e todos os jogos e rankings associados serão perdidos.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-red-500 hover:bg-red-600"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleDeleteSeason(season.id);
-                          }}
-                          disabled={isDeleting || season.isActive}
-                        >
-                          {isDeleting ? "Excluindo..." : "Excluir temporada"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-blue-500 hover:bg-blue-500/10 hover:text-blue-600 p-1 h-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/season?edit=${season.id}`);
+                      }}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-500/10 hover:text-red-600 p-1 h-auto">
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir temporada</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir esta temporada? Esta ação não pode ser desfeita e todos os jogos e rankings associados serão perdidos.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDeleteSeason(season.id);
+                            }}
+                            disabled={isDeleting || season.isActive}
+                          >
+                            {isDeleting ? "Excluindo..." : "Excluir temporada"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </CardHeader>
                 
                 <CardContent onClick={() => handleViewSeason(season.id, season.isActive)} className="cursor-pointer">
