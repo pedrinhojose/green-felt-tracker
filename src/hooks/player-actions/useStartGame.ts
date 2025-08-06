@@ -41,7 +41,7 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
       const selectedPlayersData = players.filter(p => selectedPlayers.has(p.id));
       
       // Calcular mensalidades a serem cobradas
-      const { totalAmount: membershipTotal, chargedPlayers } = calculateTotalMembershipCharges(
+      const { totalAmount: membershipTotal, chargedPlayers } = await calculateTotalMembershipCharges(
         selectedPlayersData,
         activeSeason,
         game.date
