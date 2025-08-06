@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      club_fund_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          id: string
+          organization_id: string | null
+          season_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          organization_id?: string | null
+          season_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          organization_id?: string | null
+          season_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       games: {
         Row: {
           created_at: string

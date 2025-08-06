@@ -37,6 +37,14 @@ export class DatabaseCore {
           rankingStore.createIndex('by-season', 'seasonId');
           rankingStore.createIndex('by-points', 'totalPoints');
         }
+
+        // Club Fund Transactions store
+        if (!db.objectStoreNames.contains('clubFundTransactions')) {
+          const transactionStore = db.createObjectStore('clubFundTransactions', { keyPath: 'id' });
+          transactionStore.createIndex('by-season', 'seasonId');
+          transactionStore.createIndex('by-date', 'date');
+          transactionStore.createIndex('by-type', 'type');
+        }
       }
     });
   }
