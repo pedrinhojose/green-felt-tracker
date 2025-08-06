@@ -24,6 +24,7 @@ import HouseRules from '@/pages/HouseRules';
 import UserManagement from '@/pages/UserManagement';
 import NotFound from '@/pages/NotFound';
 import RequireAuth from '@/components/RequireAuth';
+import { OrganizationRequired } from '@/components/organizations/OrganizationRequired';
 import AppLayout from '@/components/layout/AppLayout';
 import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
 import OrganizationsPage from '@/pages/OrganizationsPage';
@@ -62,7 +63,7 @@ function App() {
                     <Route path="/public/season/:shareToken" element={<PublicSeasonView />} />
                     <Route path="/public/game/:shareToken" element={<PublicGameView />} />
                     
-                    <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+                    <Route element={<RequireAuth><OrganizationRequired><AppLayout /></OrganizationRequired></RequireAuth>}>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/season" element={<SeasonConfig />} />
                       <Route path="/seasons" element={<SeasonsList />} />
