@@ -51,41 +51,39 @@ function App() {
         >
           <AuthProvider>
             <OrganizationProvider>
-              <PokerProvider>
-                <AudioProvider>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/organizations" element={<OrganizationsPage />} />
-                    <Route path="/organization-selection" element={<OrganizationSelectionPage />} />
-                    
-                    {/* Rotas públicas sem autenticação */}
-                    <Route path="/public/season/:shareToken" element={<PublicSeasonView />} />
-                    <Route path="/public/game/:shareToken" element={<PublicGameView />} />
-                    
-                    <Route element={<RequireAuth><OrganizationRequired><AppLayout /></OrganizationRequired></RequireAuth>}>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/season" element={<SeasonConfig />} />
-                      <Route path="/seasons" element={<SeasonsList />} />
-                      <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
-                      <Route path="/games" element={<GamesList />} />
-                      <Route path="/games/:gameId" element={<GameManagement />} />
-                      <Route path="/timer/:gameId" element={<TimerPage />} />
-                      <Route path="/ranking" element={<RankingPage />} />
-                      <Route path="/players" element={<PlayersManagement />} />
-                      <Route path="/statistics" element={<PlayerStatistics />} />
-                      <Route path="/statistics/player/:playerId" element={<PlayerStatisticsDetail />} />
-                      <Route path="/house-rules" element={<HouseRules />} />
-                      <Route path="/users" element={<UserManagement />} />
-                      <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
-                      <Route path="/organization/members" element={<OrganizationMembersPage />} />
-                      <Route path="/reports/season" element={<SeasonReport />} />
-                    </Route>
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AudioProvider>
-              </PokerProvider>
+              <AudioProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/organizations" element={<OrganizationsPage />} />
+                  <Route path="/organization-selection" element={<OrganizationSelectionPage />} />
+                  
+                  {/* Rotas públicas sem autenticação */}
+                  <Route path="/public/season/:shareToken" element={<PublicSeasonView />} />
+                  <Route path="/public/game/:shareToken" element={<PublicGameView />} />
+                  
+                  <Route element={<RequireAuth><OrganizationRequired><PokerProvider><AppLayout /></PokerProvider></OrganizationRequired></RequireAuth>}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/season" element={<SeasonConfig />} />
+                    <Route path="/seasons" element={<SeasonsList />} />
+                    <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
+                    <Route path="/games" element={<GamesList />} />
+                    <Route path="/games/:gameId" element={<GameManagement />} />
+                    <Route path="/timer/:gameId" element={<TimerPage />} />
+                    <Route path="/ranking" element={<RankingPage />} />
+                    <Route path="/players" element={<PlayersManagement />} />
+                    <Route path="/statistics" element={<PlayerStatistics />} />
+                    <Route path="/statistics/player/:playerId" element={<PlayerStatisticsDetail />} />
+                    <Route path="/house-rules" element={<HouseRules />} />
+                    <Route path="/users" element={<UserManagement />} />
+                    <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
+                    <Route path="/organization/members" element={<OrganizationMembersPage />} />
+                    <Route path="/reports/season" element={<SeasonReport />} />
+                  </Route>
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AudioProvider>
             </OrganizationProvider>
           </AuthProvider>
         </Router>
