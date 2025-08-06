@@ -19,6 +19,8 @@ export interface SeasonFormValues {
   rebuy: number;
   addon: number;
   jackpotContribution: number;
+  clubMembershipValue: number;
+  clubMembershipFrequency: 'semanal' | 'mensal' | 'trimestral';
   houseRules: string;
 }
 

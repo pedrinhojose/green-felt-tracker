@@ -75,7 +75,9 @@ export function useSeasonFormSubmitter(
           buyIn: Number(data.buyIn),
           rebuy: Number(data.rebuy),
           addon: Number(data.addon),
-          jackpotContribution: Number(data.jackpotContribution)
+          jackpotContribution: Number(data.jackpotContribution),
+          clubMembershipValue: Number(data.clubMembershipValue),
+          clubMembershipFrequency: data.clubMembershipFrequency
         },
         hostSchedule: hostSchedule || []
       };

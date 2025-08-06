@@ -63,6 +63,7 @@ export default function PublicSeasonView() {
           endDate: seasonData.end_date ? new Date(seasonData.end_date) : null,
           isActive: seasonData.is_active,
           jackpot: seasonData.jackpot,
+          clubFund: (seasonData as any).club_fund || 0,
           gamesPerWeek: seasonData.games_per_week,
           
           createdAt: new Date(seasonData.created_at),

@@ -11,6 +11,8 @@ export const createDefaultFinancialParams = (): FinancialParams => {
     rebuy: 15,
     addon: 15,
     jackpotContribution: 5,
+    clubMembershipValue: 0,
+    clubMembershipFrequency: 'mensal',
   };
 };
 
@@ -87,6 +89,7 @@ export const buildNewSeason = (seasonData: Partial<Season>, seasonsCount: number
     financialParams: financialParams,
     blindStructure: blindStructure,
     jackpot: 0,
+    clubFund: 0,
     houseRules: seasonData.houseRules || '',
     hostSchedule: seasonData.hostSchedule || [],
     createdAt: now,

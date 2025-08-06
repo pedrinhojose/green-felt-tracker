@@ -23,6 +23,7 @@ export interface Season {
   financialParams: FinancialParams;
   blindStructure: BlindLevel[];
   jackpot: number;
+  clubFund: number;
   houseRules: string;
   hostSchedule: HostScheduleEntry[];
   createdAt: Date;
@@ -53,6 +54,8 @@ export interface FinancialParams {
   rebuy: number;
   addon: number;
   jackpotContribution: number;
+  clubMembershipValue: number;
+  clubMembershipFrequency: 'semanal' | 'mensal' | 'trimestral';
 }
 
 export interface Game {
@@ -106,4 +109,15 @@ export interface HostScheduleConfig {
   startDate: Date;
   endDate: Date;
   frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
+}
+
+export interface ClubFundTransaction {
+  id: string;
+  seasonId: string;
+  amount: number;
+  type: 'add' | 'remove';
+  description: string;
+  date: Date;
+  userId: string;
+  userEmail?: string;
 }
