@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/utils/dateUtils";
-import { Season, ClubFundTransaction } from "@/lib/db/models";
+import { Season } from "@/lib/db/models";
 import { memo, useMemo, useState } from "react";
 import { Plus, Minus, History, TrendingUp, Wallet, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -14,13 +14,11 @@ import { useNavigate } from "react-router-dom";
 interface ClubFundCardProps {
   activeSeason: Season;
   onUpdateClubFund: (amount: number, type: 'add' | 'remove', description: string) => Promise<void>;
-  transactions?: ClubFundTransaction[];
 }
 
 export const ClubFundCard = memo(function ClubFundCard({ 
   activeSeason, 
-  onUpdateClubFund,
-  transactions = []
+  onUpdateClubFund
 }: ClubFundCardProps) {
   const navigate = useNavigate();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -78,9 +76,7 @@ export const ClubFundCard = memo(function ClubFundCard({
     return frequencies[frequency] || frequency;
   };
 
-  const sortedTransactions = transactions
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10);
+  const sortedTransactions: any[] = [];
 
   return (
     <Card className="bg-card/50 backdrop-blur-sm border border-white/10">
@@ -272,6 +268,5 @@ export const ClubFundCard = memo(function ClubFundCard({
     </Card>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.activeSeason?.clubFund === nextProps.activeSeason?.clubFund &&
-         prevProps.transactions?.length === nextProps.transactions?.length;
+  return prevProps.activeSeason?.clubFund === nextProps.activeSeason?.clubFund;
 });

@@ -1,7 +1,6 @@
 import { DatabaseCore } from './DatabaseCore';
 import { DatabaseInterface } from './DatabaseInterface';
-import { Player, Season, Game, RankingEntry, ClubFundTransaction } from '../models';
-import { ClubFundTransactionFilters } from '../repositories/ClubFundRepository';
+import { Player, Season, Game, RankingEntry } from '../models';
 import { v4 as uuidv4 } from 'uuid';
 
 export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
@@ -135,75 +134,6 @@ export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
     return db.getAllFromIndex('rankings', 'by-season', seasonId);
   }
 
-  // Club Fund Transactions
-  async getClubFundTransactions(
-    filters: ClubFundTransactionFilters = {},
-    page?: number,
-    limit?: number
-  ): Promise<ClubFundTransaction[]> {
-    const db = await this.getDatabase();
-    let transactions: ClubFundTransaction[] = [];
-    
-    if (filters.seasonId) {
-      transactions = await db.getAllFromIndex('clubFundTransactions', 'by-season', filters.seasonId);
-    } else {
-      transactions = await db.getAll('clubFundTransactions');
-    }
-
-    // Apply filters
-    if (filters.type) {
-      transactions = transactions.filter(t => t.type === filters.type);
-    }
-
-    if (filters.dateFrom) {
-      transactions = transactions.filter(t => new Date(t.date) >= filters.dateFrom!);
-    }
-
-    if (filters.dateTo) {
-      transactions = transactions.filter(t => new Date(t.date) <= filters.dateTo!);
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      transactions = transactions.filter(t => 
-        t.description.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Sort by date (newest first)
-    transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    // Apply pagination
-    if (page !== undefined && limit !== undefined) {
-      const startIndex = (page - 1) * limit;
-      transactions = transactions.slice(startIndex, startIndex + limit);
-    }
-
-    return transactions;
-  }
-
-  async getClubFundTransaction(id: string): Promise<ClubFundTransaction | undefined> {
-    const db = await this.getDatabase();
-    return db.get('clubFundTransactions', id);
-  }
-
-  async saveClubFundTransaction(transaction: Partial<ClubFundTransaction>): Promise<string> {
-    const db = await this.getDatabase();
-    const id = transaction.id || uuidv4();
-    const transactionData: ClubFundTransaction = {
-      ...transaction,
-      id,
-      date: transaction.date || new Date(),
-    } as ClubFundTransaction;
-    
-    await db.put('clubFundTransactions', transactionData);
-    return id;
-  }
-
-  async deleteClubFundTransaction(id: string): Promise<void> {
-    const db = await this.getDatabase();
-    await db.delete('clubFundTransactions', id);
-  }
 
   // Utilities
   async exportBackup(): Promise<string> {
@@ -211,14 +141,12 @@ export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
     const seasons = await this.getSeasons();
     const games = await this.getGames();
     const rankings = await this.getRankings();
-    const clubFundTransactions = await this.getClubFundTransactions();
 
     return JSON.stringify({
       players,
       seasons,
       games,
       rankings,
-      clubFundTransactions,
       exportDate: new Date().toISOString(),
       version: '1.0'
     });
@@ -233,7 +161,6 @@ export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
     await db.clear('seasons');
     await db.clear('games');
     await db.clear('rankings');
-    await db.clear('clubFundTransactions');
 
     // Import data
     if (data.players) {
@@ -257,12 +184,6 @@ export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
     if (data.rankings) {
       for (const ranking of data.rankings) {
         await db.put('rankings', ranking);
-      }
-    }
-
-    if (data.clubFundTransactions) {
-      for (const transaction of data.clubFundTransactions) {
-        await db.put('clubFundTransactions', transaction);
       }
     }
   }

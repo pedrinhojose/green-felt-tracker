@@ -5,9 +5,8 @@ import { PlayerRepository } from './repositories/PlayerRepository';
 import { SeasonRepository } from './repositories/SeasonRepository';
 import { GameRepository } from './repositories/GameRepository';
 import { RankingRepository } from './repositories/RankingRepository';
-import { ClubFundRepository } from './repositories/ClubFundRepository';
 import { BackupService } from './services/BackupService';
-import { Player, Season, Game, RankingEntry, ClubFundTransaction } from './models';
+import { Player, Season, Game, RankingEntry } from './models';
 import { supabase } from '@/integrations/supabase/client';
 
 class PokerDatabase {
@@ -17,7 +16,6 @@ class PokerDatabase {
   private seasonRepository: SeasonRepository;
   private gameRepository: GameRepository;
   private rankingRepository: RankingRepository;
-  private clubFundRepository: ClubFundRepository;
   private backupService: BackupService;
   private dbCore: DatabaseCore;
   private useSupabase = true;
@@ -222,14 +220,6 @@ class PokerDatabase {
     return this.rankingRepository.saveRanking(ranking);
   }
   
-  // Club Fund Transactions
-  async getClubFundTransactions(filters = {}, page?: number, limit?: number): Promise<ClubFundTransaction[]> {
-    return this.clubFundRepository.getTransactions(filters, page, limit);
-  }
-
-  async saveClubFundTransaction(transaction: Partial<ClubFundTransaction>): Promise<string> {
-    return this.clubFundRepository.saveTransaction(transaction);
-  }
 
   // Backup method
   async exportBackup(): Promise<string> {

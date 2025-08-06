@@ -1,5 +1,4 @@
-import { Player, Season, Game, RankingEntry, ClubFundTransaction } from '../models';
-import { ClubFundTransactionFilters } from '../repositories/ClubFundRepository';
+import { Player, Season, Game, RankingEntry } from '../models';
 
 export interface DatabaseInterface {
   // Players
@@ -29,15 +28,6 @@ export interface DatabaseInterface {
   deleteRanking(id: string): Promise<void>;
   getRankingsBySeasonId(seasonId: string): Promise<RankingEntry[]>;
 
-  // Club Fund Transactions
-  getClubFundTransactions(
-    filters?: ClubFundTransactionFilters,
-    page?: number,
-    limit?: number
-  ): Promise<ClubFundTransaction[]>;
-  getClubFundTransaction(id: string): Promise<ClubFundTransaction | undefined>;
-  saveClubFundTransaction(transaction: Partial<ClubFundTransaction>): Promise<string>;
-  deleteClubFundTransaction(id: string): Promise<void>;
 
   // Utilities
   exportBackup(): Promise<string>;

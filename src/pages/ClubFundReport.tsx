@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { formatCurrency, formatDateTime } from "@/lib/utils/dateUtils";
-import { ClubFundTransaction } from "@/lib/db/models";
+
 import { usePoker } from "@/contexts/PokerContext";
 import { Calendar, Download, FileText, TrendingUp, TrendingDown, Wallet, Filter, X } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +19,7 @@ export default function ClubFundReport() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // TODO: Get real transactions from database
-  const mockTransactions: ClubFundTransaction[] = [
+  const mockTransactions: any[] = [
     {
       id: '1',
       seasonId: activeSeason?.id || '',

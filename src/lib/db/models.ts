@@ -120,14 +120,3 @@ export interface HostScheduleConfig {
   endDate: Date;
   frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
 }
-
-export interface ClubFundTransaction {
-  id: string;
-  seasonId: string;
-  amount: number;
-  type: 'add' | 'remove' | 'membership'; // Adicionado 'membership' para cobranças automáticas
-  description: string;
-  date: Date;
-  userId: string;
-  userEmail?: string;
-}

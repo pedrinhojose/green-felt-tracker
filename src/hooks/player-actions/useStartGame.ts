@@ -1,7 +1,7 @@
 
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
-import { Game, GamePlayer, MembershipCharge, ClubFundTransaction } from "@/lib/db/models";
+import { Game, GamePlayer, MembershipCharge } from "@/lib/db/models";
 import { shouldChargeMembership, calculateTotalMembershipCharges, createMembershipCharges } from "@/utils/membershipUtils";
 import { pokerDB } from "@/lib/db";
 import { useState } from "react";

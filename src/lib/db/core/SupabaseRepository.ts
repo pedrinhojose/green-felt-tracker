@@ -1,7 +1,6 @@
 import { SupabaseCore } from './SupabaseCore';
 import { DatabaseInterface } from './DatabaseInterface';
-import { Player, Season, Game, RankingEntry, ClubFundTransaction } from '../models';
-import { ClubFundTransactionFilters } from '../repositories/ClubFundRepository';
+import { Player, Season, Game, RankingEntry } from '../models';
 import { supabase } from "@/integrations/supabase/client";
 
 export class SupabaseRepository extends SupabaseCore implements DatabaseInterface {
@@ -331,121 +330,18 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
     return data.map(this.mapRankingFromSupabase);
   }
 
-  // Club Fund Transactions
-  async getClubFundTransactions(
-    filters: ClubFundTransactionFilters = {},
-    page?: number,
-    limit?: number
-  ): Promise<ClubFundTransaction[]> {
-    const { userId, orgId } = await this.getUserAndOrgIds();
-    
-    let query = supabase
-      .from('club_fund_transactions')
-      .select('*')
-      .eq('organization_id', orgId);
-
-    if (filters.seasonId) {
-      query = query.eq('season_id', filters.seasonId);
-    }
-
-    if (filters.type) {
-      query = query.eq('type', filters.type);
-    }
-
-    if (filters.dateFrom) {
-      query = query.gte('date', filters.dateFrom.toISOString());
-    }
-
-    if (filters.dateTo) {
-      query = query.lte('date', filters.dateTo.toISOString());
-    }
-
-    if (filters.search) {
-      query = query.ilike('description', `%${filters.search}%`);
-    }
-
-    query = query.order('date', { ascending: false });
-
-    if (page && limit) {
-      const start = (page - 1) * limit;
-      query = query.range(start, start + limit - 1);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    
-    return data.map(this.mapClubFundTransactionFromSupabase);
-  }
-
-  async getClubFundTransaction(id: string): Promise<ClubFundTransaction | undefined> {
-    const { data, error } = await supabase
-      .from('club_fund_transactions')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    
-    return data ? this.mapClubFundTransactionFromSupabase(data) : undefined;
-  }
-
-  async saveClubFundTransaction(transaction: Partial<ClubFundTransaction>): Promise<string> {
-    const { userId, orgId } = await this.getUserAndOrgIds();
-    
-    const transactionData = {
-      season_id: transaction.seasonId,
-      organization_id: orgId,
-      user_id: transaction.userId || userId,
-      amount: transaction.amount,
-      type: transaction.type,
-      description: transaction.description,
-      date: transaction.date?.toISOString() || new Date().toISOString(),
-    };
-
-    if (transaction.id) {
-      const { error } = await supabase
-        .from('club_fund_transactions')
-        .update(transactionData)
-        .eq('id', transaction.id);
-      
-      if (error) throw error;
-      return transaction.id;
-    } else {
-      const { data, error } = await supabase
-        .from('club_fund_transactions')
-        .insert(transactionData)
-        .select('id')
-        .single();
-      
-      if (error) throw error;
-      return data.id;
-    }
-  }
-
-  async deleteClubFundTransaction(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('club_fund_transactions')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-  }
-
   // Utilities
   async exportBackup(): Promise<string> {
     const players = await this.getPlayers();
     const seasons = await this.getSeasons();
     const games = await this.getGames();
     const rankings = await this.getRankings();
-    const clubFundTransactions = await this.getClubFundTransactions();
 
     return JSON.stringify({
       players,
       seasons,
       games,
       rankings,
-      clubFundTransactions,
       exportDate: new Date().toISOString(),
       version: '1.0'
     });
@@ -513,22 +409,10 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       playerName: data.player_name,
       photoUrl: data.photo_url,
       totalPoints: Number(data.total_points),
-      gamesPlayed: data.games_played,
-      bestPosition: data.best_position,
+      gamesPlayed: Number(data.games_played),
+      bestPosition: Number(data.best_position),
       seasonId: data.season_id,
     };
   }
 
-  private mapClubFundTransactionFromSupabase(data: any): ClubFundTransaction {
-    return {
-      id: data.id,
-      seasonId: data.season_id,
-      amount: Number(data.amount),
-      type: data.type,
-      description: data.description,
-      date: new Date(data.date),
-      userId: data.user_id,
-      userEmail: data.user_email,
-    };
-  }
 }
