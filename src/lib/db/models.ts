@@ -8,7 +8,6 @@ export interface Player {
   organizationId?: string;
   photoBase64?: string;
   createdAt: Date;
-  lastMembershipCharge?: Date; // Última cobrança de mensalidade
 }
 
 export interface Season {
@@ -55,8 +54,6 @@ export interface FinancialParams {
   rebuy: number;
   addon: number;
   jackpotContribution: number;
-  clubMembershipValue: number;
-  clubMembershipFrequency: 'semanal' | 'mensal' | 'trimestral';
 }
 
 export interface Game {
@@ -69,7 +66,6 @@ export interface Game {
   dinnerCost?: number;
   isFinished: boolean;
   createdAt: Date;
-  membershipCharges?: MembershipCharge[]; // Cobranças de mensalidade desta partida
 }
 
 export interface GamePlayer {
@@ -84,14 +80,6 @@ export interface GamePlayer {
   prize: number;
   points: number;
   balance: number;
-  membershipCharged?: boolean; // Se foi cobrada mensalidade nesta partida
-}
-
-export interface MembershipCharge {
-  playerId: string;
-  amount: number;
-  frequency: 'semanal' | 'mensal' | 'trimestral';
-  chargedAt: Date;
 }
 
 export interface RankingEntry {

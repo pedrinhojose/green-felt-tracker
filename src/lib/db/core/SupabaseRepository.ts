@@ -398,7 +398,7 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
       isFinished: data.is_finished,
       createdAt: new Date(data.created_at),
-      membershipCharges: data.membership_charges || [],
+      
     };
   }
 

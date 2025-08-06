@@ -11,8 +11,6 @@ export const createDefaultFinancialParams = (): FinancialParams => {
     rebuy: 15,
     addon: 15,
     jackpotContribution: 5,
-    clubMembershipValue: 0,
-    clubMembershipFrequency: 'mensal',
   };
 };
 

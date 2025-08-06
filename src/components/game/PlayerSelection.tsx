@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Player, GamePlayer, Season, Game } from "@/lib/db/models";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { MembershipChargeIndicator } from "./MembershipChargeIndicator";
+
 
 interface PlayerSelectionProps {
   players: Player[];
@@ -80,20 +80,8 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
       .substring(0, 2);
   };
   
-  // Filtrar jogadores selecionados para mostrar o indicador
-  const selectedPlayersData = players.filter(p => selectedPlayers.has(p.id));
-
   return (
     <div className="space-y-4">
-      {/* Indicador de cobrança de mensalidade */}
-      {season && game && selectedPlayersData.length > 0 && (
-        <MembershipChargeIndicator 
-          players={selectedPlayersData}
-          season={season}
-          game={game}
-        />
-      )}
-      
       <Card className="w-full">
         <CardHeader className={isMobile ? "pb-3" : ""}>
           <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">

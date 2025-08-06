@@ -92,11 +92,6 @@ export const ClubFundCard = memo(function ClubFundCard({
             <div className="text-2xl font-bold text-primary mb-1">
               {formattedClubFund}
             </div>
-            {activeSeason?.financialParams?.clubMembershipValue > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Arrecadação: {formatCurrency(activeSeason.financialParams.clubMembershipValue)} {formatFrequency(activeSeason.financialParams.clubMembershipFrequency)}
-              </p>
-            )}
           </div>
 
           <div className="flex gap-2">
