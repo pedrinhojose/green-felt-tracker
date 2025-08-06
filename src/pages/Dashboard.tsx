@@ -5,7 +5,6 @@ import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import BackupButton from "@/components/BackupButton";
 import RestoreButton from "@/components/RestoreButton";
-import { ClubFundCard } from "@/components/season/ClubFundCard";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
 import { AlertCircle } from "lucide-react";
@@ -37,21 +36,6 @@ export default function Dashboard() {
     };
   }, []);
 
-  const handleClubFundUpdate = async (amount: number, type: 'add' | 'remove', description: string) => {
-    if (!activeSeason) return;
-    
-    const newFundValue = type === 'add' 
-      ? (activeSeason.clubFund || 0) + amount
-      : (activeSeason.clubFund || 0) - amount;
-
-    await updateSeason({
-      id: activeSeason.id,
-      clubFund: Math.max(0, newFundValue)
-    });
-
-    // TODO: Save transaction to database/local storage for history
-    console.log('Club fund transaction:', { type, amount, description, date: new Date() });
-  };
 
   if (isLoading) {
     return (
@@ -94,14 +78,8 @@ export default function Dashboard() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <JackpotCard />
-        {activeSeason && (
-          <ClubFundCard 
-            activeSeason={activeSeason}
-            onUpdateClubFund={handleClubFundUpdate}
-          />
-        )}
         <RankingCard />
         <LastGameCard />
       </div>
