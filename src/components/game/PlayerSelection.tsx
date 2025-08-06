@@ -4,16 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Player, GamePlayer } from "@/lib/db/models";
+import { Player, GamePlayer, Season, Game } from "@/lib/db/models";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MembershipChargeIndicator } from "./MembershipChargeIndicator";
 
 interface PlayerSelectionProps {
   players: Player[];
   onStartGame: (selectedPlayerIds: Set<string>) => void;
+  season?: Season;
+  game?: Game;
 }
 
-export default function PlayerSelection({ players, onStartGame }: PlayerSelectionProps) {
+export default function PlayerSelection({ players, onStartGame, season, game }: PlayerSelectionProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -77,16 +80,29 @@ export default function PlayerSelection({ players, onStartGame }: PlayerSelectio
       .substring(0, 2);
   };
   
+  // Filtrar jogadores selecionados para mostrar o indicador
+  const selectedPlayersData = players.filter(p => selectedPlayers.has(p.id));
+
   return (
-    <Card className="w-full">
-      <CardHeader className={isMobile ? "pb-3" : ""}>
-        <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <span className={isMobile ? "text-lg" : ""}>Selecionar Jogadores</span>
-          <span className={`text-sm bg-poker-gold/20 px-2 py-1 rounded ${isMobile ? "self-start" : ""}`}>
-            {selectedPlayers.size} selecionados
-          </span>
-        </CardTitle>
-      </CardHeader>
+    <div className="space-y-4">
+      {/* Indicador de cobrança de mensalidade */}
+      {season && game && selectedPlayersData.length > 0 && (
+        <MembershipChargeIndicator 
+          players={selectedPlayersData}
+          season={season}
+          game={game}
+        />
+      )}
+      
+      <Card className="w-full">
+        <CardHeader className={isMobile ? "pb-3" : ""}>
+          <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <span className={isMobile ? "text-lg" : ""}>Selecionar Jogadores</span>
+            <span className={`text-sm bg-poker-gold/20 px-2 py-1 rounded ${isMobile ? "self-start" : ""}`}>
+              {selectedPlayers.size} selecionados
+            </span>
+          </CardTitle>
+        </CardHeader>
       <CardContent className={isMobile ? "px-3" : ""}>
         <div className={`grid gap-2 ${
           isMobile 
@@ -138,5 +154,6 @@ export default function PlayerSelection({ players, onStartGame }: PlayerSelectio
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

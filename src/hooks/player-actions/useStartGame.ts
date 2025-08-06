@@ -1,11 +1,13 @@
 
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
-import { Game, GamePlayer } from "@/lib/db/models";
+import { Game, GamePlayer, MembershipCharge, ClubFundTransaction } from "@/lib/db/models";
+import { shouldChargeMembership, calculateTotalMembershipCharges, createMembershipCharges } from "@/utils/membershipUtils";
+import { pokerDB } from "@/lib/db";
 import { useState } from "react";
 
 export function useStartGame(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
-  const { updateGame } = usePoker();
+  const { updateGame, players } = usePoker();
   const { toast } = useToast();
   const { activeSeason } = usePoker();
 
@@ -35,20 +37,39 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
         return false;
       }
       
+      // Obter dados completos dos jogadores selecionados
+      const selectedPlayersData = players.filter(p => selectedPlayers.has(p.id));
+      
+      // Calcular mensalidades a serem cobradas
+      const { totalAmount: membershipTotal, chargedPlayers } = calculateTotalMembershipCharges(
+        selectedPlayersData,
+        activeSeason,
+        game.date
+      );
+      
+      // Criar registros de cobrança de mensalidade
+      const membershipCharges = createMembershipCharges(chargedPlayers, activeSeason, game.date);
+      
       // Create game players array from selected player IDs
-      const gamePlayers: GamePlayer[] = Array.from(selectedPlayers).map(playerId => ({
-        id: `${playerId}-${Date.now()}`,
-        playerId,
-        position: null,
-        buyIn: true,
-        rebuys: 0,
-        addons: 0,
-        joinedDinner: false,
-        isEliminated: false,
-        prize: 0,
-        points: 0,
-        balance: 0,
-      }));
+      const gamePlayers: GamePlayer[] = Array.from(selectedPlayers).map(playerId => {
+        const playerData = selectedPlayersData.find(p => p.id === playerId);
+        const isCharged = chargedPlayers.some(p => p.id === playerId);
+        
+        return {
+          id: `${playerId}-${Date.now()}`,
+          playerId,
+          position: null,
+          buyIn: true,
+          rebuys: 0,
+          addons: 0,
+          joinedDinner: false,
+          isEliminated: false,
+          prize: 0,
+          points: 0,
+          balance: isCharged ? -activeSeason.financialParams.clubMembershipValue : 0,
+          membershipCharged: isCharged,
+        };
+      });
       
       // Calculate initial prize pool (buy-ins)
       const buyInAmount = activeSeason?.financialParams.buyIn || 0;
@@ -56,11 +77,28 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
       // Desconta a contribuição do jackpot do prêmio total
       const initialPrizePool = (buyInAmount - jackpotContribution) * gamePlayers.length;
       
-      // Update game with players and prize pool
+      // Atualizar temporada com mensalidades coletadas
+      if (membershipTotal > 0) {
+        await pokerDB.saveSeason({
+          ...activeSeason,
+          clubFund: activeSeason.clubFund + membershipTotal
+        });
+        
+        // Atualizar última cobrança dos jogadores
+        for (const player of chargedPlayers) {
+          await pokerDB.savePlayer({
+            ...player,
+            lastMembershipCharge: game.date
+          });
+        }
+      }
+      
+      // Update game with players, prize pool and membership charges
       await updateGame({
         id: game.id,
         players: gamePlayers,
         totalPrizePool: initialPrizePool,
+        membershipCharges: membershipCharges,
       });
       
       // Update local game state
@@ -73,9 +111,15 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
         };
       });
       
+      // Mensagem de toast com informações sobre mensalidades
+      let description = `${gamePlayers.length} jogadores selecionados`;
+      if (membershipTotal > 0) {
+        description += `. Mensalidades coletadas: R$ ${membershipTotal.toFixed(2)} (${chargedPlayers.length} jogadores)`;
+      }
+      
       toast({
         title: "Partida iniciada",
-        description: `${gamePlayers.length} jogadores selecionados`,
+        description,
       });
 
       return true;

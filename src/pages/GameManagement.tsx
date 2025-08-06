@@ -190,6 +190,8 @@ export default function GameManagement() {
         // Player selection screen
         <PlayerSelection 
           players={players} 
+          season={activeSeason}
+          game={game}
           onStartGame={(selectedPlayers) => {
             handleStartGame(selectedPlayers).then(success => {
               if (success) setIsSelectingPlayers(false);
