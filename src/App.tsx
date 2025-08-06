@@ -31,6 +31,7 @@ import OrganizationsPage from '@/pages/OrganizationsPage';
 import OrganizationSettingsPage from '@/pages/OrganizationSettingsPage';
 import OrganizationMembersPage from '@/pages/OrganizationMembersPage';
 import SeasonReport from '@/pages/SeasonReport';
+import ClubFundReport from '@/pages/ClubFundReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
 import PublicSeasonView from '@/pages/PublicSeasonView';
@@ -79,6 +80,7 @@ function App() {
                     <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                     <Route path="/organization/members" element={<OrganizationMembersPage />} />
                     <Route path="/reports/season" element={<SeasonReport />} />
+                    <Route path="/reports/club-fund" element={<ClubFundReport />} />
                   </Route>
                   
                   <Route path="*" element={<NotFound />} />

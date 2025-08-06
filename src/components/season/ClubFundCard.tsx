@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season, ClubFundTransaction } from "@/lib/db/models";
 import { memo, useMemo, useState } from "react";
-import { Plus, Minus, History, TrendingUp, Wallet } from "lucide-react";
+import { Plus, Minus, History, TrendingUp, Wallet, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface ClubFundCardProps {
   activeSeason: Season;
@@ -21,6 +22,7 @@ export const ClubFundCard = memo(function ClubFundCard({
   onUpdateClubFund,
   transactions = []
 }: ClubFundCardProps) {
+  const navigate = useNavigate();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
@@ -250,6 +252,17 @@ export const ClubFundCard = memo(function ClubFundCard({
                       </div>
                     ))
                   )}
+                </div>
+                <div className="mt-4 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/reports/club-fund')}
+                    className="w-full flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Ver Relatório Completo
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
