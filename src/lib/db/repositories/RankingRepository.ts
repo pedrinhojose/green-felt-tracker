@@ -177,7 +177,7 @@ export class RankingRepository extends SupabaseCore {
         const { error } = await supabase
           .from('rankings')
           .upsert(supabaseRanking, { 
-            onConflict: 'id'
+            onConflict: 'user_id,season_id,player_id'
           });
           
         if (error) throw error;

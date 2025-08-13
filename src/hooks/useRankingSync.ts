@@ -22,8 +22,9 @@ export function useRankingSync() {
       const freshPlayers = await pokerDB.getPlayers();
       console.log("Jogadores atualizados carregados:", freshPlayers.length);
       
-      // Filtrar apenas jogos finalizados da temporada
-      const finishedGames = games.filter(game => 
+      // Buscar jogos diretamente do banco para garantir dados atualizados
+      const allGames = await pokerDB.getGames(seasonId);
+      const finishedGames = allGames.filter(game => 
         game.seasonId === seasonId && game.isFinished
       );
       
