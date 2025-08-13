@@ -32,6 +32,10 @@ export function useRankingSync() {
         return [];
       }
 
+      // Carregar scoreSchema da temporada para normalizar pontos
+      const seasonData = await pokerDB.getSeason(seasonId);
+      const scoreSchema = seasonData?.scoreSchema ?? [];
+
       // Mapa para calcular estatísticas por jogador
       const playerStatsMap = new Map<string, {
         playerId: string;
@@ -66,7 +70,10 @@ export function useRankingSync() {
 
           // Atualizar estatísticas
           playerStat.gamesPlayed++;
-          playerStat.totalPoints += gamePlayer.points || 0;
+          const normalizedPoints = (typeof gamePlayer.points === 'number' && !Number.isNaN(gamePlayer.points))
+            ? gamePlayer.points
+            : (scoreSchema.find((e: any) => e.position === gamePlayer.position)?.points ?? 0);
+          playerStat.totalPoints += normalizedPoints;
           
           // Atualizar melhor posição (menor número é melhor)
           if (gamePlayer.position && gamePlayer.position < playerStat.bestPosition) {
