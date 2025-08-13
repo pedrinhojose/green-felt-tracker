@@ -219,6 +219,14 @@ class PokerDatabase {
   async saveRanking(ranking: RankingEntry): Promise<void> {
     return this.rankingRepository.saveRanking(ranking);
   }
+
+  async deleteRankingsBySeason(seasonId: string): Promise<void> {
+    return this.rankingRepository.deleteRankingsBySeason(seasonId);
+  }
+
+  async saveRankingsBulk(rankings: RankingEntry[]): Promise<void> {
+    return this.rankingRepository.saveRankingsBulk(rankings);
+  }
   
 
   // Backup method

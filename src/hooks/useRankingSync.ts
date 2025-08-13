@@ -95,10 +95,9 @@ export function useRankingSync() {
         seasonId: seasonId
       }));
 
-      // Salvar rankings em paralelo para reduzir tempo de I/O
-      await Promise.all(newRankings.map(r => pokerDB.saveRanking(r)));
-
-      console.log(`Rankings recalculados e salvos: ${newRankings.length} jogadores`);
+      // Substituir rankings antigos pelos recalculados
+      await pokerDB.deleteRankingsBySeason(seasonId);
+      await pokerDB.saveRankingsBulk(newRankings);
       console.log("Fotos sincronizadas:", newRankings.filter(r => r.photoUrl).length, "de", newRankings.length);
       
       return newRankings.sort((a, b) => b.totalPoints - a.totalPoints);

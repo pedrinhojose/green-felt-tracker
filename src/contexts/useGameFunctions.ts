@@ -251,47 +251,50 @@ export function useGameFunctions(
       };
       await pokerDB.saveGame(updatedGame);
       
-      // Atualizar rankings (buscar existentes uma vez e aplicar por jogador)
-      const existingRankings = await pokerDB.getRankings(game.seasonId);
-      for (const gamePlayer of updatedGame.players) {
-        // Buscar dados do jogador
-        const player = await pokerDB.getPlayer(gamePlayer.playerId);
-        if (!player) continue; // Pular se o jogador não for encontrado
-        
-        const playerRanking = existingRankings.find(r => r.playerId === gamePlayer.playerId);
-        const deltaPoints = gamePlayer.points || 0;
-        
-        let rankingEntry;
-        
-        if (playerRanking) {
-          // Atualizar ranking existente
-          rankingEntry = {
-            ...playerRanking,
-            totalPoints: (playerRanking.totalPoints || 0) + deltaPoints,
-            gamesPlayed: (playerRanking.gamesPlayed || 0) + 1,
-            bestPosition: gamePlayer.position && (playerRanking.bestPosition > gamePlayer.position || playerRanking.bestPosition === 0)
-              ? gamePlayer.position
-              : playerRanking.bestPosition,
-            seasonId: game.seasonId
-          };
-        } else {
-          // Criar novo ranking para o jogador
-          rankingEntry = {
-            id: uuidv5(`${gamePlayer.playerId}-${updatedGame.seasonId}`, uuidv5.URL),
-            playerId: gamePlayer.playerId,
-            playerName: player.name,
-            photoUrl: player.photoUrl,
-            totalPoints: deltaPoints,
-            gamesPlayed: 1,
-            bestPosition: gamePlayer.position || 0,
-            seasonId: game.seasonId
-          };
-        }
-        
-        // Salvar entrada do ranking
-        await pokerDB.saveRanking(rankingEntry);
-      }
-      
+      // Recalcular rankings a partir de TODOS os jogos finalizados da temporada
+      const freshPlayers = await pokerDB.getPlayers();
+      const allGames = await pokerDB.getGames(game.seasonId);
+      const finishedGames = allGames.filter(g => g.seasonId === game.seasonId && g.isFinished);
+
+      type PlayerAgg = { totalPoints: number; gamesPlayed: number; bestPosition: number; name: string; photoUrl?: string };
+      const agg = new Map<string, PlayerAgg>();
+
+      // Carregar scoreSchema da temporada para fallback de pontos
+      const scoreSchema = updatedSeason.scoreSchema || [];
+
+      finishedGames.forEach(gm => {
+        gm.players.forEach(gp => {
+          const pl = freshPlayers.find(p => p.id === gp.playerId);
+          if (!pl) return;
+          const cur = agg.get(gp.playerId) || { totalPoints: 0, gamesPlayed: 0, bestPosition: 99, name: pl.name, photoUrl: pl.photoUrl };
+          const pts = typeof gp.points === 'number' && !Number.isNaN(gp.points)
+            ? gp.points
+            : (scoreSchema.find((e: any) => e.position === gp.position)?.points ?? 0);
+          cur.totalPoints += pts;
+          cur.gamesPlayed += 1;
+          if (gp.position && gp.position < cur.bestPosition) cur.bestPosition = gp.position;
+          cur.name = pl.name;
+          cur.photoUrl = pl.photoUrl;
+          agg.set(gp.playerId, cur);
+        });
+      });
+
+      const newRankings = Array.from(agg.entries()).map(([playerId, stat]) => ({
+        id: uuidv5(`${playerId}-${game.seasonId}`, uuidv5.URL),
+        playerId,
+        playerName: stat.name,
+        photoUrl: stat.photoUrl,
+        totalPoints: stat.totalPoints,
+        gamesPlayed: stat.gamesPlayed,
+        bestPosition: stat.bestPosition === 99 ? 0 : stat.bestPosition,
+        seasonId: game.seasonId,
+      }));
+
+      await pokerDB.deleteRankingsBySeason(game.seasonId);
+      await pokerDB.saveRankingsBulk(newRankings);
+
+      console.log(`Rankings recalculados após finalizar jogo: ${newRankings.length} jogadores`);
+
       // Update local state
       setGames(prev => {
         const index = prev.findIndex(g => g.id === updatedGame.id);

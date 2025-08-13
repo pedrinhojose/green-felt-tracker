@@ -201,56 +201,74 @@ export class RankingRepository extends SupabaseCore {
       }
     }
   }
-  
-  // Method to migrate rankings from IndexedDB to Supabase
-  async migrateRankingsFromIndexedDB(): Promise<void> {
-    if (!this.idbDb) return;
-    
-    try {
-      console.log("Starting ranking migration from IndexedDB to Supabase");
-      const userId = await this.getUserId();
-      const orgId = this.getCurrentOrganizationId();
-      
-      if (!orgId) {
-        console.error("No organization selected for migration");
-        return;
+
+  async deleteRankingsBySeason(seasonId: string): Promise<void> {
+    if (this.useSupabase) {
+      try {
+        const orgId = this.getCurrentOrganizationId();
+        if (!orgId) throw new Error('No organization selected, cannot delete rankings');
+        const { error } = await supabase
+          .from('rankings')
+          .delete()
+          .eq('season_id', seasonId)
+          .eq('organization_id', orgId);
+        if (error) throw error;
+        console.log(`Rankings da temporada ${seasonId} removidos com sucesso`);
+      } catch (error) {
+        console.error('Erro ao remover rankings por temporada:', error);
+        throw error;
       }
-      
-      // Get all rankings from IndexedDB
-      const idbRankings = await (await this.idbDb).getAll('rankings');
-      
-      if (idbRankings.length === 0) {
-        console.log("No rankings to migrate");
-        return;
+    } else if (this.idbDb) {
+      try {
+        const db = await this.idbDb;
+        const all = await db.getAll('rankings');
+        const toDelete = all.filter(r => r.seasonId === seasonId);
+        await Promise.all(toDelete.map(r => db.delete('rankings', r.id)));
+        console.log(`Removidos ${toDelete.length} rankings locais da temporada ${seasonId}`);
+      } catch (error) {
+        console.error('Erro ao remover rankings locais por temporada:', error);
+        throw error;
       }
-      
-      console.log(`Found ${idbRankings.length} rankings to migrate`);
-      
-      // Prepare the rankings for Supabase format
-      const supabaseRankings = idbRankings.map(ranking => ({
-        id: ranking.id,
-        player_id: ranking.playerId,
-        player_name: ranking.playerName,
-        photo_url: ranking.photoUrl,
-        total_points: ranking.totalPoints,
-        games_played: ranking.gamesPlayed,
-        best_position: ranking.bestPosition,
-        season_id: ranking.seasonId,
-        user_id: userId,
-        organization_id: orgId
-      }));
-      
-      // Upsert all rankings to Supabase
-      const { error } = await supabase
-        .from('rankings')
-        .upsert(supabaseRankings, { onConflict: 'id' });
-        
-      if (error) throw error;
-      
-      console.log(`Successfully migrated ${supabaseRankings.length} rankings to Supabase`);
-    } catch (error) {
-      console.error("Error migrating rankings to Supabase:", error);
-      throw error;
+    }
+  }
+
+  async saveRankingsBulk(rankings: RankingEntry[]): Promise<void> {
+    if (rankings.length === 0) return;
+    if (this.useSupabase) {
+      try {
+        const userId = await this.getUserId();
+        const orgId = this.getCurrentOrganizationId();
+        if (!orgId) throw new Error('No organization selected, cannot save rankings');
+        const payload = rankings.map(r => ({
+          id: (r.id && sanitizeUUID(r.id)) || uuidv5(`${r.playerId}-${r.seasonId}`, uuidv5.URL),
+          player_id: r.playerId,
+          player_name: r.playerName,
+          photo_url: r.photoUrl,
+          total_points: r.totalPoints,
+          games_played: r.gamesPlayed,
+          best_position: r.bestPosition,
+          season_id: r.seasonId,
+          user_id: userId,
+          organization_id: orgId
+        }));
+        const { error } = await supabase
+          .from('rankings')
+          .upsert(payload, { onConflict: 'user_id,season_id,player_id' });
+        if (error) throw error;
+        console.log(`Bulk upsert de ${payload.length} rankings concluído`);
+      } catch (error) {
+        console.error('Erro no bulk upsert de rankings:', error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      try {
+        const db = await this.idbDb;
+        await Promise.all(rankings.map(r => db.put('rankings', r)));
+        console.log(`Bulk salvo localmente ${rankings.length} rankings`);
+      } catch (error) {
+        console.error('Erro ao salvar rankings localmente em bulk:', error);
+        throw error;
+      }
     }
   }
 }
