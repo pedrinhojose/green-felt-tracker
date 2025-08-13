@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SupabaseCore } from '../core/SupabaseCore';
 import { SupabaseQueryInterceptor } from '../../utils/supabaseQueryInterceptor';
 import { sanitizeUUID, debugUUID } from '../../utils/uuidUtils';
+import { v5 as uuidv5 } from 'uuid';
 
 export class RankingRepository extends SupabaseCore {
   private idbDb: Promise<IDBPDatabase<PokerDB>> | null = null;
@@ -159,7 +160,7 @@ export class RankingRepository extends SupabaseCore {
           throw new Error("No organization selected, cannot save ranking");
         }
         
-        const safeId = ranking.id || `${ranking.playerId}-${ranking.seasonId}`;
+        const safeId = (ranking.id && sanitizeUUID(ranking.id)) || uuidv5(`${ranking.playerId}-${ranking.seasonId}`, uuidv5.URL);
         const supabaseRanking = {
           id: safeId,
           player_id: ranking.playerId,
