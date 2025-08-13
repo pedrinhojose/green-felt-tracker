@@ -3,6 +3,7 @@ import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { pokerDB } from "@/lib/db";
 import { RankingEntry } from "@/lib/db/models";
+import { v5 as uuidv5 } from 'uuid';
 
 export function useRankingSync() {
   const { games, activeSeason } = usePoker();
@@ -76,7 +77,7 @@ export function useRankingSync() {
 
       // Converter para array de rankings
       const newRankings: RankingEntry[] = Array.from(playerStatsMap.values()).map(stat => ({
-        id: `${stat.playerId}-${seasonId}`,
+        id: uuidv5(`${stat.playerId}-${seasonId}`, uuidv5.URL),
         playerId: stat.playerId,
         playerName: stat.playerName,
         photoUrl: stat.photoUrl, // Garantir que a foto esteja sincronizada

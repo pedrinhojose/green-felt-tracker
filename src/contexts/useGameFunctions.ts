@@ -3,14 +3,12 @@ import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import { Game, Season } from '../lib/db/models';
 import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
-import { useRankingSync } from "@/hooks/useRankingSync";
 
 export function useGameFunctions(
   updateRankings: () => Promise<void>,
   setActiveSeason?: React.Dispatch<React.SetStateAction<Season | null>>
 ) {
   const { toast } = useToast();
-  const { validateRankingConsistency } = useRankingSync();
   const [games, setGames] = useState<Game[]>([]);
   const [lastGame, setLastGame] = useState<Game | null>(null);
 
@@ -314,13 +312,6 @@ export function useGameFunctions(
       // Forçar atualização do ranking chamando a função de atualização
       await updateRankings();
 
-      // Validação de consistência pós-encerramento (recalcula se necessário)
-      try {
-        await validateRankingConsistency(updatedGame.seasonId);
-      } catch (e) {
-        console.warn("Falha na validação de consistência de ranking pós-partida:", e);
-      }
-      
       toast({
         title: "Partida Finalizada",
         description: "A partida foi finalizada e o ranking atualizado.",
