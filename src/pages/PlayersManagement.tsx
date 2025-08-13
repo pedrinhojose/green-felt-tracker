@@ -10,9 +10,10 @@ import { PlayersHeader } from "@/components/players/PlayersHeader";
 import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { PlayersList } from "@/components/players/PlayersList";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRankingSync } from "@/hooks/useRankingSync";
 
 export default function PlayersManagement() {
-  const { players, savePlayer, deletePlayer } = usePoker();
+  const { players, savePlayer, deletePlayer, activeSeason } = usePoker();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -32,6 +33,7 @@ export default function PlayersManagement() {
   
   // Use our new photo manager hook
   const photoManager = usePlayerPhotoManager();
+  const { syncPlayerPhotosInRankings } = useRankingSync();
   
   const filteredPlayers = searchQuery
     ? players.filter(player => 
@@ -61,7 +63,10 @@ export default function PlayersManagement() {
     
     try {
       setIsSaving(true);
-      await savePlayer(newPlayer); // This is now correct as we updated savePlayer to accept Partial<Player>
+      await savePlayer(newPlayer);
+      if (activeSeason?.id) {
+        await syncPlayerPhotosInRankings(activeSeason.id);
+      }
       setNewPlayer({ name: "" });
       setIsAddDialogOpen(false);
       toast({
@@ -93,7 +98,10 @@ export default function PlayersManagement() {
     
     try {
       setIsSaving(true);
-      await savePlayer(editingPlayer); // This is already a complete Player object, so it works fine
+      await savePlayer(editingPlayer);
+      if (activeSeason?.id) {
+        await syncPlayerPhotosInRankings(activeSeason.id);
+      }
       setEditingPlayer(null);
       toast({
         title: "Jogador atualizado",

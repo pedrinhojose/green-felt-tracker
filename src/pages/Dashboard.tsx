@@ -9,9 +9,11 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRankingSync } from "@/hooks/useRankingSync";
 
 export default function Dashboard() {
   const { activeSeason, isLoading, updateSeason } = usePoker();
+  const { validateRankingConsistency } = useRankingSync();
   const [error, setError] = useState<Error | null>(null);
 
   // Clear error if component unmounts or data loads successfully
@@ -36,6 +38,12 @@ export default function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    if (activeSeason?.id) {
+      validateRankingConsistency(activeSeason.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSeason?.id]);
 
   if (isLoading) {
     return (

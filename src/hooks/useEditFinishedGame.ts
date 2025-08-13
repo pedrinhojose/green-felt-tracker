@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Game, RankingEntry } from '@/lib/db/models';
 import { pokerDB } from '@/lib/db';
 import { useToast } from "@/components/ui/use-toast";
+import { useRankingSync } from "@/hooks/useRankingSync";
 
 interface GameBackup {
   originalGame: Game;
@@ -13,6 +14,7 @@ export function useEditFinishedGame() {
   const { toast } = useToast();
   const [isEditingFinishedGame, setIsEditingFinishedGame] = useState(false);
   const [gameBackup, setGameBackup] = useState<GameBackup | null>(null);
+  const { recalculateRankings } = useRankingSync();
 
   const reopenGameForEditing = async (game: Game): Promise<boolean> => {
     try {
@@ -149,7 +151,7 @@ export function useEditFinishedGame() {
       await pokerDB.saveSeason(updatedSeason);
 
       // Recalcular rankings
-      await recalculateRankings(finalizedGame);
+      await recalculateRankings(finalizedGame.seasonId);
 
       // Limpar estado de edição
       setIsEditingFinishedGame(false);
@@ -175,42 +177,6 @@ export function useEditFinishedGame() {
     }
   };
 
-  const recalculateRankings = async (game: Game) => {
-    const currentRankings = await pokerDB.getRankings(game.seasonId);
-
-    for (const gamePlayer of game.players) {
-      const playerRanking = currentRankings.find(r => r.playerId === gamePlayer.playerId);
-      const player = await pokerDB.getPlayer(gamePlayer.playerId);
-      
-      if (!player) continue;
-
-      let rankingEntry;
-      
-      if (playerRanking) {
-        rankingEntry = {
-          ...playerRanking,
-          totalPoints: playerRanking.totalPoints + gamePlayer.points,
-          gamesPlayed: playerRanking.gamesPlayed + 1,
-          bestPosition: gamePlayer.position && (playerRanking.bestPosition > gamePlayer.position || playerRanking.bestPosition === 0)
-            ? gamePlayer.position
-            : playerRanking.bestPosition,
-        };
-      } else {
-        rankingEntry = {
-          id: crypto.randomUUID(),
-          playerId: gamePlayer.playerId,
-          playerName: player.name,
-          photoUrl: player.photoUrl,
-          totalPoints: gamePlayer.points,
-          gamesPlayed: 1,
-          bestPosition: gamePlayer.position || 0,
-          seasonId: game.seasonId
-        };
-      }
-      
-      await pokerDB.saveRanking(rankingEntry);
-    }
-  };
 
   const cancelEdit = async (): Promise<boolean> => {
     try {

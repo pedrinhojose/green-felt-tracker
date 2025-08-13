@@ -7,37 +7,49 @@ import RankingExporter from "@/components/ranking/RankingExporter";
 import RankingRecalculateButton from "@/components/ranking/RankingRecalculateButton";
 import EmptyRanking from "@/components/ranking/EmptyRanking";
 import { RankingPagination } from "@/components/ranking/RankingPagination";
+import { useRankingSync } from "@/hooks/useRankingSync";
 
 export default function RankingPage() {
   const { rankings, activeSeason, isLoading } = usePoker();
   const { currentOrganization } = useOrganization();
+  const { validateRankingConsistency } = useRankingSync();
   const [sortedRankings, setSortedRankings] = useState(rankings);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   
-  useEffect(() => {
-    // Debug logging
-    console.log("RankingPage: Estado atual", {
-      organizationId: currentOrganization?.id || 'none',
-      organizationName: currentOrganization?.name || 'none',
-      activeSeasonId: activeSeason?.id || 'none',
-      activeSeasonName: activeSeason?.name || 'none',
-      rankingsCount: rankings.length,
-      isLoading
-    });
-    
-    // Sort rankings by total points in descending order
-    const sorted = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
-    setSortedRankings(sorted);
-    
-    if (rankings.length > 0) {
-      console.log("RankingPage: Rankings encontrados:", rankings.map(r => ({
-        playerName: r.playerName,
-        totalPoints: r.totalPoints,
-        gamesPlayed: r.gamesPlayed
-      })));
-    }
-  }, [rankings, activeSeason, currentOrganization, isLoading]);
+useEffect(() => {
+  // Debug logging
+  console.log("RankingPage: Estado atual", {
+    organizationId: currentOrganization?.id || 'none',
+    organizationName: currentOrganization?.name || 'none',
+    activeSeasonId: activeSeason?.id || 'none',
+    activeSeasonName: activeSeason?.name || 'none',
+    rankingsCount: rankings.length,
+    isLoading
+  });
+  
+  // Sort rankings by total points in descending order
+  const sorted = [...rankings].sort((a, b) => b.totalPoints - a.totalPoints);
+  setSortedRankings(sorted);
+  setLastUpdatedAt(new Date());
+  
+  if (rankings.length > 0) {
+    console.log("RankingPage: Rankings encontrados:", rankings.map(r => ({
+      playerName: r.playerName,
+      totalPoints: r.totalPoints,
+      gamesPlayed: r.gamesPlayed
+    })));
+  }
+}, [rankings, activeSeason, currentOrganization, isLoading]);
+
+// Validação automática de consistência ao abrir a página
+useEffect(() => {
+  if (activeSeason?.id) {
+    validateRankingConsistency(activeSeason.id);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [activeSeason?.id]);
   
   const getInitials = (name: string) => {
     return name
@@ -86,6 +98,11 @@ export default function RankingPage() {
           {currentOrganization && (
             <p className="text-sm text-muted-foreground">
               Organização: {currentOrganization.name}
+            </p>
+          )}
+          {lastUpdatedAt && (
+            <p className="text-xs text-muted-foreground">
+              Atualizado em {lastUpdatedAt.toLocaleTimeString()}
             </p>
           )}
         </div>

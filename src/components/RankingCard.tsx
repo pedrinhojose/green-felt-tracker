@@ -3,14 +3,18 @@ import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, RefreshCw } from "lucide-react";
 import { useRankingExport } from "@/lib/utils/rankingExportUtils";
+import { useRankingSync } from "@/hooks/useRankingSync";
 
 export default function RankingCard() {
-  const { rankings, players, activeSeason } = usePoker();
+  const { rankings, activeSeason } = usePoker();
   const [topPlayers, setTopPlayers] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const { downloadRankingAsImage } = useRankingExport();
+  const { validateRankingConsistency } = useRankingSync();
   
   useEffect(() => {
     // Get top 3 players from ranking
@@ -18,7 +22,8 @@ export default function RankingCard() {
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .slice(0, 3);
     
-    setTopPlayers(sorted);
+  setTopPlayers(sorted);
+    setLastUpdatedAt(new Date());
   }, [rankings]);
   
   const getInitials = (name: string) => {
@@ -146,18 +151,44 @@ export default function RankingCard() {
     <div className="card-dashboard">
       <div className="card-dashboard-header flex justify-between items-center">
         <h3>Top 3</h3>
-        {topPlayers.length > 0 && (
-          <Button 
-            onClick={handleExportTop3}
-            disabled={isExporting}
-            size="sm" 
-            variant="outline" 
-            className="h-8 px-2 text-xs bg-transparent border border-white/20 hover:bg-white/5"
-          >
-            <Download className="h-3 w-3 mr-1" />
-            Exportar
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {lastUpdatedAt && (
+            <span className="text-xs text-muted-foreground">Atualizado em {lastUpdatedAt.toLocaleTimeString()}</span>
+          )}
+          {topPlayers.length > 0 && (
+            <>
+              <Button 
+                onClick={async () => {
+                  if (!activeSeason?.id) return;
+                  try {
+                    setIsRefreshing(true);
+                    await validateRankingConsistency(activeSeason.id);
+                    setLastUpdatedAt(new Date());
+                  } finally {
+                    setIsRefreshing(false);
+                  }
+                }}
+                disabled={isRefreshing}
+                size="sm" 
+                variant="outline" 
+                className="h-8 px-2 text-xs bg-transparent border border-white/20 hover:bg-white/5"
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Atualizar
+              </Button>
+              <Button 
+                onClick={handleExportTop3}
+                disabled={isExporting}
+                size="sm" 
+                variant="outline" 
+                className="h-8 px-2 text-xs bg-transparent border border-white/20 hover:bg-white/5"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                Exportar
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       
       <div className="flex-1 flex items-center justify-center py-2">
