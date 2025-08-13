@@ -233,15 +233,30 @@ export function useGameFunctions(
         setActiveSeason(updatedSeason);
       }
       
-      // Mark the game as finished
+      // Garantir pontos antes de finalizar: se todos estão com 0 (ou undefined) e todas as posições existem,
+      // calcular pontos a partir do scoreSchema da temporada
+      const allPointsZero = game.players.every(p => !p.points || p.points === 0);
+      const allPositionsSet = game.players.every(p => p.position !== null);
+      const playersToSave = (allPointsZero && allPositionsSet)
+        ? game.players.map(player => {
+            const scoreEntry = season.scoreSchema.find(entry => entry.position === player.position);
+            return {
+              ...player,
+              points: scoreEntry ? scoreEntry.points : 0,
+            };
+          })
+        : game.players;
+
+      // Marcar o jogo como finalizado e salvar possíveis pontos calculados
       const updatedGame = {
         ...game,
+        players: playersToSave,
         isFinished: true
       };
       await pokerDB.saveGame(updatedGame);
       
       // Update rankings
-      for (const gamePlayer of game.players) {
+      for (const gamePlayer of updatedGame.players) {
         // Buscar rankings existentes
         const existingRankings = await pokerDB.getRankings(game.seasonId);
         
@@ -268,7 +283,7 @@ export function useGameFunctions(
         } else {
           // Create new ranking entry
           rankingEntry = {
-            id: uuidv4(),
+            id: `${gamePlayer.playerId}-${updatedGame.seasonId}`,
             playerId: gamePlayer.playerId,
             playerName: player.name,
             photoUrl: player.photoUrl,

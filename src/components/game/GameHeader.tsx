@@ -32,7 +32,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-
+import { useAuth } from "@/contexts/AuthContext";
 interface GameHeaderProps {
   gameNumber: number;
   gameDate: Date;
@@ -74,6 +74,8 @@ export default function GameHeader({
 }: GameHeaderProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const isGuest = user?.email?.toLowerCase?.() === 'visitante@apapoker.com';
   const [showReportDialog, setShowReportDialog] = useState(false);
   
   // Função para finalizar o jogo e mostrar o diálogo de relatório
@@ -221,6 +223,8 @@ export default function GameHeader({
                   variant="destructive"
                   size={isMobile ? "sm" : "sm"}
                   className={isMobile ? "w-full justify-center" : ""}
+                  disabled={isGuest}
+                  title={isGuest ? "Ação indisponível no modo visitante" : undefined}
                 >
                   {isMobile ? "Encerrar" : "Encerrar Partida"}
                 </Button>

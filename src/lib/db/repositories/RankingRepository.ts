@@ -159,8 +159,9 @@ export class RankingRepository extends SupabaseCore {
           throw new Error("No organization selected, cannot save ranking");
         }
         
+        const safeId = ranking.id || `${ranking.playerId}-${ranking.seasonId}`;
         const supabaseRanking = {
-          id: ranking.id,
+          id: safeId,
           player_id: ranking.playerId,
           player_name: ranking.playerName,
           photo_url: ranking.photoUrl,
