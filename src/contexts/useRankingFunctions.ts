@@ -7,8 +7,11 @@ export function useRankingFunctions() {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   
   const updateRankings = async (seasonId?: string) => {
-    if (!seasonId) return;
-    
+    if (!seasonId) {
+      const active = await pokerDB.getActiveSeason();
+      if (!active) return;
+      seasonId = active.id;
+    }
     try {
       console.log("Atualizando rankings para temporada:", seasonId);
       

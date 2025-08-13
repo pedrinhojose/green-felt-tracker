@@ -233,19 +233,15 @@ export function useGameFunctions(
         setActiveSeason(updatedSeason);
       }
       
-      // Garantir pontos antes de finalizar: se todos estão com 0 (ou undefined) e todas as posições existem,
-      // calcular pontos a partir do scoreSchema da temporada
-      const allPointsZero = game.players.every(p => !p.points || p.points === 0);
-      const allPositionsSet = game.players.every(p => p.position !== null);
-      const playersToSave = (allPointsZero && allPositionsSet)
-        ? game.players.map(player => {
-            const scoreEntry = season.scoreSchema.find(entry => entry.position === player.position);
-            return {
-              ...player,
-              points: scoreEntry ? scoreEntry.points : 0,
-            };
-          })
-        : game.players;
+      // Normalizar pontos por jogador: se ausentes, calcular pelo scoreSchema; caso contrário manter, sempre número
+      const playersToSave = game.players.map(player => {
+        let normalizedPoints = typeof player.points === 'number' && !Number.isNaN(player.points) ? player.points : undefined;
+        if (normalizedPoints === undefined) {
+          const scoreEntry = season.scoreSchema.find(entry => entry.position === player.position);
+          normalizedPoints = scoreEntry?.points ?? 0;
+        }
+        return { ...player, points: normalizedPoints };
+      });
 
       // Marcar o jogo como finalizado e salvar possíveis pontos calculados
       const updatedGame = {
@@ -255,42 +251,40 @@ export function useGameFunctions(
       };
       await pokerDB.saveGame(updatedGame);
       
-      // Update rankings
+      // Atualizar rankings (buscar existentes uma vez e aplicar por jogador)
+      const existingRankings = await pokerDB.getRankings(game.seasonId);
       for (const gamePlayer of updatedGame.players) {
-        // Buscar rankings existentes
-        const existingRankings = await pokerDB.getRankings(game.seasonId);
-        
-        // Buscar o ranking atual do jogador, se existir
-        const playerRanking = existingRankings.find(r => r.playerId === gamePlayer.playerId);
-        
         // Buscar dados do jogador
         const player = await pokerDB.getPlayer(gamePlayer.playerId);
         if (!player) continue; // Pular se o jogador não for encontrado
         
+        const playerRanking = existingRankings.find(r => r.playerId === gamePlayer.playerId);
+        const deltaPoints = gamePlayer.points || 0;
+        
         let rankingEntry;
         
         if (playerRanking) {
-          // Update existing ranking
+          // Atualizar ranking existente
           rankingEntry = {
             ...playerRanking,
-            totalPoints: playerRanking.totalPoints + gamePlayer.points,
-            gamesPlayed: playerRanking.gamesPlayed + 1,
+            totalPoints: (playerRanking.totalPoints || 0) + deltaPoints,
+            gamesPlayed: (playerRanking.gamesPlayed || 0) + 1,
             bestPosition: gamePlayer.position && (playerRanking.bestPosition > gamePlayer.position || playerRanking.bestPosition === 0)
               ? gamePlayer.position
               : playerRanking.bestPosition,
-            seasonId: game.seasonId // Adicionar o seasonId explicitamente
+            seasonId: game.seasonId
           };
         } else {
-          // Create new ranking entry
+          // Criar novo ranking para o jogador
           rankingEntry = {
             id: uuidv5(`${gamePlayer.playerId}-${updatedGame.seasonId}`, uuidv5.URL),
             playerId: gamePlayer.playerId,
             playerName: player.name,
             photoUrl: player.photoUrl,
-            totalPoints: gamePlayer.points,
+            totalPoints: deltaPoints,
             gamesPlayed: 1,
             bestPosition: gamePlayer.position || 0,
-            seasonId: game.seasonId // Adicionar o seasonId explicitamente
+            seasonId: game.seasonId
           };
         }
         
