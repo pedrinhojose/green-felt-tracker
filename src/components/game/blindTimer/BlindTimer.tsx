@@ -1,6 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoker } from "@/contexts/PokerContext";
+import { TimerProvider } from "@/contexts/TimerContext";
 import CircularTimer from "./CircularTimer";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -45,10 +46,12 @@ export default function BlindTimer() {
   }
   
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center">
-      <div className="w-full h-full flex flex-col items-center justify-center">
-        <CircularTimer />
+    <TimerProvider gameId="embedded" blindLevels={activeSeason.blindStructure}>
+      <div className="w-screen h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep flex items-center justify-center">
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <CircularTimer />
+        </div>
       </div>
-    </div>
+    </TimerProvider>
   );
 }

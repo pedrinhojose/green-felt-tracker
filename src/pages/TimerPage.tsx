@@ -1,6 +1,7 @@
 
 import { useParams } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
+import { TimerProvider } from "@/contexts/TimerContext";
 import CircularTimer from "@/components/game/blindTimer/CircularTimer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,10 +62,12 @@ export default function TimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container">
-      <div className="w-full h-full">
-        <CircularTimer />
+    <TimerProvider gameId={gameId || 'default'} blindLevels={activeSeason.blindStructure}>
+      <div className="min-h-screen bg-gradient-to-b from-poker-dark-green to-poker-dark-green-deep timer-container">
+        <div className="w-full h-full">
+          <CircularTimer />
+        </div>
       </div>
-    </div>
+    </TimerProvider>
   );
 }
