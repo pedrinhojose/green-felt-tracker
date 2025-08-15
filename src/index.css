@@ -361,6 +361,28 @@
   }
 }
 
+@keyframes slide-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
 /* Classes de animação */
 .animate-gentle-float {
   animation: gentle-float 4s ease-in-out infinite;
@@ -400,4 +422,12 @@
 
 .animate-twinkle-3 {
   animation: twinkle-3 2.5s ease-in-out infinite;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
 }
