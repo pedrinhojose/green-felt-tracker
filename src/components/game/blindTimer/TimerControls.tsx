@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw } from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
   soundEnabled: boolean;
+  hasOpenedNewWindow: boolean;
   onStart: () => void;
   onPause: () => void;
   onNext: () => void;
@@ -19,6 +21,7 @@ interface TimerControlsProps {
 export default function TimerControls({
   isRunning,
   soundEnabled,
+  hasOpenedNewWindow,
   onStart,
   onPause,
   onNext,
@@ -29,22 +32,33 @@ export default function TimerControls({
   onReloadAudio
 }: TimerControlsProps) {
   return (
-    <div className="flex flex-wrap justify-center gap-2">
-      {!isRunning ? (
-        <Button 
-          onClick={onStart}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Play className="mr-2 h-4 w-4" /> Iniciar
-        </Button>
-      ) : (
-        <Button 
-          onClick={onPause}
-          variant="destructive"
-        >
-          <Pause className="mr-2 h-4 w-4" /> Pausar
-        </Button>
-      )}
+    <TooltipProvider>
+      <div className="flex flex-wrap justify-center gap-2">
+        {!isRunning ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={hasOpenedNewWindow ? undefined : onStart}
+                disabled={hasOpenedNewWindow}
+                className={hasOpenedNewWindow ? "bg-gray-600 hover:bg-gray-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}
+              >
+                <Play className="mr-2 h-4 w-4" /> Iniciar
+              </Button>
+            </TooltipTrigger>
+            {hasOpenedNewWindow && (
+              <TooltipContent>
+                <p>Timer controlado em nova janela</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        ) : (
+          <Button 
+            onClick={onPause}
+            variant="destructive"
+          >
+            <Pause className="mr-2 h-4 w-4" /> Pausar
+          </Button>
+        )}
       
       <Button 
         onClick={onPrevious}
@@ -102,6 +116,7 @@ export default function TimerControls({
       >
         Abrir em Nova Janela
       </Button>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

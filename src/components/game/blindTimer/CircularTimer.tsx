@@ -117,6 +117,7 @@ export default function CircularTimer() {
             <CircularTimerControls
               isRunning={state.isRunning}
               soundEnabled={state.soundEnabled}
+              hasOpenedNewWindow={hasOpenedNewWindow}
               onStart={startTimer}
               onPause={pauseTimer}
               onNext={goToNextLevel}
@@ -193,6 +194,7 @@ export default function CircularTimer() {
             <CircularTimerControls
               isRunning={state.isRunning}
               soundEnabled={state.soundEnabled}
+              hasOpenedNewWindow={hasOpenedNewWindow}
               onStart={startTimer}
               onPause={pauseTimer}
               onNext={goToNextLevel}

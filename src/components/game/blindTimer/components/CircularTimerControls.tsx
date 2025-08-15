@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw, ExternalLink } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CircularTimerControlsProps {
   isRunning: boolean;
   soundEnabled: boolean;
+  hasOpenedNewWindow: boolean;
   onStart: () => void;
   onPause: () => void;
   onNext: () => void;
@@ -20,6 +22,7 @@ interface CircularTimerControlsProps {
 export default function CircularTimerControls({
   isRunning,
   soundEnabled,
+  hasOpenedNewWindow,
   onStart,
   onPause,
   onNext,
@@ -32,7 +35,7 @@ export default function CircularTimerControls({
   const isMobile = useIsMobile();
 
   return (
-    <>
+    <TooltipProvider>
       {/* Controles centrais na parte inferior */}
       <div className={`absolute ${isMobile ? 'bottom-2' : 'bottom-12'} left-1/2 -translate-x-1/2`}>
         <div className={`flex justify-center items-center ${isMobile ? 'gap-3' : 'gap-6'}`}>
@@ -48,13 +51,23 @@ export default function CircularTimerControls({
           
           {/* Botão Principal - INICIAR/PAUSAR */}
           {!isRunning ? (
-            <Button 
-              onClick={onStart}
-              className={`bg-transparent border-2 border-white text-white hover:bg-white hover:text-black ${isMobile ? 'px-4 py-2 text-sm' : 'px-8 py-3 text-lg'} font-bold rounded-lg`}
-            >
-              <Play className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-5 w-5 mr-2'}`} />
-              INICIAR
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  onClick={hasOpenedNewWindow ? undefined : onStart}
+                  disabled={hasOpenedNewWindow}
+                  className={`${hasOpenedNewWindow ? 'bg-transparent border-2 border-gray-500 text-gray-500 cursor-not-allowed' : 'bg-transparent border-2 border-white text-white hover:bg-white hover:text-black'} ${isMobile ? 'px-4 py-2 text-sm' : 'px-8 py-3 text-lg'} font-bold rounded-lg`}
+                >
+                  <Play className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-5 w-5 mr-2'}`} />
+                  INICIAR
+                </Button>
+              </TooltipTrigger>
+              {hasOpenedNewWindow && (
+                <TooltipContent>
+                  <p>Timer controlado em nova janela</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           ) : (
             <Button 
               onClick={onPause}
@@ -123,6 +136,6 @@ export default function CircularTimerControls({
           <Maximize2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
         </Button>
       </div>
-    </>
+    </TooltipProvider>
   );
 }
