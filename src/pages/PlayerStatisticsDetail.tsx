@@ -5,6 +5,7 @@ import { usePoker } from '@/contexts/PokerContext';
 import { usePlayerStats } from '@/hooks/reports/usePlayerStats';
 import { usePlayerRating } from '@/hooks/usePlayerRating';
 import { StarRating } from '@/components/statistics/StarRating';
+import { PlayerEliminationHistory } from '@/components/elimination/PlayerEliminationHistory';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -270,6 +271,12 @@ export default function PlayerStatisticsDetail() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Histórico de Eliminações */}
+        <PlayerEliminationHistory 
+          playerId={playerId!}
+          seasonId={selectedSeasonId}
+        />
 
         {/* Histórico de Partidas */}
         <PlayerGameHistory 

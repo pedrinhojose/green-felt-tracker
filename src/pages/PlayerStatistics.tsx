@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PlayerStatisticsHeader } from '@/components/statistics/PlayerStatisticsHeader';
 import { PlayerStatisticsSearch } from '@/components/statistics/PlayerStatisticsSearch';
 import { PlayerStatisticsList } from '@/components/statistics/PlayerStatisticsList';
+import { EliminationStatsCard } from '@/components/elimination/EliminationStatsCard';
 
 export default function PlayerStatistics() {
   const { activeSeason, seasons } = usePoker();
@@ -52,13 +53,20 @@ export default function PlayerStatistics() {
         loading={loading}
       />
 
-      <PlayerStatisticsList
-        loading={loading}
-        filteredPlayers={filteredPlayers}
-        playerStats={playerStats}
-        selectedSeasonId={selectedSeasonId}
-        searchTerm={searchTerm}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2">
+          <PlayerStatisticsList
+            loading={loading}
+            filteredPlayers={filteredPlayers}
+            playerStats={playerStats}
+            selectedSeasonId={selectedSeasonId}
+            searchTerm={searchTerm}
+          />
+        </div>
+        <div>
+          <EliminationStatsCard seasonId={selectedSeasonId} />
+        </div>
+      </div>
     </div>
   );
 }

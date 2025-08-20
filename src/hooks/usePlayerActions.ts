@@ -11,7 +11,7 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
   const { handleStartGame } = useStartGame(game, setGame);
   const { addLatePlayer } = useLatePlayerActions(game, setGame);
   const { updatePlayerStats } = usePlayerStatsActions(game, setGame);
-  const { eliminatePlayer, reactivatePlayer } = useEliminationActions(game, setGame);
+  const { eliminatePlayer, reactivatePlayer, eliminateMultiplePlayers } = useEliminationActions(game, setGame);
   const { removePlayer } = useRemovePlayerActions(game, setGame);
 
   return {
@@ -19,6 +19,7 @@ export function usePlayerActions(game: Game | null, setGame: React.Dispatch<Reac
     updatePlayerStats,
     eliminatePlayer,
     reactivatePlayer,
+    eliminateMultiplePlayers,
     addLatePlayer,
     removePlayer
   };

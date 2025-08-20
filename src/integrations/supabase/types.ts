@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -46,6 +46,42 @@ export type Database = {
           organization_id?: string | null
           season_id?: string
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      eliminations: {
+        Row: {
+          created_at: string
+          eliminated_player_id: string
+          elimination_time: string
+          eliminator_player_id: string | null
+          game_id: string
+          id: string
+          organization_id: string | null
+          position: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          eliminated_player_id: string
+          elimination_time?: string
+          eliminator_player_id?: string | null
+          game_id: string
+          id?: string
+          organization_id?: string | null
+          position: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          eliminated_player_id?: string
+          elimination_time?: string
+          eliminator_player_id?: string | null
+          game_id?: string
+          id?: string
+          organization_id?: string | null
+          position?: number
           user_id?: string
         }
         Relationships: []
@@ -397,8 +433,8 @@ export type Database = {
       get_user_organizations: {
         Args: { user_id: string }
         Returns: {
-          organization_id: string
           name: string
+          organization_id: string
           role: string
         }[]
       }
@@ -407,7 +443,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"][]
       }
       has_role: {
-        Args: { user_id: string; role: Database["public"]["Enums"]["app_role"] }
+        Args: { role: Database["public"]["Enums"]["app_role"]; user_id: string }
         Returns: boolean
       }
       is_admin_of_organization: {
@@ -419,7 +455,7 @@ export type Database = {
         Returns: boolean
       }
       set_user_role: {
-        Args: { p_user_id: string; p_role: string }
+        Args: { p_role: string; p_user_id: string }
         Returns: undefined
       }
       user_can_access_organization: {
