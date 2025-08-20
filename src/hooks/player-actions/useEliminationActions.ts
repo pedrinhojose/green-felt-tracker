@@ -10,7 +10,7 @@ export function useEliminationActions(game: Game | null, setGame: React.Dispatch
   const { saveElimination } = useEliminationData();
   
   // Player elimination function
-  const eliminatePlayer = async (playerId: string) => {
+  const eliminatePlayer = async (playerId: string, eliminatorId?: string) => {
     if (!game) return;
     
     try {
@@ -42,7 +42,7 @@ export function useEliminationActions(game: Game | null, setGame: React.Dispatch
         await saveElimination({
           game_id: game.id,
           eliminated_player_id: playerId,
-          eliminator_player_id: null,
+          eliminator_player_id: eliminatorId || null,
           position: position,
           elimination_time: new Date().toISOString(),
           organization_id: orgId

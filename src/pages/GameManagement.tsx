@@ -16,8 +16,9 @@ import PlayersTable from "@/components/game/PlayersTable";
 import GameHeader from "@/components/game/GameHeader";
 import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
 import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
-import { MultipleEliminationDialog } from "@/components/game/MultipleEliminationDialog";
-import { UserPlus, UserMinus, Users } from "lucide-react";
+import { PlayerEliminationDialog } from "@/components/game/PlayerEliminationDialog";
+import { UserPlus, UserMinus } from "lucide-react";
+import { GamePlayer } from "@/lib/db/models";
 
 export default function GameManagement() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function GameManagement() {
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
   const [isRemovePlayerDialogOpen, setIsRemovePlayerDialogOpen] = useState(false);
   const [isEliminationDialogOpen, setIsEliminationDialogOpen] = useState(false);
+  const [playerToEliminate, setPlayerToEliminate] = useState<GamePlayer | null>(null);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [isRemovingPlayer, setIsRemovingPlayer] = useState(false);
   
@@ -54,7 +56,7 @@ export default function GameManagement() {
     updatePlayerStats,
     eliminatePlayer,
     reactivatePlayer,
-    eliminateMultiplePlayers,
+    
     addLatePlayer,
     removePlayer
   } = usePlayerActions(game, setGame);
@@ -110,6 +112,20 @@ export default function GameManagement() {
     }
   };
   
+  // Handler para eliminar jogador
+  const onEliminatePlayer = (playerId: string) => {
+    const player = game?.players.find(p => p.playerId === playerId);
+    if (player) {
+      setPlayerToEliminate(player);
+      setIsEliminationDialogOpen(true);
+    }
+  };
+
+  // Handler para confirmar eliminação
+  const onConfirmElimination = (playerId: string, eliminatorId?: string) => {
+    eliminatePlayer(playerId, eliminatorId);
+  };
+
   // Handler para exportar link
   const handleExportLink = async () => {
     if (game?.id) {
@@ -257,15 +273,6 @@ export default function GameManagement() {
                   Retirar Jogador
                 </Button>
 
-                <Button 
-                  onClick={() => setIsEliminationDialogOpen(true)}
-                  disabled={game.players.filter(p => !p.isEliminated).length === 0}
-                  className={`${isMobile ? 'w-full' : ''}`}
-                  variant="destructive"
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Eliminar Múltiplos
-                </Button>
               </div>
             )}
           </div>
@@ -275,7 +282,7 @@ export default function GameManagement() {
             game={game}
             players={players}
             activeSeason={activeSeason}
-            onEliminatePlayer={eliminatePlayer}
+            onEliminatePlayer={onEliminatePlayer}
             onReactivatePlayer={reactivatePlayer}
             onUpdatePlayerStats={updatePlayerStats}
             isEditingFinishedGame={isEditingFinishedGame}
@@ -300,13 +307,14 @@ export default function GameManagement() {
             isLoading={isRemovingPlayer}
           />
 
-          {/* Dialog para eliminar múltiplos jogadores */}
-          <MultipleEliminationDialog
+          {/* Dialog para eliminar jogador individual */}
+          <PlayerEliminationDialog
             open={isEliminationDialogOpen}
             onOpenChange={setIsEliminationDialogOpen}
+            playerToEliminate={playerToEliminate}
             players={game.players}
             allPlayers={players}
-            onConfirm={eliminateMultiplePlayers}
+            onConfirm={onConfirmElimination}
           />
         </div>
       )}
