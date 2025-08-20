@@ -35,6 +35,19 @@ export function useEliminationActions(game: Game | null, setGame: React.Dispatch
         id: game.id,
         players: updatedPlayers,
       });
+
+      // Save elimination record to Supabase
+      const orgId = localStorage.getItem('currentOrganizationId');
+      if (orgId) {
+        await saveElimination({
+          game_id: game.id,
+          eliminated_player_id: playerId,
+          eliminator_player_id: null,
+          position: position,
+          elimination_time: new Date().toISOString(),
+          organization_id: orgId
+        });
+      }
       
       // Update local game state
       setGame(prev => {

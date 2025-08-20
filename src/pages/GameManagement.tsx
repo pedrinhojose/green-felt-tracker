@@ -16,13 +16,15 @@ import PlayersTable from "@/components/game/PlayersTable";
 import GameHeader from "@/components/game/GameHeader";
 import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
 import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
-import { UserPlus, UserMinus } from "lucide-react";
+import { MultipleEliminationDialog } from "@/components/game/MultipleEliminationDialog";
+import { UserPlus, UserMinus, Users } from "lucide-react";
 
 export default function GameManagement() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
   const [isRemovePlayerDialogOpen, setIsRemovePlayerDialogOpen] = useState(false);
+  const [isEliminationDialogOpen, setIsEliminationDialogOpen] = useState(false);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [isRemovingPlayer, setIsRemovingPlayer] = useState(false);
   
@@ -52,6 +54,7 @@ export default function GameManagement() {
     updatePlayerStats,
     eliminatePlayer,
     reactivatePlayer,
+    eliminateMultiplePlayers,
     addLatePlayer,
     removePlayer
   } = usePlayerActions(game, setGame);
@@ -253,6 +256,16 @@ export default function GameManagement() {
                   <UserMinus className="mr-2 h-4 w-4" />
                   Retirar Jogador
                 </Button>
+
+                <Button 
+                  onClick={() => setIsEliminationDialogOpen(true)}
+                  disabled={game.players.filter(p => !p.isEliminated).length === 0}
+                  className={`${isMobile ? 'w-full' : ''}`}
+                  variant="destructive"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Eliminar Múltiplos
+                </Button>
               </div>
             )}
           </div>
@@ -285,6 +298,15 @@ export default function GameManagement() {
             game={game}
             players={players}
             isLoading={isRemovingPlayer}
+          />
+
+          {/* Dialog para eliminar múltiplos jogadores */}
+          <MultipleEliminationDialog
+            open={isEliminationDialogOpen}
+            onOpenChange={setIsEliminationDialogOpen}
+            players={game.players}
+            allPlayers={players}
+            onConfirm={eliminateMultiplePlayers}
           />
         </div>
       )}
