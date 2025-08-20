@@ -91,9 +91,30 @@ export function useEliminationData(seasonId?: string) {
     }
   };
 
+  const deleteEliminationsByGameId = async (gameId: string) => {
+    try {
+      const { error } = await supabase
+        .from('eliminations')
+        .delete()
+        .eq('game_id', gameId);
+
+      if (error) {
+        console.error('Error deleting eliminations:', error);
+        throw error;
+      }
+
+      // Update local state
+      setEliminations(prev => prev.filter(e => e.game_id !== gameId));
+    } catch (error) {
+      console.error('Error in deleteEliminationsByGameId:', error);
+      throw error;
+    }
+  };
+
   return {
     eliminations,
     loading,
-    saveElimination
+    saveElimination,
+    deleteEliminationsByGameId
   };
 }

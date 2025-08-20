@@ -3,12 +3,14 @@ import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import { Game, Season } from '../lib/db/models';
 import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
+import { useEliminationData } from '../hooks/elimination/useEliminationData';
 
 export function useGameFunctions(
   updateRankings: () => Promise<void>,
   setActiveSeason?: React.Dispatch<React.SetStateAction<Season | null>>
 ) {
   const { toast } = useToast();
+  const { deleteEliminationsByGameId } = useEliminationData();
   const [games, setGames] = useState<Game[]>([]);
   const [lastGame, setLastGame] = useState<Game | null>(null);
 
@@ -106,6 +108,9 @@ export function useGameFunctions(
       if (!game) {
         throw new Error('Game not found');
       }
+      
+      // First, delete all eliminations associated with this game
+      await deleteEliminationsByGameId(gameId);
       
       // Se o jogo estava finalizado, precisamos reverter os dados dos jogadores
       if (game.isFinished) {
