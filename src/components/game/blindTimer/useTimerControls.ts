@@ -30,9 +30,7 @@ export function useTimerControls(
   const { toggleSound, playLevelCompleteSound } = useSoundEffects(
     timeRemainingInLevel,
     state,
-    setState,
-    audioRefs,
-    playAudioSafely
+    setState
   );
 
   // Initialize timer core
@@ -149,19 +147,16 @@ export function useTimerControls(
 
   const reloadAudio = useCallback(() => {
     console.log("=== RELOAD AUDIO ===");
-    console.log("Tentando recarregar arquivos de áudio...");
+    console.log("Testando sistema de áudio simplificado...");
     
-    // Force audio unlock
-    unlockAudio();
-    
-    // Test audio playback
-    if (state.soundEnabled && audioRefs.alertAudioRef.current) {
-      console.log("Testando reprodução após reload...");
+    // Testar o novo sistema de áudio
+    if (state.soundEnabled) {
+      console.log("Testando áudio com playLevelCompleteSound...");
       setTimeout(() => {
-        playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
-      }, 500);
+        playLevelCompleteSound();
+      }, 200);
     }
-  }, [unlockAudio, state.soundEnabled, audioRefs.alertAudioRef, playAudioSafely]);
+  }, [state.soundEnabled, playLevelCompleteSound]);
 
   return {
     startTimer,
