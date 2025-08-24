@@ -18,60 +18,83 @@ export function useSoundEffects(
   useEffect(() => {
     let alertTimeout: number;
     
-    console.log("=== SISTEMA DE SOM SIMPLIFICADO ===");
-    console.log("Condições atuais:", {
+    console.log("=== SISTEMA DE SOM DETALHADO ===");
+    console.log("Estado completo:", {
       soundEnabled: state.soundEnabled,
       isRunning: state.isRunning,
       timeRemainingInLevel,
       isAudioSupported,
-      elapsedTimeInLevel: state.elapsedTimeInLevel
+      elapsedTimeInLevel: state.elapsedTimeInLevel,
+      currentLevel: state.currentLevelIndex,
+      showAlert: state.showAlert
     });
     
-    // Verificações básicas
-    if (!state.soundEnabled) {
-      console.log("Som desabilitado pelo usuário");
-      return;
-    }
+    console.log("Flags de controle:", {
+      lastAlert: lastPlayedRef.current.alert,
+      lastCountdown: lastPlayedRef.current.countdown,
+      lastComplete: lastPlayedRef.current.complete
+    });
     
-    if (!state.isRunning) {
-      console.log("Timer não está rodando");
+    // Verificações básicas com logs detalhados
+    if (!state.soundEnabled) {
+      console.log("❌ Som desabilitado pelo usuário");
       return;
     }
     
     if (!isAudioSupported) {
-      console.log("Áudio não suportado pelo navegador");
+      console.log("❌ Áudio não suportado pelo navegador");
       return;
     }
     
-    // Som de alerta - 1 minuto restante
+    console.log("✅ Som habilitado e suportado");
+    
+    // Som de alerta - 1 minuto restante (independente do timer rodando)
     if (timeRemainingInLevel === 60 && !lastPlayedRef.current.alert) {
-      console.log("🚨 REPRODUZINDO ALERTA DE 1 MINUTO");
+      console.log("🚨 TENTANDO REPRODUZIR ALERTA DE 1 MINUTO");
       setState(prev => ({ ...prev, showAlert: true }));
-      playAlert();
-      lastPlayedRef.current.alert = true;
+      
+      try {
+        playAlert();
+        console.log("✅ Alerta de 1 minuto reproduzido com sucesso");
+        lastPlayedRef.current.alert = true;
+      } catch (error) {
+        console.error("❌ Erro ao reproduzir alerta de 1 minuto:", error);
+      }
       
       alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
       }, 3000); 
     } 
     
-    // Som de contagem regressiva - últimos 4 segundos
+    // Som de contagem regressiva - últimos 4 segundos (independente do timer rodando)
     else if (timeRemainingInLevel <= 4 && timeRemainingInLevel > 0 && lastPlayedRef.current.countdown !== timeRemainingInLevel) {
-      console.log(`⏱️ REPRODUZINDO CONTAGEM: ${timeRemainingInLevel} segundos`);
-      playCountdown();
-      lastPlayedRef.current.countdown = timeRemainingInLevel;
+      console.log(`⏱️ TENTANDO REPRODUZIR CONTAGEM: ${timeRemainingInLevel} segundos`);
+      
+      try {
+        playCountdown();
+        console.log(`✅ Contagem ${timeRemainingInLevel} reproduzida com sucesso`);
+        lastPlayedRef.current.countdown = timeRemainingInLevel;
+      } catch (error) {
+        console.error(`❌ Erro ao reproduzir contagem ${timeRemainingInLevel}:`, error);
+      }
     } 
     
     // Som de conclusão de nível
     else if (timeRemainingInLevel === 0 && state.elapsedTimeInLevel === 0 && !lastPlayedRef.current.complete) {
-      console.log("🎉 REPRODUZINDO CONCLUSÃO DE NÍVEL");
-      playLevelComplete();
-      lastPlayedRef.current.complete = true;
+      console.log("🎉 TENTANDO REPRODUZIR CONCLUSÃO DE NÍVEL");
       
-      setState(prev => ({ ...prev, showAlert: true }));
-      alertTimeout = window.setTimeout(() => {
-        setState(prev => ({ ...prev, showAlert: false }));
-      }, 3000);
+      try {
+        playLevelComplete();
+        console.log("✅ Conclusão de nível reproduzida com sucesso");
+        lastPlayedRef.current.complete = true;
+        
+        setState(prev => ({ ...prev, showAlert: true }));
+        alertTimeout = window.setTimeout(() => {
+          setState(prev => ({ ...prev, showAlert: false }));
+        }, 3000);
+      } catch (error) {
+        console.error("❌ Erro ao reproduzir conclusão de nível:", error);
+      }
     }
     
     // Reset flags quando o tempo muda significativamente
@@ -100,10 +123,45 @@ export function useSoundEffects(
     
     // Teste imediato do som quando habilitado
     if (newSoundState && isAudioSupported) {
-      console.log("Testando som imediatamente após habilitar...");
+      console.log("🔧 Testando som imediatamente após habilitar...");
       setTimeout(() => {
-        playAlert();
+        try {
+          playAlert();
+          console.log("✅ Teste de som bem-sucedido");
+        } catch (error) {
+          console.error("❌ Falha no teste de som:", error);
+        }
       }, 200);
+    }
+  };
+
+  const testSound = () => {
+    console.log("🔧 TESTE MANUAL DE SOM INICIADO");
+    console.log("Estado atual do som:", { soundEnabled: state.soundEnabled, isAudioSupported });
+    
+    if (!isAudioSupported) {
+      console.error("❌ Áudio não suportado para teste");
+      return;
+    }
+    
+    try {
+      console.log("🔊 Reproduzindo alerta de teste...");
+      playAlert();
+      console.log("✅ Teste de alerta bem-sucedido");
+      
+      setTimeout(() => {
+        console.log("🔊 Reproduzindo contagem de teste...");
+        playCountdown();
+        console.log("✅ Teste de contagem bem-sucedido");
+      }, 500);
+      
+      setTimeout(() => {
+        console.log("🔊 Reproduzindo conclusão de teste...");
+        playLevelComplete();
+        console.log("✅ Teste de conclusão bem-sucedido");
+      }, 1000);
+    } catch (error) {
+      console.error("❌ Erro durante teste de som:", error);
     }
   };
 
@@ -120,6 +178,7 @@ export function useSoundEffects(
 
   return {
     toggleSound,
-    playLevelCompleteSound
+    playLevelCompleteSound,
+    testSound
   };
 }

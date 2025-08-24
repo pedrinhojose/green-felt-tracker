@@ -31,7 +31,8 @@ export default function CircularTimer() {
     openInNewWindow,
     setLevelProgress,
     toggleFullScreen,
-    reloadAudio
+    reloadAudio,
+    testAudio
   } = useTimer();
   
   const isMobile = useIsMobile();
@@ -126,6 +127,7 @@ export default function CircularTimer() {
               onOpenNewWindow={openInNewWindow}
               onToggleFullScreen={toggleFullScreen}
               onReloadAudio={reloadAudio}
+              onTestAudio={testAudio}
             />
           </div>
         </div>
@@ -203,6 +205,7 @@ export default function CircularTimer() {
               onOpenNewWindow={openInNewWindow}
               onToggleFullScreen={toggleFullScreen}
               onReloadAudio={reloadAudio}
+              onTestAudio={testAudio}
             />
           </div>
         </div>

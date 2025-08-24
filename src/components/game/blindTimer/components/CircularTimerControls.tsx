@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw, ExternalLink } from "lucide-react";
+import { BellOff, Bell, Play, Pause, SkipForward, SkipBack, Maximize2, RefreshCw, ExternalLink, Volume2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CircularTimerControlsProps {
@@ -17,6 +17,7 @@ interface CircularTimerControlsProps {
   onOpenNewWindow: () => void;
   onToggleFullScreen: () => void;
   onReloadAudio?: () => void;
+  onTestAudio?: () => void;
 }
 
 export default function CircularTimerControls({
@@ -30,7 +31,8 @@ export default function CircularTimerControls({
   onToggleSound,
   onOpenNewWindow,
   onToggleFullScreen,
-  onReloadAudio
+  onReloadAudio,
+  onTestAudio
 }: CircularTimerControlsProps) {
   const isMobile = useIsMobile();
 
@@ -123,6 +125,18 @@ export default function CircularTimerControls({
             title="Recarregar Sons"
           >
             <RefreshCw className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+          </Button>
+        )}
+        
+        {onTestAudio && (
+          <Button
+            onClick={onTestAudio}
+            variant="ghost"
+            size="icon"
+            className={`text-white hover:text-poker-gold ${isMobile ? 'p-1' : 'p-2'} bg-transparent border border-white/30 rounded hover:border-poker-gold/50 ${isMobile ? 'h-8 w-8' : ''}`}
+            title="Testar Sons"
+          >
+            <Volume2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           </Button>
         )}
         

@@ -11,9 +11,22 @@ export function useSimpleAudio(): SimpleAudioHook {
   const audioContextRef = useRef<AudioContext | null>(null);
   const isInitializedRef = useRef(false);
 
-  // Inicializar AudioContext apenas uma vez
-  const initAudioContext = useCallback(() => {
-    if (isInitializedRef.current) return;
+  // Inicializar AudioContext com manejo melhorado de estado
+  const initAudioContext = useCallback(async () => {
+    if (isInitializedRef.current && audioContextRef.current) {
+      // Verificar se o contexto está suspenso
+      if (audioContextRef.current.state === 'suspended') {
+        try {
+          console.log("🔧 AudioContext suspenso, tentando retomar...");
+          await audioContextRef.current.resume();
+          console.log("✅ AudioContext retomado com sucesso");
+        } catch (error) {
+          console.error("❌ Erro ao retomar AudioContext:", error);
+        }
+      }
+      console.log(`📊 Estado do AudioContext: ${audioContextRef.current.state}`);
+      return audioContextRef.current;
+    }
     
     try {
       // @ts-ignore - AudioContext pode ter prefixos em browsers antigos
@@ -22,24 +35,44 @@ export function useSimpleAudio(): SimpleAudioHook {
         audioContextRef.current = new AudioContextClass();
         isInitializedRef.current = true;
         console.log("✅ AudioContext inicializado com sucesso");
+        
+        // Tentar retomar imediatamente se suspenso
+        if (audioContextRef.current.state === 'suspended') {
+          try {
+            await audioContextRef.current.resume();
+            console.log("✅ AudioContext retomado após inicialização");
+          } catch (error) {
+            console.warn("⚠️ Não foi possível retomar AudioContext imediatamente:", error);
+          }
+        }
+        
+        console.log(`📊 Estado final do AudioContext: ${audioContextRef.current.state}`);
+        return audioContextRef.current;
       }
     } catch (error) {
       console.error("❌ Erro ao inicializar AudioContext:", error);
     }
+    return null;
   }, []);
 
-  // Função para criar um beep sintético
-  const createBeep = useCallback((frequency: number, duration: number, volume: number = 0.3) => {
-    initAudioContext();
+  // Função para criar um beep sintético com verificações melhoradas
+  const createBeep = useCallback(async (frequency: number, duration: number, volume: number = 0.3) => {
+    const context = await initAudioContext();
     
-    if (!audioContextRef.current) {
-      console.warn("AudioContext não disponível");
-      return Promise.resolve();
+    if (!context) {
+      console.error("❌ AudioContext não disponível para createBeep");
+      return;
+    }
+
+    if (context.state !== 'running') {
+      console.warn(`⚠️ AudioContext não está rodando: ${context.state}`);
+      return;
     }
 
     return new Promise<void>((resolve) => {
       try {
-        const context = audioContextRef.current!;
+        console.log(`🔊 Criando beep: ${frequency}Hz por ${duration}s, volume: ${volume}`);
+        
         const oscillator = context.createOscillator();
         const gainNode = context.createGain();
 
@@ -61,12 +94,18 @@ export function useSimpleAudio(): SimpleAudioHook {
         oscillator.stop(context.currentTime + duration);
 
         oscillator.onended = () => {
-          console.log(`🔊 Som tocado: ${frequency}Hz por ${duration}s`);
+          console.log(`✅ Som reproduzido com sucesso: ${frequency}Hz por ${duration}s`);
           resolve();
         };
 
+        // Fallback timeout em caso de problemas
+        setTimeout(() => {
+          console.log(`⏰ Timeout para beep: ${frequency}Hz`);
+          resolve();
+        }, (duration + 0.1) * 1000);
+
       } catch (error) {
-        console.error("Erro ao tocar beep:", error);
+        console.error("❌ Erro ao criar beep:", error);
         resolve();
       }
     });

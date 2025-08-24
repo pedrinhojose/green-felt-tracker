@@ -30,6 +30,7 @@ export interface TimerContextType {
   // Audio Controls
   toggleSound: () => void;
   reloadAudio: () => void;
+  testAudio: () => void;
   
   // Window Controls
   openInNewWindow: () => void;
@@ -434,6 +435,27 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     }
   }, [state.soundEnabled, playAudioSafely]);
 
+  const testAudio = useCallback(() => {
+    console.log('TIMER: Testando áudio completo...');
+    
+    if (!state.soundEnabled) {
+      console.log('TIMER: Som desabilitado, não testando');
+      return;
+    }
+    
+    // Test alert sound
+    setTimeout(() => {
+      console.log('TIMER: Testando som de alerta...');
+      playAudioSafely(audioRefs.current.alertAudio, state.soundEnabled);
+    }, 100);
+    
+    // Test level complete sound
+    setTimeout(() => {
+      console.log('TIMER: Testando som de conclusão...');
+      playAudioSafely(audioRefs.current.levelCompleteAudio, state.soundEnabled);
+    }, 1500);
+  }, [state.soundEnabled, playAudioSafely]);
+
   const toggleFullScreen = useCallback(() => {
     if (!document.fullscreenElement) {
       const timerContainer = document.querySelector('.timer-container') || document.documentElement;
@@ -491,6 +513,7 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     // Audio Controls
     toggleSound,
     reloadAudio,
+    testAudio,
     
     // Window Controls
     openInNewWindow,

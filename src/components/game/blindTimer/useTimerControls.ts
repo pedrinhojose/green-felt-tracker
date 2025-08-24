@@ -27,11 +27,12 @@ export function useTimerControls(
   const { audioRefs, playAudioSafely, unlockAudio } = useAudioEffects();
   
   // Initialize sound effects
-  const { toggleSound, playLevelCompleteSound } = useSoundEffects(
+  const soundEffects = useSoundEffects(
     timeRemainingInLevel,
     state,
     setState
   );
+  const { toggleSound, playLevelCompleteSound, testSound } = soundEffects;
 
   // Initialize timer core
   const { 
@@ -158,6 +159,16 @@ export function useTimerControls(
     }
   }, [state.soundEnabled, playLevelCompleteSound]);
 
+  const testAudio = useCallback(() => {
+    console.log("=== TEST AUDIO ===");
+    console.log("Iniciando teste completo de áudio...");
+    if (testSound) {
+      testSound();
+    } else {
+      console.warn("⚠️ Função testSound não disponível");
+    }
+  }, [testSound]);
+
   return {
     startTimer,
     pauseTimer,
@@ -168,6 +179,7 @@ export function useTimerControls(
     setLevelProgress,
     toggleFullScreen,
     reloadAudio,
+    testAudio,
     hasOpenedNewWindow
   };
 }
