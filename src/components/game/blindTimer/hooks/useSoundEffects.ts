@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { TimerState } from "../useTimerState";
+import { useAudioEffects } from "./useAudioEffects";
 import { useSimpleAudio } from "./useSimpleAudio";
 
 export function useSoundEffects(
@@ -7,12 +8,50 @@ export function useSoundEffects(
   state: TimerState,
   setState: React.Dispatch<React.SetStateAction<TimerState>>
 ) {
-  const { playAlert, playCountdown, playLevelComplete, isAudioSupported } = useSimpleAudio();
+  // Sistema principal: GitHub audio files
+  const { audioRefs, playAudioSafely, unlockAudio } = useAudioEffects();
+  
+  // Sistema fallback: Web Audio API sintético
+  const { playAlert: playAlertSynthetic, playCountdown: playCountdownSynthetic, playLevelComplete: playLevelCompleteSynthetic, isAudioSupported } = useSimpleAudio();
   const lastPlayedRef = useRef<{ alert: boolean; countdown: number; complete: boolean }>({
     alert: false,
     countdown: -1,
     complete: false,
   });
+
+  // Funções de reprodução com fallback automático
+  const playAlert = async () => {
+    try {
+      console.log("🎵 Tentando reproduzir alerta do GitHub...");
+      await playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
+      console.log("✅ Alerta do GitHub reproduzido com sucesso");
+    } catch (error) {
+      console.log("⚠️ Fallback para alerta sintético:", error);
+      playAlertSynthetic();
+    }
+  };
+
+  const playCountdown = async () => {
+    try {
+      console.log("🎵 Tentando reproduzir contagem do GitHub...");
+      await playAudioSafely(audioRefs.countdownAudioRef, state.soundEnabled);
+      console.log("✅ Contagem do GitHub reproduzida com sucesso");
+    } catch (error) {
+      console.log("⚠️ Fallback para contagem sintética:", error);
+      playCountdownSynthetic();
+    }
+  };
+
+  const playLevelComplete = async () => {
+    try {
+      console.log("🎵 Tentando reproduzir conclusão do GitHub...");
+      await playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
+      console.log("✅ Conclusão do GitHub reproduzida com sucesso");
+    } catch (error) {
+      console.log("⚠️ Fallback para conclusão sintética:", error);
+      playLevelCompleteSynthetic();
+    }
+  };
   
   // Handle sound effects based on timer state
   useEffect(() => {
@@ -53,13 +92,12 @@ export function useSoundEffects(
       console.log("🚨 TENTANDO REPRODUZIR ALERTA DE 1 MINUTO");
       setState(prev => ({ ...prev, showAlert: true }));
       
-      try {
-        playAlert();
+      playAlert().then(() => {
         console.log("✅ Alerta de 1 minuto reproduzido com sucesso");
         lastPlayedRef.current.alert = true;
-      } catch (error) {
+      }).catch((error) => {
         console.error("❌ Erro ao reproduzir alerta de 1 minuto:", error);
-      }
+      });
       
       alertTimeout = window.setTimeout(() => {
         setState(prev => ({ ...prev, showAlert: false }));
@@ -70,21 +108,19 @@ export function useSoundEffects(
     else if (timeRemainingInLevel <= 4 && timeRemainingInLevel > 0 && lastPlayedRef.current.countdown !== timeRemainingInLevel) {
       console.log(`⏱️ TENTANDO REPRODUZIR CONTAGEM: ${timeRemainingInLevel} segundos`);
       
-      try {
-        playCountdown();
+      playCountdown().then(() => {
         console.log(`✅ Contagem ${timeRemainingInLevel} reproduzida com sucesso`);
         lastPlayedRef.current.countdown = timeRemainingInLevel;
-      } catch (error) {
+      }).catch((error) => {
         console.error(`❌ Erro ao reproduzir contagem ${timeRemainingInLevel}:`, error);
-      }
+      });
     } 
     
     // Som de conclusão de nível
     else if (timeRemainingInLevel === 0 && state.elapsedTimeInLevel === 0 && !lastPlayedRef.current.complete) {
       console.log("🎉 TENTANDO REPRODUZIR CONCLUSÃO DE NÍVEL");
       
-      try {
-        playLevelComplete();
+      playLevelComplete().then(() => {
         console.log("✅ Conclusão de nível reproduzida com sucesso");
         lastPlayedRef.current.complete = true;
         
@@ -92,9 +128,9 @@ export function useSoundEffects(
         alertTimeout = window.setTimeout(() => {
           setState(prev => ({ ...prev, showAlert: false }));
         }, 3000);
-      } catch (error) {
+      }).catch((error) => {
         console.error("❌ Erro ao reproduzir conclusão de nível:", error);
-      }
+      });
     }
     
     // Reset flags quando o tempo muda significativamente
@@ -113,7 +149,7 @@ export function useSoundEffects(
         clearTimeout(alertTimeout);
       }
     };
-  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel, playAlert, playCountdown, playLevelComplete, isAudioSupported, setState]);
+  }, [timeRemainingInLevel, state.isRunning, state.soundEnabled, state.elapsedTimeInLevel, isAudioSupported, setState]);
 
   const toggleSound = () => {
     const newSoundState = !state.soundEnabled;
@@ -121,12 +157,13 @@ export function useSoundEffects(
     
     setState(prev => ({ ...prev, soundEnabled: newSoundState }));
     
-    // Teste imediato do som quando habilitado
+    // Desbloqueio de áudio e teste quando habilitado
     if (newSoundState && isAudioSupported) {
-      console.log("🔧 Testando som imediatamente após habilitar...");
-      setTimeout(() => {
+      console.log("🔧 Desbloqueando e testando som após habilitar...");
+      unlockAudio();
+      setTimeout(async () => {
         try {
-          playAlert();
+          await playAlert();
           console.log("✅ Teste de som bem-sucedido");
         } catch (error) {
           console.error("❌ Falha no teste de som:", error);
@@ -135,7 +172,7 @@ export function useSoundEffects(
     }
   };
 
-  const testSound = () => {
+  const testSound = async () => {
     console.log("🔧 TESTE MANUAL DE SOM INICIADO");
     console.log("Estado atual do som:", { soundEnabled: state.soundEnabled, isAudioSupported });
     
@@ -144,20 +181,23 @@ export function useSoundEffects(
       return;
     }
     
+    // Desbloqueio inicial
+    unlockAudio();
+    
     try {
       console.log("🔊 Reproduzindo alerta de teste...");
-      playAlert();
+      await playAlert();
       console.log("✅ Teste de alerta bem-sucedido");
       
-      setTimeout(() => {
+      setTimeout(async () => {
         console.log("🔊 Reproduzindo contagem de teste...");
-        playCountdown();
+        await playCountdown();
         console.log("✅ Teste de contagem bem-sucedido");
       }, 500);
       
-      setTimeout(() => {
+      setTimeout(async () => {
         console.log("🔊 Reproduzindo conclusão de teste...");
-        playLevelComplete();
+        await playLevelComplete();
         console.log("✅ Teste de conclusão bem-sucedido");
       }, 1000);
     } catch (error) {
@@ -165,7 +205,7 @@ export function useSoundEffects(
     }
   };
 
-  const playLevelCompleteSound = () => {
+  const playLevelCompleteSound = async () => {
     console.log("🎉 CHAMADA MANUAL - CONCLUSÃO DE NÍVEL");
     
     if (!state.soundEnabled) {
@@ -173,7 +213,7 @@ export function useSoundEffects(
       return;
     }
     
-    playLevelComplete();
+    await playLevelComplete();
   };
 
   return {
