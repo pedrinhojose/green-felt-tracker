@@ -42,6 +42,9 @@ export interface TimerContextType {
   timeRemainingInLevel: number;
   progressPercentage: number;
   
+  // Blind Levels
+  blindLevels: BlindLevel[];
+  
   // Alerts
   isAlertTime: boolean;
   isFinalCountdown: boolean;
@@ -524,6 +527,9 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     nextLevelData,
     timeRemainingInLevel,
     progressPercentage,
+    
+    // Blind Levels
+    blindLevels: sortedBlindLevels,
     
     // Alerts
     isAlertTime,

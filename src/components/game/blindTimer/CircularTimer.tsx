@@ -8,6 +8,7 @@ import { TimerCenterDisplay } from "./components/TimerCenterDisplay";
 import { TimerSideInfo } from "./components/TimerSideInfo";
 import { BackgroundEffects } from "./components/BackgroundEffects";
 import CircularTimerControls from "./components/CircularTimerControls";
+import { useBreakInfo } from "./hooks/useBreakInfo";
 import { AlertTriangle } from "lucide-react";
 
 export default function CircularTimer() {
@@ -23,6 +24,7 @@ export default function CircularTimer() {
     isMasterWindow,
     hasOpenedNewWindow,
     isEmergencyMode,
+    blindLevels,
     startTimer,
     pauseTimer,
     goToNextLevel,
@@ -36,6 +38,12 @@ export default function CircularTimer() {
   } = useTimer();
   
   const isMobile = useIsMobile();
+  
+  // Calculate break information
+  const { nextBreak, levelsUntilBreak } = useBreakInfo(
+    blindLevels || [],
+    state.currentLevelIndex
+  );
   
   console.log("=== CIRCULAR TIMER - NOVO SISTEMA ===");
   console.log("Estado atual:", state);
@@ -85,10 +93,10 @@ export default function CircularTimer() {
               side="mobile-top"
               currentLevel={currentLevel}
               nextLevel={nextLevelData}
-              nextBreak={null}
-              levelsUntilBreak={null}
+              nextBreak={nextBreak}
+              levelsUntilBreak={levelsUntilBreak}
               totalElapsedTime={state.totalElapsedTime}
-              blindLevels={[]}
+              blindLevels={blindLevels || []}
               timeRemainingInLevel={timeRemainingInLevel}
               currentLevelIndex={state.currentLevelIndex}
             />
@@ -172,10 +180,10 @@ export default function CircularTimer() {
           <TimerSideInfo
             side="left"
             nextLevel={nextLevelData}
-            nextBreak={null}
-            levelsUntilBreak={null}
+            nextBreak={nextBreak}
+            levelsUntilBreak={levelsUntilBreak}
             totalElapsedTime={state.totalElapsedTime}
-            blindLevels={[]}
+            blindLevels={blindLevels || []}
             timeRemainingInLevel={timeRemainingInLevel}
             currentLevelIndex={state.currentLevelIndex}
           />
@@ -184,11 +192,11 @@ export default function CircularTimer() {
             side="right"
             currentLevel={currentLevel}
             totalElapsedTime={state.totalElapsedTime}
-            blindLevels={[]}
+            blindLevels={blindLevels || []}
             timeRemainingInLevel={timeRemainingInLevel}
             currentLevelIndex={state.currentLevelIndex}
-            nextBreak={null}
-            levelsUntilBreak={null}
+            nextBreak={nextBreak}
+            levelsUntilBreak={levelsUntilBreak}
           />
 
           {/* Controles */}
