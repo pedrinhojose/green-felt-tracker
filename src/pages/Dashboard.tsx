@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import JackpotCard from "@/components/JackpotCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
+import { UpcomingDinnerCard } from "@/components/UpcomingDinnerCard";
 import BackupButton from "@/components/BackupButton";
 import RestoreButton from "@/components/RestoreButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -91,6 +92,12 @@ export default function Dashboard() {
         <RankingCard />
         <LastGameCard />
       </div>
+      
+      {activeSeason && activeSeason.hostSchedule && activeSeason.hostSchedule.length > 0 && (
+        <div className="mt-6">
+          <UpcomingDinnerCard />
+        </div>
+      )}
       
       <div className="mt-8">
         <div className="bg-poker-navy/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6">

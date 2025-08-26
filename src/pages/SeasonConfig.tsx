@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { BlindLevelConfig } from "@/components/season/BlindLevelConfig";
+import { HostScheduleConfig } from "@/components/season/HostScheduleConfig";
 import { SeasonBasicInfo } from "@/components/season/SeasonBasicInfo";
 import { ScoreSchemaConfig } from "@/components/season/ScoreSchemaConfig";
 import { PrizeSchemaConfig } from "@/components/season/PrizeSchemaConfig";
@@ -42,6 +43,8 @@ export default function SeasonConfig() {
     setSeasonPrizeEntries,
     blindLevels, 
     setBlindLevels,
+    hostSchedule,
+    setHostSchedule,
     onSubmit,
   } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason);
 
@@ -102,11 +105,12 @@ export default function SeasonConfig() {
         <SeasonBasicInfo register={register} errors={errors} />
         
         <Tabs defaultValue="scores">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="scores">Pontuação</TabsTrigger>
             <TabsTrigger value="weekly">Premiação Semanal</TabsTrigger>
             <TabsTrigger value="season">Premiação Final</TabsTrigger>
             <TabsTrigger value="blinds">Estrutura de Blinds</TabsTrigger>
+            <TabsTrigger value="dinners">Cronograma Jantares</TabsTrigger>
             <TabsTrigger value="rules">Regras da Casa</TabsTrigger>
           </TabsList>
           
@@ -135,6 +139,10 @@ export default function SeasonConfig() {
           
           <TabsContent value="blinds">
             <BlindLevelConfig blindLevels={blindLevels} onChange={setBlindLevels} />
+          </TabsContent>
+          
+          <TabsContent value="dinners">
+            <HostScheduleConfig hostSchedule={hostSchedule} onChange={setHostSchedule} />
           </TabsContent>
           
           <TabsContent value="rules">
