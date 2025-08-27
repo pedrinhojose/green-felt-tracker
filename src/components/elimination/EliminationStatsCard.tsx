@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sword, Target } from 'lucide-react';
+import { Sword } from 'lucide-react';
 import { useEliminationStats } from '@/hooks/elimination/useEliminationStats';
 
 interface EliminationStatsCardProps {
@@ -8,7 +8,7 @@ interface EliminationStatsCardProps {
 }
 
 export function EliminationStatsCard({ seasonId }: EliminationStatsCardProps) {
-  const { topEliminators, mostEliminated, totalEliminations, loading } = useEliminationStats(seasonId);
+  const { topEliminators, totalEliminations, loading } = useEliminationStats(seasonId);
 
   if (loading) {
     return (
@@ -49,58 +49,31 @@ export function EliminationStatsCard({ seasonId }: EliminationStatsCardProps) {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent>
         {/* Top Eliminadores */}
         <div>
-          <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
+          <h4 className="font-medium text-foreground mb-4 flex items-center gap-2">
             <Sword className="h-4 w-4 text-destructive" />
             Top Eliminadores
           </h4>
           {topEliminators.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {topEliminators.map((eliminator, index) => (
-                <div key={eliminator.playerId} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={index === 0 ? "default" : "secondary"} className="w-6 h-6 p-0 text-xs">
+                <div key={eliminator.playerId} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={index === 0 ? "default" : "secondary"} className="w-7 h-7 p-0 text-sm font-semibold">
                       {index + 1}
                     </Badge>
-                    <span className="text-foreground">{eliminator.playerName}</span>
+                    <span className="text-foreground font-medium">{eliminator.playerName}</span>
                   </div>
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="font-semibold">
                     {eliminator.eliminations} eliminações
                   </Badge>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm">Nenhum dado disponível</p>
-          )}
-        </div>
-
-        {/* Mais Eliminados */}
-        <div>
-          <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-            <Target className="h-4 w-4 text-orange-500" />
-            Mais Eliminados
-          </h4>
-          {mostEliminated.length > 0 ? (
-            <div className="space-y-2">
-              {mostEliminated.map((eliminated, index) => (
-                <div key={eliminated.playerId} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={index === 0 ? "destructive" : "secondary"} className="w-6 h-6 p-0 text-xs">
-                      {index + 1}
-                    </Badge>
-                    <span className="text-foreground">{eliminated.playerName}</span>
-                  </div>
-                  <Badge variant="outline">
-                    {eliminated.eliminations} eliminações
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">Nenhum dado disponível</p>
+            <p className="text-muted-foreground text-center py-6">Nenhum dado disponível</p>
           )}
         </div>
       </CardContent>
