@@ -28,25 +28,50 @@ export function useEliminationData(seasonId?: string) {
       try {
         setLoading(true);
         
-        let query = supabase
-          .from('eliminations')
-          .select(`
-            *,
-            games!inner(season_id)
-          `);
-
         if (seasonId) {
-          query = query.eq('games.season_id', seasonId);
+          // First get all games from the season
+          const { data: games, error: gamesError } = await supabase
+            .from('games')
+            .select('id')
+            .eq('season_id', seasonId);
+
+          if (gamesError) {
+            console.error('Error fetching games:', gamesError);
+            return;
+          }
+
+          if (!games || games.length === 0) {
+            setEliminations([]);
+            return;
+          }
+
+          const gameIds = games.map(game => game.id);
+
+          // Then get eliminations from those games
+          const { data, error } = await supabase
+            .from('eliminations')
+            .select('*')
+            .in('game_id', gameIds);
+
+          if (error) {
+            console.error('Error fetching eliminations:', error);
+            return;
+          }
+
+          setEliminations(data || []);
+        } else {
+          // If no seasonId, fetch all eliminations
+          const { data, error } = await supabase
+            .from('eliminations')
+            .select('*');
+
+          if (error) {
+            console.error('Error fetching eliminations:', error);
+            return;
+          }
+
+          setEliminations(data || []);
         }
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('Error fetching eliminations:', error);
-          return;
-        }
-
-        setEliminations(data || []);
       } catch (error) {
         console.error('Error in useEliminationData:', error);
       } finally {
