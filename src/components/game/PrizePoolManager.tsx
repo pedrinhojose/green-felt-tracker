@@ -52,7 +52,7 @@ export default function PrizePoolManager({
           <p className="text-2xl font-bold text-poker-gold">{formatCurrency(totalPrizePool)}</p>
           
           {/* Informações sobre caixinha */}
-          {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 && (
+          {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 && game.players.some(p => p.participatesInClubFund) && (
             <div className="mt-2 p-3 bg-poker-navy/30 rounded-lg border border-poker-gold/20">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Caixinha por jogador:</span>
@@ -63,7 +63,7 @@ export default function PrizePoolManager({
               <div className="flex justify-between items-center mt-1">
                 <span className="text-sm text-muted-foreground">Total arrecadado:</span>
                 <span className="text-sm font-medium text-poker-blue">
-                  {formatCurrency(activeSeason.financialParams.clubFundContribution * game.players.length)}
+                  {formatCurrency(activeSeason.financialParams.clubFundContribution * game.players.filter(p => p.participatesInClubFund).length)}
                 </span>
               </div>
             </div>
