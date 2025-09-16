@@ -3,6 +3,7 @@ import { BlindLevel } from '@/lib/db/models';
 import { useTimerPersistence } from '@/hooks/useTimerPersistence';
 import { useWindowSync } from '@/hooks/useWindowSync';
 import { useConnectivityDetection } from '@/hooks/useConnectivityDetection';
+import { useAudioEffects } from '@/components/game/blindTimer/hooks/useAudioEffects';
 
 export interface TimerState {
   isRunning: boolean;
@@ -117,22 +118,9 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
 
   // Timer interval ref
   const timerRef = React.useRef<number | null>(null);
-  const audioRefs = React.useRef({
-    alertAudio: null as HTMLAudioElement | null,
-    levelCompleteAudio: null as HTMLAudioElement | null
-  });
-
-  // Initialize audio elements
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      audioRefs.current.alertAudio = new Audio('/sounds/alert.mp3');
-      audioRefs.current.levelCompleteAudio = new Audio('/sounds/level-complete.mp3');
-      
-      // Set volume
-      if (audioRefs.current.alertAudio) audioRefs.current.alertAudio.volume = 0.7;
-      if (audioRefs.current.levelCompleteAudio) audioRefs.current.levelCompleteAudio.volume = 0.7;
-    }
-  }, []);
+  
+  // Initialize audio effects with GitHub-hosted files
+  const { audioRefs, playAudioSafely: playAudioSafelyHook, unlockAudio } = useAudioEffects();
 
   // Calculate current level info
   const currentLevel = React.useMemo(() => {
@@ -178,21 +166,10 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     currentLevel && 
     !currentLevel.isBreak;
 
-  // Play audio safely
-  const playAudioSafely = useCallback((audio: HTMLAudioElement | null, enabled: boolean) => {
-    if (!audio || !enabled) return;
-    
-    try {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('Audio play failed:', error);
-        });
-      }
-    } catch (error) {
-      console.log('Audio play error:', error);
-    }
-  }, []);
+  // Play audio safely using the correct hooks
+  const playAudioSafely = useCallback((audioRef: React.MutableRefObject<HTMLAudioElement | null>, enabled: boolean) => {
+    playAudioSafelyHook(audioRef, enabled);
+  }, [playAudioSafelyHook]);
 
   // Timer core logic
   const startTimer = useCallback(() => {
@@ -240,8 +217,8 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
             console.log('TIMER: Nível completo, avançando para próximo');
             
             // Play level complete sound
-            if (prev.soundEnabled && audioRefs.current.levelCompleteAudio) {
-              playAudioSafely(audioRefs.current.levelCompleteAudio, prev.soundEnabled);
+            if (prev.soundEnabled) {
+              playAudioSafely(audioRefs.levelCompleteAudioRef, prev.soundEnabled);
             }
             
             const newState = {
@@ -363,8 +340,8 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
       };
       
       // Play sound
-      if (state.soundEnabled && audioRefs.current.levelCompleteAudio) {
-        setTimeout(() => playAudioSafely(audioRefs.current.levelCompleteAudio, state.soundEnabled), 100);
+      if (state.soundEnabled) {
+        setTimeout(() => playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled), 100);
       }
       
       setState(newState);
@@ -431,12 +408,12 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     console.log('TIMER: Recarregando áudio...');
     
     // Test audio playback
-    if (state.soundEnabled && audioRefs.current.alertAudio) {
+    if (state.soundEnabled) {
       setTimeout(() => {
-        playAudioSafely(audioRefs.current.alertAudio, state.soundEnabled);
+        playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
       }, 500);
     }
-  }, [state.soundEnabled, playAudioSafely]);
+  }, [state.soundEnabled, playAudioSafely, audioRefs.alertAudioRef]);
 
   const testAudio = useCallback(() => {
     console.log('TIMER: Testando áudio completo...');
@@ -446,18 +423,21 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
       return;
     }
     
+    // Unlock audio first
+    unlockAudio();
+    
     // Test alert sound
     setTimeout(() => {
       console.log('TIMER: Testando som de alerta...');
-      playAudioSafely(audioRefs.current.alertAudio, state.soundEnabled);
+      playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
     }, 100);
     
     // Test level complete sound
     setTimeout(() => {
       console.log('TIMER: Testando som de conclusão...');
-      playAudioSafely(audioRefs.current.levelCompleteAudio, state.soundEnabled);
+      playAudioSafely(audioRefs.levelCompleteAudioRef, state.soundEnabled);
     }, 1500);
-  }, [state.soundEnabled, playAudioSafely]);
+  }, [state.soundEnabled, playAudioSafely, audioRefs.alertAudioRef, audioRefs.levelCompleteAudioRef, unlockAudio]);
 
   const toggleFullScreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -496,10 +476,10 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
 
   // Play alert sounds
   useEffect(() => {
-    if (isAlertTime && state.soundEnabled && audioRefs.current.alertAudio) {
-      playAudioSafely(audioRefs.current.alertAudio, state.soundEnabled);
+    if (isAlertTime && state.soundEnabled) {
+      playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
     }
-  }, [isAlertTime, state.soundEnabled, playAudioSafely]);
+  }, [isAlertTime, state.soundEnabled, playAudioSafely, audioRefs.alertAudioRef]);
 
   const contextValue: TimerContextType = {
     // Timer State
