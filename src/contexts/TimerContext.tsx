@@ -157,9 +157,16 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     return Math.min(100, (state.elapsedTimeInLevel / totalLevelTime) * 100);
   }, [currentLevel, state.elapsedTimeInLevel]);
 
-  // Calculate alert states
-  const isAlertTime = timeRemainingInLevel <= 60 && timeRemainingInLevel > 55 && state.isRunning;
-  const isFinalCountdown = timeRemainingInLevel <= 5 && timeRemainingInLevel > 0 && state.isRunning;
+  // Control flags to prevent sound repetition
+  const lastPlayedRef = React.useRef<{ alert: boolean; countdown: number; complete: boolean }>({
+    alert: false,
+    countdown: -1,
+    complete: false,
+  });
+
+  // Calculate alert states with proper timing
+  const isAlertTime = timeRemainingInLevel === 60 && state.isRunning;
+  const isFinalCountdown = timeRemainingInLevel <= 4 && timeRemainingInLevel > 0 && state.isRunning;
   const isNewBlindAlert = state.isRunning && 
     state.elapsedTimeInLevel < 3 && 
     state.currentLevelIndex >= 0 && 
@@ -474,12 +481,34 @@ export function TimerProvider({ children, gameId, blindLevels }: TimerProviderPr
     }
   }, [isOnline, state.isRunning, isMasterWindow, pauseTimer]);
 
-  // Play alert sounds
+  // Play alert sounds with proper control flags
   useEffect(() => {
-    if (isAlertTime && state.soundEnabled) {
-      playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
+    if (!state.soundEnabled || !state.isRunning) {
+      return;
     }
-  }, [isAlertTime, state.soundEnabled, playAudioSafely, audioRefs.alertAudioRef]);
+
+    // 1-minute alert - play only once at exactly 60 seconds
+    if (timeRemainingInLevel === 60 && !lastPlayedRef.current.alert) {
+      console.log('🚨 REPRODUZINDO ALERTA DE 1 MINUTO');
+      playAudioSafely(audioRefs.alertAudioRef, state.soundEnabled);
+      lastPlayedRef.current.alert = true;
+    }
+
+    // Final countdown - play for each of the last 4 seconds
+    if (timeRemainingInLevel <= 4 && timeRemainingInLevel > 0 && lastPlayedRef.current.countdown !== timeRemainingInLevel) {
+      console.log(`⏱️ REPRODUZINDO CONTAGEM: ${timeRemainingInLevel} segundos`);
+      playAudioSafely(audioRefs.countdownAudioRef, state.soundEnabled);
+      lastPlayedRef.current.countdown = timeRemainingInLevel;
+    }
+
+    // Reset flags when appropriate
+    if (timeRemainingInLevel > 60) {
+      lastPlayedRef.current.alert = false;
+    }
+    if (timeRemainingInLevel > 4) {
+      lastPlayedRef.current.countdown = -1;
+    }
+  }, [timeRemainingInLevel, state.soundEnabled, state.isRunning, playAudioSafely, audioRefs.alertAudioRef, audioRefs.countdownAudioRef]);
 
   const contextValue: TimerContextType = {
     // Timer State
