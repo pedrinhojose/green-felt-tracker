@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      caixinha_withdrawals: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          organization_id: string | null
+          season_id: string
+          user_id: string
+          withdrawal_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          organization_id?: string | null
+          season_id: string
+          user_id: string
+          withdrawal_date?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          organization_id?: string | null
+          season_id?: string
+          user_id?: string
+          withdrawal_date?: string
+        }
+        Relationships: []
+      }
       club_fund_transactions: {
         Row: {
           amount: number
@@ -336,6 +372,7 @@ export type Database = {
       seasons: {
         Row: {
           blind_structure: Json
+          caixinha_balance: number
           created_at: string
           end_date: string | null
           financial_params: Json
@@ -356,6 +393,7 @@ export type Database = {
         }
         Insert: {
           blind_structure?: Json
+          caixinha_balance?: number
           created_at?: string
           end_date?: string | null
           financial_params?: Json
@@ -376,6 +414,7 @@ export type Database = {
         }
         Update: {
           blind_structure?: Json
+          caixinha_balance?: number
           created_at?: string
           end_date?: string | null
           financial_params?: Json

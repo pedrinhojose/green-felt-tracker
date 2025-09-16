@@ -33,6 +33,7 @@ import OrganizationMembersPage from '@/pages/OrganizationMembersPage';
 import SeasonReport from '@/pages/SeasonReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
+import CaixinhaManagement from '@/pages/CaixinhaManagement';
 import PublicSeasonView from '@/pages/PublicSeasonView';
 import PublicGameView from '@/pages/PublicGameView';
 
@@ -79,6 +80,7 @@ function App() {
                     <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                     <Route path="/organization/members" element={<OrganizationMembersPage />} />
                     <Route path="/reports/season" element={<SeasonReport />} />
+                    <Route path="/caixinha" element={<CaixinhaManagement />} />
                   </Route>
                   
                   <Route path="*" element={<NotFound />} />
