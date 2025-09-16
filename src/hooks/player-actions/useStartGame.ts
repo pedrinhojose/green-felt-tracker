@@ -53,6 +53,8 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
           prize: 0,
           points: 0,
           balance: 0,
+          clubFundContribution: activeSeason?.financialParams.clubFundContribution > 0 ? 
+            activeSeason.financialParams.clubFundContribution : 0,
         };
       });
       

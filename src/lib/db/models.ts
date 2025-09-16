@@ -81,6 +81,7 @@ export interface GamePlayer {
   prize: number;
   points: number;
   balance: number;
+  clubFundContribution: number;
 }
 
 export interface RankingEntry {

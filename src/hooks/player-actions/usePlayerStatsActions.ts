@@ -20,8 +20,12 @@ export function usePlayerStatsActions(game: Game | null, setGame: React.Dispatch
     const dinnerCostShare = player.joinedDinner && dinnerCost && dinnerParticipants > 0 ? 
       dinnerCost / dinnerParticipants : 0;
     
-    // Calcular saldo (prêmio - custos)
-    return player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare);
+    // Calcular contribuição da caixinha (apenas se valor > 0)
+    const clubFundCost = activeSeason.financialParams.clubFundContribution > 0 ? 
+      activeSeason.financialParams.clubFundContribution : 0;
+    
+    // Calcular saldo (prêmio - custos - caixinha)
+    return player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare + clubFundCost);
   };
   
   // Update player stats
@@ -55,6 +59,10 @@ export function usePlayerStatsActions(game: Game | null, setGame: React.Dispatch
       // Calcular os saldos atualizados
       const dinnerParticipants = updatedPlayers.filter(p => p.joinedDinner).length;
       for (const player of updatedPlayers) {
+        // Calcular contribuição da caixinha para cada jogador
+        player.clubFundContribution = activeSeason?.financialParams.clubFundContribution > 0 ? 
+          activeSeason.financialParams.clubFundContribution : 0;
+        
         // Apenas atualizar o saldo, mantendo o prêmio e pontos inalterados
         player.balance = calculatePlayerBalance(player, game.dinnerCost, dinnerParticipants);
       }

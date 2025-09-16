@@ -51,6 +51,24 @@ export default function PrizePoolManager({
           <h3 className="text-xl font-medium text-white">Prêmio Total</h3>
           <p className="text-2xl font-bold text-poker-gold">{formatCurrency(totalPrizePool)}</p>
           
+          {/* Informações sobre caixinha */}
+          {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 && (
+            <div className="mt-2 p-3 bg-poker-navy/30 rounded-lg border border-poker-gold/20">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Caixinha por jogador:</span>
+                <span className="text-sm font-medium text-poker-blue">
+                  {formatCurrency(activeSeason.financialParams.clubFundContribution)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-sm text-muted-foreground">Total arrecadado:</span>
+                <span className="text-sm font-medium text-poker-blue">
+                  {formatCurrency(activeSeason.financialParams.clubFundContribution * game.players.length)}
+                </span>
+              </div>
+            </div>
+          )}
+          
           <div className="flex gap-2 mt-2">
             <Dialog>
               <DialogTrigger asChild>

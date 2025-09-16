@@ -20,8 +20,12 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
     const dinnerCostShare = player.joinedDinner && dinnerCost && dinnerParticipants > 0 ? 
       dinnerCost / dinnerParticipants : 0;
     
-    // Calcular saldo (prêmio - custos)
-    return player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare);
+    // Calcular contribuição da caixinha (apenas se valor > 0)
+    const clubFundCost = activeSeason.financialParams.clubFundContribution > 0 ? 
+      activeSeason.financialParams.clubFundContribution : 0;
+    
+    // Calcular saldo (prêmio - custos - caixinha)
+    return player.prize - (buyInCost + rebuysCost + addonsCost + dinnerCostShare + clubFundCost);
   };
 
   // Dinner cost calculation
@@ -41,6 +45,10 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
     
     // Update players with dinner cost in their balance
     const updatedPlayers = game.players.map(player => {
+      // Calcular contribuição da caixinha para cada jogador
+      const clubFundContribution = activeSeason?.financialParams.clubFundContribution > 0 ? 
+        activeSeason.financialParams.clubFundContribution : 0;
+      
       // Atualizar o saldo com o novo custo da janta
       const balance = calculatePlayerBalance(
         player, 
@@ -48,7 +56,7 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
         dinnerParticipants.length
       );
       
-      return { ...player, balance };
+      return { ...player, balance, clubFundContribution };
     });
     
     // Update game
@@ -150,6 +158,10 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
       
       // Calculate balances
       for (const player of updatedPlayers) {
+        // Calcular contribuição da caixinha para cada jogador
+        player.clubFundContribution = activeSeason?.financialParams.clubFundContribution > 0 ? 
+          activeSeason.financialParams.clubFundContribution : 0;
+        
         player.balance = calculatePlayerBalance(
           player,
           game.dinnerCost,
