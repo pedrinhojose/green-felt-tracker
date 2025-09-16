@@ -151,7 +151,15 @@ export function PlayerTableRow({
       </td>
       
       <td className="p-2 text-center">
-        {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
+        <Checkbox 
+          checked={gamePlayer.participatesInClubFund}
+          onCheckedChange={(checked) => onUpdatePlayerStats(gamePlayer.playerId, 'participatesInClubFund', !!checked)}
+          disabled={isFinished}
+        />
+      </td>
+      
+      <td className="p-2 text-center">
+        {gamePlayer.participatesInClubFund && activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
           ? formatCurrency(activeSeason.financialParams.clubFundContribution)
           : '-'
         }

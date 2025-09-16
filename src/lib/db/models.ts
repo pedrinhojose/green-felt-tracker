@@ -77,6 +77,7 @@ export interface GamePlayer {
   rebuys: number;
   addons: number;
   joinedDinner: boolean;
+  participatesInClubFund: boolean;
   isEliminated: boolean;
   prize: number;
   points: number;

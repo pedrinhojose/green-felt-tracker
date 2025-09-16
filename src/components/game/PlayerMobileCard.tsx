@@ -93,8 +93,8 @@ export function PlayerMobileCard({
         
         <Separator className="mb-3" />
         
-        {/* Controles de Buy-in e Janta */}
-        <div className="grid grid-cols-3 gap-3 mb-3">
+        {/* Controles de Buy-in, Janta e Caixinha */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Buy-in</span>
@@ -115,6 +115,16 @@ export function PlayerMobileCard({
                 className="h-4 w-4"
               />
             </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Caixinha</span>
+              <Checkbox 
+                checked={gamePlayer.participatesInClubFund}
+                onCheckedChange={(checked) => onUpdatePlayerStats(gamePlayer.playerId, 'participatesInClubFund', !!checked)}
+                disabled={isFinished}
+                className="h-4 w-4"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -126,11 +136,11 @@ export function PlayerMobileCard({
             </div>
             
             <div className="text-right">
-              <span className="text-xs text-muted-foreground block">Caixinha</span>
+              <span className="text-xs text-muted-foreground block">Valor Caixinha</span>
               <span className="text-xs font-medium text-poker-blue">
-                {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
+                {gamePlayer.participatesInClubFund && activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
                   ? formatCurrency(activeSeason.financialParams.clubFundContribution)
-                  : 'Isento'
+                  : '-'
                 }
               </span>
             </div>

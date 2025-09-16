@@ -39,12 +39,12 @@ export function useLatePlayerActions(game: Game | null, setGame: React.Dispatch<
         rebuys: 0,
         addons: 0,
         joinedDinner: false,
+        participatesInClubFund: false,
         isEliminated: false,
         prize: 0,
         points: 0,
         balance: 0,
-        clubFundContribution: activeSeason?.financialParams.clubFundContribution > 0 ? 
-          activeSeason.financialParams.clubFundContribution : 0,
+        clubFundContribution: 0,
       };
       
       // Adicionar jogador à lista e atualizar prize pool
