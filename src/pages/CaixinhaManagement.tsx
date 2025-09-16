@@ -11,15 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Vault, Plus, TrendingDown, History, Users, DollarSign } from "lucide-react";
+import { Vault, Plus, TrendingDown, TrendingUp, History, Users, DollarSign } from "lucide-react";
 import { PageHeader } from "@/components/navigation/PageHeader";
 
-interface CaixinhaWithdrawal {
+interface CaixinhaTransaction {
   id: string;
   amount: number;
   description: string;
   withdrawal_date: string;
   created_by: string;
+  type: 'deposit' | 'withdrawal';
 }
 
 export default function CaixinhaManagement() {
@@ -27,11 +28,14 @@ export default function CaixinhaManagement() {
   const { currentOrganization } = useOrganization();
   const { toast } = useToast();
   
-  const [withdrawals, setWithdrawals] = useState<CaixinhaWithdrawal[]>([]);
+  const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
+  const [showDepositDialog, setShowDepositDialog] = useState(false);
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
   const [withdrawalDescription, setWithdrawalDescription] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositDescription, setDepositDescription] = useState("");
 
   // Calculate total accumulated from games
   const totalAccumulated = useMemo(() => {
@@ -53,13 +57,21 @@ export default function CaixinhaManagement() {
     return total;
   }, [activeSeason, games]);
 
-  // Calculate total withdrawals
-  const totalWithdrawals = useMemo(() => {
-    return withdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0);
-  }, [withdrawals]);
+  // Calculate total deposits and withdrawals
+  const totalDeposits = useMemo(() => {
+    return transactions
+      .filter(transaction => transaction.type === 'deposit')
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+  }, [transactions]);
 
-  // Calculate available balance
-  const availableBalance = totalAccumulated - totalWithdrawals;
+  const totalWithdrawals = useMemo(() => {
+    return transactions
+      .filter(transaction => transaction.type === 'withdrawal')
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+  }, [transactions]);
+
+  // Calculate available balance (accumulated from games + manual deposits - withdrawals)
+  const availableBalance = totalAccumulated + totalDeposits - totalWithdrawals;
 
   // Count participating players
   const participatingPlayersCount = useMemo(() => {
@@ -81,31 +93,31 @@ export default function CaixinhaManagement() {
     return playerIds.size;
   }, [activeSeason, games]);
 
-  // Load withdrawals
+  // Load transactions
   useEffect(() => {
     if (activeSeason && currentOrganization) {
-      loadWithdrawals();
+      loadTransactions();
     }
   }, [activeSeason, currentOrganization]);
 
-  const loadWithdrawals = async () => {
+  const loadTransactions = async () => {
     if (!activeSeason || !currentOrganization) return;
     
     try {
       const { data, error } = await supabase
-        .from('caixinha_withdrawals')
+        .from('caixinha_transactions')
         .select('*')
         .eq('season_id', activeSeason.id)
         .eq('organization_id', currentOrganization.id)
         .order('withdrawal_date', { ascending: false });
 
       if (error) throw error;
-      setWithdrawals(data || []);
+      setTransactions((data || []) as CaixinhaTransaction[]);
     } catch (error) {
-      console.error('Error loading withdrawals:', error);
+      console.error('Error loading transactions:', error);
       toast({
-        title: "Erro ao carregar saques",
-        description: "Não foi possível carregar o histórico de saques.",
+        title: "Erro ao carregar transações",
+        description: "Não foi possível carregar o histórico de transações.",
         variant: "destructive",
       });
     } finally {
@@ -140,12 +152,13 @@ export default function CaixinhaManagement() {
       if (!userData.user) throw new Error('User not authenticated');
 
       const { error } = await supabase
-        .from('caixinha_withdrawals')
+        .from('caixinha_transactions')
         .insert({
           season_id: activeSeason.id,
           organization_id: currentOrganization.id,
           amount,
           description: withdrawalDescription,
+          type: 'withdrawal',
           created_by: userData.user.id,
           user_id: userData.user.id,
         });
@@ -160,12 +173,62 @@ export default function CaixinhaManagement() {
       setShowWithdrawalDialog(false);
       setWithdrawalAmount("");
       setWithdrawalDescription("");
-      loadWithdrawals();
+      loadTransactions();
     } catch (error) {
       console.error('Error recording withdrawal:', error);
       toast({
         title: "Erro ao registrar saque",
         description: "Não foi possível registrar o saque.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!activeSeason || !currentOrganization) return;
+    
+    const amount = parseFloat(depositAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "Por favor, insira um valor válido para o depósito.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('caixinha_transactions')
+        .insert({
+          season_id: activeSeason.id,
+          organization_id: currentOrganization.id,
+          amount,
+          description: depositDescription,
+          type: 'deposit',
+          created_by: userData.user.id,
+          user_id: userData.user.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Depósito registrado",
+        description: `Depósito de ${formatCurrency(amount)} registrado com sucesso.`,
+      });
+
+      setShowDepositDialog(false);
+      setDepositAmount("");
+      setDepositDescription("");
+      loadTransactions();
+    } catch (error) {
+      console.error('Error recording deposit:', error);
+      toast({
+        title: "Erro ao registrar depósito",
+        description: "Não foi possível registrar o depósito.",
         variant: "destructive",
       });
     }
@@ -198,10 +261,10 @@ export default function CaixinhaManagement() {
       />
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Acumulado</CardTitle>
+            <CardTitle className="text-sm font-medium">Dos Jogos</CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
@@ -209,14 +272,29 @@ export default function CaixinhaManagement() {
               {formatCurrency(totalAccumulated)}
             </div>
             <p className="text-xs text-muted-foreground">
-              De {games?.filter(g => g.seasonId === activeSeason.id).length || 0} jogos
+              Acumulado automaticamente
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saques Realizados</CardTitle>
+            <CardTitle className="text-sm font-medium">Depósitos</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(totalDeposits)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Depósitos manuais
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Saques</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -224,7 +302,7 @@ export default function CaixinhaManagement() {
               {formatCurrency(totalWithdrawals)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {withdrawals.length} saques registrados
+              Saques realizados
             </p>
           </CardContent>
         </Card>
@@ -246,7 +324,7 @@ export default function CaixinhaManagement() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Jogadores Participantes</CardTitle>
+            <CardTitle className="text-sm font-medium">Jogadores</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -254,7 +332,7 @@ export default function CaixinhaManagement() {
               {participatingPlayersCount}
             </div>
             <p className="text-xs text-muted-foreground">
-              Contribuíram para a caixinha
+              Contribuíram
             </p>
           </CardContent>
         </Card>
@@ -262,10 +340,57 @@ export default function CaixinhaManagement() {
 
       {/* Actions */}
       <div className="flex gap-4">
+        <Dialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
+          <DialogTrigger asChild>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Depositar
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Registrar Depósito na Caixinha</DialogTitle>
+              <DialogDescription>
+                Registre um depósito manual nos recursos da caixinha.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="deposit-amount">Valor do Depósito</Label>
+                <Input
+                  id="deposit-amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deposit-description">Descrição</Label>
+                <Textarea
+                  id="deposit-description"
+                  placeholder="Descreva a origem do depósito..."
+                  value={depositDescription}
+                  onChange={(e) => setDepositDescription(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDepositDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleDeposit} className="bg-green-600 hover:bg-green-700">
+                Registrar Depósito
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={showWithdrawalDialog} onOpenChange={setShowWithdrawalDialog}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="w-4 h-4 mr-2" />
+              <TrendingDown className="w-4 h-4 mr-2" />
               Registrar Saque
             </Button>
           </DialogTrigger>
@@ -310,15 +435,15 @@ export default function CaixinhaManagement() {
         </Dialog>
       </div>
 
-      {/* Withdrawals History */}
+      {/* Transactions History */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <History className="w-5 h-5" />
-            Histórico de Saques
+            Histórico de Transações
           </CardTitle>
           <CardDescription>
-            Histórico completo dos saques realizados na temporada atual
+            Histórico completo das transações realizadas na temporada atual
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -327,11 +452,11 @@ export default function CaixinhaManagement() {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
               <p className="mt-2 text-muted-foreground">Carregando histórico...</p>
             </div>
-          ) : withdrawals.length === 0 ? (
+          ) : transactions.length === 0 ? (
             <div className="text-center py-8">
-              <TrendingDown className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                Nenhum saque registrado ainda.
+                Nenhuma transação registrada ainda.
               </p>
             </div>
           ) : (
@@ -339,20 +464,42 @@ export default function CaixinhaManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Descrição</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {withdrawals.map((withdrawal) => (
-                  <TableRow key={withdrawal.id}>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
                     <TableCell>
-                      {new Date(withdrawal.withdrawal_date).toLocaleDateString('pt-BR')}
+                      {new Date(transaction.withdrawal_date).toLocaleDateString('pt-BR')}
                     </TableCell>
-                    <TableCell className="font-medium text-red-600">
-                      {formatCurrency(withdrawal.amount)}
+                    <TableCell>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        transaction.type === 'deposit' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {transaction.type === 'deposit' ? (
+                          <>
+                            <TrendingUp className="w-3 h-3 mr-1" />
+                            Depósito
+                          </>
+                        ) : (
+                          <>
+                            <TrendingDown className="w-3 h-3 mr-1" />
+                            Saque
+                          </>
+                        )}
+                      </span>
                     </TableCell>
-                    <TableCell>{withdrawal.description}</TableCell>
+                    <TableCell className={`font-medium ${
+                      transaction.type === 'deposit' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {transaction.type === 'deposit' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                    </TableCell>
+                    <TableCell>{transaction.description}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

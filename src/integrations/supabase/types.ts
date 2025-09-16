@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      caixinha_withdrawals: {
+      caixinha_transactions: {
         Row: {
           amount: number
           created_at: string
@@ -23,6 +23,7 @@ export type Database = {
           id: string
           organization_id: string | null
           season_id: string
+          type: string
           user_id: string
           withdrawal_date: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           id?: string
           organization_id?: string | null
           season_id: string
+          type?: string
           user_id: string
           withdrawal_date?: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           id?: string
           organization_id?: string | null
           season_id?: string
+          type?: string
           user_id?: string
           withdrawal_date?: string
         }
