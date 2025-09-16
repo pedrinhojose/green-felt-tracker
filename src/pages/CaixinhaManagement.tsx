@@ -71,7 +71,9 @@ export default function CaixinhaManagement() {
   }, [transactions]);
 
   // Calculate available balance (accumulated from games + manual deposits - withdrawals)
-  const availableBalance = totalAccumulated + totalDeposits - totalWithdrawals;
+  const availableBalance = useMemo(() => {
+    return totalAccumulated + totalDeposits - totalWithdrawals;
+  }, [totalAccumulated, totalDeposits, totalWithdrawals]);
 
   // Count participating players
   const participatingPlayersCount = useMemo(() => {
