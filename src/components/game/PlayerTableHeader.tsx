@@ -10,7 +10,7 @@ export function PlayerTableHeader({ activeSeason }: PlayerTableHeaderProps) {
   return (
     <tr className="border-b border-poker-dark-green">
       <th className="text-left py-2 px-2">Jogador</th>
-      <th className="text-center p-2">Buy-In</th>
+      <th className="text-center px-1 py-2">Buy-In</th>
       <th className="text-center p-2">
         <div>Rebuys</div>
         <div className="text-xs text-muted-foreground">
@@ -23,9 +23,9 @@ export function PlayerTableHeader({ activeSeason }: PlayerTableHeaderProps) {
           {activeSeason ? formatCurrency(activeSeason.financialParams.addon) : 'R$ 0,00'}
         </div>
       </th>
-      <th className="text-center p-2">Janta</th>
+      <th className="text-center px-1 py-2">Janta</th>
       <th className="text-center p-2">Valor Janta</th>
-      <th className="text-center p-2">Participa Caixinha</th>
+      <th className="text-center px-1 py-2">Caixinha</th>
       <th className="text-center p-2">
         <div>Valor Caixinha</div>
         <div className="text-xs text-muted-foreground">

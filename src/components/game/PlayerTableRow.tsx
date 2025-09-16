@@ -62,7 +62,7 @@ export function PlayerTableRow({
         </div>
       </td>
       
-      <td className="p-2 text-center">
+      <td className="px-1 py-2 text-center">
         <Checkbox 
           checked={gamePlayer.buyIn}
           onCheckedChange={(checked) => onUpdatePlayerStats(gamePlayer.playerId, 'buyIn', !!checked)}
@@ -138,7 +138,7 @@ export function PlayerTableRow({
         </div>
       </td>
       
-      <td className="p-2 text-center">
+      <td className="px-1 py-2 text-center">
         <Checkbox 
           checked={gamePlayer.joinedDinner}
           onCheckedChange={(checked) => onUpdatePlayerStats(gamePlayer.playerId, 'joinedDinner', !!checked)}
@@ -150,7 +150,7 @@ export function PlayerTableRow({
         {gamePlayer.joinedDinner ? formatCurrency(dinnerSharePerPlayer) : '-'}
       </td>
       
-      <td className="p-2 text-center">
+      <td className="px-1 py-2 text-center">
         <Checkbox 
           checked={gamePlayer.participatesInClubFund}
           onCheckedChange={(checked) => onUpdatePlayerStats(gamePlayer.playerId, 'participatesInClubFund', !!checked)}
