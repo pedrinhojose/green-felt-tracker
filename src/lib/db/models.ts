@@ -54,6 +54,7 @@ export interface FinancialParams {
   rebuy: number;
   addon: number;
   jackpotContribution: number;
+  clubFundContribution: number;
 }
 
 export interface Game {

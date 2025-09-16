@@ -58,17 +58,32 @@ export function FinancialParamsConfig({ register, errors }: FinancialParamsConfi
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="jackpotContribution">Contribuição Jackpot (R$)</Label>
-          <Input 
-            id="jackpotContribution" 
-            type="number" 
-            min="0"
-            step="0.01" 
-            placeholder="5.00"
-            {...register("jackpotContribution", { required: "Contribuição para Jackpot é obrigatória", valueAsNumber: true })}
-          />
-          {errors.jackpotContribution && <p className="text-destructive text-sm">{errors.jackpotContribution.message}</p>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="jackpotContribution">Contribuição Jackpot (R$)</Label>
+            <Input 
+              id="jackpotContribution" 
+              type="number" 
+              min="0"
+              step="0.01" 
+              placeholder="5.00"
+              {...register("jackpotContribution", { required: "Contribuição para Jackpot é obrigatória", valueAsNumber: true })}
+            />
+            {errors.jackpotContribution && <p className="text-destructive text-sm">{errors.jackpotContribution.message}</p>}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="clubFundContribution">Contribuição Caixinha (R$)</Label>
+            <Input 
+              id="clubFundContribution" 
+              type="number" 
+              min="0"
+              step="0.01" 
+              placeholder="2.00"
+              {...register("clubFundContribution", { required: "Contribuição para Caixinha é obrigatória", valueAsNumber: true })}
+            />
+            {errors.clubFundContribution && <p className="text-destructive text-sm">{errors.clubFundContribution.message}</p>}
+          </div>
         </div>
       </CardContent>
     </Card>
