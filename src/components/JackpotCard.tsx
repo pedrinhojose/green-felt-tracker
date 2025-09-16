@@ -15,7 +15,7 @@ const JackpotCard = memo(function JackpotCard() {
   }, [jackpotAmount]);
 
   return (
-    <div className="card-dashboard animate-card-float relative">
+    <div className="card-dashboard relative">
       <div className="flex justify-between items-center mb-2">
         <h3 className="card-dashboard-header">Jackpot Atual</h3>
       </div>
