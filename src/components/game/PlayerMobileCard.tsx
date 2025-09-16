@@ -94,7 +94,7 @@ export function PlayerMobileCard({
         <Separator className="mb-3" />
         
         {/* Controles de Buy-in e Janta */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-3 gap-3 mb-3">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Buy-in</span>
@@ -122,6 +122,16 @@ export function PlayerMobileCard({
               <span className="text-xs text-muted-foreground block">Custo Janta</span>
               <span className="text-xs font-medium text-poker-gold">
                 {gamePlayer.joinedDinner ? formatCurrency(dinnerSharePerPlayer) : '-'}
+              </span>
+            </div>
+            
+            <div className="text-right">
+              <span className="text-xs text-muted-foreground block">Caixinha</span>
+              <span className="text-xs font-medium text-poker-blue">
+                {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
+                  ? formatCurrency(activeSeason.financialParams.clubFundContribution)
+                  : 'Isento'
+                }
               </span>
             </div>
           </div>

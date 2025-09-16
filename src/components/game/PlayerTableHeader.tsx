@@ -25,6 +25,14 @@ export function PlayerTableHeader({ activeSeason }: PlayerTableHeaderProps) {
       </th>
       <th className="text-center p-2">Janta</th>
       <th className="text-center p-2">Valor Janta</th>
+      <th className="text-center p-2">
+        <div>Caixinha</div>
+        <div className="text-xs text-muted-foreground">
+          {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
+            ? formatCurrency(activeSeason.financialParams.clubFundContribution) 
+            : 'Isento'}
+        </div>
+      </th>
       <th className="text-center p-2">Prêmio</th>
       <th className="text-center p-2">Pontos</th>
       <th className="text-center p-2">Saldo</th>

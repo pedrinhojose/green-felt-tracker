@@ -150,6 +150,13 @@ export function PlayerTableRow({
         {gamePlayer.joinedDinner ? formatCurrency(dinnerSharePerPlayer) : '-'}
       </td>
       
+      <td className="p-2 text-center">
+        {activeSeason?.financialParams.clubFundContribution && activeSeason.financialParams.clubFundContribution > 0 
+          ? formatCurrency(activeSeason.financialParams.clubFundContribution)
+          : '-'
+        }
+      </td>
+      
       <td className="p-2 text-center font-medium">
         {formatCurrency(gamePlayer.prize)}
       </td>
