@@ -38,7 +38,7 @@ const CaixinhaCard = memo(function CaixinhaCard() {
 
   return (
     <div 
-      className="card-dashboard animate-card-float relative cursor-pointer hover:scale-105 transition-transform duration-300"
+      className="card-dashboard relative cursor-pointer hover:scale-[1.02] transition-all duration-200 ease-out"
       onClick={handleClick}
     >
       <div className="flex justify-between items-center mb-2">
