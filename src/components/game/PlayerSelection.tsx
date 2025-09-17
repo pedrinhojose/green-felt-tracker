@@ -151,8 +151,11 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
            <div className={`grid gap-2 ${
             isMobile 
               ? "grid-cols-1" 
-              : `grid-cols-${columnCount}`
-          }`} style={{ gridAutoFlow: columnCount > 1 ? 'column' : 'row' }}>
+              : columnCount === 2 ? "grid-cols-2" : "grid-cols-3"
+          }`} style={{ 
+            gridAutoFlow: columnCount > 1 ? 'column' : 'row',
+            gridTemplateRows: columnCount > 1 ? `repeat(${Math.ceil(sortedPlayers.length / columnCount)}, minmax(0, 1fr))` : undefined
+          }}>
             {playersOrganizedVertically.map(player => (
               <div 
                 key={player.id}
