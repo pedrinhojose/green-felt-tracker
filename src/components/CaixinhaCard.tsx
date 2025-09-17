@@ -1,15 +1,62 @@
 import { usePoker } from "@/contexts/PokerContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
-import { Vault, TrendingUp } from "lucide-react";
-import { memo, useMemo } from "react";
+import { Vault, PiggyBank } from "lucide-react";
+import { memo, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface CaixinhaTransaction {
+  id: string;
+  amount: number;
+  description: string;
+  withdrawal_date: string;
+  created_by: string;
+  type: 'deposit' | 'withdrawal';
+}
 
 const CaixinhaCard = memo(function CaixinhaCard() {
   const { activeSeason, games } = usePoker();
+  const { currentOrganization } = useOrganization();
   const navigate = useNavigate();
+  const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
+
+  // Load transactions from Supabase
+  useEffect(() => {
+    const loadTransactions = async () => {
+      if (!activeSeason || !currentOrganization) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('caixinha_transactions')
+          .select('*')
+          .eq('season_id', activeSeason.id)
+          .eq('organization_id', currentOrganization.id)
+          .order('withdrawal_date', { ascending: false });
+
+        if (error) {
+          console.error('Error loading caixinha transactions:', error);
+          return;
+        }
+
+        setTransactions((data || []).map(item => ({
+          id: item.id,
+          amount: item.amount,
+          description: item.description,
+          withdrawal_date: item.withdrawal_date,
+          created_by: item.created_by,
+          type: item.type as 'deposit' | 'withdrawal'
+        })));
+      } catch (error) {
+        console.error('Error loading caixinha transactions:', error);
+      }
+    };
+
+    loadTransactions();
+  }, [activeSeason, currentOrganization]);
   
-  // Calculate total caixinha accumulated from all games in the active season
-  const caixinhaTotal = useMemo(() => {
+  // Calculate total accumulated from games (same logic as CaixinhaManagement)
+  const totalAccumulated = useMemo(() => {
     if (!activeSeason || !games) return 0;
     
     const seasonGames = games.filter(game => game.seasonId === activeSeason.id);
@@ -28,6 +75,24 @@ const CaixinhaCard = memo(function CaixinhaCard() {
     return total;
   }, [activeSeason, games]);
 
+  // Calculate deposits and withdrawals
+  const totalDeposits = useMemo(() => {
+    return transactions
+      .filter(transaction => transaction.type === 'deposit')
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+  }, [transactions]);
+
+  const totalWithdrawals = useMemo(() => {
+    return transactions
+      .filter(transaction => transaction.type === 'withdrawal')
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+  }, [transactions]);
+
+  // Calculate total available balance (games + deposits - withdrawals)
+  const caixinhaTotal = useMemo(() => {
+    return totalAccumulated + totalDeposits - totalWithdrawals;
+  }, [totalAccumulated, totalDeposits, totalWithdrawals]);
+
   const formattedTotal = useMemo(() => {
     return formatCurrency(caixinhaTotal);
   }, [caixinhaTotal]);
@@ -42,8 +107,8 @@ const CaixinhaCard = memo(function CaixinhaCard() {
       onClick={handleClick}
     >
       <div className="flex justify-between items-center mb-2">
-        <h3 className="card-dashboard-header">Caixinha Total</h3>
-        <TrendingUp className="w-5 h-5 text-emerald-400" />
+        <h3 className="card-dashboard-header">Saldo da Caixinha</h3>
+        <PiggyBank className="w-5 h-5 text-emerald-400" />
       </div>
       
       <div className="flex-1 flex items-center justify-center">
