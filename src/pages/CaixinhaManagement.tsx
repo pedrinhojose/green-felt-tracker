@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/lib/utils/dateUtils";
+import { formatCurrency, formatDate } from "@/lib/utils/dateUtils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,11 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Vault, Plus, TrendingDown, TrendingUp, History, Users, DollarSign, FileText, Image } from "lucide-react";
+import { Vault, Plus, TrendingDown, TrendingUp, History, Users, DollarSign, FileText, Image, Edit2, Trash2, CalendarIcon } from "lucide-react";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { useCaixinhaReportExport } from "@/hooks/useCaixinhaReportExport";
 import { CaixinhaReportContainer } from "@/components/reports/CaixinhaReportContainer";
+import { useUserRole } from "@/hooks/useUserRole";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface CaixinhaTransaction {
   id: string;
@@ -30,15 +36,25 @@ export default function CaixinhaManagement() {
   const { currentOrganization } = useOrganization();
   const { toast } = useToast();
   const { isExportingPdf, isExportingImage, exportCaixinhaReportAsPdf, exportCaixinhaReportAsImage } = useCaixinhaReportExport();
+  const { isAdmin } = useUserRole();
   
   const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
   const [withdrawalDescription, setWithdrawalDescription] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
   const [depositDescription, setDepositDescription] = useState("");
+  const [withdrawalDate, setWithdrawalDate] = useState<Date>(new Date());
+  const [depositDate, setDepositDate] = useState<Date>(new Date());
+  const [editingTransaction, setEditingTransaction] = useState<CaixinhaTransaction | null>(null);
+  const [transactionToDelete, setTransactionToDelete] = useState<CaixinhaTransaction | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editDate, setEditDate] = useState<Date>(new Date());
 
   // Calculate total accumulated from games
   const totalAccumulated = useMemo(() => {
@@ -163,6 +179,7 @@ export default function CaixinhaManagement() {
           organization_id: currentOrganization.id,
           amount,
           description: withdrawalDescription,
+          withdrawal_date: withdrawalDate.toISOString(),
           type: 'withdrawal',
           created_by: userData.user.id,
           user_id: userData.user.id,
@@ -178,6 +195,7 @@ export default function CaixinhaManagement() {
       setShowWithdrawalDialog(false);
       setWithdrawalAmount("");
       setWithdrawalDescription("");
+      setWithdrawalDate(new Date());
       loadTransactions();
     } catch (error) {
       console.error('Error recording withdrawal:', error);
@@ -213,6 +231,7 @@ export default function CaixinhaManagement() {
           organization_id: currentOrganization.id,
           amount,
           description: depositDescription,
+          withdrawal_date: depositDate.toISOString(),
           type: 'deposit',
           created_by: userData.user.id,
           user_id: userData.user.id,
@@ -228,12 +247,114 @@ export default function CaixinhaManagement() {
       setShowDepositDialog(false);
       setDepositAmount("");
       setDepositDescription("");
+      setDepositDate(new Date());
       loadTransactions();
     } catch (error) {
       console.error('Error recording deposit:', error);
       toast({
         title: "Erro ao registrar depósito",
         description: "Não foi possível registrar o depósito.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEditDialog = (transaction: CaixinhaTransaction) => {
+    setEditingTransaction(transaction);
+    setEditAmount(transaction.amount.toString());
+    setEditDescription(transaction.description);
+    setEditDate(new Date(transaction.withdrawal_date));
+    setShowEditDialog(true);
+  };
+
+  const openDeleteDialog = (transaction: CaixinhaTransaction) => {
+    setTransactionToDelete(transaction);
+    setShowDeleteDialog(true);
+  };
+
+  const handleEditTransaction = async () => {
+    if (!editingTransaction || !activeSeason || !currentOrganization) return;
+    
+    const amount = parseFloat(editAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "Por favor, insira um valor válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verificar saldo disponível apenas para saques
+    if (editingTransaction.type === 'withdrawal') {
+      const currentBalance = availableBalance + editingTransaction.amount; // Adiciona o valor original
+      if (amount > currentBalance) {
+        toast({
+          title: "Saldo insuficiente",
+          description: "O valor do saque não pode ser maior que o saldo disponível.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    try {
+      const { error } = await supabase
+        .from('caixinha_transactions')
+        .update({
+          amount,
+          description: editDescription,
+          withdrawal_date: editDate.toISOString(),
+        })
+        .eq('id', editingTransaction.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Transação atualizada",
+        description: "A transação foi atualizada com sucesso.",
+      });
+
+      setShowEditDialog(false);
+      setEditingTransaction(null);
+      setEditAmount("");
+      setEditDescription("");
+      setEditDate(new Date());
+      loadTransactions();
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      toast({
+        title: "Erro ao atualizar transação",
+        description: "Não foi possível atualizar a transação.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!transactionToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('caixinha_transactions')
+        .delete()
+        .eq('id', transactionToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Transação excluída",
+        description: "A transação foi excluída com sucesso.",
+      });
+
+      setShowDeleteDialog(false);
+      setTransactionToDelete(null);
+      loadTransactions();
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      toast({
+        title: "Erro ao excluir transação",
+        description: "Não foi possível excluir a transação.",
         variant: "destructive",
       });
     }
@@ -433,6 +554,32 @@ export default function CaixinhaManagement() {
                   onChange={(e) => setDepositDescription(e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Data da Transação</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !depositDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {depositDate ? format(depositDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={depositDate}
+                      onSelect={setDepositDate}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowDepositDialog(false)}>
@@ -479,6 +626,32 @@ export default function CaixinhaManagement() {
                   value={withdrawalDescription}
                   onChange={(e) => setWithdrawalDescription(e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Data da Transação</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !withdrawalDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {withdrawalDate ? format(withdrawalDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={withdrawalDate}
+                      onSelect={setWithdrawalDate}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             <DialogFooter>
@@ -545,6 +718,7 @@ export default function CaixinhaManagement() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Descrição</TableHead>
+                  {isAdmin() && <TableHead>Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -578,6 +752,28 @@ export default function CaixinhaManagement() {
                       {transaction.type === 'deposit' ? '+' : '-'} {formatCurrency(transaction.amount)}
                     </TableCell>
                     <TableCell>{transaction.description}</TableCell>
+                    {isAdmin() && (
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => openEditDialog(transaction)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => openDeleteDialog(transaction)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -585,6 +781,104 @@ export default function CaixinhaManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Transaction Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Transação</DialogTitle>
+            <DialogDescription>
+              Edite os dados da transação selecionada.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-amount">Valor</Label>
+              <Input
+                id="edit-amount"
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Descrição</Label>
+              <Textarea
+                id="edit-description"
+                placeholder="Descreva a transação..."
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Data da Transação</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !editDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editDate ? format(editDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={editDate}
+                    onSelect={setEditDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditTransaction}>
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Transaction Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          {transactionToDelete && (
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="space-y-1">
+                <p><strong>Tipo:</strong> {transactionToDelete.type === 'deposit' ? 'Depósito' : 'Saque'}</p>
+                <p><strong>Valor:</strong> {formatCurrency(transactionToDelete.amount)}</p>
+                <p><strong>Data:</strong> {formatDate(transactionToDelete.withdrawal_date)}</p>
+                <p><strong>Descrição:</strong> {transactionToDelete.description}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteTransaction}>
+              Confirmar Exclusão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Hidden Report Container for Image Export */}
       <div className="hidden">
