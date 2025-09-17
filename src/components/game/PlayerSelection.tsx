@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Player, GamePlayer, Season, Game } from "@/lib/db/models";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { PlayerSearch } from "@/components/players/PlayerSearch";
 
 
 interface PlayerSelectionProps {
@@ -18,13 +19,46 @@ interface PlayerSelectionProps {
 
 export default function PlayerSelection({ players, onStartGame, season, game }: PlayerSelectionProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
+  // Filter players based on search query
+  const filteredPlayers = players.filter(player =>
+    player.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   // Sort players alphabetically by name
-  const sortedPlayers = [...players].sort((a, b) => 
+  const sortedPlayers = [...filteredPlayers].sort((a, b) => 
     a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
   );
+  
+  // Function to organize players by columns (alphabetical distribution)
+  const organizePlayersByColumns = (players: Player[], columns: number) => {
+    const itemsPerColumn = Math.ceil(players.length / columns);
+    const organizedPlayers: Player[] = [];
+    
+    for (let col = 0; col < columns; col++) {
+      for (let row = 0; row < itemsPerColumn; row++) {
+        const index = col + row * columns;
+        if (index < players.length) {
+          organizedPlayers.push(players[index]);
+        }
+      }
+    }
+    
+    return organizedPlayers;
+  };
+  
+  // Get number of columns based on screen size
+  const getColumnCount = () => {
+    if (isMobile) return 1;
+    if (sortedPlayers.length <= 6) return 2;
+    return 3;
+  };
+  
+  const columnCount = getColumnCount();
+  const playersOrganizedByColumns = organizePlayersByColumns(sortedPlayers, columnCount);
   
   const togglePlayerSelection = (playerId: string) => {
     setSelectedPlayers(prevSelected => {
@@ -92,42 +126,65 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
           </CardTitle>
         </CardHeader>
       <CardContent className={isMobile ? "px-3" : ""}>
-        <div className={`grid gap-2 ${
-          isMobile 
-            ? "grid-cols-1" 
-            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-        }`}>
-          {sortedPlayers.map(player => (
-            <div 
-              key={player.id}
-              className={`${
-                isMobile ? "p-3" : "p-3"
-              } rounded-lg flex items-center gap-3 cursor-pointer transition-all ${
-                selectedPlayers.has(player.id) 
-                  ? 'bg-poker-dark-green border border-poker-gold shadow-lg' 
-                  : 'bg-poker-dark-green/50 hover:bg-poker-dark-green/70'
-              }`}
-              onClick={() => togglePlayerSelection(player.id)}
-            >
-              <Avatar className={isMobile ? "h-10 w-10" : "h-10 w-10"}>
-                {player.photoUrl ? (
-                  <AvatarImage src={player.photoUrl} alt={player.name} />
-                ) : null}
-                <AvatarFallback className="bg-poker-navy text-white">
-                  {getInitials(player.name)}
-                </AvatarFallback>
-              </Avatar>
-              
-              <span className={`flex-1 ${isMobile ? "text-base" : ""}`}>{player.name}</span>
-              
-              <Checkbox 
-                checked={selectedPlayers.has(player.id)}
-                onCheckedChange={() => togglePlayerSelection(player.id)}
-                className="pointer-events-none"
-              />
-            </div>
-          ))}
-        </div>
+        <PlayerSearch 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery} 
+        />
+        
+        {sortedPlayers.length === 0 && searchQuery && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Nenhum jogador encontrado com "{searchQuery}"
+            </p>
+          </div>
+        )}
+        
+        {sortedPlayers.length === 0 && !searchQuery && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Nenhum jogador disponível
+            </p>
+          </div>
+        )}
+        
+        {sortedPlayers.length > 0 && (
+          <div className={`grid gap-2 ${
+            isMobile 
+              ? "grid-cols-1" 
+              : `grid-cols-${columnCount}`
+          }`} style={{ gridAutoFlow: 'column' }}>
+            {playersOrganizedByColumns.map(player => (
+              <div 
+                key={player.id}
+                className={`${
+                  isMobile ? "p-3" : "p-3"
+                } rounded-lg flex items-center gap-3 cursor-pointer transition-all ${
+                  selectedPlayers.has(player.id) 
+                    ? 'bg-poker-dark-green border border-poker-gold shadow-lg' 
+                    : 'bg-poker-dark-green/50 hover:bg-poker-dark-green/70'
+                }`}
+                onClick={() => togglePlayerSelection(player.id)}
+              >
+                <Avatar className={isMobile ? "h-10 w-10" : "h-10 w-10"}>
+                  {player.photoUrl ? (
+                    <AvatarImage src={player.photoUrl} alt={player.name} />
+                  ) : null}
+                  <AvatarFallback className="bg-poker-navy text-white">
+                    {getInitials(player.name)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <span className={`flex-1 ${isMobile ? "text-base" : ""}`}>{player.name}</span>
+                
+                <Checkbox 
+                  checked={selectedPlayers.has(player.id)}
+                  onCheckedChange={() => togglePlayerSelection(player.id)}
+                  className="pointer-events-none"
+                />
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className={`${isMobile ? "mt-4" : "mt-6"} flex justify-center`}>
           <Button
