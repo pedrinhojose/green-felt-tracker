@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Download, RefreshCw } from "lucide-react";
 import { useRankingExport } from "@/lib/utils/rankingExportUtils";
 import { useRankingSync } from "@/hooks/useRankingSync";
+import { useNavigate } from "react-router-dom";
 
 export default function RankingCard() {
   const { rankings, activeSeason } = usePoker();
+  const navigate = useNavigate();
   const [topPlayers, setTopPlayers] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -147,8 +149,15 @@ export default function RankingCard() {
     );
   };
 
+  const handleCardClick = () => {
+    navigate('/ranking');
+  };
+
   return (
-    <div className="card-dashboard">
+    <div 
+      className="card-dashboard cursor-pointer hover:scale-[1.02] transition-all duration-200 ease-out"
+      onClick={handleCardClick}
+    >
       <div className="card-dashboard-header flex justify-between items-center">
         <h3>Top 3</h3>
         <div className="flex items-center gap-2">

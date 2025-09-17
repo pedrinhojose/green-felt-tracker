@@ -4,9 +4,11 @@ import { usePoker } from "@/contexts/PokerContext";
 import { Calendar, User, ChefHat } from "lucide-react";
 import { format, isAfter, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 export function UpcomingDinnerCard() {
   const { activeSeason } = usePoker();
+  const navigate = useNavigate();
 
   if (!activeSeason || !activeSeason.hostSchedule || activeSeason.hostSchedule.length === 0) {
     return (
@@ -72,8 +74,15 @@ export function UpcomingDinnerCard() {
     }
   };
 
+  const handleCardClick = () => {
+    navigate('/seasons');
+  };
+
   return (
-    <Card>
+    <Card 
+      className="cursor-pointer hover:scale-[1.02] transition-all duration-200 ease-out"
+      onClick={handleCardClick}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ChefHat size={20} />

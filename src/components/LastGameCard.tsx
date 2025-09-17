@@ -4,9 +4,11 @@ import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { FileImage, Image } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function LastGameCard() {
   const { lastGame, players, seasons } = usePoker();
+  const navigate = useNavigate();
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const { toast } = useToast();
@@ -84,8 +86,15 @@ export default function LastGameCard() {
     }
   };
 
+  const handleCardClick = () => {
+    navigate('/games');
+  };
+
   return (
-    <div className="card-dashboard">
+    <div 
+      className="card-dashboard cursor-pointer hover:scale-[1.02] transition-all duration-200 ease-out"
+      onClick={handleCardClick}
+    >
       <h3 className="card-dashboard-header">Última Partida</h3>
       
       {lastGame ? (

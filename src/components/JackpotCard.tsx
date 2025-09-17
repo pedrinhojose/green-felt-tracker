@@ -3,10 +3,12 @@ import { usePoker } from "@/contexts/PokerContext";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { DollarSign } from "lucide-react";
 import { memo, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Usando memo com uma função de comparação personalizada
 const JackpotCard = memo(function JackpotCard() {
   const { activeSeason } = usePoker();
+  const navigate = useNavigate();
   
   // Usa useMemo para evitar recálculos do valor formatado a cada renderização
   const jackpotAmount = activeSeason?.jackpot || 0;
@@ -14,8 +16,15 @@ const JackpotCard = memo(function JackpotCard() {
     return formatCurrency(jackpotAmount);
   }, [jackpotAmount]);
 
+  const handleClick = () => {
+    navigate('/seasons');
+  };
+
   return (
-    <div className="card-dashboard relative">
+    <div 
+      className="card-dashboard relative cursor-pointer hover:scale-[1.02] transition-all duration-200 ease-out"
+      onClick={handleClick}
+    >
       <div className="flex justify-between items-center mb-2">
         <h3 className="card-dashboard-header">Jackpot Atual</h3>
       </div>
