@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Vault, Plus, TrendingDown, TrendingUp, History, Users, DollarSign } from "lucide-react";
+import { Vault, Plus, TrendingDown, TrendingUp, History, Users, DollarSign, FileText, Image } from "lucide-react";
 import { PageHeader } from "@/components/navigation/PageHeader";
+import { useCaixinhaReportExport } from "@/hooks/useCaixinhaReportExport";
+import { CaixinhaReportContainer } from "@/components/reports/CaixinhaReportContainer";
 
 interface CaixinhaTransaction {
   id: string;
@@ -27,6 +29,7 @@ export default function CaixinhaManagement() {
   const { activeSeason, games } = usePoker();
   const { currentOrganization } = useOrganization();
   const { toast } = useToast();
+  const { isExportingPdf, isExportingImage, exportCaixinhaReportAsPdf, exportCaixinhaReportAsImage } = useCaixinhaReportExport();
   
   const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -236,6 +239,59 @@ export default function CaixinhaManagement() {
     }
   };
 
+  const handleExportPdf = async () => {
+    if (!activeSeason || !currentOrganization) return;
+    
+    try {
+      const reportData = {
+        seasonName: activeSeason.name,
+        organizationName: currentOrganization.name,
+        totalAccumulated,
+        totalDeposits,
+        totalWithdrawals,
+        availableBalance,
+        participatingPlayersCount,
+        transactions,
+      };
+      
+      const filename = `relatorio-caixinha-${activeSeason.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}`;
+      await exportCaixinhaReportAsPdf(reportData, filename);
+      
+      toast({
+        title: "Relatório exportado",
+        description: "O relatório PDF foi gerado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Erro na exportação",
+        description: "Não foi possível gerar o relatório PDF.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportImage = async () => {
+    if (!activeSeason || !currentOrganization) return;
+    
+    try {
+      const filename = `relatorio-caixinha-${activeSeason.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}`;
+      await exportCaixinhaReportAsImage('caixinha-report-container', filename);
+      
+      toast({
+        title: "Relatório exportado",
+        description: "O relatório em imagem foi gerado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error exporting image:', error);
+      toast({
+        title: "Erro na exportação",
+        description: "Não foi possível gerar o relatório em imagem.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!activeSeason) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -341,7 +397,7 @@ export default function CaixinhaManagement() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Dialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
           <DialogTrigger asChild>
             <Button className="bg-green-600 hover:bg-green-700">
@@ -435,6 +491,26 @@ export default function CaixinhaManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Export Buttons */}
+        <Button 
+          variant="outline" 
+          onClick={handleExportPdf} 
+          disabled={isExportingPdf}
+          className="ml-auto"
+        >
+          <FileText className="w-4 h-4 mr-2" />
+          {isExportingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
+        </Button>
+
+        <Button 
+          variant="outline" 
+          onClick={handleExportImage} 
+          disabled={isExportingImage}
+        >
+          <Image className="w-4 h-4 mr-2" />
+          {isExportingImage ? 'Gerando Imagem...' : 'Exportar Imagem'}
+        </Button>
       </div>
 
       {/* Transactions History */}
@@ -509,6 +585,20 @@ export default function CaixinhaManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Hidden Report Container for Image Export */}
+      <div className="hidden">
+        <CaixinhaReportContainer
+          seasonName={activeSeason.name}
+          organizationName={currentOrganization?.name || ''}
+          totalAccumulated={totalAccumulated}
+          totalDeposits={totalDeposits}
+          totalWithdrawals={totalWithdrawals}
+          availableBalance={availableBalance}
+          participatingPlayersCount={participatingPlayersCount}
+          transactions={transactions}
+        />
+      </div>
     </div>
   );
 }
