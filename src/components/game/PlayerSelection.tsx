@@ -42,6 +42,24 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
   
   const columnCount = getColumnCount();
   
+  // Function to organize players vertically by columns (A,B,C in col1, D,E,F in col2, etc.)
+  const organizePlayersVertically = (players: Player[], columns: number) => {
+    if (columns === 1) return players;
+    
+    const itemsPerColumn = Math.ceil(players.length / columns);
+    const organized: Player[] = [];
+    
+    for (let col = 0; col < columns; col++) {
+      const start = col * itemsPerColumn;
+      const end = Math.min(start + itemsPerColumn, players.length);
+      organized.push(...players.slice(start, end));
+    }
+    
+    return organized;
+  };
+  
+  const playersOrganizedVertically = organizePlayersVertically(sortedPlayers, columnCount);
+  
   const togglePlayerSelection = (playerId: string) => {
     setSelectedPlayers(prevSelected => {
       const newSelected = new Set(prevSelected);
@@ -134,8 +152,8 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
             isMobile 
               ? "grid-cols-1" 
               : `grid-cols-${columnCount}`
-          }`}>
-            {sortedPlayers.map(player => (
+          }`} style={{ gridAutoFlow: columnCount > 1 ? 'column' : 'row' }}>
+            {playersOrganizedVertically.map(player => (
               <div 
                 key={player.id}
                 className={`${
