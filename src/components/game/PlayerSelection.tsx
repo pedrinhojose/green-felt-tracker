@@ -33,32 +33,14 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
     a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
   );
   
-  // Function to organize players by columns (alphabetical distribution)
-  const organizePlayersByColumns = (players: Player[], columns: number) => {
-    const itemsPerColumn = Math.ceil(players.length / columns);
-    const organizedPlayers: Player[] = [];
-    
-    for (let col = 0; col < columns; col++) {
-      for (let row = 0; row < itemsPerColumn; row++) {
-        const index = col + row * columns;
-        if (index < players.length) {
-          organizedPlayers.push(players[index]);
-        }
-      }
-    }
-    
-    return organizedPlayers;
-  };
-  
   // Get number of columns based on screen size
   const getColumnCount = () => {
     if (isMobile) return 1;
-    if (sortedPlayers.length <= 6) return 2;
+    if (sortedPlayers.length <= 8) return 2;
     return 3;
   };
   
   const columnCount = getColumnCount();
-  const playersOrganizedByColumns = organizePlayersByColumns(sortedPlayers, columnCount);
   
   const togglePlayerSelection = (playerId: string) => {
     setSelectedPlayers(prevSelected => {
@@ -148,12 +130,12 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
         )}
         
         {sortedPlayers.length > 0 && (
-          <div className={`grid gap-2 ${
+           <div className={`grid gap-2 ${
             isMobile 
               ? "grid-cols-1" 
               : `grid-cols-${columnCount}`
-          }`} style={{ gridAutoFlow: 'column' }}>
-            {playersOrganizedByColumns.map(player => (
+          }`}>
+            {sortedPlayers.map(player => (
               <div 
                 key={player.id}
                 className={`${
