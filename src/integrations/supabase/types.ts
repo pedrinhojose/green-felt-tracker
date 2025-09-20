@@ -472,6 +472,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_caixinha_stats: {
+        Args: { p_season_id: string }
+        Returns: Json
+      }
       get_user_organizations: {
         Args: { user_id: string }
         Returns: {
