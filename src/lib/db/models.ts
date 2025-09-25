@@ -55,6 +55,7 @@ export interface FinancialParams {
   addon: number;
   jackpotContribution: number;
   clubFundContribution: number;
+  pixKey?: string;
 }
 
 export interface Game {

@@ -77,6 +77,7 @@ export function useSeasonFormSubmitter(
           addon: Number(data.addon),
           jackpotContribution: Number(data.jackpotContribution),
           clubFundContribution: Number(data.clubFundContribution),
+          pixKey: data.pixKey || undefined,
         },
         hostSchedule: hostSchedule || []
       };

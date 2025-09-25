@@ -12,6 +12,7 @@ export const createDefaultFinancialParams = (): FinancialParams => {
     addon: 15,
     jackpotContribution: 5,
     clubFundContribution: 2,
+    pixKey: undefined,
   };
 };
 

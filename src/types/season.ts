@@ -20,6 +20,7 @@ export interface SeasonFormValues {
   addon: number;
   jackpotContribution: number;
   clubFundContribution: number;
+  pixKey?: string;
   houseRules: string;
 }
 

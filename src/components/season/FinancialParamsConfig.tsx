@@ -85,6 +85,18 @@ export function FinancialParamsConfig({ register, errors }: FinancialParamsConfi
             {errors.clubFundContribution && <p className="text-destructive text-sm">{errors.clubFundContribution.message}</p>}
           </div>
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="pixKey">Chave PIX</Label>
+          <Input 
+            id="pixKey" 
+            type="text" 
+            maxLength={77}
+            placeholder="Digite sua chave PIX (CPF, CNPJ, e-mail, telefone ou chave aleatória)"
+            {...register("pixKey")}
+          />
+          {errors.pixKey && <p className="text-destructive text-sm">{errors.pixKey.message}</p>}
+        </div>
       </CardContent>
     </Card>
   );

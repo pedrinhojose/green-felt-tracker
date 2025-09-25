@@ -25,6 +25,8 @@ export function useSeasonFormInitializer(
       setValue('rebuy', activeSeason.financialParams.rebuy);
       setValue('addon', activeSeason.financialParams.addon);
       setValue('jackpotContribution', activeSeason.financialParams.jackpotContribution);
+      setValue('clubFundContribution', activeSeason.financialParams.clubFundContribution);
+      setValue('pixKey', activeSeason.financialParams.pixKey || '');
       setValue('houseRules', activeSeason.houseRules || '');
       
       setScoreEntries([...activeSeason.scoreSchema]);
@@ -50,6 +52,8 @@ export function useSeasonFormInitializer(
       setValue('rebuy', 15);
       setValue('addon', 15);
       setValue('jackpotContribution', 5);
+      setValue('clubFundContribution', 2);
+      setValue('pixKey', '');
       setValue('houseRules', '');
       
       // Updated default score schema matching the image (6 positions)
