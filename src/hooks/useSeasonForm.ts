@@ -19,7 +19,7 @@ export function useSeasonForm(
   const [blindLevels, setBlindLevels] = useState<BlindLevel[]>([]);
   const [hostSchedule, setHostSchedule] = useState<HostScheduleEntry[]>([]);
   
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<SeasonFormValues>();
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<SeasonFormValues>();
 
   // Initialize form values
   useSeasonFormInitializer(
@@ -53,6 +53,8 @@ export function useSeasonForm(
   return {
     register,
     handleSubmit,
+    setValue,
+    watch,
     errors,
     scoreEntries,
     setScoreEntries,

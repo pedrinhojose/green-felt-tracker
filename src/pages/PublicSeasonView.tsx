@@ -64,7 +64,8 @@ export default function PublicSeasonView() {
           isActive: seasonData.is_active,
           jackpot: seasonData.jackpot,
           clubFund: (seasonData as any).club_fund || 0,
-          gamesPerWeek: seasonData.games_per_week,
+          gameFrequency: seasonData.game_frequency as 'daily' | 'weekly' | 'biweekly' | 'monthly' || 'weekly',
+          gamesPerPeriod: seasonData.games_per_period || 1,
           
           createdAt: new Date(seasonData.created_at),
           houseRules: seasonData.house_rules || '',

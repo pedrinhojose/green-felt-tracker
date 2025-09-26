@@ -14,7 +14,8 @@ export interface PrizeEntry {
 export interface SeasonFormValues {
   name: string;
   startDate: string;
-  gamesPerWeek: number;
+  gameFrequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
+  gamesPerPeriod: number;
   buyIn: number;
   rebuy: number;
   addon: number;

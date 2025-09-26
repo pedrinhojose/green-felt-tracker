@@ -1,6 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Season, FinancialParams, BlindLevel } from '../lib/db/models';
+import { GameFrequency } from './gameFrequencyUtils';
 
 /**
  * Creates default financial parameters for a new season
@@ -81,7 +82,8 @@ export const buildNewSeason = (seasonData: Partial<Season>, seasonsCount: number
     id: uuidv4(),
     name: seasonData.name || `Temporada ${seasonsCount + 1}`,
     startDate: seasonData.startDate || now,
-    gamesPerWeek: seasonData.gamesPerWeek || 1,
+    gameFrequency: seasonData.gameFrequency || 'weekly',
+    gamesPerPeriod: seasonData.gamesPerPeriod || 1,
     isActive: true,
     scoreSchema: seasonData.scoreSchema || createDefaultScoreSchema(),
     weeklyPrizeSchema: seasonData.weeklyPrizeSchema || createDefaultPrizeSchema(),

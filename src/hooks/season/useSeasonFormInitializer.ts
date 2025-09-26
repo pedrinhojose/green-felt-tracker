@@ -20,7 +20,8 @@ export function useSeasonFormInitializer(
     if (activeSeason && !isCreating) {
       setValue('name', activeSeason.name);
       setValue('startDate', new Date(activeSeason.startDate).toISOString().split('T')[0]);
-      setValue('gamesPerWeek', activeSeason.gamesPerWeek);
+      setValue('gameFrequency', activeSeason.gameFrequency || 'weekly');
+      setValue('gamesPerPeriod', activeSeason.gamesPerPeriod || 1);
       setValue('buyIn', activeSeason.financialParams.buyIn);
       setValue('rebuy', activeSeason.financialParams.rebuy);
       setValue('addon', activeSeason.financialParams.addon);
@@ -47,7 +48,8 @@ export function useSeasonFormInitializer(
       // Default values for new season
       const today = new Date().toISOString().split('T')[0];
       setValue('startDate', today);
-      setValue('gamesPerWeek', 1);
+      setValue('gameFrequency', 'weekly');
+      setValue('gamesPerPeriod', 1);
       setValue('buyIn', 15);
       setValue('rebuy', 15);
       setValue('addon', 15);

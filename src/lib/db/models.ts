@@ -15,7 +15,8 @@ export interface Season {
   name: string;
   startDate: Date;
   endDate?: Date;
-  gamesPerWeek: number;
+  gameFrequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
+  gamesPerPeriod: number;
   isActive: boolean;
   scoreSchema: ScoreEntry[];
   weeklyPrizeSchema: PrizeEntry[];

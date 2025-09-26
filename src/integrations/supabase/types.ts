@@ -379,6 +379,8 @@ export type Database = {
           created_at: string
           end_date: string | null
           financial_params: Json
+          game_frequency: string
+          games_per_period: number
           games_per_week: number
           host_schedule: Json
           house_rules: string | null
@@ -400,6 +402,8 @@ export type Database = {
           created_at?: string
           end_date?: string | null
           financial_params?: Json
+          game_frequency?: string
+          games_per_period?: number
           games_per_week?: number
           host_schedule?: Json
           house_rules?: string | null
@@ -421,6 +425,8 @@ export type Database = {
           created_at?: string
           end_date?: string | null
           financial_params?: Json
+          game_frequency?: string
+          games_per_period?: number
           games_per_week?: number
           host_schedule?: Json
           house_rules?: string | null

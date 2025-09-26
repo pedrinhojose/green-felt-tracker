@@ -33,7 +33,9 @@ export default function SeasonConfig() {
   
   const { 
     register, 
-    handleSubmit, 
+    handleSubmit,
+    setValue,
+    watch,
     errors,
     scoreEntries, 
     setScoreEntries,
@@ -102,7 +104,12 @@ export default function SeasonConfig() {
       </div>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <SeasonBasicInfo register={register} errors={errors} />
+        <SeasonBasicInfo 
+          register={register} 
+          setValue={setValue}
+          errors={errors} 
+          gameFrequency={watch('gameFrequency')}
+        />
         
         <Tabs defaultValue="scores">
           <TabsList className="grid w-full grid-cols-6">
