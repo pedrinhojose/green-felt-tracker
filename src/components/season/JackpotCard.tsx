@@ -1,11 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
-import { memo, useMemo, useState } from "react";
-import { usePoker } from "@/contexts/PokerContext";
-import { RefreshCw } from "lucide-react";
+import { memo, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface JackpotCardProps {
   activeSeason: Season;
@@ -13,49 +11,41 @@ interface JackpotCardProps {
 
 // Usando memo com uma função de comparação explícita para prevenir re-renderizações desnecessárias
 export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCardProps) {
-  const { fixSeasonJackpot } = usePoker();
-  const [isRecalculating, setIsRecalculating] = useState(false);
+  const navigate = useNavigate();
   
   // Usa useMemo para evitar recálculos do valor formatado a cada renderização
   const formattedJackpot = useMemo(() => {
     return formatCurrency(activeSeason?.jackpot || 0);
   }, [activeSeason?.jackpot]);
 
-  const handleRecalculateJackpot = async () => {
-    if (!activeSeason) return;
-    
-    setIsRecalculating(true);
-    try {
-      await fixSeasonJackpot(activeSeason.id);
-    } catch (error) {
-      console.error("Erro ao recalcular jackpot:", error);
-    } finally {
-      setIsRecalculating(false);
-    }
+  const handleClick = () => {
+    navigate('/seasons');
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Jackpot Final</CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRecalculateJackpot}
-          disabled={isRecalculating || !activeSeason}
-          className="gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${isRecalculating ? 'animate-spin' : ''}`} />
-          {isRecalculating ? 'Recalculando...' : 'Recalcular'}
-        </Button>
+    <Card className="cursor-pointer transition-all hover:scale-105" onClick={handleClick}>
+      <CardHeader>
+        <CardTitle>Jackpot Atual</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="text-center">
-          <div className="text-3xl font-bold text-poker-gold mb-2">
-            {formattedJackpot}
+          {/* Ícone visual de dinheiro empilhado */}
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="w-12 h-8 bg-green-500 rounded-sm transform rotate-3 absolute"></div>
+              <div className="w-12 h-8 bg-green-600 rounded-sm transform -rotate-2 absolute top-1"></div>
+              <div className="w-12 h-8 bg-green-700 rounded-sm absolute top-2"></div>
+            </div>
           </div>
-          <p className="text-muted-foreground">
-            O jackpot será distribuído ao encerrar a temporada conforme a configuração de premiação final.
+          
+          <div className="text-3xl font-bold text-poker-gold mb-2">
+            {activeSeason ? formattedJackpot : 'Sem temporada ativa'}
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {activeSeason 
+              ? 'O jackpot será distribuído ao final da temporada'
+              : 'Ative uma temporada para iniciar o jackpot'
+            }
           </p>
         </div>
       </CardContent>
