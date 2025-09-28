@@ -1,6 +1,7 @@
 
 import { useSeasonCrud } from '../hooks/useSeasonCrud';
 import { useSeasonFinalization } from '../hooks/useSeasonFinalization';
+import { useJackpotRecalculation } from '../hooks/useJackpotRecalculation';
 import { pokerDB } from '../lib/db';
 
 export function useSeasonFunctions() {
@@ -17,6 +18,8 @@ export function useSeasonFunctions() {
     setSeasons, 
     setActiveSeason
   );
+  
+  const { recalculateSeasonJackpot, fixSeasonJackpot } = useJackpotRecalculation();
 
   /**
    * Activates a season and deactivates all others
@@ -78,6 +81,8 @@ export function useSeasonFunctions() {
     updateSeason,
     endSeason,
     activateSeason,
-    deactivateSeason
+    deactivateSeason,
+    recalculateSeasonJackpot,
+    fixSeasonJackpot
   };
 }
