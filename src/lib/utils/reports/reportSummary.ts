@@ -169,6 +169,38 @@ export const createReportSummary = (game: Game, players = []) => {
   prizeRow.appendChild(prizeValue);
   summary.appendChild(prizeRow);
   
+  // Total Caixinha (Club Fund)
+  const totalCaixinha = game.players.reduce((total, player) => {
+    return total + (player.clubFundContribution || 0);
+  }, 0);
+  
+  if (totalCaixinha > 0) {
+    const caixinhaRow = document.createElement('div');
+    caixinhaRow.style.display = 'grid';
+    caixinhaRow.style.gridTemplateColumns = 'minmax(100px, 1fr) 70px';
+    caixinhaRow.style.gap = '2px';
+    caixinhaRow.style.marginTop = '4px';
+    caixinhaRow.style.paddingTop = '8px';
+    caixinhaRow.style.borderTop = '1px dashed rgba(255,255,255,0.1)';
+    caixinhaRow.style.marginBottom = '8px';
+    
+    const caixinhaLabel = document.createElement('div');
+    caixinhaLabel.textContent = 'Total Caixinha:';
+    caixinhaLabel.style.color = '#8E9196';
+    caixinhaLabel.style.fontSize = '13px';
+    
+    const caixinhaValue = document.createElement('div');
+    caixinhaValue.textContent = formatCurrency(totalCaixinha);
+    caixinhaValue.style.fontWeight = 'bold';
+    caixinhaValue.style.color = '#9b87f5';
+    caixinhaValue.style.fontSize = '13px';
+    caixinhaValue.style.textAlign = 'center';
+    
+    caixinhaRow.appendChild(caixinhaLabel);
+    caixinhaRow.appendChild(caixinhaValue);
+    summary.appendChild(caixinhaRow);
+  }
+  
   // Jackpot contribution (new)
   if (game.seasonId) {
     // Add "RETIRADO AO JACKPOT" row
