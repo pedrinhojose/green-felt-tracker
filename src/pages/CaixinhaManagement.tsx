@@ -21,15 +21,9 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-
-interface CaixinhaTransaction {
-  id: string;
-  amount: number;
-  description: string;
-  withdrawal_date: string;
-  created_by: string;
-  type: 'deposit' | 'withdrawal';
-}
+import { useCaixinhaUnifiedTransactions, type CaixinhaTransaction, type GameContribution } from "@/hooks/useCaixinhaUnifiedTransactions";
+import { GameContributionsDialog } from "@/components/caixinha/GameContributionsDialog";
+import { UnifiedTransactionRow } from "@/components/caixinha/UnifiedTransactionRow";
 
 export default function CaixinhaManagement() {
   const { activeSeason, games } = usePoker();
@@ -38,12 +32,15 @@ export default function CaixinhaManagement() {
   const { isExportingPdf, isExportingImage, exportCaixinhaReportAsPdf, exportCaixinhaReportAsImage } = useCaixinhaReportExport();
   const { isAdmin } = useUserRole();
   
-  const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use unified transactions hook
+  const { unifiedTransactions, manualTransactions, isLoading, reload } = useCaixinhaUnifiedTransactions(activeSeason?.id);
+  
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showGameContributionsDialog, setShowGameContributionsDialog] = useState(false);
+  const [selectedGameContribution, setSelectedGameContribution] = useState<GameContribution | null>(null);
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
   const [withdrawalDescription, setWithdrawalDescription] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
@@ -78,16 +75,16 @@ export default function CaixinhaManagement() {
 
   // Calculate total deposits and withdrawals
   const totalDeposits = useMemo(() => {
-    return transactions
+    return manualTransactions
       .filter(transaction => transaction.type === 'deposit')
       .reduce((sum, transaction) => sum + transaction.amount, 0);
-  }, [transactions]);
+  }, [manualTransactions]);
 
   const totalWithdrawals = useMemo(() => {
-    return transactions
+    return manualTransactions
       .filter(transaction => transaction.type === 'withdrawal')
       .reduce((sum, transaction) => sum + transaction.amount, 0);
-  }, [transactions]);
+  }, [manualTransactions]);
 
   // Calculate available balance (accumulated from games + manual deposits - withdrawals)
   const availableBalance = useMemo(() => {
@@ -114,37 +111,6 @@ export default function CaixinhaManagement() {
     return playerIds.size;
   }, [activeSeason, games]);
 
-  // Load transactions
-  useEffect(() => {
-    if (activeSeason && currentOrganization) {
-      loadTransactions();
-    }
-  }, [activeSeason, currentOrganization]);
-
-  const loadTransactions = async () => {
-    if (!activeSeason || !currentOrganization) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('caixinha_transactions')
-        .select('*')
-        .eq('season_id', activeSeason.id)
-        .eq('organization_id', currentOrganization.id)
-        .order('withdrawal_date', { ascending: false });
-
-      if (error) throw error;
-      setTransactions((data || []) as CaixinhaTransaction[]);
-    } catch (error) {
-      console.error('Error loading transactions:', error);
-      toast({
-        title: "Erro ao carregar transações",
-        description: "Não foi possível carregar o histórico de transações.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleWithdrawal = async () => {
     if (!activeSeason || !currentOrganization) return;
@@ -196,7 +162,7 @@ export default function CaixinhaManagement() {
       setWithdrawalAmount("");
       setWithdrawalDescription("");
       setWithdrawalDate(new Date());
-      loadTransactions();
+      reload();
     } catch (error) {
       console.error('Error recording withdrawal:', error);
       toast({
@@ -248,7 +214,7 @@ export default function CaixinhaManagement() {
       setDepositAmount("");
       setDepositDescription("");
       setDepositDate(new Date());
-      loadTransactions();
+      reload();
     } catch (error) {
       console.error('Error recording deposit:', error);
       toast({
@@ -320,7 +286,7 @@ export default function CaixinhaManagement() {
       setEditAmount("");
       setEditDescription("");
       setEditDate(new Date());
-      loadTransactions();
+      reload();
     } catch (error) {
       console.error('Error updating transaction:', error);
       toast({
@@ -349,7 +315,7 @@ export default function CaixinhaManagement() {
 
       setShowDeleteDialog(false);
       setTransactionToDelete(null);
-      loadTransactions();
+      reload();
     } catch (error) {
       console.error('Error deleting transaction:', error);
       toast({
@@ -372,7 +338,7 @@ export default function CaixinhaManagement() {
         totalWithdrawals,
         availableBalance,
         participatingPlayersCount,
-        transactions,
+        transactions: manualTransactions,
       };
       
       const filename = `relatorio-caixinha-${activeSeason.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}`;
@@ -390,6 +356,11 @@ export default function CaixinhaManagement() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleViewGameContribution = (contribution: GameContribution) => {
+    setSelectedGameContribution(contribution);
+    setShowGameContributionsDialog(true);
   };
 
   const handleExportImage = async () => {
@@ -703,7 +674,7 @@ export default function CaixinhaManagement() {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
               <p className="mt-2 text-muted-foreground">Carregando histórico...</p>
             </div>
-          ) : transactions.length === 0 ? (
+          ) : unifiedTransactions.length === 0 ? (
             <div className="text-center py-8">
               <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
@@ -718,63 +689,19 @@ export default function CaixinhaManagement() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Descrição</TableHead>
-                  {isAdmin() && <TableHead>Ações</TableHead>}
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell>
-                      {new Date(transaction.withdrawal_date).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        transaction.type === 'deposit' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {transaction.type === 'deposit' ? (
-                          <>
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            Depósito
-                          </>
-                        ) : (
-                          <>
-                            <TrendingDown className="w-3 h-3 mr-1" />
-                            Saque
-                          </>
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell className={`font-medium ${
-                      transaction.type === 'deposit' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {transaction.type === 'deposit' ? '+' : '-'} {formatCurrency(transaction.amount)}
-                    </TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    {isAdmin() && (
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => openEditDialog(transaction)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => openDeleteDialog(transaction)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
+                {unifiedTransactions.map((transaction) => (
+                  <UnifiedTransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    isAdmin={isAdmin()}
+                    onEdit={openEditDialog}
+                    onDelete={openDeleteDialog}
+                    onViewDetails={handleViewGameContribution}
+                  />
                 ))}
               </TableBody>
             </Table>
@@ -880,6 +807,15 @@ export default function CaixinhaManagement() {
         </DialogContent>
       </Dialog>
 
+      {/* Game Contributions Dialog */}
+      {selectedGameContribution && (
+        <GameContributionsDialog
+          open={showGameContributionsDialog}
+          onOpenChange={setShowGameContributionsDialog}
+          contribution={selectedGameContribution}
+        />
+      )}
+
       {/* Hidden Report Container for Image Export */}
       <div className="hidden">
         <CaixinhaReportContainer
@@ -890,7 +826,7 @@ export default function CaixinhaManagement() {
           totalWithdrawals={totalWithdrawals}
           availableBalance={availableBalance}
           participatingPlayersCount={participatingPlayersCount}
-          transactions={transactions}
+          transactions={manualTransactions}
         />
       </div>
     </div>
