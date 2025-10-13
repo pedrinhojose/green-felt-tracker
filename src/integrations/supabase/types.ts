@@ -372,6 +372,51 @@ export type Database = {
           },
         ]
       }
+      season_jackpot_distributions: {
+        Row: {
+          created_at: string
+          distributed_at: string
+          id: string
+          organization_id: string | null
+          percentage: number
+          player_id: string
+          player_name: string
+          position: number
+          prize_amount: number
+          season_id: string
+          total_jackpot: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          distributed_at?: string
+          id?: string
+          organization_id?: string | null
+          percentage: number
+          player_id: string
+          player_name: string
+          position: number
+          prize_amount: number
+          season_id: string
+          total_jackpot: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          distributed_at?: string
+          id?: string
+          organization_id?: string | null
+          percentage?: number
+          player_id?: string
+          player_name?: string
+          position?: number
+          prize_amount?: number
+          season_id?: string
+          total_jackpot?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       seasons: {
         Row: {
           blind_structure: Json

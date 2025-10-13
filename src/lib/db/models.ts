@@ -113,3 +113,18 @@ export interface HostScheduleConfig {
   endDate: Date;
   frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
 }
+
+export interface SeasonJackpotDistribution {
+  id: string;
+  seasonId: string;
+  playerId: string;
+  playerName: string;
+  position: number;
+  percentage: number;
+  prizeAmount: number;
+  totalJackpot: number;
+  distributedAt: Date;
+  createdAt: Date;
+  organizationId?: string;
+  userId: string;
+}

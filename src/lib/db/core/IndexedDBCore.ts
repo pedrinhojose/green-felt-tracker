@@ -1,6 +1,6 @@
 import { DatabaseCore } from './DatabaseCore';
 import { DatabaseInterface } from './DatabaseInterface';
-import { Player, Season, Game, RankingEntry } from '../models';
+import { Player, Season, Game, RankingEntry, SeasonJackpotDistribution } from '../models';
 import { v4 as uuidv4 } from 'uuid';
 
 export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
@@ -186,5 +186,20 @@ export class IndexedDBCore extends DatabaseCore implements DatabaseInterface {
         await db.put('rankings', ranking);
       }
     }
+  }
+
+  // Jackpot Distributions (stub implementation for IndexedDB)
+  async saveJackpotDistributions(distributions: Partial<SeasonJackpotDistribution>[]): Promise<void> {
+    console.warn('saveJackpotDistributions not implemented for IndexedDB');
+  }
+
+  async getJackpotDistributionsBySeasonId(seasonId: string): Promise<SeasonJackpotDistribution[]> {
+    console.warn('getJackpotDistributionsBySeasonId not implemented for IndexedDB');
+    return [];
+  }
+
+  async getJackpotDistributionsByPlayerId(playerId: string): Promise<SeasonJackpotDistribution[]> {
+    console.warn('getJackpotDistributionsByPlayerId not implemented for IndexedDB');
+    return [];
   }
 }

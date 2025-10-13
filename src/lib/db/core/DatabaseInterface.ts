@@ -1,4 +1,4 @@
-import { Player, Season, Game, RankingEntry } from '../models';
+import { Player, Season, Game, RankingEntry, SeasonJackpotDistribution } from '../models';
 
 export interface DatabaseInterface {
   // Players
@@ -28,6 +28,10 @@ export interface DatabaseInterface {
   deleteRanking(id: string): Promise<void>;
   getRankingsBySeasonId(seasonId: string): Promise<RankingEntry[]>;
 
+  // Jackpot Distributions
+  saveJackpotDistributions(distributions: Partial<SeasonJackpotDistribution>[]): Promise<void>;
+  getJackpotDistributionsBySeasonId(seasonId: string): Promise<SeasonJackpotDistribution[]>;
+  getJackpotDistributionsByPlayerId(playerId: string): Promise<SeasonJackpotDistribution[]>;
 
   // Utilities
   exportBackup(): Promise<string>;

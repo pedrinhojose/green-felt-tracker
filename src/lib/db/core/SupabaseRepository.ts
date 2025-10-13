@@ -1,6 +1,6 @@
 import { SupabaseCore } from './SupabaseCore';
 import { DatabaseInterface } from './DatabaseInterface';
-import { Player, Season, Game, RankingEntry } from '../models';
+import { Player, Season, Game, RankingEntry, SeasonJackpotDistribution } from '../models';
 import { supabase } from "@/integrations/supabase/client";
 
 export class SupabaseRepository extends SupabaseCore implements DatabaseInterface {
@@ -350,6 +350,78 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
 
   async importBackup(backupJson: string): Promise<void> {
     throw new Error('Import backup not implemented for Supabase yet');
+  }
+
+  // Jackpot Distributions
+  async saveJackpotDistributions(distributions: Partial<SeasonJackpotDistribution>[]): Promise<void> {
+    const { error } = await supabase
+      .from('season_jackpot_distributions')
+      .insert(
+        distributions.map(d => ({
+          season_id: d.seasonId,
+          player_id: d.playerId,
+          player_name: d.playerName,
+          position: d.position,
+          percentage: d.percentage,
+          prize_amount: d.prizeAmount,
+          total_jackpot: d.totalJackpot,
+          organization_id: d.organizationId,
+          user_id: d.userId,
+          distributed_at: d.distributedAt ? d.distributedAt.toISOString() : new Date().toISOString(),
+        }))
+      );
+
+    if (error) throw error;
+  }
+
+  async getJackpotDistributionsBySeasonId(seasonId: string): Promise<SeasonJackpotDistribution[]> {
+    const { data, error } = await supabase
+      .from('season_jackpot_distributions')
+      .select('*')
+      .eq('season_id', seasonId)
+      .order('position', { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map(d => ({
+      id: d.id,
+      seasonId: d.season_id,
+      playerId: d.player_id,
+      playerName: d.player_name,
+      position: d.position,
+      percentage: parseFloat(d.percentage.toString()),
+      prizeAmount: parseFloat(d.prize_amount.toString()),
+      totalJackpot: parseFloat(d.total_jackpot.toString()),
+      distributedAt: new Date(d.distributed_at),
+      createdAt: new Date(d.created_at),
+      organizationId: d.organization_id,
+      userId: d.user_id,
+    }));
+  }
+
+  async getJackpotDistributionsByPlayerId(playerId: string): Promise<SeasonJackpotDistribution[]> {
+    const { data, error } = await supabase
+      .from('season_jackpot_distributions')
+      .select('*')
+      .eq('player_id', playerId)
+      .order('distributed_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map(d => ({
+      id: d.id,
+      seasonId: d.season_id,
+      playerId: d.player_id,
+      playerName: d.player_name,
+      position: d.position,
+      percentage: parseFloat(String(d.percentage)),
+      prizeAmount: parseFloat(String(d.prize_amount)),
+      totalJackpot: parseFloat(String(d.total_jackpot)),
+      distributedAt: new Date(d.distributed_at),
+      createdAt: new Date(d.created_at),
+      organizationId: d.organization_id,
+      userId: d.user_id,
+    }));
   }
 
   // Mapping functions

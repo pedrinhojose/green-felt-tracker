@@ -1,6 +1,7 @@
 
 import { useToast } from "@/components/ui/use-toast";
 import { pokerDB } from '../lib/db';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useSeasonFinalization(
   setSeasons: React.Dispatch<React.SetStateAction<any[]>>,
@@ -21,18 +22,46 @@ export function useSeasonFinalization(
     const rankings = await pokerDB.getRankings(seasonId);
     const sortedRankings = rankings.sort((a, b) => b.totalPoints - a.totalPoints);
     
-    // Distribute jackpot according to season prize schema
+    // Get user ID and organization ID for the distributions
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    const userId = session.user.id;
+    
+    // Prepare jackpot distributions
+    const distributions = [];
+    
     for (let i = 0; i < Math.min(season.seasonPrizeSchema.length, sortedRankings.length); i++) {
-      const position = season.seasonPrizeSchema[i].position;
-      const percentage = season.seasonPrizeSchema[i].percentage;
-      const rankEntry = sortedRankings.find(r => r.bestPosition === position);
+      const prizeConfig = season.seasonPrizeSchema[i];
+      const percentage = prizeConfig.percentage;
+      
+      // Get player at position (i+1)
+      const rankEntry = sortedRankings[i];
       
       if (rankEntry) {
-        // Calculate prize
-        const prize = (season.jackpot * percentage) / 100;
-        console.log(`Player ${rankEntry.playerName} wins ${prize} (${percentage}% of jackpot)`);
-        // Could implement a transaction log here
+        const prizeAmount = (season.jackpot * percentage) / 100;
+        
+        distributions.push({
+          seasonId: season.id,
+          playerId: rankEntry.playerId,
+          playerName: rankEntry.playerName,
+          position: i + 1,
+          percentage: percentage,
+          prizeAmount: prizeAmount,
+          totalJackpot: season.jackpot,
+          organizationId: (season as any).organizationId,
+          userId: userId
+        });
+        
+        console.log(`Player ${rankEntry.playerName} wins ${prizeAmount} (${percentage}% of jackpot ${season.jackpot})`);
       }
+    }
+    
+    // Save all distributions to database
+    if (distributions.length > 0) {
+      await pokerDB.saveJackpotDistributions(distributions);
+      console.log(`Saved ${distributions.length} jackpot distributions to database`);
     }
     
     // Update season as inactive and set end date

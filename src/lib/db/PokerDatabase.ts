@@ -6,7 +6,8 @@ import { SeasonRepository } from './repositories/SeasonRepository';
 import { GameRepository } from './repositories/GameRepository';
 import { RankingRepository } from './repositories/RankingRepository';
 import { BackupService } from './services/BackupService';
-import { Player, Season, Game, RankingEntry } from './models';
+import { Player, Season, Game, RankingEntry, SeasonJackpotDistribution } from './models';
+import { JackpotDistributionRepository } from './repositories/JackpotDistributionRepository';
 import { supabase } from '@/integrations/supabase/client';
 
 class PokerDatabase {
@@ -16,6 +17,7 @@ class PokerDatabase {
   private seasonRepository: SeasonRepository;
   private gameRepository: GameRepository;
   private rankingRepository: RankingRepository;
+  private jackpotDistributionRepository: JackpotDistributionRepository;
   private backupService: BackupService;
   private dbCore: DatabaseCore;
   private useSupabase = true;
@@ -29,6 +31,7 @@ class PokerDatabase {
     this.seasonRepository = new SeasonRepository(db);
     this.gameRepository = new GameRepository(db);
     this.rankingRepository = new RankingRepository(db);
+    this.jackpotDistributionRepository = new JackpotDistributionRepository();
     this.backupService = new BackupService(db);
     
     // Initialize Supabase repositories
@@ -69,6 +72,7 @@ class PokerDatabase {
     this.seasonRepository = new SeasonRepository();
     this.gameRepository = new GameRepository();
     this.rankingRepository = new RankingRepository();
+    this.jackpotDistributionRepository = new JackpotDistributionRepository();
     this.useSupabase = true;
     console.log("PokerDatabase: Supabase repositories initialized");
   }
@@ -98,6 +102,7 @@ class PokerDatabase {
         this.seasonRepository = new SeasonRepository(db);
         this.gameRepository = new GameRepository(db);
         this.rankingRepository = new RankingRepository(db);
+        this.jackpotDistributionRepository = new JackpotDistributionRepository();
         this.useSupabase = false;
         console.log("PokerDatabase: Using IndexedDB repositories after sign out");
       }
@@ -227,7 +232,19 @@ class PokerDatabase {
   async saveRankingsBulk(rankings: RankingEntry[]): Promise<void> {
     return this.rankingRepository.saveRankingsBulk(rankings);
   }
-  
+
+  // Jackpot Distribution methods
+  async saveJackpotDistributions(distributions: Partial<SeasonJackpotDistribution>[]): Promise<void> {
+    return this.jackpotDistributionRepository.saveDistributions(distributions);
+  }
+
+  async getJackpotDistributionsBySeasonId(seasonId: string): Promise<SeasonJackpotDistribution[]> {
+    return this.jackpotDistributionRepository.getDistributionsBySeasonId(seasonId);
+  }
+
+  async getJackpotDistributionsByPlayerId(playerId: string): Promise<SeasonJackpotDistribution[]> {
+    return this.jackpotDistributionRepository.getDistributionsByPlayerId(playerId);
+  }
 
   // Backup method
   async exportBackup(): Promise<string> {
