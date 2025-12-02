@@ -1,8 +1,15 @@
 
 import React from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PlayerPhotoManager } from "./PlayerPhotoManager";
+import { cn } from "@/lib/utils";
 
 interface PlayerFormProps {
   player: { 
@@ -11,6 +18,7 @@ interface PlayerFormProps {
     photoUrl?: string;
     phone?: string;
     city?: string;
+    birthDate?: Date;
   };
   setPlayer: React.Dispatch<React.SetStateAction<any>>;
   isCameraActive: boolean;
@@ -89,6 +97,40 @@ export function PlayerForm({
           onChange={(e) => setPlayer({ ...player, city: e.target.value })}
           placeholder="Cidade do jogador"
         />
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Data de Nascimento</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !player.birthDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {player.birthDate ? (
+                format(player.birthDate, "dd/MM/yyyy", { locale: ptBR })
+              ) : (
+                <span>Selecione a data</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={player.birthDate}
+              onSelect={(date) => setPlayer({ ...player, birthDate: date })}
+              disabled={(date) =>
+                date > new Date() || date < new Date("1900-01-01")
+              }
+              initialFocus
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       
       <div className="space-y-2">

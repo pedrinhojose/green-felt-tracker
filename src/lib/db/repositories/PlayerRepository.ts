@@ -47,6 +47,7 @@ export class PlayerRepository extends SupabaseCore {
           photoUrl: player.photo_url,
           phone: player.phone,
           city: player.city,
+          birthDate: player.birth_date ? new Date(player.birth_date) : undefined,
           userId: player.user_id,
           organizationId: player.organization_id,
           photoBase64: player.photo_base64,
@@ -97,6 +98,7 @@ export class PlayerRepository extends SupabaseCore {
           photoUrl: data.photo_url,
           phone: data.phone,
           city: data.city,
+          birthDate: data.birth_date ? new Date(data.birth_date) : undefined,
           userId: data.user_id,
           organizationId: data.organization_id,
           photoBase64: data.photo_base64,
@@ -142,6 +144,7 @@ export class PlayerRepository extends SupabaseCore {
           photo_url: player.photoUrl,
           phone: player.phone,
           city: player.city,
+          birth_date: player.birthDate ? player.birthDate.toISOString().split('T')[0] : null,
           created_at: player.createdAt.toISOString(),
           user_id: userId,
           organization_id: orgId
@@ -276,6 +279,7 @@ export class PlayerRepository extends SupabaseCore {
         photo_url: player.photoUrl,
         phone: player.phone,
         city: player.city,
+        birth_date: player.birthDate ? player.birthDate.toISOString().split('T')[0] : null,
         created_at: player.createdAt.toISOString(),
         user_id: userId,
         organization_id: orgId
