@@ -5,6 +5,7 @@ import CaixinhaCard from "@/components/CaixinhaCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import { UpcomingDinnerCard } from "@/components/UpcomingDinnerCard";
+import { BirthdayReminderCard } from "@/components/BirthdayReminderCard";
 import BackupButton from "@/components/BackupButton";
 import RestoreButton from "@/components/RestoreButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -100,6 +101,10 @@ export default function Dashboard() {
           <UpcomingDinnerCard />
         </div>
       )}
+      
+      <div className="mt-6">
+        <BirthdayReminderCard />
+      </div>
       
       <div className="mt-8">
         <div className="bg-poker-navy/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6">

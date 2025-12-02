@@ -26,6 +26,7 @@ export default function PlayersManagement() {
     photoUrl?: string;
     phone?: string;
     city?: string;
+    birthDate?: Date;
   }>({
     name: ""
   });
