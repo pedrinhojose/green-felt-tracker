@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Cake } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Player } from "@/lib/db/models";
@@ -15,6 +14,17 @@ interface PlayerCardProps {
   isDeleting: boolean;
 }
 
+function calculateAge(birthDate: Date): number {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export function PlayerCard({ player, onEdit, onDelete, isDeleting }: PlayerCardProps) {
   const getInitials = (name: string) => {
     return name
@@ -24,6 +34,8 @@ export function PlayerCard({ player, onEdit, onDelete, isDeleting }: PlayerCardP
       .toUpperCase()
       .substring(0, 2);
   };
+
+  const age = player.birthDate ? calculateAge(new Date(player.birthDate)) : null;
 
   return (
     <Card className="overflow-hidden border border-white/10 bg-poker-navy/40 hover:bg-poker-navy/60 transition-colors">
@@ -40,7 +52,16 @@ export function PlayerCard({ player, onEdit, onDelete, isDeleting }: PlayerCardP
           
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-white truncate">{player.name}</h3>
-            {player.city && <p className="text-sm text-white/60 truncate">{player.city}</p>}
+            <div className="flex items-center gap-2 text-sm text-white/60">
+              {player.city && <span className="truncate">{player.city}</span>}
+              {player.city && age !== null && <span>•</span>}
+              {age !== null && (
+                <span className="flex items-center gap-1">
+                  <Cake className="h-3 w-3" />
+                  {age} anos
+                </span>
+              )}
+            </div>
           </div>
           
           <DropdownMenu>
