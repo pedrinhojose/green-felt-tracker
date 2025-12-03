@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import JackpotCard from "@/components/JackpotCard";
 import CaixinhaCard from "@/components/CaixinhaCard";
 import LastGameCard from "@/components/LastGameCard";
@@ -13,11 +12,37 @@ import { usePoker } from "@/contexts/PokerContext";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRankingSync } from "@/hooks/useRankingSync";
+import { toast } from "@/hooks/use-toast";
+import { isSameDay } from "date-fns";
 
 export default function Dashboard() {
-  const { activeSeason, isLoading, updateSeason } = usePoker();
+  const { activeSeason, isLoading, updateSeason, players } = usePoker();
   const { validateRankingConsistency } = useRankingSync();
   const [error, setError] = useState<Error | null>(null);
+  const birthdayToastShown = useRef(false);
+
+  // Show birthday toast notification
+  useEffect(() => {
+    if (birthdayToastShown.current || isLoading || players.length === 0) return;
+    
+    const today = new Date();
+    const birthdayPlayers = players.filter(player => {
+      if (!player.birthDate) return false;
+      const birthDate = new Date(player.birthDate);
+      const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+      return isSameDay(thisYearBirthday, today);
+    });
+
+    if (birthdayPlayers.length > 0) {
+      birthdayToastShown.current = true;
+      const names = birthdayPlayers.map(p => p.name).join(", ");
+      toast({
+        title: "🎂 Aniversariante(s) do dia!",
+        description: `Hoje é aniversário de: ${names}`,
+        duration: 8000,
+      });
+    }
+  }, [players, isLoading]);
 
   // Clear error if component unmounts or data loads successfully
   useEffect(() => {
