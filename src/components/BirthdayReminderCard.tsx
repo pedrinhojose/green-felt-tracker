@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Cake, Calendar } from "lucide-react";
 import { format, isSameDay, addDays, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useNavigate } from "react-router-dom";
+
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(' ');
+}
 
 export function BirthdayReminderCard() {
   const { players } = usePoker();
-  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const today = new Date();
   const weekFromNow = addDays(today, 7);
@@ -31,7 +36,7 @@ export function BirthdayReminderCard() {
   const thisMonthBirthdays = players.filter(player => {
     if (!player.birthDate) return false;
     return new Date(player.birthDate).getMonth() === today.getMonth();
-  });
+  }).sort((a, b) => new Date(a.birthDate!).getDate() - new Date(b.birthDate!).getDate());
   
   // Only show card if there are players with birthdays
   if (thisWeekBirthdays.length === 0 && thisMonthBirthdays.length === 0) {
@@ -55,107 +60,96 @@ export function BirthdayReminderCard() {
       today
     );
   };
+
+  const renderPlayerRow = (player: typeof players[0]) => {
+    const birthDate = new Date(player.birthDate!);
+    const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+    const age = getAge(birthDate) + (isBirthdayToday(birthDate) ? 0 : 1);
+    const isToday = isBirthdayToday(birthDate);
+    
+    return (
+      <div 
+        key={player.id}
+        className={cn(
+          "flex items-center gap-3 p-2 rounded-lg transition-colors",
+          isToday && "bg-primary/10 border border-primary/20"
+        )}
+      >
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={player.photoUrl} alt={player.name} />
+          <AvatarFallback>{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <p className="font-medium">
+            {player.name}
+            {isToday && " 🎉"}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {format(thisYearBirthday, "dd/MM", { locale: ptBR })} • {age} anos
+          </p>
+        </div>
+      </div>
+    );
+  };
   
   return (
-    <Card 
-      className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => navigate("/players")}
-    >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Cake className="h-5 w-5" />
-          Aniversariantes
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {thisWeekBirthdays.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Esta Semana ({thisWeekBirthdays.length})
-            </h3>
-            <div className="space-y-2">
-              {thisWeekBirthdays.map(player => {
-                const birthDate = new Date(player.birthDate!);
-                const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-                const age = getAge(birthDate) + (isBirthdayToday(birthDate) ? 0 : 1);
-                const isToday = isBirthdayToday(birthDate);
-                
-                return (
-                  <div 
-                    key={player.id}
-                    className={cn(
-                      "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                      isToday && "bg-primary/10 border border-primary/20"
-                    )}
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={player.photoUrl} alt={player.name} />
-                      <AvatarFallback>{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">
-                        {player.name}
-                        {isToday && " 🎉"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(thisYearBirthday, "dd/MM", { locale: ptBR })} • {age} anos
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+    <>
+      <Card 
+        className="cursor-pointer hover:shadow-lg transition-shadow"
+        onClick={() => setDialogOpen(true)}
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cake className="h-5 w-5" />
+            Aniversariantes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {thisWeekBirthdays.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Esta Semana ({thisWeekBirthdays.length})
+              </h3>
+              <div className="space-y-2">
+                {thisWeekBirthdays.map(renderPlayerRow)}
+              </div>
             </div>
-          </div>
-        )}
-        
-        {thisMonthBirthdays.length > 0 && thisWeekBirthdays.length === 0 && (
-          <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Este Mês ({thisMonthBirthdays.length})
-            </h3>
-            <div className="space-y-2">
-              {thisMonthBirthdays
-                .sort((a, b) => new Date(a.birthDate!).getDate() - new Date(b.birthDate!).getDate())
-                .map(player => {
-                  const birthDate = new Date(player.birthDate!);
-                  const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-                  const age = getAge(birthDate) + (isBirthdayToday(birthDate) ? 0 : 1);
-                  const isToday = isBirthdayToday(birthDate);
-                  
-                  return (
-                    <div 
-                      key={player.id}
-                      className={cn(
-                        "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                        isToday && "bg-primary/10 border border-primary/20"
-                      )}
-                    >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={player.photoUrl} alt={player.name} />
-                        <AvatarFallback>{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          {player.name}
-                          {isToday && " 🎉"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(thisYearBirthday, "dd/MM", { locale: ptBR })} • {age} anos
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+          )}
+          
+          {thisMonthBirthdays.length > 0 && thisWeekBirthdays.length === 0 && (
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Este Mês ({thisMonthBirthdays.length})
+              </h3>
+              <div className="space-y-2">
+                {thisMonthBirthdays.map(renderPlayerRow)}
+              </div>
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+          )}
+        </CardContent>
+      </Card>
 
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Cake className="h-5 w-5" />
+              Aniversariantes de {format(today, "MMMM", { locale: ptBR })}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 mt-4">
+            {thisMonthBirthdays.length > 0 ? (
+              thisMonthBirthdays.map(renderPlayerRow)
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum aniversariante este mês
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
