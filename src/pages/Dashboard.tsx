@@ -28,7 +28,10 @@ export default function Dashboard() {
     const today = new Date();
     const birthdayPlayers = players.filter(player => {
       if (!player.birthDate) return false;
-      const birthDate = new Date(player.birthDate);
+      // Parse date as local to avoid timezone issues
+      const dateStr = String(player.birthDate);
+      const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+      const birthDate = new Date(year, month - 1, day);
       const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
       return isSameDay(thisYearBirthday, today);
     });
