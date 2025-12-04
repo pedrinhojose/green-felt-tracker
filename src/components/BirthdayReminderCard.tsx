@@ -115,9 +115,40 @@ export function BirthdayReminderCard() {
               <Calendar className="h-4 w-4" />
               Este Mês ({thisMonthBirthdays.length})
             </h3>
-            <p className="text-sm text-muted-foreground">
-              {thisMonthBirthdays.length} aniversariante{thisMonthBirthdays.length > 1 ? 's' : ''} este mês
-            </p>
+            <div className="space-y-2">
+              {thisMonthBirthdays
+                .sort((a, b) => new Date(a.birthDate!).getDate() - new Date(b.birthDate!).getDate())
+                .map(player => {
+                  const birthDate = new Date(player.birthDate!);
+                  const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+                  const age = getAge(birthDate) + (isBirthdayToday(birthDate) ? 0 : 1);
+                  const isToday = isBirthdayToday(birthDate);
+                  
+                  return (
+                    <div 
+                      key={player.id}
+                      className={cn(
+                        "flex items-center gap-3 p-2 rounded-lg transition-colors",
+                        isToday && "bg-primary/10 border border-primary/20"
+                      )}
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={player.photoUrl} alt={player.name} />
+                        <AvatarFallback>{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">
+                          {player.name}
+                          {isToday && " 🎉"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(thisYearBirthday, "dd/MM", { locale: ptBR })} • {age} anos
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         )}
       </CardContent>
