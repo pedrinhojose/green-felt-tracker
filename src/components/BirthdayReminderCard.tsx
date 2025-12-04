@@ -7,6 +7,14 @@ import { Cake, Calendar } from "lucide-react";
 import { format, isSameDay, addDays, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+// Parse date string as local date (avoiding UTC timezone issues)
+function parseLocalDate(dateStr: string | Date): Date {
+  if (dateStr instanceof Date) return dateStr;
+  // For ISO date strings like "1985-12-23", parse and adjust for local timezone
+  const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function cn(...inputs: any[]) {
   return inputs.filter(Boolean).join(' ');
 }
@@ -22,21 +30,21 @@ export function BirthdayReminderCard() {
   const thisWeekBirthdays = players.filter(player => {
     if (!player.birthDate) return false;
     
-    const birthDate = new Date(player.birthDate);
+    const birthDate = parseLocalDate(player.birthDate);
     const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
     
     return isWithinInterval(thisYearBirthday, { start: today, end: weekFromNow });
   }).sort((a, b) => {
-    const dateA = new Date(today.getFullYear(), new Date(a.birthDate!).getMonth(), new Date(a.birthDate!).getDate());
-    const dateB = new Date(today.getFullYear(), new Date(b.birthDate!).getMonth(), new Date(b.birthDate!).getDate());
-    return dateA.getTime() - dateB.getTime();
+    const dateA = parseLocalDate(a.birthDate!);
+    const dateB = parseLocalDate(b.birthDate!);
+    return dateA.getDate() - dateB.getDate();
   });
   
   // Filter players with birthdays this month
   const thisMonthBirthdays = players.filter(player => {
     if (!player.birthDate) return false;
-    return new Date(player.birthDate).getMonth() === today.getMonth();
-  }).sort((a, b) => new Date(a.birthDate!).getDate() - new Date(b.birthDate!).getDate());
+    return parseLocalDate(player.birthDate).getMonth() === today.getMonth();
+  }).sort((a, b) => parseLocalDate(a.birthDate!).getDate() - parseLocalDate(b.birthDate!).getDate());
   
   // Only show card if there are players with birthdays
   if (thisWeekBirthdays.length === 0 && thisMonthBirthdays.length === 0) {
@@ -44,25 +52,23 @@ export function BirthdayReminderCard() {
   }
   
   const getAge = (birthDate: Date) => {
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
     return age;
   };
   
   const isBirthdayToday = (birthDate: Date) => {
-    const birth = new Date(birthDate);
     return isSameDay(
-      new Date(today.getFullYear(), birth.getMonth(), birth.getDate()),
+      new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate()),
       today
     );
   };
 
   const renderPlayerRow = (player: typeof players[0]) => {
-    const birthDate = new Date(player.birthDate!);
+    const birthDate = parseLocalDate(player.birthDate!);
     const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
     const age = getAge(birthDate) + (isBirthdayToday(birthDate) ? 0 : 1);
     const isToday = isBirthdayToday(birthDate);

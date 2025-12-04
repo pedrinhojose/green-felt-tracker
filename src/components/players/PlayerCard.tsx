@@ -14,12 +14,18 @@ interface PlayerCardProps {
   isDeleting: boolean;
 }
 
+// Parse date string as local date (avoiding UTC timezone issues)
+function parseLocalDate(dateStr: string | Date): Date {
+  if (dateStr instanceof Date) return dateStr;
+  const [year, month, day] = dateStr.split('T')[0].split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function calculateAge(birthDate: Date): number {
   const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
   return age;
@@ -35,7 +41,7 @@ export function PlayerCard({ player, onEdit, onDelete, isDeleting }: PlayerCardP
       .substring(0, 2);
   };
 
-  const age = player.birthDate ? calculateAge(new Date(player.birthDate)) : null;
+  const age = player.birthDate ? calculateAge(parseLocalDate(player.birthDate)) : null;
 
   return (
     <Card className="overflow-hidden border border-white/10 bg-poker-navy/40 hover:bg-poker-navy/60 transition-colors">
