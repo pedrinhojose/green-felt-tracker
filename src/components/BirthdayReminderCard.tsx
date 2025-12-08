@@ -70,7 +70,7 @@ export function BirthdayReminderCard() {
   const renderPlayerRow = (player: typeof players[0]) => {
     const birthDate = parseLocalDate(player.birthDate!);
     const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-    const age = getAge(birthDate) + (isBirthdayToday(birthDate) ? 0 : 1);
+    const age = getAge(birthDate);
     const isToday = isBirthdayToday(birthDate);
     
     return (
