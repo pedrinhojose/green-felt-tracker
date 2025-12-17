@@ -29,6 +29,12 @@ export function useSeasonFinalization(
     }
     const userId = session.user.id;
     
+    // Validate organizationId
+    const organizationId = season.organizationId;
+    if (!organizationId) {
+      throw new Error('Organization ID not found in season');
+    }
+    
     // Prepare jackpot distributions
     const distributions = [];
     
@@ -50,7 +56,7 @@ export function useSeasonFinalization(
           percentage: percentage,
           prizeAmount: prizeAmount,
           totalJackpot: season.jackpot,
-          organizationId: (season as any).organizationId,
+          organizationId: organizationId,
           userId: userId
         });
         

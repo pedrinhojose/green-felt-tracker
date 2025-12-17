@@ -52,7 +52,8 @@ export class SeasonRepository extends SupabaseCore {
           blindStructure: season.blind_structure as unknown as BlindLevel[],
           jackpot: Number(season.jackpot),
           houseRules: season.house_rules || '',
-          createdAt: new Date(season.created_at)
+          createdAt: new Date(season.created_at),
+          organizationId: season.organization_id || undefined
         })) as Season[];
       } catch (error) {
         console.error("Error fetching seasons from Supabase:", error);
@@ -102,7 +103,8 @@ export class SeasonRepository extends SupabaseCore {
           blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
           houseRules: data.house_rules || '',
-          createdAt: new Date(data.created_at)
+          createdAt: new Date(data.created_at),
+          organizationId: data.organization_id || undefined
         } as Season;
       } catch (error) {
         console.error("Error fetching active season from Supabase:", error);
@@ -152,7 +154,8 @@ export class SeasonRepository extends SupabaseCore {
           blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
           houseRules: data.house_rules || '',
-          createdAt: new Date(data.created_at)
+          createdAt: new Date(data.created_at),
+          organizationId: data.organization_id || undefined
         } as Season;
       } catch (error) {
         console.error("Error fetching season from Supabase:", error);
