@@ -29,6 +29,7 @@ export interface Season {
   houseRules: string;
   hostSchedule: HostScheduleEntry[];
   createdAt: Date;
+  organizationId?: string;
 }
 
 export interface BlindLevel {
