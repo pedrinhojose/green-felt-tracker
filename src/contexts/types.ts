@@ -16,6 +16,7 @@ export interface PokerContextProps {
   endSeason: (seasonId: string) => Promise<void>;
   recalculateSeasonJackpot: (seasonId: string) => Promise<number>;
   fixSeasonJackpot: (seasonId: string, setActiveSeason?: React.Dispatch<React.SetStateAction<Season | null>>) => Promise<Season>;
+  setCaixinhaBalance: (seasonId: string, balance: number) => Promise<void>;
   
   // Games
   games: Game[];
