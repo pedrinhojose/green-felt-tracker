@@ -16,10 +16,29 @@ import { toast } from "@/hooks/use-toast";
 import { isSameDay } from "date-fns";
 
 export default function Dashboard() {
-  const { activeSeason, isLoading, updateSeason, players } = usePoker();
+  const { activeSeason, isLoading, updateSeason, players, setCaixinhaBalance } = usePoker();
   const { validateRankingConsistency } = useRankingSync();
   const [error, setError] = useState<Error | null>(null);
   const birthdayToastShown = useRef(false);
+  const caixinhaFixApplied = useRef(false);
+
+  // One-time fix: Transfer caixinha balance from previous season (2ª Temporada 2025)
+  useEffect(() => {
+    if (caixinhaFixApplied.current || isLoading || !activeSeason) return;
+    
+    const fixKey = `caixinha_fix_applied_${activeSeason.id}`;
+    const alreadyFixed = localStorage.getItem(fixKey);
+    
+    if (!alreadyFixed && activeSeason.name === '1ª Temporada de 2026 A' && (activeSeason.caixinhaBalance || 0) === 0) {
+      caixinhaFixApplied.current = true;
+      // Calculated balance: 235 players * R$10 = R$2350 + R$635 deposits - R$875 withdrawals = R$2110
+      const transferAmount = 2110;
+      
+      console.log(`Applying one-time caixinha fix: R$ ${transferAmount}`);
+      setCaixinhaBalance(activeSeason.id, transferAmount);
+      localStorage.setItem(fixKey, 'true');
+    }
+  }, [activeSeason, isLoading, setCaixinhaBalance]);
 
   // Show birthday toast notification
   useEffect(() => {
