@@ -15,6 +15,7 @@ import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable"
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
 import { useShareableLink } from "@/hooks/useShareableLink";
+import { HostScheduleCard } from "@/components/season/HostScheduleCard";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -649,6 +650,11 @@ export default function SeasonDetails() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Cronograma de Jantares */}
+                {season.hostSchedule && season.hostSchedule.length > 0 && (
+                  <HostScheduleCard hostSchedule={season.hostSchedule} />
+                )}
               </div>
             </TabsContent>
             

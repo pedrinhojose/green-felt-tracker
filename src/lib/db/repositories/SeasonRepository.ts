@@ -52,6 +52,8 @@ export class SeasonRepository extends SupabaseCore {
           blindStructure: season.blind_structure as unknown as BlindLevel[],
           jackpot: Number(season.jackpot),
           houseRules: season.house_rules || '',
+          hostSchedule: (season.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
+          caixinhaBalance: Number(season.caixinha_balance) || 0,
           createdAt: new Date(season.created_at),
           organizationId: season.organization_id || undefined
         })) as Season[];
@@ -103,6 +105,8 @@ export class SeasonRepository extends SupabaseCore {
           blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
           houseRules: data.house_rules || '',
+          hostSchedule: (data.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
+          caixinhaBalance: Number(data.caixinha_balance) || 0,
           createdAt: new Date(data.created_at),
           organizationId: data.organization_id || undefined
         } as Season;
@@ -154,6 +158,8 @@ export class SeasonRepository extends SupabaseCore {
           blindStructure: data.blind_structure as unknown as BlindLevel[],
           jackpot: Number(data.jackpot),
           houseRules: data.house_rules || '',
+          hostSchedule: (data.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
+          caixinhaBalance: Number(data.caixinha_balance) || 0,
           createdAt: new Date(data.created_at),
           organizationId: data.organization_id || undefined
         } as Season;
@@ -188,6 +194,8 @@ export class SeasonRepository extends SupabaseCore {
           blind_structure: season.blindStructure as unknown as Json,
           jackpot: season.jackpot,
           house_rules: season.houseRules || '',
+          host_schedule: season.hostSchedule as unknown as Json,
+          caixinha_balance: season.caixinhaBalance || 0,
           created_at: season.createdAt.toISOString(),
           user_id: userId,
           organization_id: orgId

@@ -28,6 +28,7 @@ export interface Season {
   clubFund: number;
   houseRules: string;
   hostSchedule: HostScheduleEntry[];
+  caixinhaBalance?: number;
   createdAt: Date;
   organizationId?: string;
 }

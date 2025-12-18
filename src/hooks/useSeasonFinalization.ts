@@ -3,6 +3,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { pokerDB } from '../lib/db';
 import { supabase } from '@/integrations/supabase/client';
 
+// Interface para transferência de saldo da caixinha
+interface PendingCaixinhaTransfer {
+  fromSeasonId: string;
+  fromSeasonName: string;
+  amount: number;
+  timestamp: string;
+}
+
 export function useSeasonFinalization(
   setSeasons: React.Dispatch<React.SetStateAction<any[]>>,
   setActiveSeason: React.Dispatch<React.SetStateAction<any | null>>
@@ -11,6 +19,7 @@ export function useSeasonFinalization(
 
   /**
    * Ends a season and distributes the jackpot
+   * Saves caixinha balance for transfer to new season
    */
   const endSeason = async (seasonId: string) => {
     const season = await pokerDB.getSeason(seasonId);
@@ -33,6 +42,19 @@ export function useSeasonFinalization(
     const organizationId = season.organizationId;
     if (!organizationId) {
       throw new Error('Organization ID not found in season');
+    }
+    
+    // Save caixinha balance for transfer to new season
+    const caixinhaBalance = season.caixinhaBalance || 0;
+    if (caixinhaBalance > 0) {
+      const pendingTransfer: PendingCaixinhaTransfer = {
+        fromSeasonId: season.id,
+        fromSeasonName: season.name,
+        amount: caixinhaBalance,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('pendingCaixinhaTransfer', JSON.stringify(pendingTransfer));
+      console.log(`Saved caixinha balance of ${caixinhaBalance} for transfer to new season`);
     }
     
     // Prepare jackpot distributions
@@ -71,6 +93,7 @@ export function useSeasonFinalization(
     }
     
     // Update season as inactive and set end date
+    // Keep caixinha balance in the old season for record keeping
     const updatedSeason = {
       ...season,
       isActive: false,
@@ -88,9 +111,13 @@ export function useSeasonFinalization(
     
     setActiveSeason(null);
     
+    const transferMessage = caixinhaBalance > 0 
+      ? ` O saldo da caixinha (R$ ${caixinhaBalance.toFixed(2)}) será transferido para a próxima temporada.`
+      : '';
+    
     toast({
       title: "Temporada Encerrada",
-      description: "A temporada foi encerrada e o jackpot foi distribuído.",
+      description: `A temporada foi encerrada e o jackpot foi distribuído.${transferMessage}`,
     });
   };
 
