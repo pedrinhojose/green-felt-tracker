@@ -11,6 +11,7 @@ import BestWorstPlayersCard from "@/components/reports/BestWorstPlayersCard";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
 import { useShareableLink } from "@/hooks/useShareableLink";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { HostScheduleCard } from "@/components/season/HostScheduleCard";
 
 export default function SeasonReport() {
   const navigate = useNavigate();
@@ -202,6 +203,11 @@ export default function SeasonReport() {
           
           {/* Tabela de desempenho dos jogadores */}
           <PlayerPerformanceTable playerStats={playerStats} />
+
+          {/* Cronograma de Jantares */}
+          {activeSeason?.hostSchedule && activeSeason.hostSchedule.length > 0 && (
+            <HostScheduleCard hostSchedule={activeSeason.hostSchedule} />
+          )}
         </div>
       </div>
     </div>

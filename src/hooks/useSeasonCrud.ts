@@ -12,6 +12,7 @@ export function useSeasonCrud() {
 
   /**
    * Creates a new season and sets it as active
+   * Checks for pending caixinha transfer from previous season
    */
   const createSeason = async (seasonData: Partial<Season>) => {
     // Set any existing active season to inactive
@@ -20,8 +21,33 @@ export function useSeasonCrud() {
       await pokerDB.saveSeason(updatedActiveSeason);
     }
     
+    // Check for pending caixinha transfer from previous season
+    let caixinhaBalance = seasonData.caixinhaBalance || 0;
+    const pendingTransferJson = localStorage.getItem('pendingCaixinhaTransfer');
+    
+    if (pendingTransferJson) {
+      try {
+        const pendingTransfer = JSON.parse(pendingTransferJson);
+        if (pendingTransfer.amount > 0) {
+          caixinhaBalance = pendingTransfer.amount;
+          console.log(`Transferring caixinha balance of ${caixinhaBalance} from season ${pendingTransfer.fromSeasonName}`);
+          
+          // Show toast about the transfer
+          toast({
+            title: "Saldo da Caixinha Transferido",
+            description: `R$ ${caixinhaBalance.toFixed(2)} transferido da temporada "${pendingTransfer.fromSeasonName}".`,
+          });
+          
+          // Clear the pending transfer
+          localStorage.removeItem('pendingCaixinhaTransfer');
+        }
+      } catch (e) {
+        console.error('Error parsing pending caixinha transfer:', e);
+      }
+    }
+    
     // Create the new season with defaults for missing values
-    const newSeason = buildNewSeason(seasonData, seasons.length);
+    const newSeason = buildNewSeason({ ...seasonData, caixinhaBalance }, seasons.length);
     
     // Save to database
     const id = await pokerDB.saveSeason(newSeason);
