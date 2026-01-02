@@ -17,6 +17,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [clubName, setClubName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -73,6 +74,26 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar nome do clube
+    if (clubName.trim().length < 3) {
+      toast({
+        title: 'Nome do clube inválido',
+        description: 'O nome do clube deve ter pelo menos 3 caracteres.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (clubName.trim().length > 50) {
+      toast({
+        title: 'Nome do clube inválido',
+        description: 'O nome do clube deve ter no máximo 50 caracteres.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -100,9 +121,42 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.user) {
+        // Criar a organização automaticamente
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .insert({ name: clubName.trim() })
+          .select('id')
+          .single();
+
+        if (orgError) {
+          console.error('Erro ao criar organização:', orgError);
+          toast({
+            title: 'Erro ao criar clube',
+            description: 'Conta criada, mas houve erro ao criar o clube. Faça login e crie manualmente.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Vincular usuário como admin da organização
+        const { error: memberError } = await supabase
+          .from('organization_members')
+          .insert({
+            organization_id: orgData.id,
+            user_id: data.user.id,
+            role: 'admin'
+          });
+
+        if (memberError) {
+          console.error('Erro ao vincular usuário:', memberError);
+        }
+
+        // Salvar no localStorage para seleção automática
+        localStorage.setItem('currentOrganizationId', orgData.id);
+
         toast({
           title: 'Conta criada com sucesso',
-          description: 'Bem-vindo ao APA Poker!',
+          description: `Bem-vindo ao ${clubName.trim()}!`,
         });
         
         window.location.href = '/';
@@ -123,7 +177,7 @@ export default function Auth() {
       <Card className={`w-full bg-poker-navy border-poker-gold/20 shadow-mobile ${isMobile ? 'max-w-sm mx-auto' : 'max-w-md'}`}>
         <CardHeader className="text-center mobile-card">
           <CardTitle className={`font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-            APA POKER
+            Poker Manager
           </CardTitle>
           <CardDescription className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>
             Entre ou cadastre-se para continuar
@@ -174,6 +228,18 @@ export default function Auth() {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="mobile-form-spacing">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-clubname" className="mobile-text">Nome do Clube</Label>
+                  <Input
+                    id="signup-clubname"
+                    type="text"
+                    placeholder="Ex: Up Life Poker Club"
+                    value={clubName}
+                    onChange={(e) => setClubName(e.target.value)}
+                    required
+                    className={`mobile-text ${isMobile ? 'h-12' : ''}`}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-fullname" className="mobile-text">Nome completo</Label>
                   <Input
