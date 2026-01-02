@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
 import { OrganizationSelector } from '@/components/organizations/OrganizationSelector';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ShieldAlert, Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
 export default function PokerNav() {
   const location = useLocation();
   const { user } = useAuth();
+  const { currentOrganization } = useOrganization();
   const { hasRole } = useUserRole();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -47,7 +49,7 @@ export default function PokerNav() {
         <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
           <Link to="/dashboard" className="flex-shrink-0">
             <h1 className={`font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent ${isMobile ? 'text-lg' : 'text-2xl'}`}>
-              APA POKER
+              {currentOrganization?.name || 'Poker Manager'}
             </h1>
           </Link>
           
