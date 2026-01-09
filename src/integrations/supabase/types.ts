@@ -528,7 +528,7 @@ export type Database = {
     Functions: {
       get_caixinha_stats: { Args: { p_season_id: string }; Returns: Json }
       get_user_organizations: {
-        Args: { user_id: string }
+        Args: { p_user_id: string }
         Returns: {
           name: string
           organization_id: string
@@ -540,7 +540,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"][]
       }
       has_role: {
-        Args: { role: Database["public"]["Enums"]["app_role"]; user_id: string }
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
         Returns: boolean
       }
       is_admin_of_organization: { Args: { org_id: string }; Returns: boolean }

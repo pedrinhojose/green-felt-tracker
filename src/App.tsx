@@ -26,10 +26,9 @@ import NotFound from '@/pages/NotFound';
 import RequireAuth from '@/components/RequireAuth';
 import { OrganizationRequired } from '@/components/organizations/OrganizationRequired';
 import AppLayout from '@/components/layout/AppLayout';
-import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
-import OrganizationsPage from '@/pages/OrganizationsPage';
 import OrganizationSettingsPage from '@/pages/OrganizationSettingsPage';
 import OrganizationMembersPage from '@/pages/OrganizationMembersPage';
+import { Navigate } from 'react-router-dom';
 import SeasonReport from '@/pages/SeasonReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
@@ -56,8 +55,9 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/organizations" element={<OrganizationsPage />} />
-                  <Route path="/organization-selection" element={<OrganizationSelectionPage />} />
+                  {/* Redirecionar rotas de organização antigas para dashboard */}
+                  <Route path="/organizations" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/organization-selection" element={<Navigate to="/dashboard" replace />} />
                   
                   {/* Rotas públicas sem autenticação */}
                   <Route path="/public/season/:shareToken" element={<PublicSeasonView />} />

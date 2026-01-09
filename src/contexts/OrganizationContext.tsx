@@ -42,10 +42,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     try {
       setIsLoading(true);
       
-      // Use the RPC function to get user's organizations
+      // Use the RPC function to get user's organizations (corrigida com p_user_id)
       const { data, error } = await supabase.rpc(
         'get_user_organizations', 
-        { user_id: user.id }
+        { p_user_id: user.id }
       );
       
       if (error) throw error;
@@ -58,15 +58,19 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       
       setOrganizations(orgs);
       
-      // Try to load the last selected organization from localStorage
+      // Validar localStorage: limpar se organização não pertence ao usuário
       const lastOrgId = localStorage.getItem('currentOrganizationId');
-      if (lastOrgId && orgs.some(org => org.id === lastOrgId)) {
-        setCurrentOrganization(orgs.find(org => org.id === lastOrgId) || null);
+      const validOrg = orgs.find((org: Organization) => org.id === lastOrgId);
+      
+      if (validOrg) {
+        setCurrentOrganization(validOrg);
       } else if (orgs.length > 0) {
-        // If no stored org or stored org not found, use the first available org
+        // Seleciona automaticamente o único clube do usuário
         setCurrentOrganization(orgs[0]);
         localStorage.setItem('currentOrganizationId', orgs[0].id);
       } else {
+        // Limpar localStorage se não pertence ao usuário
+        localStorage.removeItem('currentOrganizationId');
         setCurrentOrganization(null);
       }
       
