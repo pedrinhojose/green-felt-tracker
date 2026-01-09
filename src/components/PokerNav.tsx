@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
-import { OrganizationSelector } from '@/components/organizations/OrganizationSelector';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { ShieldAlert, Menu, X } from 'lucide-react';
@@ -45,17 +44,13 @@ export default function PokerNav() {
   return (
     <header className="sticky top-0 z-50 w-full bg-poker-black/90 backdrop-blur-md border-b border-white/5">
       <div className={`w-full flex h-14 md:h-16 items-center justify-between ${isMobile ? 'px-3' : 'px-4'}`}>
-        {/* Logo e seletor de organização */}
+        {/* Logo - Nome do Clube */}
         <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
           <Link to="/dashboard" className="flex-shrink-0">
             <h1 className={`font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent ${isMobile ? 'text-lg' : 'text-2xl'}`}>
               {currentOrganization?.name || 'Poker Manager'}
             </h1>
           </Link>
-          
-          {!isMobile && (
-            <OrganizationSelector />
-          )}
         </div>
         
         {/* Mobile Menu Toggle */}
@@ -109,11 +104,6 @@ export default function PokerNav() {
       {/* Mobile Menu Dropdown - otimizado */}
       {isMobileMenuOpen && (
         <nav className="md:hidden bg-poker-black/95 backdrop-blur-md border-t border-white/5 animate-slide-down">
-          {/* Organização em mobile */}
-          <div className="px-3 py-3 border-b border-white/5">
-            <OrganizationSelector />
-          </div>
-          
           <ul className="flex flex-col">
             {filteredNavItems.map((item) => (
               <li key={item.path}>
