@@ -526,6 +526,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_organization_with_admin: {
+        Args: { p_name: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_caixinha_stats: { Args: { p_season_id: string }; Returns: Json }
       get_user_organizations: {
         Args: { p_user_id: string }

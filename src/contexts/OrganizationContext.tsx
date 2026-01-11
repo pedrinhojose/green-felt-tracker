@@ -106,25 +106,12 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     if (!user) return null;
     
     try {
-      // Insert new organization
+      // Use RPC function that creates org and adds user as admin in single transaction
       const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .insert({ name })
-        .select('id, name')
+        .rpc('create_organization_with_admin', { p_name: name })
         .single();
         
       if (orgError) throw orgError;
-      
-      // Add the current user as an admin of the new organization
-      const { error: memberError } = await supabase
-        .from('organization_members')
-        .insert({
-          organization_id: orgData.id,
-          user_id: user.id,
-          role: 'admin'
-        });
-        
-      if (memberError) throw memberError;
       
       const newOrg = {
         id: orgData.id,
