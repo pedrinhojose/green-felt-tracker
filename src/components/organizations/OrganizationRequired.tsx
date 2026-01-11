@@ -1,18 +1,78 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { OrganizationSelectionPage } from '@/pages/OrganizationSelectionPage';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spade } from 'lucide-react';
 
 interface OrganizationRequiredProps {
   children: React.ReactNode;
 }
 
+function CreateFirstOrganization() {
+  const [name, setName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createOrganization } = useOrganization();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      await createOrganization(name.trim());
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-primary/10">
+              <Spade className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl">Bem-vindo ao Poker Manager</CardTitle>
+          <CardDescription>
+            Para começar, crie seu primeiro clube de poker.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="club-name">Nome do Clube</Label>
+              <Input
+                id="club-name"
+                placeholder="Ex: Clube de Poker APA"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isSubmitting}
+                autoFocus
+              />
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={!name.trim() || isSubmitting}
+            >
+              {isSubmitting ? 'Criando...' : 'Criar Clube'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function OrganizationRequired({ children }: OrganizationRequiredProps) {
   const { isLoading, organizations, currentOrganization } = useOrganization();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const navigate = useNavigate();
 
   // Debug logging
   useEffect(() => {
@@ -25,41 +85,8 @@ export function OrganizationRequired({ children }: OrganizationRequiredProps) {
     });
   }, [isLoading, isAuthLoading, user, organizations, currentOrganization]);
 
-  // Listen for changes in organizations or auth state
-  useEffect(() => {
-    // Only proceed if everything is loaded
-    if (isLoading || isAuthLoading) {
-      console.log("OrganizationRequired: Ainda carregando...");
-      return;
-    }
-
-    // If no user, RequireAuth will handle the redirect
-    if (!user) {
-      console.log("OrganizationRequired: Usuário não autenticado");
-      return;
-    }
-
-    console.log("OrganizationRequired: Verificando organizações", {
-      organizationsCount: organizations.length,
-      currentOrganization: currentOrganization?.name || 'none'
-    });
-
-    // If user has no organizations, redirect to create one
-    if (organizations.length === 0) {
-      console.log("OrganizationRequired: Redirecionando para criar organização");
-      navigate('/organizations');
-      return;
-    }
-
-    // If user has organizations but none is selected, show selection page
-    if (!currentOrganization) {
-      console.log("OrganizationRequired: Nenhuma organização selecionada");
-    }
-  }, [user, isLoading, isAuthLoading, organizations, currentOrganization, navigate]);
-
   // Show loading state
   if (isLoading || isAuthLoading) {
-    console.log("OrganizationRequired: Mostrando loading");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold"></div>
@@ -67,16 +94,26 @@ export function OrganizationRequired({ children }: OrganizationRequiredProps) {
     );
   }
 
+  // If no user, RequireAuth will handle the redirect
+  if (!user) {
+    return null;
+  }
+
+  // If user has no organizations, show creation screen
+  if (organizations.length === 0) {
+    return <CreateFirstOrganization />;
+  }
+
   // If user has organizations but none is selected, show organization selection
-  if (!isLoading && organizations.length > 0 && !currentOrganization) {
-    console.log("OrganizationRequired: Mostrando seleção de organização");
-    return <OrganizationSelectionPage />;
+  if (!currentOrganization) {
+    // Auto-select the first organization if only one exists
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-poker-gold"></div>
+      </div>
+    );
   }
 
   // If organization is selected, render children
-  if (currentOrganization) {
-    console.log("OrganizationRequired: Renderizando children com organização:", currentOrganization.name);
-  }
-  
   return <>{children}</>;
 }
