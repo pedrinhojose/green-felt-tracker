@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      apahub_access_keys: {
+        Row: {
+          access_email: string
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          organization_name: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          access_email: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          organization_name: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          access_email?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          organization_name?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apahub_access_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       caixinha_transactions: {
         Row: {
           amount: number
@@ -526,6 +570,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_apahub_access_key: {
+        Args: {
+          p_access_email: string
+          p_organization_id: string
+          p_organization_name: string
+          p_password: string
+        }
+        Returns: {
+          access_email: string
+          created_at: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          organization_name: string
+          updated_at: string
+        }[]
+      }
       create_organization_with_admin: {
         Args: { p_name: string }
         Returns: {
@@ -559,6 +620,14 @@ export type Database = {
         Args: { p_role: string; p_user_id: string }
         Returns: undefined
       }
+      toggle_apahub_access_key: {
+        Args: { p_organization_id: string }
+        Returns: boolean
+      }
+      update_apahub_access_key_password: {
+        Args: { p_new_password: string; p_organization_id: string }
+        Returns: boolean
+      }
       user_can_access_organization: {
         Args: { org_id: string }
         Returns: boolean
@@ -576,6 +645,13 @@ export type Database = {
         Returns: boolean
       }
       user_organization_check: { Args: { org_id: string }; Returns: boolean }
+      verify_apahub_login: {
+        Args: { p_email: string; p_password: string }
+        Returns: {
+          organization_id: string
+          organization_name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "player" | "viewer"
