@@ -10,6 +10,7 @@ import {
 import { useUserRole } from '@/hooks/useUserRole';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { UserTable } from '@/components/users/UserTable';
+import { ApahubAccessKeyCard } from '@/components/users/ApahubAccessKeyCard';
 
 export default function UserManagement() {
   const { users, isLoading, fetchUsers, toggleUserRole } = useUserManagement();
@@ -30,8 +31,8 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <Card className="mb-8">
+    <div className="container mx-auto py-8 space-y-8">
+      <Card>
         <CardHeader>
           <CardTitle>Gerenciamento de Usuários</CardTitle>
           <CardDescription>
@@ -52,6 +53,9 @@ export default function UserManagement() {
           />
         </CardContent>
       </Card>
+
+      {/* Seção de Chave de Acesso ApaHub */}
+      <ApahubAccessKeyCard />
     </div>
   );
 }
