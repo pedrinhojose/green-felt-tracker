@@ -108,7 +108,8 @@ export default function PrizePoolManager({
           <PrizeWinnersDisplay 
             game={game} 
             players={players} 
-            showWinners={showWinners} 
+            showWinners={showWinners}
+            activeSeason={activeSeason}
           />
         </div>
       </div>
