@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, Star } from "lucide-react";
 
 interface PrizeWinnerCardProps {
   position: number;
@@ -24,7 +24,15 @@ export default function PrizeWinnerCard({ position, playerName, photoUrl, prize,
       case 3:
         return <Award className="h-6 w-6 text-amber-700" />;
       default:
-        return null;
+        // Para 4º lugar em diante, usa Star com número
+        return (
+          <div className="relative">
+            <Star className="h-6 w-6 text-poker-blue" />
+            <span className="absolute -bottom-1 -right-1 text-[10px] font-bold text-poker-blue">
+              {position}º
+            </span>
+          </div>
+        );
     }
   };
 
@@ -46,7 +54,7 @@ export default function PrizeWinnerCard({ position, playerName, photoUrl, prize,
       case 3:
         return "border-amber-700 bg-amber-700/10";
       default:
-        return "border-gray-700 bg-gray-700/10";
+        return "border-poker-blue bg-poker-blue/10";
     }
   };
 

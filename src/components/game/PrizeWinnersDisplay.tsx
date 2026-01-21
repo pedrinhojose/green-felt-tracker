@@ -1,16 +1,17 @@
 
 import PrizeWinnerCard from "./PrizeWinnerCard";
-import { Game } from "@/lib/db/models";
+import { Game, Season } from "@/lib/db/models";
 import { Player } from "@/lib/db/models";
 
 interface PrizeWinnersDisplayProps {
   game: Game;
   players: Player[];
   showWinners: boolean;
+  activeSeason: Season | null;
 }
 
-export default function PrizeWinnersDisplay({ game, players, showWinners }: PrizeWinnersDisplayProps) {
-  // Encontrar os jogadores nas posições 1, 2 e 3
+export default function PrizeWinnersDisplay({ game, players, showWinners, activeSeason }: PrizeWinnersDisplayProps) {
+  // Encontrar informações do jogador por posição
   const getWinnerInfo = (position: number) => {
     const gamePlayer = game.players.find(p => p.position === position);
     
@@ -31,35 +32,39 @@ export default function PrizeWinnersDisplay({ game, players, showWinners }: Priz
     };
   };
   
-  const firstPlace = getWinnerInfo(1);
-  const secondPlace = getWinnerInfo(2);
-  const thirdPlace = getWinnerInfo(3);
+  // Obter posições premiadas da configuração da temporada
+  const prizePositions = activeSeason?.weeklyPrizeSchema || [];
+  
+  // Ordenar por posição para garantir ordem correta
+  const sortedPositions = [...prizePositions].sort((a, b) => a.position - b.position);
+  
+  // Gerar lista de vencedores baseado nas posições configuradas
+  const winners = sortedPositions.map(entry => ({
+    position: entry.position,
+    ...getWinnerInfo(entry.position)
+  }));
+
+  // Se não houver configuração de temporada, fallback para 3 primeiros
+  const displayWinners = winners.length > 0 ? winners : [
+    { position: 1, ...getWinnerInfo(1) },
+    { position: 2, ...getWinnerInfo(2) },
+    { position: 3, ...getWinnerInfo(3) }
+  ];
   
   return (
     <div className="space-y-2 w-full">
       <h4 className="text-sm text-muted-foreground mb-1">Vencedores</h4>
       <div className="flex flex-col space-y-2">
-        <PrizeWinnerCard 
-          position={1} 
-          playerName={firstPlace.name} 
-          photoUrl={firstPlace.photoUrl} 
-          prize={firstPlace.prize}
-          showCard={showWinners}
-        />
-        <PrizeWinnerCard 
-          position={2} 
-          playerName={secondPlace.name} 
-          photoUrl={secondPlace.photoUrl} 
-          prize={secondPlace.prize}
-          showCard={showWinners}
-        />
-        <PrizeWinnerCard 
-          position={3} 
-          playerName={thirdPlace.name} 
-          photoUrl={thirdPlace.photoUrl} 
-          prize={thirdPlace.prize}
-          showCard={showWinners}
-        />
+        {displayWinners.map((winner) => (
+          <PrizeWinnerCard 
+            key={winner.position}
+            position={winner.position} 
+            playerName={winner.name} 
+            photoUrl={winner.photoUrl} 
+            prize={winner.prize}
+            showCard={showWinners}
+          />
+        ))}
       </div>
     </div>
   );
