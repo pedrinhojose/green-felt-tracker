@@ -1,16 +1,20 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export type AppRole = 'admin' | 'player' | 'viewer';
 
 export function useUserRole() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { currentOrganization } = useOrganization();
   const [userRoles, setUserRoles] = useState<AppRole[]>([]);
   const [isCheckingRole, setIsCheckingRole] = useState<boolean>(true);
+
+  // Verificar se é admin da organização atual
+  const isOrgAdmin = currentOrganization?.role === 'admin';
 
   // Carregar papéis do usuário quando o componente montar ou o usuário mudar
   const fetchUserRoles = useCallback(async () => {
@@ -52,14 +56,19 @@ export function useUserRole() {
   }, [fetchUserRoles]);
 
   // Verificar se o usuário tem um papel específico
+  // Considera admin da organização atual para role 'admin'
   const hasRole = useCallback((role: AppRole): boolean => {
+    if (role === 'admin' && isOrgAdmin) {
+      return true;
+    }
     return userRoles.includes(role);
-  }, [userRoles]);
+  }, [userRoles, isOrgAdmin]);
 
   // Funções específicas para verificação de papéis comuns
+  // Considera admin da organização atual
   const isAdmin = useCallback((): boolean => {
-    return hasRole('admin');
-  }, [hasRole]);
+    return isOrgAdmin || userRoles.includes('admin');
+  }, [userRoles, isOrgAdmin]);
 
   const isViewer = useCallback((): boolean => {
     return hasRole('viewer');
