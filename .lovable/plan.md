@@ -1,101 +1,58 @@
 
-## Plano: Corrigir Permissões para Admins de Clubes
+## Plano: Habilitar Extensao pgcrypto no Banco de Dados
 
-### Resumo
+### Objetivo
 
-Modificar o hook `useUserRole` para verificar também se o usuário é admin do clube atual (via `OrganizationContext`), não apenas a tabela global `user_roles`. Isso fará com que Joaquim e qualquer criador de clube veja a aba "Usuários".
+Criar uma migration SQL para habilitar a extensao `pgcrypto` no schema `extensions` do Supabase, permitindo que as funcoes `gen_salt()` e `crypt()` funcionem corretamente para criptografar senhas das chaves de acesso ApaHub.
 
-### Impacto nos Dados Existentes
+### O Que Sera Feito
 
-| Aspecto | Impacto |
-|---------|---------|
-| Banco de dados | Nenhuma alteração |
-| Dados existentes | Preservados integralmente |
-| Pedro Silva (ApaPoker) | Continua funcionando normalmente |
-| Joaquim (Up Life) | Passará a ver aba "Usuários" |
-| Novos usuários | Verão aba "Usuários" automaticamente |
+Criar um novo arquivo de migration que executa:
 
-### Arquivo a Modificar
-
-**`src/hooks/useUserRole.ts`**
-
-### Mudanças Específicas
-
-1. **Importar contexto de organização** (linha 4)
-2. **Obter organização atual** dentro do hook
-3. **Verificar se é admin da org** com `currentOrganization?.role === 'admin'`
-4. **Atualizar `hasRole`** para considerar admin do clube
-5. **Atualizar `isAdmin`** para retornar true se for admin da organização
-
-### Código Resultante (Principais Alterações)
-
-```typescript
-// Adicionar import
-import { useOrganization } from '@/contexts/OrganizationContext';
-
-export function useUserRole() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { currentOrganization } = useOrganization(); // NOVO
-  
-  // ... código existente ...
-
-  // NOVO: Verificar se é admin da organização atual
-  const isOrgAdmin = currentOrganization?.role === 'admin';
-
-  // MODIFICADO: Considerar admin da organização
-  const hasRole = useCallback((role: AppRole): boolean => {
-    if (role === 'admin' && isOrgAdmin) {
-      return true;
-    }
-    return userRoles.includes(role);
-  }, [userRoles, isOrgAdmin]);
-
-  // MODIFICADO: Considerar admin da organização
-  const isAdmin = useCallback((): boolean => {
-    return isOrgAdmin || userRoles.includes('admin');
-  }, [userRoles, isOrgAdmin]);
-
-  // ... resto do código inalterado ...
-}
+```sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 ```
 
-### Comportamento Após a Correção
+### Detalhes Tecnicos
 
-```text
-┌─────────────────────────────────────────────────────┐
-│                    Login do Usuário                  │
-└───────────────────────┬─────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────┐
-│  OrganizationContext carrega:                        │
-│  - currentOrganization.role = 'admin' (do clube)    │
-└───────────────────────┬─────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────┐
-│  useUserRole verifica hasRole('admin'):              │
-│                                                      │
-│  1. É admin da organização atual? ────► SIM ✓       │
-│     OU                                               │
-│  2. Tem role 'admin' em user_roles?                 │
-│                                                      │
-│  → Retorna TRUE → Mostra aba "Usuários"             │
-└─────────────────────────────────────────────────────┘
+| Aspecto | Descricao |
+|---------|-----------|
+| Arquivo | `supabase/migrations/[timestamp]_enable_pgcrypto.sql` |
+| Schema | `extensions` (padrao do Supabase para extensoes) |
+| Seguranca | `IF NOT EXISTS` evita erro se ja estiver habilitado |
+| Impacto | Zero - apenas adiciona funcoes novas |
+
+### Funcoes Disponibilizadas
+
+Apos habilitar o pgcrypto, estas funcoes estarao disponiveis:
+
+- **`gen_salt('bf')`** - Gera um salt aleatorio para bcrypt
+- **`crypt(senha, salt)`** - Criptografa a senha usando o salt
+- **`crypt(senha, hash)`** - Verifica se a senha corresponde ao hash
+
+### Codigo da Migration
+
+```sql
+-- Habilitar extensao pgcrypto para funcoes de criptografia
+-- Necessario para: gen_salt(), crypt()
+-- Usado em: create_apahub_access_key, verify_apahub_login
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 ```
 
-### Resultado Final
+### Resultado Esperado
 
-| Usuário | Clube | Admin do clube? | Verá aba "Usuários"? |
-|---------|-------|-----------------|---------------------|
-| Pedro Silva | ApaPoker | Sim | Sim |
-| Joaquim Santos | Up Life | Sim | Sim |
-| Novo criador | Novo Clube | Sim | Sim |
-| Membro convidado | Qualquer | Não | Não |
+Apos aplicar a migration:
 
-### Segurança Mantida
+1. A funcao `create_apahub_access_key` funcionara corretamente
+2. O admin podera criar email/senha para acesso ao ApaHub
+3. As senhas serao armazenadas de forma segura (hash bcrypt)
+4. A funcao `verify_apahub_login` podera validar as credenciais
 
-- Cada admin só gerencia usuários do **seu próprio clube**
-- A verificação usa dados do servidor (`organization_members`), não localStorage
-- Sistema de `user_roles` global continua funcionando para super-admins
+### Riscos
+
+| Risco | Nivel | Mitigacao |
+|-------|-------|-----------|
+| Afetar dados existentes | Nenhum | Extensao apenas adiciona funcoes |
+| Conflito com extensao existente | Nenhum | `IF NOT EXISTS` previne erro |
+| Downtime | Nenhum | Operacao instantanea |
