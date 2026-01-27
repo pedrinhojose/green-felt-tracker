@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, Star } from "lucide-react";
 
 interface LivePrizePreviewProps {
   totalPrizePool: number;
@@ -18,9 +18,8 @@ export default function LivePrizePreview({ totalPrizePool, activeSeason }: LiveP
 
     const prizeSchema = activeSeason.weeklyPrizeSchema;
     
-    // Calculate prizes for top 3 positions
+    // Mostrar TODAS as posições premiadas, não apenas top 3
     return prizeSchema
-      .filter(entry => entry.position <= 3)
       .sort((a, b) => a.position - b.position)
       .map(entry => ({
         position: entry.position,
@@ -42,21 +41,28 @@ export default function LivePrizePreview({ totalPrizePool, activeSeason }: LiveP
       case 3:
         return <Award className="h-5 w-5 text-amber-600" />;
       default:
-        return null;
+        return (
+          <div className="relative">
+            <Star className="h-5 w-5 text-poker-blue" />
+            <span className="absolute -bottom-1 -right-1 text-[8px] font-bold text-poker-blue">
+              {position}º
+            </span>
+          </div>
+        );
     }
   };
 
   const getPositionText = (position: number) => {
-    switch (position) {
-      case 1:
-        return "1º Lugar";
-      case 2:
-        return "2º Lugar";
-      case 3:
-        return "3º Lugar";
-      default:
-        return `${position}º Lugar`;
-    }
+    return `${position}º Lugar`;
+  };
+
+  // Determinar grid cols baseado na quantidade de prêmios
+  const getGridCols = () => {
+    const count = livePrizes.length;
+    if (count <= 2) return "grid-cols-1 sm:grid-cols-2";
+    if (count <= 3) return "grid-cols-1 sm:grid-cols-3";
+    if (count <= 4) return "grid-cols-2 sm:grid-cols-4";
+    return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5";
   };
 
   return (
@@ -73,7 +79,7 @@ export default function LivePrizePreview({ totalPrizePool, activeSeason }: LiveP
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className={`grid ${getGridCols()} gap-3`}>
           {livePrizes.map(({ position, percentage, value }) => (
             <div
               key={position}
