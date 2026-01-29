@@ -64,6 +64,17 @@ export const useCaixinhaUnifiedTransactions = (seasonId: string | undefined) => 
 
       if (manualError) throw manualError;
 
+      // Load players to get their names
+      const { data: playersData } = await supabase
+        .from('players')
+        .select('id, name')
+        .eq('organization_id', currentOrganization.id);
+
+      // Create a map of player ID -> name for O(1) lookup
+      const playerNamesMap = new Map(
+        (playersData || []).map(p => [p.id, p.name])
+      );
+
       // Load game contributions
       const { data: gamesData, error: gamesError } = await supabase
         .from('games')
@@ -84,7 +95,7 @@ export const useCaixinhaUnifiedTransactions = (seasonId: string | undefined) => 
             .filter(p => p.participatesInClubFund && p.clubFundContribution > 0)
             .map(p => ({
               id: p.playerId,
-              name: p.playerName || 'Jogador',
+              name: playerNamesMap.get(p.playerId) || 'Jogador desconhecido',
               contribution: p.clubFundContribution || 0
             }));
 
