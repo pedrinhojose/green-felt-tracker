@@ -1,92 +1,140 @@
 
-## Plano: Corrigir Exibicao dos Nomes dos Jogadores na Caixinha
+## Plano: Preservar Nomes de Jogadores no Historico (Soft Delete)
 
-### Problema Identificado
+### Analise do Problema
 
-O dialogo de detalhes das contribuicoes mostra "Jogador" ao inves dos nomes reais porque:
+Atualmente, quando um jogador e deletado:
+- O registro e **removido fisicamente** da tabela `players`
+- Os jogos historicos perdem a referencia ao nome (mostram "Desconhecido")
+- Rankings da temporada ativa sao deletados, mas historicos preservados (ja esta correto)
 
-1. O campo `players` nos jogos (JSONB) **NAO armazena** o nome do jogador - apenas o `playerId`
-2. O codigo tenta usar `p.playerName` que nao existe no objeto
-3. O fallback `|| 'Jogador'` e sempre usado, resultando em "Jogador" para todos
+### Solucao Recomendada: Soft Delete
 
-### Estrutura Atual dos Dados
+Em vez de deletar fisicamente, **desativar** o jogador. Isso:
+- Preserva todos os dados historicos
+- Mantem compatibilidade com a API ApaHub (leitura continua funcionando)
+- Nao altera o funcionamento existente - apenas esconde jogadores inativos das selecoes
 
-```text
-+------------------+          +------------------+
-|     games        |          |     players      |
-+------------------+          +------------------+
-| id               |          | id               |
-| players (JSONB)  |--------->| name             |
-|   - playerId     |          | photo_url        |
-|   - points       |          | ...              |
-|   - rebuys       |          +------------------+
-|   (sem playerName)|
-+------------------+
+### Mudancas Necessarias
+
+#### 1. Adicionar coluna `is_active` na tabela `players`
+
+```sql
+ALTER TABLE players ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT true;
 ```
 
-### Solucao
+#### 2. Modificar a exibicao de jogadores
 
-Modificar o hook `useCaixinhaUnifiedTransactions.ts` para:
+| Local | Comportamento |
+|-------|---------------|
+| Lista de jogadores para adicionar em partidas | Mostrar apenas `is_active = true` |
+| Historico de partidas | Mostrar todos (nome preservado) |
+| Ranking | Mostrar todos |
+| Relatorios | Mostrar todos |
 
-1. **Buscar a lista de jogadores** da tabela `players` junto com os jogos
-2. **Mapear os nomes** usando o `playerId` como chave de lookup
-3. Exibir o nome correto de cada jogador nas contribuicoes
+#### 3. Alterar acao de "Excluir" para "Desativar"
 
-### Arquivo a Modificar
+O botao "Excluir" passara a fazer um `UPDATE` em vez de `DELETE`:
+
+```typescript
+// Antes (delete fisico)
+await supabase.from('players').delete().eq('id', playerId);
+
+// Depois (soft delete)
+await supabase.from('players').update({ is_active: false }).eq('id', playerId);
+```
+
+#### 4. Adicionar opcao para reativar jogador (opcional)
+
+Permitir que admins reativem jogadores desativados, caso necessario.
+
+---
+
+### Arquivos que Serao Modificados
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `src/hooks/useCaixinhaUnifiedTransactions.ts` | Adicionar query para buscar jogadores e mapear nomes |
+| `supabase/migrations/[novo]` | Adicionar coluna `is_active` |
+| `src/lib/db/models.ts` | Adicionar campo `isActive` ao modelo Player |
+| `src/lib/db/repositories/PlayerRepository.ts` | Filtrar por `is_active` e mudar delete para update |
+| `src/contexts/usePlayerFunctions.ts` | Mudar `deletePlayer` para soft delete |
+| `src/components/players/PlayerCard.tsx` | Mudar texto "Excluir" para "Desativar" |
+| `src/components/game/PlayerSelection.tsx` | Filtrar jogadores ativos na selecao |
 
-### Codigo da Solucao
+---
 
-A funcao `loadTransactions` sera modificada:
+### Impacto na API ApaHub
 
-```typescript
-const loadTransactions = async () => {
-  // ... codigo existente ...
+**Nenhum impacto negativo:**
+- A API ApaHub le dados via queries SQL diretas
+- Os jogadores continuam existindo na tabela `players`
+- Os jogos mantem a referencia `playerId` intacta
+- A query de jogadores pode opcionalmente incluir inativos ou filtrar
 
-  // NOVO: Buscar jogadores para obter os nomes
-  const { data: playersData } = await supabase
-    .from('players')
-    .select('id, name')
-    .eq('organization_id', currentOrganization.id);
+---
 
-  // Criar mapa de ID -> Nome
-  const playerNamesMap = new Map(
-    (playersData || []).map(p => [p.id, p.name])
-  );
+### Fluxo do Soft Delete
 
-  // Ao processar contribuicoes, usar o mapa:
-  const contributingPlayers = players
-    .filter(p => p.participatesInClubFund && p.clubFundContribution > 0)
-    .map(p => ({
-      id: p.playerId,
-      name: playerNamesMap.get(p.playerId) || 'Jogador desconhecido',
-      contribution: p.clubFundContribution || 0
-    }));
-};
-```
-
-### Resultado Esperado
-
-Antes:
 ```text
-| Jogador  | R$ 10,00 |
-| Jogador  | R$ 10,00 |
-| Jogador  | R$ 10,00 |
+Usuario clica "Desativar"
+         |
+         v
++-------------------+
+| UPDATE players    |
+| SET is_active =   |
+| false             |
+| WHERE id = ?      |
++-------------------+
+         |
+         v
+Jogador some da lista de selecao
+         |
+         v
+Historico preservado (nome visivel)
 ```
 
-Depois:
-```text
-| Bruno    | R$ 10,00 |
-| Maria    | R$ 10,00 |
-| Carlos   | R$ 10,00 |
+---
+
+### Interface do Usuario
+
+**Card do Jogador (antes):**
+- Menu: Editar | Excluir
+
+**Card do Jogador (depois):**
+- Menu: Editar | Desativar
+- Confirmacao: "Deseja desativar {nome}? O jogador nao aparecera mais nas selecoes de novas partidas, mas seu historico sera preservado."
+
+**Lista de Jogadores:**
+- Opcao para mostrar/ocultar jogadores inativos
+- Jogadores inativos aparecem com estilo diferente (opacidade reduzida)
+- Botao "Reativar" disponivel para jogadores inativos
+
+---
+
+### Codigo da Migration
+
+```sql
+-- Adicionar coluna is_active com valor padrao true
+ALTER TABLE public.players 
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+
+-- Atualizar todos jogadores existentes para ativos
+UPDATE public.players SET is_active = true WHERE is_active IS NULL;
+
+-- Criar indice para performance nas queries
+CREATE INDEX IF NOT EXISTS idx_players_is_active 
+ON public.players(is_active) 
+WHERE is_active = true;
 ```
 
-### Detalhes Tecnicos
+---
 
-- Uma query adicional a tabela `players` (baixo custo, ja que filtra por organization_id)
-- Usa `Map` para lookup O(1) dos nomes por ID
-- Fallback "Jogador desconhecido" para jogadores que foram deletados
-- Nenhuma mudanca no schema do banco de dados necessaria
+### Resultado Final
+
+| Cenario | Antes | Depois |
+|---------|-------|--------|
+| Jogador deletado aparece na selecao | Nao aparece (deletado) | Nao aparece (is_active=false) |
+| Jogador deletado aparece no historico | "Desconhecido" | Nome real preservado |
+| Jogador deletado aparece no ranking | Depende | Nome preservado |
+| API ApaHub le dados do jogador | Erro (nao existe) | Funciona normalmente |
+| Pode restaurar jogador | Nao | Sim (reativar) |
