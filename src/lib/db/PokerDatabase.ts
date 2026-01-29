@@ -144,8 +144,12 @@ class PokerDatabase {
     return this.playerRepository.savePlayer(player);
   }
 
-  async deletePlayer(id: string): Promise<void> {
-    return this.playerRepository.deletePlayer(id);
+  async deactivatePlayer(id: string): Promise<void> {
+    return this.playerRepository.deactivatePlayer(id);
+  }
+
+  async reactivatePlayer(id: string): Promise<void> {
+    return this.playerRepository.reactivatePlayer(id);
   }
 
   // Season methods

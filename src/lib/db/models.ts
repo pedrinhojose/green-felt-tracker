@@ -9,6 +9,7 @@ export interface Player {
   organizationId?: string;
   photoBase64?: string;
   createdAt: Date;
+  isActive: boolean;
 }
 
 export interface Season {

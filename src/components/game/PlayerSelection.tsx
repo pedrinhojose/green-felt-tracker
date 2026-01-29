@@ -23,10 +23,12 @@ export default function PlayerSelection({ players, onStartGame, season, game }: 
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Filter players based on search query
-  const filteredPlayers = players.filter(player =>
-    player.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter players based on search query and active status (only active players)
+  const filteredPlayers = players
+    .filter(player => player.isActive !== false)
+    .filter(player =>
+      player.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   
   // Sort players alphabetically by name
   const sortedPlayers = [...filteredPlayers].sort((a, b) => 

@@ -126,6 +126,7 @@ export function usePlayerFunctions() {
           userId: '',
           organizationId: '',
           createdAt: now,
+          isActive: true,
         };
       }
       
@@ -178,24 +179,38 @@ export function usePlayerFunctions() {
     }
   };
 
-  const deletePlayer = async (id: string): Promise<void> => {
+  const deactivatePlayer = async (id: string): Promise<void> => {
     try {
-      // Get the player first to check for photo
-      const player = await getPlayer(id);
-      
-      // If player has a photo in the 'fotos' bucket, delete it
-      if (player && player.photoUrl && player.photoUrl.includes('fotos')) {
-        await deleteImageFromStorage(player.photoUrl, 'fotos');
-        console.log("🗑️ Deleted player photo:", player.photoUrl);
-      }
-      
-      await pokerDB.deletePlayer(id);
-      setPlayers(prev => prev.filter(p => p.id !== id));
+      await pokerDB.deactivatePlayer(id);
+      // Update local state - mark as inactive instead of removing
+      setPlayers(prev => prev.map(p => 
+        p.id === id ? { ...p, isActive: false } : p
+      ));
+      console.log("✅ Player deactivated (soft delete):", id);
     } catch (error) {
-      console.error("❌ Error deleting player:", error);
+      console.error("❌ Error deactivating player:", error);
       toast({
-        title: "Erro ao excluir jogador",
-        description: "Não foi possível excluir o jogador",
+        title: "Erro ao desativar jogador",
+        description: "Não foi possível desativar o jogador",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const reactivatePlayer = async (id: string): Promise<void> => {
+    try {
+      await pokerDB.reactivatePlayer(id);
+      // Update local state - mark as active
+      setPlayers(prev => prev.map(p => 
+        p.id === id ? { ...p, isActive: true } : p
+      ));
+      console.log("✅ Player reactivated:", id);
+    } catch (error) {
+      console.error("❌ Error reactivating player:", error);
+      toast({
+        title: "Erro ao reativar jogador",
+        description: "Não foi possível reativar o jogador",
         variant: "destructive",
       });
       throw error;
@@ -207,6 +222,7 @@ export function usePlayerFunctions() {
     setPlayers,
     getPlayer,
     savePlayer,
-    deletePlayer
+    deactivatePlayer,
+    reactivatePlayer
   };
 }

@@ -13,7 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useRankingSync } from "@/hooks/useRankingSync";
 
 export default function PlayersManagement() {
-  const { players, savePlayer, deletePlayer, activeSeason } = usePoker();
+  const { players, savePlayer, deactivatePlayer, reactivatePlayer, activeSeason } = usePoker();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -21,6 +21,7 @@ export default function PlayersManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
   const [newPlayer, setNewPlayer] = useState<{ 
     name: string; 
     photoUrl?: string;
@@ -36,11 +37,14 @@ export default function PlayersManagement() {
   const photoManager = usePlayerPhotoManager();
   const { syncPlayerPhotosInRankings } = useRankingSync();
   
-  const filteredPlayers = searchQuery
-    ? players.filter(player => 
-        player.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : players;
+  // Filter players based on search and active status
+  const filteredPlayers = players
+    .filter(player => showInactive ? true : (player.isActive !== false))
+    .filter(player => 
+      searchQuery 
+        ? player.name.toLowerCase().includes(searchQuery.toLowerCase())
+        : true
+    );
   
   // Clear photo in edit mode
   const clearPhoto = () => {
@@ -121,19 +125,39 @@ export default function PlayersManagement() {
     }
   };
 
-  const handleDeletePlayer = async (playerId: string) => {
+  const handleDeactivatePlayer = async (playerId: string) => {
     try {
       setIsDeleting(true);
-      await deletePlayer(playerId);
+      await deactivatePlayer(playerId);
       toast({
-        title: "Jogador removido",
-        description: "O jogador foi removido com sucesso.",
+        title: "Jogador desativado",
+        description: "O jogador foi desativado. Seu histórico permanece preservado.",
       });
     } catch (error) {
-      console.error("Error deleting player:", error);
+      console.error("Error deactivating player:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível remover o jogador.",
+        description: "Não foi possível desativar o jogador.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleReactivatePlayer = async (playerId: string) => {
+    try {
+      setIsDeleting(true);
+      await reactivatePlayer(playerId);
+      toast({
+        title: "Jogador reativado",
+        description: "O jogador foi reativado com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error reactivating player:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível reativar o jogador.",
         variant: "destructive",
       });
     } finally {
@@ -148,16 +172,25 @@ export default function PlayersManagement() {
     };
   }, []);
 
+  // Count inactive players
+  const inactiveCount = players.filter(p => p.isActive === false).length;
+
   return (
     <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'} max-w-7xl`}>
-      <PlayersHeader onAddPlayer={() => setIsAddDialogOpen(true)} />
+      <PlayersHeader 
+        onAddPlayer={() => setIsAddDialogOpen(true)} 
+        showInactive={showInactive}
+        onToggleInactive={() => setShowInactive(!showInactive)}
+        inactiveCount={inactiveCount}
+      />
       <PlayerSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <PlayersList 
         players={filteredPlayers} 
         searchQuery={searchQuery}
         onAddPlayer={() => setIsAddDialogOpen(true)}
         onEditPlayer={setEditingPlayer}
-        onDeletePlayer={handleDeletePlayer}
+        onDeactivatePlayer={handleDeactivatePlayer}
+        onReactivatePlayer={handleReactivatePlayer}
         isDeleting={isDeleting}
       />
       
