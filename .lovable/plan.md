@@ -1,58 +1,92 @@
 
-## Plano: Habilitar Extensao pgcrypto no Banco de Dados
+## Plano: Corrigir Exibicao dos Nomes dos Jogadores na Caixinha
 
-### Objetivo
+### Problema Identificado
 
-Criar uma migration SQL para habilitar a extensao `pgcrypto` no schema `extensions` do Supabase, permitindo que as funcoes `gen_salt()` e `crypt()` funcionem corretamente para criptografar senhas das chaves de acesso ApaHub.
+O dialogo de detalhes das contribuicoes mostra "Jogador" ao inves dos nomes reais porque:
 
-### O Que Sera Feito
+1. O campo `players` nos jogos (JSONB) **NAO armazena** o nome do jogador - apenas o `playerId`
+2. O codigo tenta usar `p.playerName` que nao existe no objeto
+3. O fallback `|| 'Jogador'` e sempre usado, resultando em "Jogador" para todos
 
-Criar um novo arquivo de migration que executa:
+### Estrutura Atual dos Dados
 
-```sql
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+```text
++------------------+          +------------------+
+|     games        |          |     players      |
++------------------+          +------------------+
+| id               |          | id               |
+| players (JSONB)  |--------->| name             |
+|   - playerId     |          | photo_url        |
+|   - points       |          | ...              |
+|   - rebuys       |          +------------------+
+|   (sem playerName)|
++------------------+
 ```
 
-### Detalhes Tecnicos
+### Solucao
 
-| Aspecto | Descricao |
-|---------|-----------|
-| Arquivo | `supabase/migrations/[timestamp]_enable_pgcrypto.sql` |
-| Schema | `extensions` (padrao do Supabase para extensoes) |
-| Seguranca | `IF NOT EXISTS` evita erro se ja estiver habilitado |
-| Impacto | Zero - apenas adiciona funcoes novas |
+Modificar o hook `useCaixinhaUnifiedTransactions.ts` para:
 
-### Funcoes Disponibilizadas
+1. **Buscar a lista de jogadores** da tabela `players` junto com os jogos
+2. **Mapear os nomes** usando o `playerId` como chave de lookup
+3. Exibir o nome correto de cada jogador nas contribuicoes
 
-Apos habilitar o pgcrypto, estas funcoes estarao disponiveis:
+### Arquivo a Modificar
 
-- **`gen_salt('bf')`** - Gera um salt aleatorio para bcrypt
-- **`crypt(senha, salt)`** - Criptografa a senha usando o salt
-- **`crypt(senha, hash)`** - Verifica se a senha corresponde ao hash
+| Arquivo | Mudanca |
+|---------|---------|
+| `src/hooks/useCaixinhaUnifiedTransactions.ts` | Adicionar query para buscar jogadores e mapear nomes |
 
-### Codigo da Migration
+### Codigo da Solucao
 
-```sql
--- Habilitar extensao pgcrypto para funcoes de criptografia
--- Necessario para: gen_salt(), crypt()
--- Usado em: create_apahub_access_key, verify_apahub_login
+A funcao `loadTransactions` sera modificada:
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+```typescript
+const loadTransactions = async () => {
+  // ... codigo existente ...
+
+  // NOVO: Buscar jogadores para obter os nomes
+  const { data: playersData } = await supabase
+    .from('players')
+    .select('id, name')
+    .eq('organization_id', currentOrganization.id);
+
+  // Criar mapa de ID -> Nome
+  const playerNamesMap = new Map(
+    (playersData || []).map(p => [p.id, p.name])
+  );
+
+  // Ao processar contribuicoes, usar o mapa:
+  const contributingPlayers = players
+    .filter(p => p.participatesInClubFund && p.clubFundContribution > 0)
+    .map(p => ({
+      id: p.playerId,
+      name: playerNamesMap.get(p.playerId) || 'Jogador desconhecido',
+      contribution: p.clubFundContribution || 0
+    }));
+};
 ```
 
 ### Resultado Esperado
 
-Apos aplicar a migration:
+Antes:
+```text
+| Jogador  | R$ 10,00 |
+| Jogador  | R$ 10,00 |
+| Jogador  | R$ 10,00 |
+```
 
-1. A funcao `create_apahub_access_key` funcionara corretamente
-2. O admin podera criar email/senha para acesso ao ApaHub
-3. As senhas serao armazenadas de forma segura (hash bcrypt)
-4. A funcao `verify_apahub_login` podera validar as credenciais
+Depois:
+```text
+| Bruno    | R$ 10,00 |
+| Maria    | R$ 10,00 |
+| Carlos   | R$ 10,00 |
+```
 
-### Riscos
+### Detalhes Tecnicos
 
-| Risco | Nivel | Mitigacao |
-|-------|-------|-----------|
-| Afetar dados existentes | Nenhum | Extensao apenas adiciona funcoes |
-| Conflito com extensao existente | Nenhum | `IF NOT EXISTS` previne erro |
-| Downtime | Nenhum | Operacao instantanea |
+- Uma query adicional a tabela `players` (baixo custo, ja que filtra por organization_id)
+- Usa `Map` para lookup O(1) dos nomes por ID
+- Fallback "Jogador desconhecido" para jogadores que foram deletados
+- Nenhuma mudanca no schema do banco de dados necessaria
