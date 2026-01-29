@@ -10,7 +10,8 @@ interface PlayersListProps {
   searchQuery: string;
   onAddPlayer: () => void;
   onEditPlayer: (player: Player) => void;
-  onDeletePlayer: (playerId: string) => void;
+  onDeactivatePlayer: (playerId: string) => void;
+  onReactivatePlayer: (playerId: string) => void;
   isDeleting: boolean;
 }
 
@@ -19,7 +20,8 @@ export function PlayersList({
   searchQuery, 
   onAddPlayer, 
   onEditPlayer, 
-  onDeletePlayer, 
+  onDeactivatePlayer,
+  onReactivatePlayer,
   isDeleting 
 }: PlayersListProps) {
   const isMobile = useIsMobile();
@@ -41,7 +43,8 @@ export function PlayersList({
             key={player.id}
             player={player}
             onEdit={onEditPlayer}
-            onDelete={onDeletePlayer}
+            onDeactivate={onDeactivatePlayer}
+            onReactivate={onReactivatePlayer}
             isDeleting={isDeleting}
           />
         ))}

@@ -436,6 +436,7 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       organizationId: data.organization_id,
       photoBase64: data.photo_base64,
       createdAt: new Date(data.created_at),
+      isActive: data.is_active ?? true,
     };
   }
 

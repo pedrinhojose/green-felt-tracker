@@ -6,7 +6,8 @@ export interface PokerContextProps {
   players: Player[];
   getPlayer: (id: string) => Promise<Player | undefined>; // Changed to Promise<Player | undefined>
   savePlayer: (player: Partial<Player>) => Promise<string>; // Changed to accept Partial<Player>
-  deletePlayer: (id: string) => Promise<void>;
+  deactivatePlayer: (id: string) => Promise<void>;
+  reactivatePlayer: (id: string) => Promise<void>;
   
   // Seasons
   seasons: Season[];

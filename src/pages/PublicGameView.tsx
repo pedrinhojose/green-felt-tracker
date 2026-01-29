@@ -58,7 +58,8 @@ export default function PublicGameView() {
               userId: p.user_id,
               organizationId: p.organization_id,
               createdAt: new Date(p.created_at),
-              photoBase64: p.photo_base64
+              photoBase64: p.photo_base64,
+              isActive: p.is_active ?? true
             }));
           }
         }

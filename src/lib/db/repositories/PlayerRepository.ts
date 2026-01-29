@@ -51,7 +51,8 @@ export class PlayerRepository extends SupabaseCore {
           userId: player.user_id,
           organizationId: player.organization_id,
           photoBase64: player.photo_base64,
-          createdAt: new Date(player.created_at)
+          createdAt: new Date(player.created_at),
+          isActive: player.is_active ?? true
         })) as Player[];
       } catch (error) {
         console.error("Error fetching players from Supabase:", error);
@@ -102,7 +103,8 @@ export class PlayerRepository extends SupabaseCore {
           userId: data.user_id,
           organizationId: data.organization_id,
           photoBase64: data.photo_base64,
-          createdAt: new Date(data.created_at)
+          createdAt: new Date(data.created_at),
+          isActive: data.is_active ?? true
         } as Player;
       } catch (error) {
         console.error("Error fetching player from Supabase:", error);
@@ -172,85 +174,69 @@ export class PlayerRepository extends SupabaseCore {
     throw new Error("No database available");
   }
 
-  async deletePlayer(id: string): Promise<void> {
+  async deactivatePlayer(id: string): Promise<void> {
     if (this.useSupabase) {
       try {
         const orgId = this.getCurrentOrganizationId();
         
         if (!orgId) {
-          throw new Error("No organization selected, cannot delete player");
+          throw new Error("No organization selected, cannot deactivate player");
         }
         
-        // Get the player to check for photo URL
-        const player = await this.getPlayer(id);
-        if (player && player.photoUrl && player.photoUrl.includes('fotos')) {
-          // Delete the player's photo from Storage
-          await deleteImageFromStorage(player.photoUrl);
-          console.log("Deleted player photo:", player.photoUrl);
-        }
-        
-        // Delete rankings from active season only (preserve historical data)
-        // First, get the active season for this organization
-        const { data: activeSeason } = await supabase
-          .from('seasons')
-          .select('id')
-          .eq('organization_id', orgId)
-          .eq('is_active', true)
-          .maybeSingle();
-        
-        if (activeSeason) {
-          // Delete rankings only from the active season
-          const { error: rankingError } = await supabase
-            .from('rankings')
-            .delete()
-            .eq('player_id', id)
-            .eq('season_id', activeSeason.id)
-            .eq('organization_id', orgId);
-            
-          if (rankingError) {
-            console.error("Error deleting player rankings from active season:", rankingError);
-            // Don't throw error here, continue with player deletion
-          } else {
-            console.log("Deleted player rankings from active season:", activeSeason.id);
-          }
-        }
-        
-        // Delete the player
+        // Soft delete: set is_active = false instead of physically deleting
         const { error } = await supabase
           .from('players')
-          .delete()
+          .update({ is_active: false })
           .eq('id', id)
           .eq('organization_id', orgId);
           
         if (error) throw error;
         
-        console.log("Player deleted successfully:", id);
+        console.log("Player deactivated successfully (soft delete):", id);
         
       } catch (error) {
-        console.error("Error deleting player from Supabase:", error);
+        console.error("Error deactivating player in Supabase:", error);
         throw error;
       }
     } else if (this.idbDb) {
-      // For IndexedDB, we need to implement similar logic
-      // Get all rankings for this player and delete only from active season
-      const allRankings = await (await this.idbDb).getAll('rankings');
-      const playerRankings = allRankings.filter(r => r.playerId === id);
-      
-      // Get active season
-      const allSeasons = await (await this.idbDb).getAll('seasons');
-      const activeSeason = allSeasons.find(s => s.isActive);
-      
-      if (activeSeason) {
-        // Delete rankings only from active season
-        for (const ranking of playerRankings) {
-          if (ranking.seasonId === activeSeason.id) {
-            await (await this.idbDb).delete('rankings', ranking.id);
-          }
-        }
+      // For IndexedDB, we mark as inactive instead of deleting
+      const player = await (await this.idbDb).get('players', id);
+      if (player) {
+        player.isActive = false;
+        await (await this.idbDb).put('players', player);
       }
-      
-      // Delete the player
-      await (await this.idbDb).delete('players', id);
+    }
+  }
+
+  async reactivatePlayer(id: string): Promise<void> {
+    if (this.useSupabase) {
+      try {
+        const orgId = this.getCurrentOrganizationId();
+        
+        if (!orgId) {
+          throw new Error("No organization selected, cannot reactivate player");
+        }
+        
+        const { error } = await supabase
+          .from('players')
+          .update({ is_active: true })
+          .eq('id', id)
+          .eq('organization_id', orgId);
+          
+        if (error) throw error;
+        
+        console.log("Player reactivated successfully:", id);
+        
+      } catch (error) {
+        console.error("Error reactivating player in Supabase:", error);
+        throw error;
+      }
+    } else if (this.idbDb) {
+      const player = await (await this.idbDb).get('players', id);
+      if (player) {
+        player.isActive = true;
+        await (await this.idbDb).put('players', player);
+      }
     }
   }
   

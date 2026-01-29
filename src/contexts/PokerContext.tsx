@@ -22,7 +22,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   // Initialize all the hooks
   const { 
     players, setPlayers, 
-    getPlayer, savePlayer, deletePlayer 
+    getPlayer, savePlayer, deactivatePlayer, reactivatePlayer 
   } = usePlayerFunctions();
   
   const { 
@@ -149,7 +149,8 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     players,
     getPlayer,
     savePlayer,
-    deletePlayer,
+    deactivatePlayer,
+    reactivatePlayer,
     
     // Seasons
     seasons,
@@ -194,7 +195,8 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       players: [],
       getPlayer: async () => undefined,
       savePlayer: async () => '',
-      deletePlayer: async () => {},
+      deactivatePlayer: async () => {},
+      reactivatePlayer: async () => {},
       
       // Seasons
       seasons: [],
