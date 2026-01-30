@@ -1,140 +1,89 @@
 
-## Plano: Preservar Nomes de Jogadores no Historico (Soft Delete)
 
-### Analise do Problema
+## Plano: Implementar Recuperacao de Senha
 
-Atualmente, quando um jogador e deletado:
-- O registro e **removido fisicamente** da tabela `players`
-- Os jogos historicos perdem a referencia ao nome (mostram "Desconhecido")
-- Rankings da temporada ativa sao deletados, mas historicos preservados (ja esta correto)
+### Resumo
 
-### Solucao Recomendada: Soft Delete
+Adicionar funcionalidade de "Esqueci minha senha" na tela de login, permitindo que usuarios redefinam suas senhas de forma segura atraves de um link enviado por email.
 
-Em vez de deletar fisicamente, **desativar** o jogador. Isso:
-- Preserva todos os dados historicos
-- Mantem compatibilidade com a API ApaHub (leitura continua funcionando)
-- Nao altera o funcionamento existente - apenas esconde jogadores inativos das selecoes
+---
 
-### Mudancas Necessarias
+### Arquivos a Criar/Modificar
 
-#### 1. Adicionar coluna `is_active` na tabela `players`
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `src/pages/Auth.tsx` | Modificar | Adicionar link "Esqueci minha senha" e dialog para solicitar reset |
+| `src/pages/ResetPassword.tsx` | Criar | Nova pagina para definir nova senha |
+| `src/App.tsx` | Modificar | Adicionar rota `/reset-password` |
 
-```sql
-ALTER TABLE players ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT true;
+---
+
+### Implementacao
+
+#### 1. Modificar Auth.tsx
+
+Adicionar:
+- Estado para controlar o dialog de recuperacao
+- Estado para o email de recuperacao
+- Funcao `handleForgotPassword` que chama `supabase.auth.resetPasswordForEmail()`
+- Link "Esqueci minha senha" abaixo do campo de senha
+- Dialog com campo de email e botao "Enviar Link"
+
+#### 2. Criar ResetPassword.tsx
+
+Nova pagina contendo:
+- Campos para nova senha e confirmacao
+- Validacao de senhas (minimo 6 caracteres, senhas devem coincidir)
+- Funcao que chama `supabase.auth.updateUser({ password })`
+- Redirecionamento para dashboard apos sucesso
+- Design consistente com a pagina de login
+
+#### 3. Atualizar App.tsx
+
+Adicionar rota publica:
+```
+<Route path="/reset-password" element={<ResetPassword />} />
 ```
 
-#### 2. Modificar a exibicao de jogadores
-
-| Local | Comportamento |
-|-------|---------------|
-| Lista de jogadores para adicionar em partidas | Mostrar apenas `is_active = true` |
-| Historico de partidas | Mostrar todos (nome preservado) |
-| Ranking | Mostrar todos |
-| Relatorios | Mostrar todos |
-
-#### 3. Alterar acao de "Excluir" para "Desativar"
-
-O botao "Excluir" passara a fazer um `UPDATE` em vez de `DELETE`:
-
-```typescript
-// Antes (delete fisico)
-await supabase.from('players').delete().eq('id', playerId);
-
-// Depois (soft delete)
-await supabase.from('players').update({ is_active: false }).eq('id', playerId);
-```
-
-#### 4. Adicionar opcao para reativar jogador (opcional)
-
-Permitir que admins reativem jogadores desativados, caso necessario.
-
 ---
 
-### Arquivos que Serao Modificados
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `supabase/migrations/[novo]` | Adicionar coluna `is_active` |
-| `src/lib/db/models.ts` | Adicionar campo `isActive` ao modelo Player |
-| `src/lib/db/repositories/PlayerRepository.ts` | Filtrar por `is_active` e mudar delete para update |
-| `src/contexts/usePlayerFunctions.ts` | Mudar `deletePlayer` para soft delete |
-| `src/components/players/PlayerCard.tsx` | Mudar texto "Excluir" para "Desativar" |
-| `src/components/game/PlayerSelection.tsx` | Filtrar jogadores ativos na selecao |
-
----
-
-### Impacto na API ApaHub
-
-**Nenhum impacto negativo:**
-- A API ApaHub le dados via queries SQL diretas
-- Os jogadores continuam existindo na tabela `players`
-- Os jogos mantem a referencia `playerId` intacta
-- A query de jogadores pode opcionalmente incluir inativos ou filtrar
-
----
-
-### Fluxo do Soft Delete
+### Fluxo do Usuario
 
 ```text
-Usuario clica "Desativar"
-         |
-         v
-+-------------------+
-| UPDATE players    |
-| SET is_active =   |
-| false             |
-| WHERE id = ?      |
-+-------------------+
-         |
-         v
-Jogador some da lista de selecao
-         |
-         v
-Historico preservado (nome visivel)
+Tela de Login
+     |
+     v
+Clica "Esqueci minha senha"
+     |
+     v
+Dialog pede email --> Envia link por email
+     |
+     v
+Usuario recebe email e clica no link
+     |
+     v
+Pagina /reset-password --> Define nova senha
+     |
+     v
+Redirecionado para /dashboard (logado)
 ```
 
 ---
 
-### Interface do Usuario
+### Configuracao Necessaria (apos implementacao)
 
-**Card do Jogador (antes):**
-- Menu: Editar | Excluir
+Voce precisara adicionar as URLs de redirecionamento no Supabase Dashboard:
 
-**Card do Jogador (depois):**
-- Menu: Editar | Desativar
-- Confirmacao: "Deseja desativar {nome}? O jogador nao aparecera mais nas selecoes de novas partidas, mas seu historico sera preservado."
-
-**Lista de Jogadores:**
-- Opcao para mostrar/ocultar jogadores inativos
-- Jogadores inativos aparecem com estilo diferente (opacidade reduzida)
-- Botao "Reativar" disponivel para jogadores inativos
+**Authentication > URL Configuration > Redirect URLs:**
+- `https://id-preview--6620f293-76d2-446a-85dd-423dd27537ec.lovable.app/reset-password`
+- `https://apapoker.lovable.app/reset-password`
 
 ---
 
-### Codigo da Migration
+### Validacoes de Seguranca
 
-```sql
--- Adicionar coluna is_active com valor padrao true
-ALTER TABLE public.players 
-ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+- Email valido antes de enviar
+- Senha minima de 6 caracteres
+- Confirmacao de senha deve coincidir
+- Supabase gerencia limite de tentativas automaticamente
 
--- Atualizar todos jogadores existentes para ativos
-UPDATE public.players SET is_active = true WHERE is_active IS NULL;
-
--- Criar indice para performance nas queries
-CREATE INDEX IF NOT EXISTS idx_players_is_active 
-ON public.players(is_active) 
-WHERE is_active = true;
-```
-
----
-
-### Resultado Final
-
-| Cenario | Antes | Depois |
-|---------|-------|--------|
-| Jogador deletado aparece na selecao | Nao aparece (deletado) | Nao aparece (is_active=false) |
-| Jogador deletado aparece no historico | "Desconhecido" | Nome real preservado |
-| Jogador deletado aparece no ranking | Depende | Nome preservado |
-| API ApaHub le dados do jogador | Erro (nao existe) | Funciona normalmente |
-| Pode restaurar jogador | Nao | Sim (reativar) |
