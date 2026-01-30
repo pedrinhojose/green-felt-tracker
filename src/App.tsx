@@ -35,6 +35,7 @@ import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
 import CaixinhaManagement from '@/pages/CaixinhaManagement';
 import PublicSeasonView from '@/pages/PublicSeasonView';
 import PublicGameView from '@/pages/PublicGameView';
+import ResetPassword from '@/pages/ResetPassword';
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ function App() {
                   {/* Rotas públicas sem autenticação */}
                   <Route path="/public/season/:shareToken" element={<PublicSeasonView />} />
                   <Route path="/public/game/:shareToken" element={<PublicGameView />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   
                   <Route element={<RequireAuth><OrganizationRequired><PokerProvider><AppLayout /></PokerProvider></OrganizationRequired></RequireAuth>}>
                     <Route path="/dashboard" element={<Dashboard />} />
