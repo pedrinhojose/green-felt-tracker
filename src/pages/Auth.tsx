@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { cleanupAuthState } from '@/lib/utils/auth';
 import { GuestAccessButton } from '@/components/auth/GuestAccessButton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -19,6 +25,9 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [clubName, setClubName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotDialog, setShowForgotDialog] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,6 +78,53 @@ export default function Auth() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      toast({
+        title: 'Email necessário',
+        description: 'Digite seu email para recuperar a senha.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resetEmail)) {
+      toast({
+        title: 'Email inválido',
+        description: 'Digite um email válido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsResetting(true);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Email enviado!',
+        description: 'Verifique sua caixa de entrada para redefinir sua senha.',
+      });
+      setShowForgotDialog(false);
+      setResetEmail('');
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao enviar email',
+        description: error.message || 'Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -205,7 +261,19 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password" className="mobile-text">Senha</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="signin-password" className="mobile-text">Senha</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetEmail(email);
+                        setShowForgotDialog(true);
+                      }}
+                      className="text-xs text-poker-gold hover:text-amber-400 hover:underline"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
                   <Input
                     id="signin-password"
                     type="password"
@@ -298,6 +366,49 @@ export default function Auth() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotDialog} onOpenChange={setShowForgotDialog}>
+        <DialogContent className="bg-poker-navy border-poker-gold/20">
+          <DialogHeader>
+            <DialogTitle className="text-poker-gold">Recuperar Senha</DialogTitle>
+            <DialogDescription>
+              Digite seu email para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                placeholder="seu@email.com"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className={isMobile ? 'h-12' : ''}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowForgotDialog(false)}
+                disabled={isResetting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isResetting}
+                className="bg-poker-gold hover:bg-amber-500"
+              >
+                {isResetting ? 'Enviando...' : 'Enviar Link'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
