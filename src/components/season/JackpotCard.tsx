@@ -30,8 +30,8 @@ export const JackpotCard = memo(function JackpotCard({ activeSeason }: JackpotCa
       <CardContent>
         <div className="text-center">
           {/* Ícone visual de dinheiro empilhado */}
-          <div className="flex justify-center mb-4">
-            <div className="relative">
+        <div className="flex justify-center mb-4">
+            <div className="relative h-12 w-12">
               <div className="w-12 h-8 bg-green-500 rounded-sm transform rotate-3 absolute"></div>
               <div className="w-12 h-8 bg-green-600 rounded-sm transform -rotate-2 absolute top-1"></div>
               <div className="w-12 h-8 bg-green-700 rounded-sm absolute top-2"></div>
