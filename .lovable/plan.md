@@ -1,119 +1,48 @@
 
 
-## Plano: Criar Aba "Financeiro" na Configuracao da Temporada
+## Plano: Corrigir Sobreposicao do Icone no JackpotCard
 
-### Resumo
+### Problema Identificado
 
-Reorganizar a tela de configuracao da temporada movendo o card "Parametros Financeiros" e o "JackpotCard" para dentro de uma nova aba chamada "Financeiro", mantendo a consistencia visual e todos os dados existentes intactos.
+O icone visual de dinheiro empilhado usa elementos com `position: absolute` dentro de um container `relative`, mas o container nao tem altura definida. Isso causa a sobreposicao com o valor do jackpot.
 
----
+### Codigo Atual (Problematico)
 
-### Estrutura Atual
-
-```text
-+----------------------------------+
-|    Informacoes Basicas           |
-+----------------------------------+
-|  Abas (6 colunas):               |
-|  [Pontuacao] [Premiacao Semanal] |
-|  [Premiacao Final] [Blinds]      |
-|  [Cronograma] [Regras]           |
-+----------------------------------+
-|  (conteudo da aba selecionada)   |
-+----------------------------------+
-|  Parametros Financeiros (FIXO)   |  <-- Sempre visivel
-+----------------------------------+
-|  Jackpot Card (FIXO)             |  <-- Sempre visivel
-+----------------------------------+
-|  [Salvar Configuracoes]          |
-+----------------------------------+
+```tsx
+<div className="flex justify-center mb-4">
+  <div className="relative">  {/* <-- Sem altura definida */}
+    <div className="w-12 h-8 bg-green-500 rounded-sm transform rotate-3 absolute"></div>
+    <div className="w-12 h-8 bg-green-600 rounded-sm transform -rotate-2 absolute top-1"></div>
+    <div className="w-12 h-8 bg-green-700 rounded-sm absolute top-2"></div>
+  </div>
+</div>
 ```
 
-### Nova Estrutura
+### Solucao
 
-```text
-+----------------------------------+
-|    Informacoes Basicas           |
-+----------------------------------+
-|  Abas (7 colunas):               |
-|  [Pontuacao] [Premiacao Semanal] |
-|  [Premiacao Final] [Blinds]      |
-|  [Cronograma] [Regras]           |
-|  [Financeiro]  <-- NOVA ABA      |
-+----------------------------------+
-|  (conteudo da aba selecionada)   |
-|                                  |
-|  Se aba "Financeiro":            |
-|    - Parametros Financeiros      |
-|    - Jackpot Card                |
-+----------------------------------+
-|  [Salvar Configuracoes]          |
-+----------------------------------+
-```
-
----
+Adicionar altura explicita ao container `relative` para reservar o espaco necessario para os elementos posicionados absolutamente.
 
 ### Arquivo a Modificar
 
-| Arquivo | Acao | Descricao |
-|---------|------|-----------|
-| `src/pages/SeasonConfig.tsx` | Modificar | Adicionar nova aba e mover componentes |
+| Arquivo | Acao |
+|---------|------|
+| `src/components/season/JackpotCard.tsx` | Adicionar altura ao container do icone |
 
----
-
-### Implementacao
-
-#### Modificacoes em SeasonConfig.tsx
-
-1. **Alterar TabsList**: Mudar de `grid-cols-6` para `grid-cols-7`
-
-2. **Adicionar novo TabsTrigger**: 
-   - Valor: `financial`
-   - Label: `Financeiro`
-
-3. **Adicionar novo TabsContent**:
-   - Mover `FinancialParamsConfig` para dentro desta aba
-   - Mover `JackpotCard` para dentro desta aba (com espacamento)
-
-4. **Remover componentes externos**: 
-   - Remover `FinancialParamsConfig` de fora das Tabs
-   - Remover `JackpotCard` de fora das Tabs
-
----
-
-### Codigo da Nova Aba
+### Codigo Corrigido
 
 ```tsx
-<TabsTrigger value="financial">Financeiro</TabsTrigger>
-
-<TabsContent value="financial">
-  <div className="space-y-6">
-    <FinancialParamsConfig register={register} errors={errors} />
-    
-    {activeSeason && !isCreating && (
-      <JackpotCard activeSeason={activeSeason} />
-    )}
+<div className="flex justify-center mb-4">
+  <div className="relative h-12 w-12">  {/* Altura e largura definidas */}
+    <div className="w-12 h-8 bg-green-500 rounded-sm transform rotate-3 absolute"></div>
+    <div className="w-12 h-8 bg-green-600 rounded-sm transform -rotate-2 absolute top-1"></div>
+    <div className="w-12 h-8 bg-green-700 rounded-sm absolute top-2"></div>
   </div>
-</TabsContent>
+</div>
 ```
 
----
+### Impacto
 
-### O Que NAO Muda
-
-- Logica de formulario (`useSeasonForm`)
-- Campos e validacoes
-- Funcao de salvar (`onSubmit`)
-- Dados no banco de dados
-- Estrutura do hook `useSeasonFormInitializer`
-- Temporada ativa e seus parametros
-
----
-
-### Beneficios
-
-1. **Consistencia Visual**: Todos os itens de configuracao ficam dentro de abas
-2. **Menos Confusao**: Admin nao vera card fixo ao navegar entre abas
-3. **Organizacao Logica**: Parametros financeiros e jackpot agrupados
-4. **Layout Limpo**: Apenas o botao "Salvar" permanece fixo no final
+- Correcao puramente visual
+- Nenhum dado afetado
+- O icone ficara corretamente posicionado acima do valor do jackpot
 
