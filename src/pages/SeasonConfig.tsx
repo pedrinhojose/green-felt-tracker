@@ -112,13 +112,14 @@ export default function SeasonConfig() {
         />
         
         <Tabs defaultValue="scores">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="scores">Pontuação</TabsTrigger>
             <TabsTrigger value="weekly">Premiação Semanal</TabsTrigger>
             <TabsTrigger value="season">Premiação Final</TabsTrigger>
             <TabsTrigger value="blinds">Estrutura de Blinds</TabsTrigger>
             <TabsTrigger value="dinners">Cronograma Jantares</TabsTrigger>
             <TabsTrigger value="rules">Regras da Casa</TabsTrigger>
+            <TabsTrigger value="financial">Financeiro</TabsTrigger>
           </TabsList>
           
           <TabsContent value="scores">
@@ -155,13 +156,17 @@ export default function SeasonConfig() {
           <TabsContent value="rules">
             <HouseRulesConfig register={register} errors={errors} />
           </TabsContent>
+          
+          <TabsContent value="financial">
+            <div className="space-y-6">
+              <FinancialParamsConfig register={register} errors={errors} />
+              
+              {activeSeason && !isCreating && (
+                <JackpotCard activeSeason={activeSeason} />
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
-        
-        <FinancialParamsConfig register={register} errors={errors} />
-        
-        {activeSeason && !isCreating && (
-          <JackpotCard activeSeason={activeSeason} />
-        )}
         
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting} className="bg-poker-gold hover:bg-poker-gold/80 text-black font-bold">
