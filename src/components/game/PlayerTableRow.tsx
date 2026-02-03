@@ -4,6 +4,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { GamePlayer, Player, Season } from "@/lib/db/models";
+import { ArrowLeftRight } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface PlayerTableRowProps {
   gamePlayer: GamePlayer;
@@ -14,6 +16,7 @@ interface PlayerTableRowProps {
   onUpdatePlayerStats: (playerId: string, field: keyof GamePlayer, value: any) => void;
   onEliminatePlayer: (playerId: string) => void;
   onReactivatePlayer: (playerId: string) => void;
+  onSwapPosition?: (playerId: string) => void;
 }
 
 export function PlayerTableRow({
@@ -25,6 +28,7 @@ export function PlayerTableRow({
   onUpdatePlayerStats,
   onEliminatePlayer,
   onReactivatePlayer,
+  onSwapPosition,
 }: PlayerTableRowProps) {
   // Helper function to get player initials
   const getInitials = (name: string) => {
@@ -182,6 +186,25 @@ export function PlayerTableRow({
       <td className="p-2 text-right">
         {!isFinished && (
           <div className="flex gap-2 justify-end">
+            {gamePlayer.isEliminated && onSwapPosition && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onSwapPosition(gamePlayer.playerId)}
+                      className="h-8 w-8 p-0 border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black"
+                    >
+                      <ArrowLeftRight className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Trocar posição</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             {!gamePlayer.isEliminated ? (
               <Button 
                 size="sm" 

@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowLeftRight } from "lucide-react";
 
 interface PlayerMobileCardProps {
   gamePlayer: GamePlayer;
@@ -18,6 +19,7 @@ interface PlayerMobileCardProps {
   onUpdatePlayerStats: (playerId: string, field: keyof GamePlayer, value: any) => void;
   onEliminatePlayer: (playerId: string) => void;
   onReactivatePlayer: (playerId: string) => void;
+  onSwapPosition?: (playerId: string) => void;
 }
 
 export function PlayerMobileCard({
@@ -29,6 +31,7 @@ export function PlayerMobileCard({
   onUpdatePlayerStats,
   onEliminatePlayer,
   onReactivatePlayer,
+  onSwapPosition,
 }: PlayerMobileCardProps) {
   const isMobile = useIsMobile();
 
@@ -65,9 +68,19 @@ export function PlayerMobileCard({
             )}
           </div>
           
-          {/* Botão de ação */}
+          {/* Botões de ação */}
           {!isFinished && (
             <div className="flex gap-1 flex-shrink-0">
+              {gamePlayer.isEliminated && onSwapPosition && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSwapPosition(gamePlayer.playerId)}
+                  className="h-8 px-2 border-poker-gold/50 text-poker-gold hover:bg-poker-gold hover:text-black"
+                >
+                  <ArrowLeftRight className="h-3 w-3" />
+                </Button>
+              )}
               {!gamePlayer.isEliminated ? (
                 <Button 
                   size="sm" 
