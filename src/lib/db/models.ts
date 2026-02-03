@@ -30,6 +30,7 @@ export interface Season {
   houseRules: string;
   hostSchedule: HostScheduleEntry[];
   caixinhaBalance?: number;
+  eliminationRewardConfig?: EliminationRewardConfig;
   createdAt: Date;
   organizationId?: string;
 }
@@ -116,6 +117,14 @@ export interface HostScheduleConfig {
   startDate: Date;
   endDate: Date;
   frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
+}
+
+export interface EliminationRewardConfig {
+  enabled: boolean;
+  rewardType: 'points' | 'money';
+  rewardValue: number;
+  frequency: number;         // A cada X eliminações
+  maxRewardsPerGame: number; // 0 = sem limite
 }
 
 export interface SeasonJackpotDistribution {

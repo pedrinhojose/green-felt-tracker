@@ -13,6 +13,7 @@ import { PrizeSchemaConfig } from "@/components/season/PrizeSchemaConfig";
 import { FinancialParamsConfig } from "@/components/season/FinancialParamsConfig";
 import { HouseRulesConfig } from "@/components/season/HouseRulesConfig";
 import { JackpotCard } from "@/components/season/JackpotCard";
+import { EliminationRewardConfig } from "@/components/season/EliminationRewardConfig";
 import { useSeasonForm } from "@/hooks/useSeasonForm";
 import { 
   AlertDialog,
@@ -112,13 +113,14 @@ export default function SeasonConfig() {
         />
         
         <Tabs defaultValue="scores">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="scores">Pontuação</TabsTrigger>
-            <TabsTrigger value="weekly">Premiação Semanal</TabsTrigger>
-            <TabsTrigger value="season">Premiação Final</TabsTrigger>
-            <TabsTrigger value="blinds">Estrutura de Blinds</TabsTrigger>
-            <TabsTrigger value="dinners">Cronograma Jantares</TabsTrigger>
-            <TabsTrigger value="rules">Regras da Casa</TabsTrigger>
+            <TabsTrigger value="weekly">Prem. Semanal</TabsTrigger>
+            <TabsTrigger value="season">Prem. Final</TabsTrigger>
+            <TabsTrigger value="eliminations">Eliminações</TabsTrigger>
+            <TabsTrigger value="blinds">Blinds</TabsTrigger>
+            <TabsTrigger value="dinners">Jantares</TabsTrigger>
+            <TabsTrigger value="rules">Regras</TabsTrigger>
             <TabsTrigger value="financial">Financeiro</TabsTrigger>
           </TabsList>
           
@@ -142,6 +144,14 @@ export default function SeasonConfig() {
               entries={seasonPrizeEntries} 
               onChange={setSeasonPrizeEntries} 
               title="Premiação Final da Temporada"
+            />
+          </TabsContent>
+          
+          <TabsContent value="eliminations">
+            <EliminationRewardConfig 
+              register={register}
+              setValue={setValue}
+              watch={watch}
             />
           </TabsContent>
           

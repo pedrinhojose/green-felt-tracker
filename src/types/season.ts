@@ -11,6 +11,14 @@ export interface PrizeEntry {
   percentage: number;
 }
 
+export interface EliminationRewardFormValues {
+  enabled: boolean;
+  rewardType: 'points' | 'money';
+  rewardValue: number;
+  frequency: number;
+  maxRewardsPerGame: number;
+}
+
 export interface SeasonFormValues {
   name: string;
   startDate: string;
@@ -23,6 +31,12 @@ export interface SeasonFormValues {
   clubFundContribution: number;
   pixKey?: string;
   houseRules: string;
+  // Elimination reward config
+  eliminationRewardEnabled: boolean;
+  eliminationRewardType: 'points' | 'money';
+  eliminationRewardValue: number;
+  eliminationRewardFrequency: number;
+  eliminationRewardMaxPerGame: number;
 }
 
 export interface SeasonFormProps {
