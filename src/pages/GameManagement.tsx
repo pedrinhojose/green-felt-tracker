@@ -5,6 +5,7 @@ import { usePlayerActions } from "@/hooks/usePlayerActions";
 import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useGameShareableLink } from "@/hooks/useGameShareableLink";
 import { useEditFinishedGame } from "@/hooks/useEditFinishedGame";
+import { usePositionSwap } from "@/hooks/usePositionSwap";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -66,6 +67,9 @@ export default function GameManagement() {
     calculateDinnerCosts,
     distributeWinningsByPrize
   } = usePrizeDistribution(game, setGame);
+  
+  // Position swap hook
+  const { swapPositions } = usePositionSwap(game, setGame);
   
   // Game shareable link hook
   const { generateShareableLink, isGenerating: isGeneratingLink } = useGameShareableLink();
@@ -285,6 +289,7 @@ export default function GameManagement() {
             onEliminatePlayer={onEliminatePlayer}
             onReactivatePlayer={reactivatePlayer}
             onUpdatePlayerStats={updatePlayerStats}
+            onSwapPositions={swapPositions}
             isEditingFinishedGame={isEditingFinishedGame}
           />
           
