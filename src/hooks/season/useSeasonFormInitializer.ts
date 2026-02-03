@@ -30,6 +30,14 @@ export function useSeasonFormInitializer(
       setValue('pixKey', activeSeason.financialParams.pixKey || '');
       setValue('houseRules', activeSeason.houseRules || '');
       
+      // Elimination reward config
+      const elimConfig = activeSeason.eliminationRewardConfig;
+      setValue('eliminationRewardEnabled', elimConfig?.enabled ?? false);
+      setValue('eliminationRewardType', elimConfig?.rewardType ?? 'points');
+      setValue('eliminationRewardValue', elimConfig?.rewardValue ?? 1);
+      setValue('eliminationRewardFrequency', elimConfig?.frequency ?? 1);
+      setValue('eliminationRewardMaxPerGame', elimConfig?.maxRewardsPerGame ?? 0);
+      
       setScoreEntries([...activeSeason.scoreSchema]);
       setWeeklyPrizeEntries([...activeSeason.weeklyPrizeSchema]);
       setSeasonPrizeEntries([...activeSeason.seasonPrizeSchema]);
@@ -57,6 +65,13 @@ export function useSeasonFormInitializer(
       setValue('clubFundContribution', 2);
       setValue('pixKey', '');
       setValue('houseRules', '');
+      
+      // Default elimination reward config (disabled)
+      setValue('eliminationRewardEnabled', false);
+      setValue('eliminationRewardType', 'points');
+      setValue('eliminationRewardValue', 1);
+      setValue('eliminationRewardFrequency', 1);
+      setValue('eliminationRewardMaxPerGame', 0);
       
       // Updated default score schema matching the image (6 positions)
       setScoreEntries([

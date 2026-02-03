@@ -80,7 +80,14 @@ export function useSeasonFormSubmitter(
           clubFundContribution: Number(data.clubFundContribution),
           pixKey: data.pixKey || undefined,
         },
-        hostSchedule: hostSchedule || []
+        hostSchedule: hostSchedule || [],
+        eliminationRewardConfig: {
+          enabled: data.eliminationRewardEnabled ?? false,
+          rewardType: data.eliminationRewardType ?? 'points',
+          rewardValue: Number(data.eliminationRewardValue) || 1,
+          frequency: Math.max(1, Number(data.eliminationRewardFrequency) || 1),
+          maxRewardsPerGame: Number(data.eliminationRewardMaxPerGame) || 0,
+        }
       };
       
       if (isCreating) {
