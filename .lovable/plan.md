@@ -1,141 +1,221 @@
 
 
-## Plano: Funcao para Trocar Posicoes entre Jogadores
+## Plano: Sistema de Recompensas por Eliminacoes
 
 ### Resumo
 
-Adicionar uma funcionalidade que permite trocar as posicoes de dois jogadores em uma partida finalizada ou em andamento. Por exemplo, se Pedro ficou em 5o e Anderson em 6o, o admin podera trocar suas posicoes facilmente.
+Criar uma nova aba "Eliminacoes" na pagina de Configuracao da Temporada, onde o admin podera definir recompensas para jogadores que eliminam adversarios. As recompensas podem ser em pontos no ranking ou em dinheiro (adicional ao premio).
 
 ---
 
-### Como Vai Funcionar
+### Localizacao
+
+A nova configuracao sera acessivel em:
+**Configuracoes da Temporada > Aba "Eliminacoes"** (8a aba, apos "Financeiro")
 
 ```text
-+---------------------------------------------+
-|  Jogadores da Partida                       |
-|---------------------------------------------|
-|  Pedro      5o lugar     [Trocar Posicao]   |
-|  Anderson   6o lugar     [Trocar Posicao]   |
-|  Carlos     4o lugar     [Trocar Posicao]   |
-+---------------------------------------------+
-          |
-          v (Clica em "Trocar Posicao" no Pedro)
-+---------------------------------------------+
-|  Dialog: Trocar Posicao                     |
-|---------------------------------------------|
-|  Jogador: Pedro (5o lugar)                  |
-|                                             |
-|  Trocar com:                                |
-|  [Select] Anderson (6o lugar)  v            |
-|           Carlos (4o lugar)                 |
-|                                             |
-|  [Cancelar]           [Confirmar Troca]     |
-+---------------------------------------------+
-          |
-          v (Apos confirmar)
-+---------------------------------------------+
-|  Pedro agora: 6o lugar                      |
-|  Anderson agora: 5o lugar                   |
-|  Premios e pontos recalculados!             |
-+---------------------------------------------+
+Tabs atuais:
+[Pontuacao] [Premiacao Semanal] [Premiacao Final] [Estrutura de Blinds] [Cronograma Jantares] [Regras da Casa] [Financeiro]
+
+Tabs apos implementacao:
+[Pontuacao] [Premiacao Semanal] [Premiacao Final] [Eliminacoes] [Blinds] [Jantares] [Regras] [Financeiro]
 ```
 
 ---
 
-### Arquivos a Criar/Modificar
+### Interface de Configuracao
 
-| Arquivo | Acao | Descricao |
-|---------|------|-----------|
-| `src/components/game/SwapPositionDialog.tsx` | Criar | Dialog para selecionar jogadores e trocar posicoes |
-| `src/hooks/usePositionSwap.ts` | Criar | Hook com logica de troca e recalculo |
-| `src/components/game/PlayerTableRow.tsx` | Modificar | Adicionar botao "Trocar Posicao" |
-| `src/components/game/PlayerMobileCard.tsx` | Modificar | Adicionar botao "Trocar" na versao mobile |
-| `src/components/game/PlayersTable.tsx` | Modificar | Gerenciar estado do dialog e passar props |
-| `src/pages/GameManagement.tsx` | Modificar | Integrar hook e dialog |
+```text
++------------------------------------------------------------------+
+| Recompensas por Eliminacao                                       |
+|------------------------------------------------------------------|
+|                                                                  |
+| [X] Ativar recompensas por eliminacao                            |
+|                                                                  |
+| Tipo de Recompensa:                                              |
+|   (o) Pontos no Ranking    ( ) Valor em Dinheiro                 |
+|                                                                  |
+| Valor da Recompensa:                                             |
+|   [    2    ]  pontos                                            |
+|                                                                  |
+| Frequencia (a cada quantas eliminacoes):                         |
+|   [    1    ]  eliminacao(oes)                                   |
+|                                                                  |
+| Limite maximo de recompensas por partida:                        |
+|   [    0    ]  (0 = sem limite)                                  |
+|                                                                  |
+| +------------------------------------------------------+         |
+| | Exemplo:                                             |         |
+| | - Frequencia: 2 eliminacoes                          |         |
+| | - Valor: 2 pontos                                    |         |
+| | - Jogador eliminou 5 adversarios                     |         |
+| | - Recompensas: 2 (na 2a e 4a eliminacao)             |         |
+| | - Bonus total: 4 pontos                              |         |
+| +------------------------------------------------------+         |
++------------------------------------------------------------------+
+```
+
+---
+
+### Arquivos a Criar
+
+| Arquivo | Descricao |
+|---------|-----------|
+| `src/components/season/EliminationRewardConfig.tsx` | Componente de configuracao de recompensas por eliminacao |
+| `src/hooks/useEliminationRewards.ts` | Hook para calcular recompensas baseado nas eliminacoes |
+
+---
+
+### Arquivos a Modificar
+
+| Arquivo | Modificacao |
+|---------|-------------|
+| `src/lib/db/models.ts` | Adicionar interface `EliminationRewardConfig` e campo na interface `Season` |
+| `src/types/season.ts` | Adicionar tipos do formulario |
+| `src/hooks/useSeasonForm.ts` | Adicionar estado para `eliminationRewardConfig` |
+| `src/hooks/season/useSeasonFormInitializer.ts` | Carregar configuracao existente ou usar default |
+| `src/hooks/season/useSeasonFormSubmitter.ts` | Incluir configuracao no objeto de salvamento |
+| `src/pages/SeasonConfig.tsx` | Adicionar nova aba "Eliminacoes" com o componente |
+| `src/hooks/usePrizeDistribution.ts` | Aplicar bonus de eliminacao ao calcular pontos/premios |
 
 ---
 
 ### Detalhes Tecnicos
 
-#### 1. Hook usePositionSwap
+#### 1. Nova Interface (models.ts)
 
 ```typescript
-// src/hooks/usePositionSwap.ts
-export function usePositionSwap(game: Game, setGame) {
-  const swapPositions = async (player1Id: string, player2Id: string) => {
-    // 1. Encontrar os dois jogadores
-    // 2. Trocar suas posicoes
-    // 3. Recalcular pontos baseado na nova posicao
-    // 4. Recalcular premios baseado na nova posicao
-    // 5. Recalcular saldos
-    // 6. Salvar no banco
-  };
-  
-  return { swapPositions };
+export interface EliminationRewardConfig {
+  enabled: boolean;
+  rewardType: 'points' | 'money';
+  rewardValue: number;
+  frequency: number;         // A cada X eliminacoes
+  maxRewardsPerGame: number; // 0 = sem limite
+}
+
+export interface Season {
+  // ... campos existentes
+  eliminationRewardConfig?: EliminationRewardConfig;
 }
 ```
 
-#### 2. SwapPositionDialog
+#### 2. Componente de Configuracao
 
-- Mostra o jogador selecionado e sua posicao atual
-- Lista outros jogadores com posicao definida para trocar
-- Confirma a troca e recalcula tudo automaticamente
+O componente `EliminationRewardConfig.tsx` tera:
+- Switch para ativar/desativar
+- RadioGroup para escolher tipo (pontos/dinheiro)
+- Input numerico para valor
+- Input numerico para frequencia (minimo 1)
+- Input numerico para limite maximo
+- Card de exemplo dinamico mostrando calculo
 
-#### 3. Integracao com Edicao de Partida Finalizada
+#### 3. Calculo de Recompensas
 
-A funcionalidade funcionara tanto:
-- Em partidas em andamento (posicoes ja definidas mas partida nao encerrada)
-- Em partidas finalizadas (quando `isEditingFinishedGame` estiver ativo)
-
----
-
-### Logica de Recalculo Apos Troca
-
-```text
-Antes da Troca:
-  Pedro:    posicao=5, pontos=6,  premio=0
-  Anderson: posicao=6, pontos=4,  premio=0
-
-Apos Trocar:
-  Pedro:    posicao=6, pontos=4,  premio=0
-  Anderson: posicao=5, pontos=6,  premio=0
+```typescript
+function calculateEliminationRewards(
+  playerEliminations: number,
+  config: EliminationRewardConfig
+): { rewards: number; value: number } {
+  if (!config.enabled || playerEliminations === 0) {
+    return { rewards: 0, value: 0 };
+  }
+  
+  // Quantas recompensas o jogador ganhou
+  let rewards = Math.floor(playerEliminations / config.frequency);
+  
+  // Aplicar limite se configurado
+  if (config.maxRewardsPerGame > 0) {
+    rewards = Math.min(rewards, config.maxRewardsPerGame);
+  }
+  
+  return {
+    rewards,
+    value: rewards * config.rewardValue
+  };
+}
 ```
 
-O sistema ira:
-1. Trocar os valores de `position` entre os jogadores
-2. Buscar na `scoreSchema` os novos pontos para cada posicao
-3. Buscar na `weeklyPrizeSchema` os novos premios para cada posicao
-4. Recalcular os saldos considerando os novos premios
+#### 4. Integracao com Distribuicao de Premios
+
+No `usePrizeDistribution.ts`, apos calcular pontos e premios baseados na posicao:
+
+1. Buscar eliminacoes do jogo atual via `useEliminationData`
+2. Contar eliminacoes por jogador (soma de `eliminator_player_id`)
+3. Para cada jogador, calcular bonus:
+   - Se `rewardType === 'points'`: adicionar ao `player.points`
+   - Se `rewardType === 'money'`: adicionar ao `player.prize`
+4. Recalcular saldo final
 
 ---
 
-### Fluxo de Usuario
+### Fluxo de Dados
 
-1. Admin abre partida finalizada e clica em "Editar Partida"
-2. Na tabela de jogadores, clica no botao "Trocar" ao lado do jogador errado
-3. Dialog abre mostrando outros jogadores com posicao
-4. Seleciona o jogador para trocar
-5. Clica em "Confirmar Troca"
-6. Sistema troca posicoes e recalcula pontos/premios
-7. Admin clica em "Salvar Alteracoes" para persistir
+```text
+1. Admin acessa Configuracoes > Aba "Eliminacoes"
+          |
+          v
+2. Define: tipo=pontos, valor=2, frequencia=2, limite=3
+          |
+          v
+3. Salva configuracao no campo `eliminationRewardConfig` da Season
+          |
+          v
+4. Durante partida, eliminacoes sao registradas normalmente
+          |
+          v
+5. Ao encerrar partida e distribuir premios:
+   - Sistema conta eliminacoes de cada jogador
+   - Aplica formula: floor(eliminacoes / frequencia) * valor
+   - Respeita limite maximo
+   - Adiciona bonus aos pontos ou premio
+```
 
 ---
 
-### Interface do Botao
+### Exemplo Pratico
 
-- **Desktop**: Botao pequeno com icone de setas ao lado do "Eliminar/Reativar"
-- **Mobile**: Botao compacto "Trocar" ao lado das acoes existentes
+**Configuracao:**
+- Tipo: Pontos
+- Valor: 2 pontos
+- Frequencia: 2 eliminacoes
+- Limite: 3 recompensas
 
-O botao so aparece quando:
-- O jogador tem posicao definida (foi eliminado)
-- A partida NAO esta finalizada OU esta em modo de edicao (`isEditingFinishedGame`)
+**Resultado em uma partida:**
+
+| Jogador | Eliminacoes | Recompensas | Bonus |
+|---------|-------------|-------------|-------|
+| Pedro   | 7           | 3 (maximo)  | +6 pts |
+| Ana     | 4           | 2           | +4 pts |
+| Carlos  | 1           | 0           | +0 pts |
+| Maria   | 2           | 1           | +2 pts |
 
 ---
 
-### Beneficios
+### Valores Padrao (Season Nova)
 
-1. **Correcao Rapida**: Trocar posicoes erradas sem precisar reativar e eliminar novamente
-2. **Recalculo Automatico**: Pontos, premios e saldos ajustados automaticamente
-3. **Integracao Perfeita**: Funciona com o sistema existente de edicao de partidas finalizadas
-4. **Interface Intuitiva**: Dialog simples para selecionar com quem trocar
+```typescript
+const defaultEliminationRewardConfig: EliminationRewardConfig = {
+  enabled: false,
+  rewardType: 'points',
+  rewardValue: 1,
+  frequency: 1,
+  maxRewardsPerGame: 0
+};
+```
+
+---
+
+### Validacoes
+
+1. Frequencia deve ser >= 1
+2. Valor deve ser >= 0
+3. Limite maximo deve ser >= 0
+4. Se habilitado e valor = 0, mostrar aviso
+
+---
+
+### Responsividade
+
+A nova aba seguira o mesmo padrao das outras abas. Em dispositivos moveis, os labels das abas serao abreviados:
+- "Eliminacoes" → "Elim."
 
