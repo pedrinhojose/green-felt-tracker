@@ -16,11 +16,12 @@ import { toast } from "@/hooks/use-toast";
 import { isSameDay } from "date-fns";
 
 export default function Dashboard() {
-  const { activeSeason, isLoading, updateSeason, players, setCaixinhaBalance } = usePoker();
+  const { activeSeason, isLoading, updateSeason, players, setCaixinhaBalance, recalculateSeasonJackpot, fixSeasonJackpot } = usePoker();
   const { validateRankingConsistency } = useRankingSync();
   const [error, setError] = useState<Error | null>(null);
   const birthdayToastShown = useRef(false);
   const caixinhaFixApplied = useRef(false);
+  const jackpotFixApplied = useRef(false);
 
   // One-time fix: Transfer caixinha balance from previous season (2ª Temporada 2025)
   useEffect(() => {
@@ -40,7 +41,27 @@ export default function Dashboard() {
     }
   }, [activeSeason, isLoading, setCaixinhaBalance]);
 
-  // Show birthday toast notification
+  // Auto-fix jackpot if incorrect
+  useEffect(() => {
+    const verifyAndFixJackpot = async () => {
+      if (jackpotFixApplied.current || isLoading || !activeSeason) return;
+      
+      try {
+        const correctJackpot = await recalculateSeasonJackpot(activeSeason.id);
+        
+        // Se o valor está incorreto, corrigir automaticamente
+        if (Math.abs(correctJackpot - activeSeason.jackpot) > 0.01) {
+          jackpotFixApplied.current = true;
+          console.log(`Jackpot incorreto detectado: atual=${activeSeason.jackpot}, correto=${correctJackpot}`);
+          await fixSeasonJackpot(activeSeason.id);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar jackpot:", error);
+      }
+    };
+    
+    verifyAndFixJackpot();
+  }, [activeSeason, isLoading, recalculateSeasonJackpot, fixSeasonJackpot]);
   useEffect(() => {
     if (birthdayToastShown.current || isLoading || players.length === 0) return;
     
