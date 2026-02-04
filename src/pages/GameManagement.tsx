@@ -6,7 +6,7 @@ import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useGameShareableLink } from "@/hooks/useGameShareableLink";
 import { useEditFinishedGame } from "@/hooks/useEditFinishedGame";
 import { usePositionSwap } from "@/hooks/usePositionSwap";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Component imports
@@ -81,6 +81,46 @@ export default function GameManagement() {
     saveEditedGame, 
     cancelEdit 
   } = useEditFinishedGame();
+  
+  // Verificar se pode encerrar a partida (todos eliminados, com posição e prêmios calculados)
+  const canFinishGame = useMemo(() => {
+    if (!game || game.isFinished) return false;
+    if (game.players.length === 0) return false;
+    
+    // Todos os jogadores devem estar eliminados
+    const allEliminated = game.players.every(p => p.isEliminated);
+    
+    // Todos devem ter posição definida
+    const allHavePosition = game.players.every(p => p.position !== null);
+    
+    // Prêmios devem estar calculados (pelo menos um com prize > 0)
+    const prizesCalculated = game.players.some(p => p.prize > 0);
+    
+    return allEliminated && allHavePosition && prizesCalculated;
+  }, [game]);
+
+  // Mensagem explicativa quando não pode encerrar
+  const finishGameBlockReason = useMemo(() => {
+    if (!game || game.isFinished) return null;
+    if (game.players.length === 0) return "Nenhum jogador na partida";
+    
+    const activePlayersCount = game.players.filter(p => !p.isEliminated).length;
+    if (activePlayersCount > 0) {
+      return `Ainda há ${activePlayersCount} jogador(es) ativo(s)`;
+    }
+    
+    const playersWithoutPosition = game.players.filter(p => p.position === null);
+    if (playersWithoutPosition.length > 0) {
+      return `${playersWithoutPosition.length} jogador(es) sem posição`;
+    }
+    
+    const hasPrizes = game.players.some(p => p.prize > 0);
+    if (!hasPrizes) {
+      return "Clique em 'Calcular Prêmios' primeiro";
+    }
+    
+    return null;
+  }, [game]);
   
   // Filtrar jogadores que ainda não estão na partida
   const getAvailablePlayers = () => {
@@ -198,6 +238,8 @@ export default function GameManagement() {
           isDeleting={isDeleting}
           isGeneratingLink={isGeneratingLink}
           isEditingFinishedGame={isEditingFinishedGame}
+          canFinishGame={canFinishGame}
+          finishGameBlockReason={finishGameBlockReason}
           onExportReport={handleExportReport}
           onExportReportAsImage={handleExportReportAsImage}
           onExportLink={handleExportLink}
