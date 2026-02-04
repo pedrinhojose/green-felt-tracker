@@ -43,6 +43,8 @@ interface GameHeaderProps {
   isDeleting: boolean;
   isGeneratingLink: boolean;
   isEditingFinishedGame?: boolean;
+  canFinishGame?: boolean;
+  finishGameBlockReason?: string | null;
   onExportReport: () => void;
   onExportReportAsImage: () => void;
   onExportLink: () => void;
@@ -63,6 +65,8 @@ export default function GameHeader({
   isDeleting,
   isGeneratingLink,
   isEditingFinishedGame = false,
+  canFinishGame = true,
+  finishGameBlockReason,
   onExportReport,
   onExportReportAsImage,
   onExportLink,
@@ -223,8 +227,14 @@ export default function GameHeader({
                   variant="destructive"
                   size={isMobile ? "sm" : "sm"}
                   className={isMobile ? "w-full justify-center" : ""}
-                  disabled={isGuest}
-                  title={isGuest ? "Ação indisponível no modo visitante" : undefined}
+                  disabled={isGuest || !canFinishGame}
+                  title={
+                    isGuest 
+                      ? "Ação indisponível no modo visitante" 
+                      : !canFinishGame 
+                        ? finishGameBlockReason || "Partida não pode ser encerrada"
+                        : undefined
+                  }
                 >
                   {isMobile ? "Encerrar" : "Encerrar Partida"}
                 </Button>
