@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRankingSync } from "@/hooks/useRankingSync";
 import { toast } from "@/hooks/use-toast";
 import { isSameDay } from "date-fns";
+import { getDaysSinceLastBackup } from "@/lib/utils/excelBackupExport";
 
 export default function Dashboard() {
   const { activeSeason, isLoading, updateSeason, players, setCaixinhaBalance, recalculateSeasonJackpot, fixSeasonJackpot } = usePoker();
