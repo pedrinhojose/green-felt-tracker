@@ -182,6 +182,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <BackupButton />
             <RestoreButton />
+            <ExcelBackupButton />
+            <ExcelRestoreButton />
           </div>
         </div>
       </div>
