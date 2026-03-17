@@ -11,7 +11,7 @@ import ExcelBackupButton from "@/components/ExcelBackupButton";
 import ExcelRestoreButton from "@/components/ExcelRestoreButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRankingSync } from "@/hooks/useRankingSync";
 import { toast } from "@/hooks/use-toast";
