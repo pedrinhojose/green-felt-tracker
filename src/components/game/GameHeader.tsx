@@ -315,6 +315,29 @@ export default function GameHeader({
               
               <Button 
                 onClick={() => {
+                  handleExcelBackup();
+                }}
+                disabled={isBackingUp}
+                variant="outline"
+                className="w-full border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
+              >
+                {isBackingUp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
+                {isBackingUp ? "Gerando backup..." : "Backup Excel Completo"}
+              </Button>
+
+              {lastBackupDate && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Último backup: {lastBackupDays === 0 ? "hoje" : lastBackupDays === 1 ? "ontem" : `há ${lastBackupDays} dias`}
+                </p>
+              )}
+              {!lastBackupDate && (
+                <p className="text-xs text-amber-400 text-center">
+                  ⚠️ Nenhum backup Excel realizado ainda
+                </p>
+              )}
+
+              <Button 
+                onClick={() => {
                   setShowReportDialog(false);
                   navigate('/games');
                 }}
