@@ -82,6 +82,22 @@ export default function GameHeader({
   const { user } = useAuth();
   const isGuest = user?.email?.toLowerCase?.() === 'visitante@apapoker.com';
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  
+  const lastBackupDays = getDaysSinceLastBackup();
+  const lastBackupDate = getLastBackupDate();
+
+  const handleExcelBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      await exportExcelBackup();
+      toast({ title: "✅ Backup Excel gerado!", description: "Arquivo exportado com sucesso." });
+    } catch (error: any) {
+      toast({ title: "Erro no backup", description: error.message || "Erro desconhecido", variant: "destructive" });
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
   
   // Função para finalizar o jogo e mostrar o diálogo de relatório
   const handleFinishGame = async () => {
