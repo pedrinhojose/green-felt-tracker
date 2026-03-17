@@ -11,11 +11,12 @@ import ExcelBackupButton from "@/components/ExcelBackupButton";
 import ExcelRestoreButton from "@/components/ExcelRestoreButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRankingSync } from "@/hooks/useRankingSync";
 import { toast } from "@/hooks/use-toast";
 import { isSameDay } from "date-fns";
+import { getDaysSinceLastBackup } from "@/lib/utils/excelBackupExport";
 
 export default function Dashboard() {
   const { activeSeason, isLoading, updateSeason, players, setCaixinhaBalance, recalculateSeasonJackpot, fixSeasonJackpot } = usePoker();
@@ -179,6 +180,24 @@ export default function Dashboard() {
       <div className="mt-8">
         <div className="bg-poker-navy/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Gerenciamento de Dados</h3>
+          
+          {(() => {
+            const days = getDaysSinceLastBackup();
+            const showWarning = days === null || days >= 7;
+            if (!showWarning) return null;
+            return (
+              <Alert className="mb-4 border-amber-500/50 bg-amber-500/10">
+                <AlertTriangle className="h-4 w-4 text-amber-400" />
+                <AlertTitle className="text-amber-400">Lembrete de Backup</AlertTitle>
+                <AlertDescription className="text-amber-300/80">
+                  {days === null
+                    ? "Você ainda não fez nenhum backup Excel. Recomendamos fazer backup regularmente."
+                    : `Seu último backup foi há ${days} dias. Recomendamos fazer backup pelo menos semanalmente.`}
+                </AlertDescription>
+              </Alert>
+            );
+          })()}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <BackupButton />
             <RestoreButton />

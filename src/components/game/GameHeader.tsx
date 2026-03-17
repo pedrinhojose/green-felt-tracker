@@ -1,6 +1,8 @@
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils/dateUtils";
+import { exportExcelBackup, getDaysSinceLastBackup, getLastBackupDate } from "@/lib/utils/excelBackupExport";
+import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,8 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
-import { FileImage, Image, Trash2, Share, Edit3, Save, X } from "lucide-react";
-import { useState } from "react";
+import { FileImage, Image, Trash2, Share, Edit3, Save, X, FileSpreadsheet, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -81,6 +82,22 @@ export default function GameHeader({
   const { user } = useAuth();
   const isGuest = user?.email?.toLowerCase?.() === 'visitante@apapoker.com';
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  
+  const lastBackupDays = getDaysSinceLastBackup();
+  const lastBackupDate = getLastBackupDate();
+
+  const handleExcelBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      await exportExcelBackup();
+      toast({ title: "✅ Backup Excel gerado!", description: "Arquivo exportado com sucesso." });
+    } catch (error: any) {
+      toast({ title: "Erro no backup", description: error.message || "Erro desconhecido", variant: "destructive" });
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
   
   // Função para finalizar o jogo e mostrar o diálogo de relatório
   const handleFinishGame = async () => {
@@ -296,6 +313,29 @@ export default function GameHeader({
                 <Image className="ml-2 h-4 w-4" />
               </Button>
               
+              <Button 
+                onClick={() => {
+                  handleExcelBackup();
+                }}
+                disabled={isBackingUp}
+                variant="outline"
+                className="w-full border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
+              >
+                {isBackingUp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
+                {isBackingUp ? "Gerando backup..." : "Backup Excel Completo"}
+              </Button>
+
+              {lastBackupDate && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Último backup: {lastBackupDays === 0 ? "hoje" : lastBackupDays === 1 ? "ontem" : `há ${lastBackupDays} dias`}
+                </p>
+              )}
+              {!lastBackupDate && (
+                <p className="text-xs text-amber-400 text-center">
+                  ⚠️ Nenhum backup Excel realizado ainda
+                </p>
+              )}
+
               <Button 
                 onClick={() => {
                   setShowReportDialog(false);
