@@ -7,6 +7,8 @@ import { UpcomingDinnerCard } from "@/components/UpcomingDinnerCard";
 import { BirthdayReminderCard } from "@/components/BirthdayReminderCard";
 import BackupButton from "@/components/BackupButton";
 import RestoreButton from "@/components/RestoreButton";
+import ExcelBackupButton from "@/components/ExcelBackupButton";
+import ExcelRestoreButton from "@/components/ExcelRestoreButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { usePoker } from "@/contexts/PokerContext";
 import { AlertCircle } from "lucide-react";
