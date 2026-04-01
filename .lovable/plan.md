@@ -1,48 +1,23 @@
 
 
-## Correção: Posições Duplicadas na Eliminação
+## Reforçar Bloqueio de Encerramento sem Cálculo de Prêmios
 
-### Problema
-A função `eliminatePlayer` usa `game.players` (estado potencialmente desatualizado) para calcular posições. Se duas eliminações acontecem rapidamente, ambas leem o mesmo `eliminatedPlayersCount`, gerando posições iguais. Além disso, ao reativar um jogador, as posições dos outros não são recalculadas.
+### Situação Atual
+A validação já existe parcialmente: `canFinishGame` no `GameManagement.tsx` verifica se prêmios foram calculados e o botão fica `disabled`. Porém há **duas falhas**:
 
-### Solução
+1. **O AlertDialog abre mesmo com botão disabled** — no Radix UI, `disabled` no trigger não impede a abertura do dialog, então o usuário vê a confirmação e pode tentar encerrar.
+2. **O `handleFinishGame` não valida nada** — se chamado diretamente (por qualquer caminho), encerra sem verificar prêmios.
 
-Modificar **um único arquivo**: `src/hooks/player-actions/useEliminationActions.ts`
+### Plano
 
-1. **Adicionar um flag de lock** (`useRef`) para impedir eliminações simultâneas - enquanto uma eliminação está sendo processada, outra não pode iniciar.
+**Arquivo 1: `src/components/game/GameHeader.tsx`**
+- Quando `canFinishGame` for `false`, em vez de usar `AlertDialog` com botão disabled, mostrar um **toast de aviso** ao clicar, explicando o motivo do bloqueio (ex: "Clique em 'Calcular Prêmios' primeiro"). O dialog de confirmação só abre se `canFinishGame` for `true`.
+- Mostrar visualmente a razão do bloqueio abaixo do botão ou como tooltip mais visível.
 
-2. **Usar `setGame` com callback** para sempre ler o estado mais recente do jogo ao calcular posições, em vez de usar a variável `game` que pode estar desatualizada.
+**Arquivo 2: `src/hooks/game-management/useGameActions.ts`**
+- Adicionar validação de segurança no `handleFinishGame`: verificar se o game tem pelo menos um jogador com `prize > 0` antes de prosseguir. Se não tiver, exibir toast de erro e abortar.
 
-3. **Adicionar validação de posição duplicada**: antes de atribuir uma posição, verificar se ela já existe entre os jogadores eliminados. Se existir, calcular a próxima posição disponível.
-
-4. **Recalcular posições na reativação**: quando um jogador é reativado, recalcular as posições dos jogadores eliminados que tinham posição maior (pior) que a dele, movendo-os uma posição para cima.
-
-### Mudanças técnicas
-
-```typescript
-// Adicionar ref de lock
-const isProcessing = useRef(false);
-
-// Na eliminatePlayer:
-if (isProcessing.current) {
-  toast({ title: "Aguarde", description: "Processando eliminação anterior..." });
-  return;
-}
-isProcessing.current = true;
-try {
-  // Usar setGame com callback para estado fresco
-  // Validar posição não duplicada
-  // ...
-} finally {
-  isProcessing.current = false;
-}
-```
-
-5. **Mesma proteção para `eliminateMultiplePlayers`**: aplicar o lock e a validação de posições únicas no batch.
-
-### Resultado esperado
-- Impossível ter duas eliminações simultâneas (lock)
-- Posições sempre calculadas do estado mais recente
-- Validação extra contra duplicatas como rede de segurança
-- Reativação recalcula posições corretamente
+### Resultado
+- Dupla proteção: UI impede o clique E a lógica de negócio valida antes de executar.
+- Mensagem clara para o usuário sobre o que falta fazer.
 
