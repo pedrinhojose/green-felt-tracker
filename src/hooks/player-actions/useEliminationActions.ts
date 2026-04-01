@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef } from "react"; // fix: lock mechanism for eliminations
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Game, GamePlayer } from "@/lib/db/models";
