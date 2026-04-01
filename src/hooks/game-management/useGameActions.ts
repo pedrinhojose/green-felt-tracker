@@ -19,6 +19,19 @@ export function useGameActions(game: Game | null, setGame: React.Dispatch<React.
     
     try {
       setIsFinishing(true);
+      
+      // Validação de segurança: verificar se prêmios foram calculados
+      const hasPrizes = game.players.some((p: any) => p.prize && p.prize > 0);
+      if (!hasPrizes) {
+        toast({
+          title: "⚠️ Premiação não calculada",
+          description: "Calcule a premiação antes de encerrar a partida.",
+          variant: "destructive",
+        });
+        setIsFinishing(false);
+        return;
+      }
+      
       await finishGame(game.id);
       
       // Update local game state

@@ -238,42 +238,53 @@ export default function GameHeader({
             </AlertDialog>
 
             {/* Botão para encerrar partida */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive"
-                  size={isMobile ? "sm" : "sm"}
-                  className={isMobile ? "w-full justify-center" : ""}
-                  disabled={isGuest || !canFinishGame}
-                  title={
-                    isGuest 
-                      ? "Ação indisponível no modo visitante" 
-                      : !canFinishGame 
-                        ? finishGameBlockReason || "Partida não pode ser encerrada"
-                        : undefined
-                  }
-                >
-                  {isMobile ? "Encerrar" : "Encerrar Partida"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Encerrar Partida</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja encerrar esta partida? Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleFinishGame}
-                    disabled={isFinishing}
+            {canFinishGame && !isGuest ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive"
+                    size={isMobile ? "sm" : "sm"}
+                    className={isMobile ? "w-full justify-center" : ""}
                   >
-                    {isFinishing ? "Encerrando..." : "Encerrar"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    {isMobile ? "Encerrar" : "Encerrar Partida"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Encerrar Partida</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja encerrar esta partida? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleFinishGame}
+                      disabled={isFinishing}
+                    >
+                      {isFinishing ? "Encerrando..." : "Encerrar"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Button 
+                variant="destructive"
+                size={isMobile ? "sm" : "sm"}
+                className={`${isMobile ? "w-full justify-center" : ""} opacity-60`}
+                onClick={() => {
+                  toast({
+                    title: "⚠️ Não é possível encerrar",
+                    description: isGuest 
+                      ? "Ação indisponível no modo visitante." 
+                      : finishGameBlockReason || "Calcule a premiação antes de encerrar a partida.",
+                    variant: "destructive",
+                  });
+                }}
+              >
+                {isMobile ? "Encerrar" : "Encerrar Partida"}
+              </Button>
+            )}
           </>
         ) : null}
         
