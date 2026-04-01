@@ -1,184 +1,171 @@
-
+import { useRef } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
-import { Game } from "@/lib/db/models";
+import { Game, GamePlayer } from "@/lib/db/models";
 import { useEliminationData } from "@/hooks/elimination/useEliminationData";
+
+// Helper: find next available position (no duplicates)
+function findAvailablePosition(players: GamePlayer[], desiredPosition: number): number {
+  const takenPositions = new Set(
+    players.filter(p => p.isEliminated && p.position !== null).map(p => p.position)
+  );
+  let pos = desiredPosition;
+  while (takenPositions.has(pos) && pos >= 1) {
+    pos--;
+  }
+  return Math.max(pos, 1);
+}
 
 export function useEliminationActions(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame } = usePoker();
   const { toast } = useToast();
   const { saveElimination } = useEliminationData();
-  
-  // Player elimination function
+  const isProcessing = useRef(false);
+
   const eliminatePlayer = async (playerId: string, eliminatorId?: string) => {
     if (!game) return;
-    
+
+    if (isProcessing.current) {
+      toast({ title: "Aguarde", description: "Processando eliminação anterior..." });
+      return;
+    }
+    isProcessing.current = true;
+
     try {
-      // Count already eliminated players to determine current position
-      const eliminatedPlayersCount = game.players.filter(p => p.isEliminated).length;
-      const totalPlayers = game.players.length;
-      
-      // Calculate position automatically (totalPlayers - eliminatedPlayersCount)
-      // Example: in a game with 7 players, first eliminated gets 7th place
-      const position = totalPlayers - eliminatedPlayersCount;
-      
-      // Update player position and elimination status
-      const updatedPlayers = game.players.map(player => {
+      // Read fresh state
+      const currentPlayers = game.players;
+      const eliminatedPlayersCount = currentPlayers.filter(p => p.isEliminated).length;
+      const totalPlayers = currentPlayers.length;
+      const desiredPosition = totalPlayers - eliminatedPlayersCount;
+      const position = findAvailablePosition(currentPlayers, desiredPosition);
+
+      const updatedPlayers = currentPlayers.map(player => {
         if (player.playerId === playerId) {
           return { ...player, position, isEliminated: true };
         }
         return player;
       });
-      
-      // Update game
-      await updateGame({
-        id: game.id,
-        players: updatedPlayers,
-      });
 
-      // Save elimination record to Supabase
+      await updateGame({ id: game.id, players: updatedPlayers });
+
       const orgId = localStorage.getItem('currentOrganizationId');
       if (orgId) {
         await saveElimination({
           game_id: game.id,
           eliminated_player_id: playerId,
           eliminator_player_id: eliminatorId || null,
-          position: position,
+          position,
           elimination_time: new Date().toISOString(),
           organization_id: orgId
         });
       }
-      
-      // Update local game state
+
       setGame(prev => {
         if (!prev) return null;
-        return {
-          ...prev,
-          players: updatedPlayers,
-        };
+        return { ...prev, players: updatedPlayers };
       });
-      
-      toast({
-        title: "Jogador eliminado",
-        description: `Posição final: ${position}º lugar`,
-      });
-      
-      // Check if only one player remains (not eliminated)
+
+      toast({ title: "Jogador eliminado", description: `Posição final: ${position}º lugar` });
+
+      // Auto-finish: if only one player remains
       const remainingPlayers = updatedPlayers.filter(p => !p.isEliminated);
-      
-      // If exactly two players remain and one is being eliminated,
-      // automatically set the last player as winner (1st place)
       if (remainingPlayers.length === 1) {
-        // Auto-set the last player as winner (position 1)
         const winner = remainingPlayers[0];
-        
-        // Create a new player list with the winner set as 1st place
         const finalPlayers = updatedPlayers.map(player => {
           if (player.playerId === winner.playerId) {
             return { ...player, position: 1, isEliminated: true };
           }
           return player;
         });
-        
-        // Update game with defined winner
-        await updateGame({
-          id: game.id,
-          players: finalPlayers,
-        });
-        
-        // Update local state
-        setGame(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            players: finalPlayers,
-          };
-        });
-        
-        toast({
-          title: "Partida finalizada!",
-          description: "Um vencedor foi determinado. Você pode encerrar a partida.",
-        });
+
+        await updateGame({ id: game.id, players: finalPlayers });
+        setGame(prev => prev ? { ...prev, players: finalPlayers } : null);
+
+        toast({ title: "Partida finalizada!", description: "Um vencedor foi determinado. Você pode encerrar a partida." });
       }
     } catch (error) {
       console.error("Error eliminating player:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível eliminar o jogador.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível eliminar o jogador.", variant: "destructive" });
+    } finally {
+      isProcessing.current = false;
     }
   };
 
-  // Player reactivation function
   const reactivatePlayer = async (playerId: string) => {
     if (!game) return;
-    
+
+    if (isProcessing.current) {
+      toast({ title: "Aguarde", description: "Processando ação anterior..." });
+      return;
+    }
+    isProcessing.current = true;
+
     try {
-      // Update player to remove elimination status and position
+      const reactivatedPlayer = game.players.find(p => p.playerId === playerId);
+      const reactivatedPosition = reactivatedPlayer?.position ?? null;
+
+      // Remove elimination and recalculate positions for players with worse (higher number) positions
       const updatedPlayers = game.players.map(player => {
         if (player.playerId === playerId) {
           return { ...player, position: null, isEliminated: false };
         }
+        // Recalculate: players eliminated after this one (higher position number = worse placement)
+        // need to move up one position (position - 1 means better placement... but actually
+        // when someone is reactivated, players who were eliminated BEFORE them (worse position)
+        // should keep their positions. We don't need to shift.
+        // Actually: if player at position 5 is reactivated, no one else's position changes
+        // because positions represent final standings, not order of elimination.
         return player;
       });
-      
-      // Update game
-      await updateGame({
-        id: game.id,
-        players: updatedPlayers,
-      });
-      
-      // Update local game state
-      setGame(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          players: updatedPlayers,
-        };
-      });
-      
-      toast({
-        title: "Jogador reativado",
-        description: "O jogador foi reintegrado à partida.",
-      });
+
+      await updateGame({ id: game.id, players: updatedPlayers });
+      setGame(prev => prev ? { ...prev, players: updatedPlayers } : null);
+
+      toast({ title: "Jogador reativado", description: "O jogador foi reintegrado à partida." });
     } catch (error) {
       console.error("Error reactivating player:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível reativar o jogador.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível reativar o jogador.", variant: "destructive" });
+    } finally {
+      isProcessing.current = false;
     }
   };
 
-  // Multiple player elimination function
   const eliminateMultiplePlayers = async (playerIds: string[], eliminatorId?: string) => {
     if (!game || playerIds.length === 0) return;
-    
+
+    if (isProcessing.current) {
+      toast({ title: "Aguarde", description: "Processando eliminação anterior..." });
+      return;
+    }
+    isProcessing.current = true;
+
     try {
-      // Count already eliminated players to determine current positions
-      const eliminatedPlayersCount = game.players.filter(p => p.isEliminated).length;
-      const totalPlayers = game.players.length;
-      
-      // Update players in batch
-      const updatedPlayers = game.players.map(player => {
+      const currentPlayers = game.players;
+      const eliminatedPlayersCount = currentPlayers.filter(p => p.isEliminated).length;
+      const totalPlayers = currentPlayers.length;
+
+      // Track taken positions to avoid duplicates within the batch
+      const takenPositions = new Set(
+        currentPlayers.filter(p => p.isEliminated && p.position !== null).map(p => p.position)
+      );
+
+      const updatedPlayers = currentPlayers.map(player => {
         if (playerIds.includes(player.playerId)) {
-          // Calculate position for this elimination
-          const currentEliminatedIndex = playerIds.indexOf(player.playerId);
-          const position = totalPlayers - eliminatedPlayersCount - currentEliminatedIndex;
+          const batchIndex = playerIds.indexOf(player.playerId);
+          let position = totalPlayers - eliminatedPlayersCount - batchIndex;
+          // Ensure no duplicate
+          while (takenPositions.has(position) && position >= 1) {
+            position--;
+          }
+          position = Math.max(position, 1);
+          takenPositions.add(position);
           return { ...player, position, isEliminated: true };
         }
         return player;
       });
-      
-      // Update game
-      await updateGame({
-        id: game.id,
-        players: updatedPlayers,
-      });
-      
-      // Save elimination records to Supabase
+
+      await updateGame({ id: game.id, players: updatedPlayers });
+
       const orgId = localStorage.getItem('currentOrganizationId');
       if (orgId) {
         for (const playerId of playerIds) {
@@ -195,62 +182,31 @@ export function useEliminationActions(game: Game | null, setGame: React.Dispatch
           }
         }
       }
-      
-      // Update local game state
-      setGame(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          players: updatedPlayers,
-        };
-      });
-      
-      toast({
-        title: "Jogadores eliminados",
-        description: `${playerIds.length} jogador(es) eliminado(s)`,
-      });
-      
-      // Check if only one player remains (not eliminated)
+
+      setGame(prev => prev ? { ...prev, players: updatedPlayers } : null);
+
+      toast({ title: "Jogadores eliminados", description: `${playerIds.length} jogador(es) eliminado(s)` });
+
       const remainingPlayers = updatedPlayers.filter(p => !p.isEliminated);
-      
       if (remainingPlayers.length === 1) {
-        // Auto-set the last player as winner (position 1)
         const winner = remainingPlayers[0];
-        
         const finalPlayers = updatedPlayers.map(player => {
           if (player.playerId === winner.playerId) {
             return { ...player, position: 1, isEliminated: true };
           }
           return player;
         });
-        
-        // Update game with defined winner
-        await updateGame({
-          id: game.id,
-          players: finalPlayers,
-        });
-        
-        // Update local state
-        setGame(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            players: finalPlayers,
-          };
-        });
-        
-        toast({
-          title: "Partida finalizada!",
-          description: "Um vencedor foi determinado. Você pode encerrar a partida.",
-        });
+
+        await updateGame({ id: game.id, players: finalPlayers });
+        setGame(prev => prev ? { ...prev, players: finalPlayers } : null);
+
+        toast({ title: "Partida finalizada!", description: "Um vencedor foi determinado. Você pode encerrar a partida." });
       }
     } catch (error) {
       console.error("Error eliminating multiple players:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível eliminar os jogadores.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível eliminar os jogadores.", variant: "destructive" });
+    } finally {
+      isProcessing.current = false;
     }
   };
 
