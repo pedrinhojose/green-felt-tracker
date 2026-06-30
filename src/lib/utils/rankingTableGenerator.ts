@@ -27,12 +27,17 @@ export const createRankingTable = (
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
   headerRow.style.background = 'linear-gradient(90deg, #1f2937, #374151)';
+  const showBreakdown = sortedRankings.some((ranking) => (ranking.pointsFromEliminations ?? 0) > 0);
   
   const headers = [
     { text: 'Pos.', width: '60px' },
     { text: 'Jogador', width: '200px' },
     { text: 'Jogos', width: '80px' },
-    { text: 'Pontos', width: '100px' }
+    ...(showBreakdown ? [
+      { text: 'Colocação', width: '90px' },
+      { text: 'Elim.', width: '80px' },
+    ] : []),
+    { text: 'Total', width: '100px' }
   ];
   
   headers.forEach(header => {
@@ -161,6 +166,33 @@ export const createRankingTable = (
     `;
     gamesCell.textContent = ranking.gamesPlayed.toString();
     row.appendChild(gamesCell);
+
+    const eliminationPoints = ranking.pointsFromEliminations ?? 0;
+    const positionPoints = ranking.pointsFromPosition ?? (ranking.totalPoints - eliminationPoints);
+
+    if (showBreakdown) {
+      const positionPointsCell = document.createElement('td');
+      positionPointsCell.style.cssText = `
+        padding: 12px 16px;
+        text-align: center;
+        color: #d1d5db;
+        font-size: 14px;
+        white-space: nowrap;
+      `;
+      positionPointsCell.textContent = positionPoints.toString();
+      row.appendChild(positionPointsCell);
+
+      const eliminationPointsCell = document.createElement('td');
+      eliminationPointsCell.style.cssText = `
+        padding: 12px 16px;
+        text-align: center;
+        color: ${eliminationPoints > 0 ? '#f59e0b' : '#9ca3af'};
+        font-size: 14px;
+        white-space: nowrap;
+      `;
+      eliminationPointsCell.textContent = eliminationPoints > 0 ? `+${eliminationPoints}` : '0';
+      row.appendChild(eliminationPointsCell);
+    }
     
     // Coluna pontos
     const pointsCell = document.createElement('td');
