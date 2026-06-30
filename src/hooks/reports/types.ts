@@ -11,6 +11,8 @@ export interface PlayerPerformanceStats {
   totalInvestment: number;
   balance: number;
   totalPoints: number; 
+  pointsFromPosition?: number;
+  pointsFromEliminations?: number;
   totalRebuys: number;
   photoUrl?: string;
   // Novas métricas
