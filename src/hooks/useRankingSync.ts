@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { pokerDB } from "@/lib/db";
 import { RankingEntry } from "@/lib/db/models";
 import { v5 as uuidv5 } from 'uuid';
+import { getGamePlayerPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 export function useRankingSync() {
   const { games, activeSeason } = usePoker();
@@ -75,16 +76,10 @@ export function useRankingSync() {
 
           // Atualizar estatísticas
           playerStat.gamesPlayed++;
-          const totalGamePoints = (typeof gamePlayer.points === 'number' && !Number.isNaN(gamePlayer.points))
-            ? gamePlayer.points
-            : (scoreSchema.find((e: any) => e.position === gamePlayer.position)?.points ?? 0);
-
-          const elimPoints = (typeof gamePlayer.pointsFromEliminations === 'number' && !Number.isNaN(gamePlayer.pointsFromEliminations))
-            ? gamePlayer.pointsFromEliminations
-            : 0;
-          const positionPoints = (typeof gamePlayer.pointsFromPosition === 'number' && !Number.isNaN(gamePlayer.pointsFromPosition))
-            ? gamePlayer.pointsFromPosition
-            : Math.max(0, totalGamePoints - elimPoints);
+          const breakdown = getGamePlayerPointBreakdown(gamePlayer, scoreSchema);
+          const totalGamePoints = breakdown.total;
+          const elimPoints = breakdown.eliminations;
+          const positionPoints = breakdown.position;
 
           playerStat.totalPoints += totalGamePoints;
           playerStat.pointsFromPosition += positionPoints;
