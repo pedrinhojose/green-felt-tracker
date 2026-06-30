@@ -106,31 +106,39 @@ export function useReportExport() {
     yPosition += 15;
     
     // Configurar dados da tabela
+    const showPointBreakdown = playerStats.some((player) => (player.pointsFromEliminations ?? 0) > 0);
     const tableColumns = [
       'Jogador',
       'J',
       'V', 
       'RB',
       'Pos. Med',
-      'Pontos',
+      ...(showPointBreakdown ? ['Coloc.', 'Elim.'] : []),
+      'Total',
       'Maior Prêmio',
       'Ganhos',
       'Perdas',
       'Saldo'
     ];
     
-    const tableRows = playerStats.map(player => [
-      player.playerName,
-      player.gamesPlayed.toString(),
-      player.victories.toString(),
-      player.totalRebuys.toString(),
-      player.averagePosition > 0 ? player.averagePosition.toFixed(1) : "-",
-      (player.totalPoints || 0).toString(),
-      formatCurrency(player.biggestPrize),
-      formatCurrency(player.totalWinnings),
-      formatCurrency(player.totalInvestment),
-      formatCurrency(player.balance)
-    ]);
+    const tableRows = playerStats.map(player => {
+      const eliminationPoints = player.pointsFromEliminations ?? 0;
+      const positionPoints = player.pointsFromPosition ?? ((player.totalPoints || 0) - eliminationPoints);
+
+      return [
+        player.playerName,
+        player.gamesPlayed.toString(),
+        player.victories.toString(),
+        player.totalRebuys.toString(),
+        player.averagePosition > 0 ? player.averagePosition.toFixed(1) : "-",
+        ...(showPointBreakdown ? [positionPoints.toString(), eliminationPoints > 0 ? `+${eliminationPoints}` : '0'] : []),
+        (player.totalPoints || 0).toString(),
+        formatCurrency(player.biggestPrize),
+        formatCurrency(player.totalWinnings),
+        formatCurrency(player.totalInvestment),
+        formatCurrency(player.balance)
+      ];
+    });
     
     // Gerar tabela usando autoTable
     autoTable(pdf, {
