@@ -27,6 +27,10 @@ export function PlayerStatisticsCard({
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  const eliminationPoints = playerData.pointsFromEliminations ?? 0;
+  const positionPoints = playerData.pointsFromPosition ?? (playerData.totalPoints - eliminationPoints);
+  const hasEliminationPoints = eliminationPoints > 0;
+
   return (
     <Link 
       to={`/statistics/player/${playerRating.playerId}?season=${selectedSeasonId}`}
@@ -119,6 +123,11 @@ export function PlayerStatisticsCard({
                   <div>
                     <span className="block font-medium">Pontos</span>
                     <span className="text-poker-gold">{playerData.totalPoints}</span>
+                    {hasEliminationPoints && (
+                      <span className="block text-[10px] text-white/60">
+                        {positionPoints} coloc. + {eliminationPoints} elim.
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
