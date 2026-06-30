@@ -89,6 +89,8 @@ export interface GamePlayer {
   isEliminated: boolean;
   prize: number;
   points: number;
+  pointsFromPosition?: number;
+  pointsFromEliminations?: number;
   balance: number;
   clubFundContribution: number;
 }
