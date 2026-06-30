@@ -1,62 +1,50 @@
 ## Objetivo
+No ranking, deixar claro quantos pontos cada jogador ganhou **por posição** e quantos **por eliminações**, mantendo o total como hoje.
 
-Quando a opção **"Recompensa por Eliminação"** estiver **ativa** e configurada com `rewardType = 'points'`, somar automaticamente esses pontos ao total do jogador no momento em que os prêmios são calculados (fim da partida). Quando estiver **desativada** (ou for `rewardType = 'money'`), manter o comportamento atual: apenas os pontos por posição contam.
+## Como ficará a UI
 
-Em qualquer caso, a tela da partida deverá **discriminar visualmente** quantos pontos vieram da colocação, quantos vieram de eliminações e qual o **total**.
+Tabela de ranking (desktop) ganha duas colunas extras antes da coluna "Pontos":
 
-## Resposta à sua dúvida
+```
+#  Jogador     Jogos   Posição   Elim.   Pontos
+🥇  RICARDO     1       10        +1      11
+🥈  CESAR       1        9         0       9
+```
 
-Sim — funciona exatamente como você descreveu, com uma ressalva técnica importante: hoje o `GamePlayer` tem **um único campo `points`**. Para discriminar sem quebrar nada (ranking, exports, histórico já gravado), vou armazenar a quebra em campos novos derivados e manter `points` como o **total final** (posição + eliminação). Assim:
+- **Posição**: soma dos pontos vindos do `scoreSchema` (colocação final).
+- **Elim.**: soma dos pontos ganhos pela recompensa por eliminação (mostrado com prefixo `+` e ícone ⚔️; fica `0` / em cinza quando não há).
+- **Pontos**: total (igual hoje, destaque dourado).
 
-- O ranking, exports Excel/PDF, `useRankingSync`, `useEditFinishedGame` e histórico continuam funcionando sem mudança porque continuam lendo `points` (que agora já é o total somado).
-- A UI consegue mostrar a quebra lendo os dois campos novos.
-- Partidas antigas (sem os campos novos) caem em fallback: `pointsFromPosition = points`, `pointsFromEliminations = 0`.
+Mobile (cards): abaixo do total dourado, uma linha pequena `10 pos • +1 elim` aparece somente quando há pontos de eliminação. Se não houver, o card continua idêntico ao atual.
 
-## Alterações
+Quando **nenhum jogador da temporada** tem pontos de eliminação (recompensa desativada ou em dinheiro), as duas colunas extras ficam ocultas para não poluir.
 
-### 1. Modelo (`src/lib/db/models.ts`)
-Adicionar dois campos opcionais ao `GamePlayer`:
-- `pointsFromPosition?: number` — pontos do `scoreSchema` pela colocação final.
-- `pointsFromEliminations?: number` — pontos ganhos pelas eliminações na partida (0 se recompensa desativada ou for em dinheiro).
+## Como será calculado
 
-Manter `points: number` como o **total** (`pointsFromPosition + pointsFromEliminations`). Nenhuma migração SQL é necessária — `games.players` já é JSONB.
+Hoje `RankingEntry.totalPoints` já contém posição + eliminação somados (vem de `GamePlayer.points`). Falta apenas expor a quebra.
 
-### 2. Cálculo no fim da partida (`src/hooks/usePrizeDistribution.ts`)
-No loop de cálculo de pontos (linhas 144-154):
-1. Buscar eliminações desta partida agrupadas por `eliminator_id` (via `useEliminationData` ou consulta direta a `eliminations` por `game_id`).
-2. Para cada jogador, calcular `pointsFromPosition` a partir do `scoreSchema` (como já faz hoje).
-3. Chamar `calculateEliminationRewards(eliminacoesDoJogador, activeSeason.eliminationRewardConfig)`:
-   - Se `result.type === 'points'` e `enabled`, `pointsFromEliminations = result.value`.
-   - Caso contrário, `pointsFromEliminations = 0`.
-4. `player.points = pointsFromPosition + pointsFromEliminations`.
+1. Estender `RankingEntry` (`src/lib/db/models.ts`) com dois campos opcionais derivados:
+   - `pointsFromPosition?: number`
+   - `pointsFromEliminations?: number`
+2. Em `useRankingSync.recalculateRankings` (`src/hooks/useRankingSync.ts`): ao percorrer `game.players`, somar `gamePlayer.pointsFromPosition ?? scoreSchema[position] ?? 0` e `gamePlayer.pointsFromEliminations ?? 0` por jogador, e gravar nos novos campos. `totalPoints` permanece `posição + eliminações` (consistente com o que já é mostrado).
+3. Em `useRankingFunctions.updateRankings` (`src/contexts/useRankingFunctions.ts`): após buscar rankings do banco, complementar cada entrada lendo os jogos finalizados da temporada (já em memória via `pokerDB.getGames`) e calculando a mesma quebra. Isso garante que partidas antigas (anteriores à introdução dos campos no `GamePlayer`) caiam no fallback `pointsFromPosition = totalPoints` e `pointsFromEliminations = 0`, sem precisar de migração.
+4. Persistência: não vamos alterar o schema SQL da tabela `rankings`. Os dois campos são calculados em runtime quando o ranking é carregado/recalculado — fica em memória apenas. O total persistido continua correto.
 
-O ranking (`useRankingSync`) já lê `gamePlayer.points`, então o total somado entra automaticamente — sem mexer no ranking.
+## UI
 
-### 3. UI da partida (`src/components/game/PlayersTable.tsx`, `PlayerTableRow.tsx`, `PlayerMobileCard.tsx`)
-Na coluna de pontos:
-- Se `pointsFromEliminations > 0`: mostrar **total em destaque** e abaixo um sub-texto pequeno do tipo `12 (pos) + 4 (elim)`.
-- Caso contrário: mostrar só o número (comportamento atual).
-- Adicionar um Badge ou ícone discreto (ex.: ⚔️) ao lado quando houver pontos de eliminação, com tooltip explicando.
-
-Aplicar o mesmo tratamento ao `LivePrizePreview` se ele mostrar pontos.
-
-### 4. Recalcular partidas existentes ao editar
-`useEditFinishedGame.ts` e `usePositionSwap.ts` já chamam o recálculo de prêmios/pontos — ao migrar o cálculo para o passo 2, eles passam a popular os novos campos automaticamente. Nada extra a fazer ali além de garantir que o fluxo de recálculo dispare a soma de eliminações.
-
-### 5. Fallback para partidas antigas
-Onde a UI lê os novos campos, usar `pointsFromPosition ?? points` e `pointsFromEliminations ?? 0`, de forma que jogos finalizados antes desta mudança continuem exibindo apenas o número total como hoje.
+5. `src/components/ranking/RankingTable.tsx`: adicionar as duas colunas (desktop) e a sublinha (mobile) conforme descrito. Detectar `hasAnyElimPoints = sortedRankings.some(r => (r.pointsFromEliminations ?? 0) > 0)` para mostrar/ocultar as colunas extras.
+6. Botão "Recalcular Rankings" já refaz tudo — nenhuma mudança necessária ali.
 
 ## O que NÃO muda
 
-- Schema SQL (nenhuma migração).
-- `rankings`, `RankingTable`, exports de ranking, relatórios de temporada.
-- `PlayerGameHistory` (continua exibindo `points` como total; pode receber a quebra num passo futuro, se você quiser).
-- Recompensa em **dinheiro** (`rewardType = 'money'`) — fica fora do escopo desta tarefa, pois você pediu pontos. Posso tratar isso depois se quiser somar ao `balance`.
+- Schema do banco (`rankings`, `games`).
+- Cálculo do total (`totalPoints` continua igual).
+- Export do ranking (`RankingExporter`) — fora do escopo desta tarefa; só a tabela na tela.
+- Estatísticas individuais do jogador, relatórios e histórico.
 
-## Pontos de validação após implementar
+## Validação
 
-1. Temporada com recompensa **desativada**: pontos exibidos = pontos do `scoreSchema` (sem mudança visual).
-2. Temporada com recompensa ativa em **pontos**, frequência 1, valor 2: jogador que eliminou 3 = posição + 6 pts; UI mostra a quebra; ranking soma o total.
-3. Temporada com recompensa ativa em **dinheiro**: `pointsFromEliminations = 0`, comportamento de pontos idêntico ao atual.
-4. Editar uma partida finalizada (`useEditFinishedGame`) recalcula e mantém a quebra correta.
-5. Partidas antigas (antes do deploy) continuam abrindo sem erro e mostram o total como antes.
+- Ricardo no print: deve aparecer `Posição: 10`, `Elim.: +1`, `Pontos: 11`.
+- Cesar: `Posição: 9`, `Elim.: 0`, `Pontos: 9`.
+- Temporada sem recompensa por eliminação: colunas extras ficam ocultas, layout idêntico ao atual.
+- Partidas antigas (sem `pointsFromPosition`): caem no fallback e o total continua correto.

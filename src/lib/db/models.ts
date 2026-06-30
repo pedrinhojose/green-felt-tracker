@@ -101,6 +101,8 @@ export interface RankingEntry {
   playerName: string;
   photoUrl?: string;
   totalPoints: number;
+  pointsFromPosition?: number;
+  pointsFromEliminations?: number;
   gamesPlayed: number;
   bestPosition: number;
   seasonId: string; // Adicionando o campo seasonId obrigatório
