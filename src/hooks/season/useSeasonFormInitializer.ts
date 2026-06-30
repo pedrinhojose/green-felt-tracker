@@ -13,7 +13,9 @@ export function useSeasonFormInitializer(
   setWeeklyPrizeEntries: (entries: PrizeEntry[]) => void,
   setSeasonPrizeEntries: (entries: PrizeEntry[]) => void,
   setBlindLevels: (levels: BlindLevel[]) => void,
-  setHostSchedule?: (schedule: any[]) => void
+  setHostSchedule?: (schedule: any[]) => void,
+  previousSeason?: Season | null,
+  inheritFromPrevious: boolean = true
 ) {
   // Initialize form when component loads
   useEffect(() => {
@@ -54,10 +56,42 @@ export function useSeasonFormInitializer(
       setBlindLevels(blindStructureWithIds);
       setHostSchedule?.(activeSeason.hostSchedule || []);
     } else {
-      // Default values for new season
       const today = new Date().toISOString().split('T')[0];
+      const inherit = inheritFromPrevious && previousSeason ? previousSeason : null;
+
+      // Name and dates always start blank/today for a new season
+      setValue('name', '');
       setValue('startDate', today);
       setValue('expectedEndDate', '');
+
+      if (inherit) {
+        // Inherit configurations from the previous season
+        setValue('gameFrequency', inherit.gameFrequency || 'weekly');
+        setValue('gamesPerPeriod', inherit.gamesPerPeriod || 1);
+        setValue('buyIn', inherit.financialParams.buyIn);
+        setValue('rebuy', inherit.financialParams.rebuy);
+        setValue('addon', inherit.financialParams.addon);
+        setValue('jackpotContribution', inherit.financialParams.jackpotContribution);
+        setValue('clubFundContribution', inherit.financialParams.clubFundContribution);
+        setValue('pixKey', inherit.financialParams.pixKey || '');
+        setValue('houseRules', inherit.houseRules || '');
+
+        const elim = inherit.eliminationRewardConfig;
+        setValue('eliminationRewardEnabled', elim?.enabled ?? false);
+        setValue('eliminationRewardType', elim?.rewardType ?? 'points');
+        setValue('eliminationRewardValue', elim?.rewardValue ?? 1);
+        setValue('eliminationRewardFrequency', elim?.frequency ?? 1);
+        setValue('eliminationRewardMaxPerGame', elim?.maxRewardsPerGame ?? 0);
+
+        setScoreEntries(inherit.scoreSchema.map(e => ({ ...e })));
+        setWeeklyPrizeEntries(inherit.weeklyPrizeSchema.map(e => ({ ...e })));
+        setSeasonPrizeEntries(inherit.seasonPrizeSchema.map(e => ({ ...e })));
+        setBlindLevels(inherit.blindStructure.map(l => ({ ...l, id: uuidv4() })));
+        setHostSchedule?.([]);
+        return;
+      }
+
+      // Default values for new season (no previous season available)
       setValue('gameFrequency', 'weekly');
       setValue('gamesPerPeriod', 1);
       setValue('buyIn', 15);
@@ -118,6 +152,8 @@ export function useSeasonFormInitializer(
           isBreak: false
         }
       ]);
+      setHostSchedule?.([]);
     }
-  }, [activeSeason, isCreating, setValue, setScoreEntries, setWeeklyPrizeEntries, setSeasonPrizeEntries, setBlindLevels]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSeason, isCreating, previousSeason?.id, inheritFromPrevious]);
 }
