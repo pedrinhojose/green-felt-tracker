@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -28,9 +28,22 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function SeasonConfig() {
-  const { activeSeason, createSeason, updateSeason, endSeason } = usePoker();
+  const { activeSeason, seasons, createSeason, updateSeason, endSeason } = usePoker();
   const [isCreating, setIsCreating] = useState(!activeSeason);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inheritFromPrevious, setInheritFromPrevious] = useState(true);
+
+  const previousSeason = useMemo(() => {
+    if (!seasons || seasons.length === 0) return null;
+    const candidates = seasons.filter(s => !activeSeason || s.id !== activeSeason.id);
+    if (candidates.length === 0) return null;
+    const sorted = [...candidates].sort((a, b) => {
+      const da = new Date(a.endDate ?? a.createdAt).getTime();
+      const db = new Date(b.endDate ?? b.createdAt).getTime();
+      return db - da;
+    });
+    return sorted[0];
+  }, [seasons, activeSeason]);
   
   const { 
     register, 
@@ -49,7 +62,9 @@ export default function SeasonConfig() {
     hostSchedule,
     setHostSchedule,
     onSubmit,
-  } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason);
+  } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason, previousSeason, inheritFromPrevious);
+
+  const showInheritBanner = isCreating && !!previousSeason;
 
   const handleEndSeason = async () => {
     if (!activeSeason) return;
@@ -104,6 +119,24 @@ export default function SeasonConfig() {
         )}
       </div>
       
+      {showInheritBanner && (
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border border-poker-gold/40 bg-poker-gold/10 p-3 text-sm text-white">
+          <span>
+            {inheritFromPrevious
+              ? <>Configurações herdadas da temporada anterior <strong>{previousSeason?.name}</strong>. Ajuste o que precisar.</>
+              : <>Usando configurações padrão. Você pode recarregar as configurações da temporada anterior <strong>{previousSeason?.name}</strong>.</>}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setInheritFromPrevious(prev => !prev)}
+          >
+            {inheritFromPrevious ? 'Limpar e usar padrões' : 'Herdar da anterior'}
+          </Button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <SeasonBasicInfo 
           register={register} 
@@ -111,6 +144,7 @@ export default function SeasonConfig() {
           errors={errors} 
           gameFrequency={watch('gameFrequency')}
         />
+        
         
         <Tabs defaultValue="scores">
           <TabsList className="grid w-full grid-cols-8">

@@ -10,7 +10,9 @@ export function useSeasonForm(
   activeSeason: Season | null,
   isCreating: boolean,
   createSeason: (seasonData: Partial<Season>) => Promise<string>,
-  updateSeason: (seasonData: Partial<Season>) => Promise<void>
+  updateSeason: (seasonData: Partial<Season>) => Promise<void>,
+  previousSeason?: Season | null,
+  inheritFromPrevious: boolean = true
 ) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scoreEntries, setScoreEntries] = useState<ScoreEntry[]>([]);
@@ -30,7 +32,9 @@ export function useSeasonForm(
     setWeeklyPrizeEntries, 
     setSeasonPrizeEntries, 
     setBlindLevels,
-    setHostSchedule
+    setHostSchedule,
+    previousSeason,
+    inheritFromPrevious
   );
 
   // Form submission handler
