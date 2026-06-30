@@ -35,6 +35,8 @@ export default function PlayerStatisticsDetail() {
   const playerRating = playerRatings.find(r => r.playerId === playerId);
   const player = players.find(p => p.id === playerId);
   const selectedSeason = seasons.find(s => s.id === selectedSeasonId) || activeSeason;
+  const eliminationPoints = playerData?.pointsFromEliminations ?? 0;
+  const positionPoints = playerData ? (playerData.pointsFromPosition ?? (playerData.totalPoints - eliminationPoints)) : 0;
 
   // Carregar jogos do jogador para a temporada selecionada
   useEffect(() => {
@@ -221,6 +223,11 @@ export default function PlayerStatisticsDetail() {
                 {playerData.totalPoints}
               </div>
               <div className="text-xs md:text-sm text-white/70">Pontos</div>
+              {eliminationPoints > 0 && (
+                <div className="text-[10px] md:text-xs text-white/60 mt-1">
+                  {positionPoints} colocação + {eliminationPoints} eliminação
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
