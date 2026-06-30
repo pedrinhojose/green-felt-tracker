@@ -4,6 +4,7 @@ import { Game, Season } from '../lib/db/models';
 import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
 import { useEliminationData } from '../hooks/elimination/useEliminationData';
+import { getGamePlayerPointBreakdown } from '@/lib/utils/pointsBreakdown';
 
 export function useGameFunctions(
   updateRankings: () => Promise<void>,
@@ -261,7 +262,7 @@ export function useGameFunctions(
       const allGames = await pokerDB.getGames(game.seasonId);
       const finishedGames = allGames.filter(g => g.seasonId === game.seasonId && g.isFinished);
 
-      type PlayerAgg = { totalPoints: number; gamesPlayed: number; bestPosition: number; name: string; photoUrl?: string };
+      type PlayerAgg = { totalPoints: number; pointsFromPosition: number; pointsFromEliminations: number; gamesPlayed: number; bestPosition: number; name: string; photoUrl?: string };
       const agg = new Map<string, PlayerAgg>();
 
       // Carregar scoreSchema da temporada para fallback de pontos
@@ -271,11 +272,11 @@ export function useGameFunctions(
         gm.players.forEach(gp => {
           const pl = freshPlayers.find(p => p.id === gp.playerId);
           if (!pl) return;
-          const cur = agg.get(gp.playerId) || { totalPoints: 0, gamesPlayed: 0, bestPosition: 99, name: pl.name, photoUrl: pl.photoUrl };
-          const pts = typeof gp.points === 'number' && !Number.isNaN(gp.points)
-            ? gp.points
-            : (scoreSchema.find((e: any) => e.position === gp.position)?.points ?? 0);
-          cur.totalPoints += pts;
+          const cur = agg.get(gp.playerId) || { totalPoints: 0, pointsFromPosition: 0, pointsFromEliminations: 0, gamesPlayed: 0, bestPosition: 99, name: pl.name, photoUrl: pl.photoUrl };
+          const breakdown = getGamePlayerPointBreakdown(gp, scoreSchema);
+          cur.totalPoints += breakdown.total;
+          cur.pointsFromPosition += breakdown.position;
+          cur.pointsFromEliminations += breakdown.eliminations;
           cur.gamesPlayed += 1;
           if (gp.position && gp.position < cur.bestPosition) cur.bestPosition = gp.position;
           cur.name = pl.name;
@@ -290,6 +291,8 @@ export function useGameFunctions(
         playerName: stat.name,
         photoUrl: stat.photoUrl,
         totalPoints: stat.totalPoints,
+        pointsFromPosition: stat.pointsFromPosition,
+        pointsFromEliminations: stat.pointsFromEliminations,
         gamesPlayed: stat.gamesPlayed,
         bestPosition: stat.bestPosition === 99 ? 0 : stat.bestPosition,
         seasonId: game.seasonId,
