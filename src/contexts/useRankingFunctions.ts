@@ -21,17 +21,43 @@ export function useRankingFunctions() {
       
       // Buscar jogadores atualizados para sincronizar fotos
       const freshPlayers = await pokerDB.getPlayers();
+
+      // Calcular quebra (posição vs eliminação) a partir dos jogos finalizados
+      const season = await pokerDB.getSeason(seasonId);
+      const scoreSchema = season?.scoreSchema ?? [];
+      const games = await pokerDB.getGames(seasonId);
+      const breakdownByPlayer: Record<string, { pos: number; elim: number }> = {};
+      games.filter(g => g.isFinished).forEach(game => {
+        game.players.forEach(gp => {
+          const total = (typeof gp.points === 'number' && !Number.isNaN(gp.points))
+            ? gp.points
+            : (scoreSchema.find((e: any) => e.position === gp.position)?.points ?? 0);
+          const elim = (typeof gp.pointsFromEliminations === 'number') ? gp.pointsFromEliminations : 0;
+          const pos = (typeof gp.pointsFromPosition === 'number')
+            ? gp.pointsFromPosition
+            : Math.max(0, total - elim);
+          const acc = breakdownByPlayer[gp.playerId] || { pos: 0, elim: 0 };
+          acc.pos += pos;
+          acc.elim += elim;
+          breakdownByPlayer[gp.playerId] = acc;
+        });
+      });
       
       // Sincronizar fotos dos rankings com dados atualizados dos jogadores
       const syncedRankings = rankingsData.map(ranking => {
         const player = freshPlayers.find(p => p.id === ranking.playerId);
+        const bd = breakdownByPlayer[ranking.playerId];
+        const enriched = {
+          ...ranking,
+          pointsFromPosition: bd ? bd.pos : ranking.totalPoints,
+          pointsFromEliminations: bd ? bd.elim : 0,
+        };
         
         if (player && player.photoUrl !== ranking.photoUrl) {
           console.log(`Sincronizando foto do jogador ${player.name} no ranking`);
           
-          // Salvar ranking atualizado no banco de forma assíncrona
           const updatedRanking = {
-            ...ranking,
+            ...enriched,
             photoUrl: player.photoUrl,
             playerName: player.name
           };
@@ -44,7 +70,7 @@ export function useRankingFunctions() {
           return updatedRanking;
         }
         
-        return ranking;
+        return enriched;
       });
       
       setRankings(syncedRankings);
