@@ -12,7 +12,7 @@ import { RankingEntry } from "@/lib/db/models";
 export default function RankingCard() {
   const { rankings, activeSeason } = usePoker();
   const navigate = useNavigate();
-  const [topPlayers, setTopPlayers] = useState([]);
+  const [topPlayers, setTopPlayers] = useState<RankingEntry[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
