@@ -62,7 +62,9 @@ export default function SeasonConfig() {
     hostSchedule,
     setHostSchedule,
     onSubmit,
-  } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason);
+  } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason, previousSeason, inheritFromPrevious);
+
+  const showInheritBanner = isCreating && !!previousSeason;
 
   const handleEndSeason = async () => {
     if (!activeSeason) return;
