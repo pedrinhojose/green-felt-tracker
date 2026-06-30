@@ -28,9 +28,22 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function SeasonConfig() {
-  const { activeSeason, createSeason, updateSeason, endSeason } = usePoker();
+  const { activeSeason, seasons, createSeason, updateSeason, endSeason } = usePoker();
   const [isCreating, setIsCreating] = useState(!activeSeason);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inheritFromPrevious, setInheritFromPrevious] = useState(true);
+
+  const previousSeason = useMemo(() => {
+    if (!seasons || seasons.length === 0) return null;
+    const candidates = seasons.filter(s => !activeSeason || s.id !== activeSeason.id);
+    if (candidates.length === 0) return null;
+    const sorted = [...candidates].sort((a, b) => {
+      const da = new Date(a.endDate ?? a.createdAt).getTime();
+      const db = new Date(b.endDate ?? b.createdAt).getTime();
+      return db - da;
+    });
+    return sorted[0];
+  }, [seasons, activeSeason]);
   
   const { 
     register, 
