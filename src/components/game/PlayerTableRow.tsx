@@ -174,7 +174,21 @@ export function PlayerTableRow({
       </td>
       
       <td className="p-2 text-center font-medium">
-        {gamePlayer.points}
+        {(() => {
+          const elim = gamePlayer.pointsFromEliminations ?? 0;
+          const pos = gamePlayer.pointsFromPosition ?? (gamePlayer.points - elim);
+          if (elim > 0) {
+            return (
+              <div className="flex flex-col items-center leading-tight">
+                <span>{gamePlayer.points}</span>
+                <span className="text-[10px] text-poker-gold/80" title="Pontos por posição + por eliminações">
+                  {pos} + {elim} ⚔️
+                </span>
+              </div>
+            );
+          }
+          return gamePlayer.points;
+        })()}
       </td>
       
       <td className={`p-2 text-center font-medium ${

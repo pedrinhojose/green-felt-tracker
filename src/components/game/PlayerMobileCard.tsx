@@ -246,9 +246,23 @@ export function PlayerMobileCard({
           
           <div>
             <span className="text-xs text-muted-foreground block">Pontos</span>
-            <span className="text-xs font-medium">
-              {gamePlayer.points}
-            </span>
+            {(() => {
+              const elim = gamePlayer.pointsFromEliminations ?? 0;
+              const pos = gamePlayer.pointsFromPosition ?? (gamePlayer.points - elim);
+              if (elim > 0) {
+                return (
+                  <div className="flex flex-col items-center leading-tight">
+                    <span className="text-xs font-medium">{gamePlayer.points}</span>
+                    <span className="text-[9px] text-poker-gold/80">
+                      {pos}+{elim} ⚔️
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <span className="text-xs font-medium">{gamePlayer.points}</span>
+              );
+            })()}
           </div>
           
           <div>
