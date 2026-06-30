@@ -178,6 +178,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     
     // Rankings
     rankings,
+    updateRankings,
     
     // Utilities
     isLoading,
@@ -224,6 +225,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       
       // Rankings
       rankings: [],
+      updateRankings: async () => [],
       
       // Utilities
       isLoading: true,
