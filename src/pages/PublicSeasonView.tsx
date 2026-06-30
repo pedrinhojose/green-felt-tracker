@@ -6,6 +6,7 @@ import { Trophy, Users, Calendar, DollarSign, BarChart3 } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { Season, Game, RankingEntry } from "@/lib/db/models";
 import { supabase } from "@/integrations/supabase/client";
+import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 
 export default function PublicSeasonView() {
@@ -104,8 +105,14 @@ export default function PublicSeasonView() {
           createdAt: new Date(g.created_at)
         }));
 
+        const enrichedRankings = enrichRankingsWithPointBreakdown(
+          convertedRankings,
+          convertedGames,
+          convertedSeason.scoreSchema ?? []
+        );
+
         setSeason(convertedSeason);
-        setRankings(convertedRankings);
+        setRankings(enrichedRankings);
         setGames(convertedGames);
       } catch (error) {
         console.error('Erro ao carregar temporada pública:', error);
@@ -156,6 +163,7 @@ export default function PublicSeasonView() {
 
   const totalGames = games.length;
   const totalPlayers = rankings.length;
+  const showPointBreakdown = rankings.some((player) => (player.pointsFromEliminations ?? 0) > 0);
 
   // Calcular ganhadores do jackpot
   const jackpotWinners = [];
@@ -265,7 +273,11 @@ export default function PublicSeasonView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {rankings.map((player, index) => (
+              {rankings.map((player, index) => {
+                const eliminationPoints = player.pointsFromEliminations ?? 0;
+                const positionPoints = player.pointsFromPosition ?? (player.totalPoints - eliminationPoints);
+
+                return (
                 <div key={player.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center">
                     <span className="font-semibold mr-3 min-w-[2rem]">
@@ -288,9 +300,17 @@ export default function PublicSeasonView() {
                       <span className="font-medium">{player.playerName}</span>
                     </div>
                   </div>
-                  <span className="font-bold text-primary">{player.totalPoints} pts</span>
+                  <span className="font-bold text-primary text-right">
+                    <span className="block">{player.totalPoints} pts</span>
+                    {showPointBreakdown && (
+                      <span className="block text-xs font-normal text-muted-foreground">
+                        {positionPoints} coloc. + {eliminationPoints} elim.
+                      </span>
+                    )}
+                  </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
