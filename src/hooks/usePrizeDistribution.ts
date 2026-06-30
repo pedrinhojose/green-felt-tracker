@@ -142,17 +142,44 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
         }
       }
       
-      // Calculate points based on score schema
+      // Count eliminations per player for this game (for elimination-reward points)
+      const eliminationsByPlayer: Record<string, number> = {};
+      try {
+        const { data: elimRows } = await supabase
+          .from('eliminations')
+          .select('eliminator_id')
+          .eq('game_id', game.id);
+        (elimRows || []).forEach((row: { eliminator_id: string | null }) => {
+          if (!row.eliminator_id) return;
+          eliminationsByPlayer[row.eliminator_id] = (eliminationsByPlayer[row.eliminator_id] || 0) + 1;
+        });
+      } catch (err) {
+        console.error('Error loading eliminations for points calculation:', err);
+      }
+
+      const elimConfig = activeSeason.eliminationRewardConfig;
+
+      // Calculate points based on score schema + elimination rewards
       for (const player of updatedPlayers) {
-        if (player.position === null) continue;
-        
-        // Find matching score entry
-        const scoreEntry = activeSeason.scoreSchema.find(entry => entry.position === player.position);
-        if (scoreEntry) {
-          player.points = scoreEntry.points;
-        } else {
+        if (player.position === null) {
+          player.pointsFromPosition = 0;
+          player.pointsFromEliminations = 0;
           player.points = 0;
+          continue;
         }
+
+        // Points from position
+        const scoreEntry = activeSeason.scoreSchema.find(entry => entry.position === player.position);
+        const positionPoints = scoreEntry ? scoreEntry.points : 0;
+
+        // Points from eliminations (only when reward is enabled and type === 'points')
+        const playerElims = eliminationsByPlayer[player.playerId] || 0;
+        const elimResult = calculateEliminationRewards(playerElims, elimConfig);
+        const elimPoints = elimResult.type === 'points' ? elimResult.value : 0;
+
+        player.pointsFromPosition = positionPoints;
+        player.pointsFromEliminations = elimPoints;
+        player.points = positionPoints + elimPoints;
       }
       
       // Contar participantes da janta para calcular o custo por pessoa
