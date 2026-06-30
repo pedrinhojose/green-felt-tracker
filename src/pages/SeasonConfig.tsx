@@ -119,6 +119,24 @@ export default function SeasonConfig() {
         )}
       </div>
       
+      {showInheritBanner && (
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border border-poker-gold/40 bg-poker-gold/10 p-3 text-sm text-white">
+          <span>
+            {inheritFromPrevious
+              ? <>Configurações herdadas da temporada anterior <strong>{previousSeason?.name}</strong>. Ajuste o que precisar.</>
+              : <>Usando configurações padrão. Você pode recarregar as configurações da temporada anterior <strong>{previousSeason?.name}</strong>.</>}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setInheritFromPrevious(prev => !prev)}
+          >
+            {inheritFromPrevious ? 'Limpar e usar padrões' : 'Herdar da anterior'}
+          </Button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <SeasonBasicInfo 
           register={register} 
@@ -126,6 +144,7 @@ export default function SeasonConfig() {
           errors={errors} 
           gameFrequency={watch('gameFrequency')}
         />
+        
         
         <Tabs defaultValue="scores">
           <TabsList className="grid w-full grid-cols-8">
