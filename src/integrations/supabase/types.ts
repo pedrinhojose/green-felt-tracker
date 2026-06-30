@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      analise_ia: {
+        Row: {
+          conteudo: string
+          id: string
+          jackpot_total: number | null
+          last_game_number: number | null
+          season_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          conteudo?: string
+          id?: string
+          jackpot_total?: number | null
+          last_game_number?: number | null
+          season_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          conteudo?: string
+          id?: string
+          jackpot_total?: number | null
+          last_game_number?: number | null
+          season_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       apahub_access_keys: {
         Row: {
           access_email: string
