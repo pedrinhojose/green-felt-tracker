@@ -1,0 +1,1 @@
+ALTER TABLE public.seasons ADD COLUMN IF NOT EXISTS expected_end_date DATE NULL;

@@ -44,6 +44,18 @@ export function SeasonBasicInfo({ register, setValue, errors, gameFrequency }: S
         
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
+            <Label htmlFor="expectedEndDate">Previsão de Término (opcional)</Label>
+            <Input 
+              id="expectedEndDate" 
+              type="date" 
+              {...register("expectedEndDate")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Usada para gerar automaticamente as datas das partidas/jantares e o sorteio dos anfitriões.
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="gameFrequency">Frequência das Partidas</Label>
             <Select onValueChange={(value) => setValue("gameFrequency", value as any)} defaultValue={gameFrequency || "weekly"}>
               <SelectTrigger>
@@ -58,7 +70,9 @@ export function SeasonBasicInfo({ register, setValue, errors, gameFrequency }: S
             </Select>
             {errors.gameFrequency && <p className="text-red-500 text-sm">{errors.gameFrequency.message}</p>}
           </div>
-          
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="gamesPerPeriod">Partidas por Período</Label>
             <Input 

@@ -500,6 +500,7 @@ export type Database = {
           caixinha_balance: number
           created_at: string
           end_date: string | null
+          expected_end_date: string | null
           financial_params: Json
           game_frequency: string
           games_per_period: number
@@ -523,6 +524,7 @@ export type Database = {
           caixinha_balance?: number
           created_at?: string
           end_date?: string | null
+          expected_end_date?: string | null
           financial_params?: Json
           game_frequency?: string
           games_per_period?: number
@@ -546,6 +548,7 @@ export type Database = {
           caixinha_balance?: number
           created_at?: string
           end_date?: string | null
+          expected_end_date?: string | null
           financial_params?: Json
           game_frequency?: string
           games_per_period?: number

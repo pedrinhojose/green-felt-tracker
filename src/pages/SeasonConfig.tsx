@@ -160,7 +160,15 @@ export default function SeasonConfig() {
           </TabsContent>
           
           <TabsContent value="dinners">
-            <HostScheduleConfig hostSchedule={hostSchedule} onChange={setHostSchedule} />
+            <HostScheduleConfig 
+              hostSchedule={hostSchedule} 
+              onChange={setHostSchedule}
+              seasonDefaults={{
+                startDate: watch('startDate'),
+                expectedEndDate: watch('expectedEndDate'),
+                gameFrequency: watch('gameFrequency'),
+              }}
+            />
           </TabsContent>
           
           <TabsContent value="rules">

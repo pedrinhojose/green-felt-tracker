@@ -17,6 +17,7 @@ export interface Season {
   name: string;
   startDate: Date;
   endDate?: Date;
+  expectedEndDate?: Date;
   gameFrequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
   gamesPerPeriod: number;
   isActive: boolean;
