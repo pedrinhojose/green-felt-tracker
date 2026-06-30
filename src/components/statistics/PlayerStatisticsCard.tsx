@@ -79,6 +79,10 @@ export function PlayerStatisticsCard({
                   <Badge variant="outline" className="border-green-500/30 text-green-400 text-xs">
                     {playerData.victories} vitórias
                   </Badge>
+                  <Badge variant="outline" className="border-poker-gold/30 text-poker-gold text-xs">
+                    {playerData.totalPoints} pts
+                    {hasEliminationPoints && ` (${positionPoints}+${eliminationPoints} elim.)`}
+                  </Badge>
                   <Badge 
                     variant="outline" 
                     className={`text-xs ${
