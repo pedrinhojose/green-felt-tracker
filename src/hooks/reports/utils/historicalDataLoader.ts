@@ -1,5 +1,6 @@
 
 import { pokerDB } from "@/lib/db";
+import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 export interface HistoricalSeasonData {
   season: any;
@@ -31,9 +32,10 @@ export async function loadHistoricalSeasonData(
     
     // Buscar rankings da temporada específica
     const rankings = await pokerDB.getRankings(seasonId);
-    console.log("Historical rankings loaded:", rankings.length);
+    const enrichedRankings = enrichRankingsWithPointBreakdown(rankings, games, season.scoreSchema ?? []);
+    console.log("Historical rankings loaded:", enrichedRankings.length);
     
-    return { season, games, rankings };
+    return { season, games, rankings: enrichedRankings };
   } catch (error) {
     console.error("Error loading season data:", error);
     return null;
