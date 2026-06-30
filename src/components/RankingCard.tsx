@@ -45,6 +45,22 @@ export default function RankingCard() {
       default: return (position + 1).toString();
     }
   };
+
+  const renderPoints = (player) => {
+    const eliminationPoints = player.pointsFromEliminations ?? 0;
+    const positionPoints = player.pointsFromPosition ?? (player.totalPoints - eliminationPoints);
+
+    return (
+      <>
+        <div className="font-bold text-poker-gold">{player.totalPoints} pts</div>
+        {eliminationPoints > 0 && (
+          <div className="text-[10px] text-muted-foreground">
+            {positionPoints} coloc. + {eliminationPoints} elim.
+          </div>
+        )}
+      </>
+    );
+  };
   
   const handleExportTop3 = async () => {
     try {
@@ -99,7 +115,7 @@ export default function RankingCard() {
               <div className="mt-1 text-base font-bold text-gray-400">🥈</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[80px]">{secondPlace.playerName}</div>
-                <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
+                {renderPoints(secondPlace)}
                 <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
               </div>
             </div>
@@ -119,7 +135,7 @@ export default function RankingCard() {
               <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[100px]">{firstPlace.playerName}</div>
-                <div className="font-bold text-poker-gold">{firstPlace.totalPoints} pts</div>
+                {renderPoints(firstPlace)}
                 <div className="text-xs text-muted-foreground">{firstPlace.gamesPlayed} jogos</div>
               </div>
             </div>
@@ -139,7 +155,7 @@ export default function RankingCard() {
               <div className="mt-1 text-base font-bold text-amber-700">🥉</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[80px]">{thirdPlace.playerName}</div>
-                <div className="font-bold text-amber-700">{thirdPlace.totalPoints} pts</div>
+                {renderPoints(thirdPlace)}
                 <div className="text-xs text-muted-foreground">{thirdPlace.gamesPlayed} jogos</div>
               </div>
             </div>
