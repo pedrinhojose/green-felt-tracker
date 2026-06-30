@@ -16,6 +16,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
 import { useShareableLink } from "@/hooks/useShareableLink";
 import { HostScheduleCard } from "@/components/season/HostScheduleCard";
+import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -27,6 +28,8 @@ interface PlayerStat {
   averagePosition: number;
   bestPosition: number;
   totalPoints: number;
+  pointsFromPosition?: number;
+  pointsFromEliminations?: number;
 }
 
 // Interface para os ganhadores do jackpot
@@ -217,6 +220,8 @@ export default function SeasonDetails() {
       const playerStat = playerStatsMap.get(rankingEntry.playerId);
       if (playerStat) {
         playerStat.totalPoints = rankingEntry.totalPoints;
+          playerStat.pointsFromPosition = rankingEntry.pointsFromPosition ?? rankingEntry.totalPoints;
+          playerStat.pointsFromEliminations = rankingEntry.pointsFromEliminations ?? 0;
         if ('averagePosition' in rankingEntry) {
           playerStat.averagePosition = (rankingEntry as any).averagePosition;
         } else {
@@ -297,22 +302,23 @@ export default function SeasonDetails() {
         
         // Carregar ranking da temporada
         const rankingsData = await pokerDB.getRankings(seasonId);
+        const enrichedRankings = enrichRankingsWithPointBreakdown(rankingsData, gamesData, seasonData.scoreSchema ?? []);
         console.log("Rankings carregados:", rankingsData.map(r => ({ 
           name: r.playerName, 
           points: r.totalPoints 
         })));
         
         // Calcular ganhadores do jackpot com a função corrigida
-        const winners = calculateJackpotWinners(seasonData, rankingsData, gamesData);
+        const winners = calculateJackpotWinners(seasonData, enrichedRankings, gamesData);
         console.log("Ganhadores calculados:", winners);
         
         // Calcular estatísticas dos jogadores
-        calculatePlayerStats(gamesData, rankingsData);
+        calculatePlayerStats(gamesData, enrichedRankings);
         
         // Atualizar todos os estados
         setSeason(seasonData);
         setGames(gamesData);
-        setRankings(rankingsData);
+        setRankings(enrichedRankings);
         setJackpotWinners(winners);
         
         // Restaurar posição do scroll após carregar os dados
