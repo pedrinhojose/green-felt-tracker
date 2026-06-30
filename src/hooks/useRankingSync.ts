@@ -43,6 +43,8 @@ export function useRankingSync() {
         playerName: string;
         photoUrl?: string;
         totalPoints: number;
+        pointsFromPosition: number;
+        pointsFromEliminations: number;
         gamesPlayed: number;
         bestPosition: number;
       }>();
@@ -63,6 +65,8 @@ export function useRankingSync() {
               playerName: player.name,
               photoUrl: player.photoUrl, // Usar dados atualizados do banco
               totalPoints: 0,
+              pointsFromPosition: 0,
+              pointsFromEliminations: 0,
               gamesPlayed: 0,
               bestPosition: 99 // Iniciar com um valor alto
             };
@@ -71,10 +75,20 @@ export function useRankingSync() {
 
           // Atualizar estatísticas
           playerStat.gamesPlayed++;
-          const normalizedPoints = (typeof gamePlayer.points === 'number' && !Number.isNaN(gamePlayer.points))
+          const totalGamePoints = (typeof gamePlayer.points === 'number' && !Number.isNaN(gamePlayer.points))
             ? gamePlayer.points
             : (scoreSchema.find((e: any) => e.position === gamePlayer.position)?.points ?? 0);
-          playerStat.totalPoints += normalizedPoints;
+
+          const elimPoints = (typeof gamePlayer.pointsFromEliminations === 'number' && !Number.isNaN(gamePlayer.pointsFromEliminations))
+            ? gamePlayer.pointsFromEliminations
+            : 0;
+          const positionPoints = (typeof gamePlayer.pointsFromPosition === 'number' && !Number.isNaN(gamePlayer.pointsFromPosition))
+            ? gamePlayer.pointsFromPosition
+            : Math.max(0, totalGamePoints - elimPoints);
+
+          playerStat.totalPoints += totalGamePoints;
+          playerStat.pointsFromPosition += positionPoints;
+          playerStat.pointsFromEliminations += elimPoints;
           
           // Atualizar melhor posição (menor número é melhor)
           if (gamePlayer.position && gamePlayer.position < playerStat.bestPosition) {
@@ -90,6 +104,8 @@ export function useRankingSync() {
         playerName: stat.playerName,
         photoUrl: stat.photoUrl, // Garantir que a foto esteja sincronizada
         totalPoints: stat.totalPoints,
+        pointsFromPosition: stat.pointsFromPosition,
+        pointsFromEliminations: stat.pointsFromEliminations,
         gamesPlayed: stat.gamesPlayed,
         bestPosition: stat.bestPosition === 99 ? 0 : stat.bestPosition,
         seasonId: seasonId
