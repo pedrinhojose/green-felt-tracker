@@ -64,7 +64,8 @@ export function useSeasonFormSubmitter(
       
       const seasonData = {
         name: data.name,
-        startDate: new Date(data.startDate),
+        startDate: new Date(data.startDate + 'T00:00:00'),
+        expectedEndDate: data.expectedEndDate ? new Date(data.expectedEndDate + 'T00:00:00') : undefined,
         gameFrequency: data.gameFrequency,
         gamesPerPeriod: Number(data.gamesPerPeriod),
         scoreSchema: scoreEntries,

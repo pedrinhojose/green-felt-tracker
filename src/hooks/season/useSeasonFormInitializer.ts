@@ -20,6 +20,7 @@ export function useSeasonFormInitializer(
     if (activeSeason && !isCreating) {
       setValue('name', activeSeason.name);
       setValue('startDate', new Date(activeSeason.startDate).toISOString().split('T')[0]);
+      setValue('expectedEndDate', activeSeason.expectedEndDate ? new Date(activeSeason.expectedEndDate).toISOString().split('T')[0] : '');
       setValue('gameFrequency', activeSeason.gameFrequency || 'weekly');
       setValue('gamesPerPeriod', activeSeason.gamesPerPeriod || 1);
       setValue('buyIn', activeSeason.financialParams.buyIn);
@@ -56,6 +57,7 @@ export function useSeasonFormInitializer(
       // Default values for new season
       const today = new Date().toISOString().split('T')[0];
       setValue('startDate', today);
+      setValue('expectedEndDate', '');
       setValue('gameFrequency', 'weekly');
       setValue('gamesPerPeriod', 1);
       setValue('buyIn', 15);
