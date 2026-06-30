@@ -2,6 +2,8 @@
 import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Game } from "@/lib/db/models";
+import { supabase } from "@/integrations/supabase/client";
+import { calculateEliminationRewards } from "@/hooks/useEliminationRewards";
 
 export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame } = usePoker();
