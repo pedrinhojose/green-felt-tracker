@@ -32,7 +32,9 @@ export function useSeasonForm(
     setWeeklyPrizeEntries, 
     setSeasonPrizeEntries, 
     setBlindLevels,
-    setHostSchedule
+    setHostSchedule,
+    previousSeason,
+    inheritFromPrevious
   );
 
   // Form submission handler
