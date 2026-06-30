@@ -37,6 +37,8 @@ export default function RankingTable({
   
   // Get only the rankings for the current page
   const currentPageRankings = sortedRankings.slice(startIndex, startIndex + pageSize);
+
+  const hasAnyElimPoints = sortedRankings.some(r => (r.pointsFromEliminations ?? 0) > 0);
   
   if (isMobile) {
     return (
@@ -46,7 +48,10 @@ export default function RankingTable({
         </CardHeader>
         <CardContent className="px-3">
           <div className="space-y-2">
-            {currentPageRankings.map((ranking, index) => (
+            {currentPageRankings.map((ranking, index) => {
+              const elim = ranking.pointsFromEliminations ?? 0;
+              const pos = ranking.pointsFromPosition ?? (ranking.totalPoints - elim);
+              return (
               <Card key={ranking.playerId} className="border-poker-dark-green/50">
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">
@@ -79,11 +84,17 @@ export default function RankingTable({
                       <div className="text-xs text-muted-foreground">
                         pontos
                       </div>
+                      {elim > 0 && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          {pos} pos • <span className="text-poker-gold">+{elim} ⚔️</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -103,11 +114,20 @@ export default function RankingTable({
                 <TableHead className="w-12 pr-0 py-2">#</TableHead>
                 <TableHead className="px-1 py-2">Jogador</TableHead>
                 <TableHead className="text-center w-20 py-2">Jogos</TableHead>
+                {hasAnyElimPoints && (
+                  <>
+                    <TableHead className="text-center w-20 py-2">Posição</TableHead>
+                    <TableHead className="text-center w-20 py-2">Elim. ⚔️</TableHead>
+                  </>
+                )}
                 <TableHead className="text-center w-20 py-2">Pontos</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentPageRankings.map((ranking, index) => (
+              {currentPageRankings.map((ranking, index) => {
+                const elim = ranking.pointsFromEliminations ?? 0;
+                const pos = ranking.pointsFromPosition ?? (ranking.totalPoints - elim);
+                return (
                 <TableRow 
                   key={ranking.playerId} 
                   className="border-b border-poker-dark-green hover:bg-poker-dark-green/30"
@@ -133,12 +153,28 @@ export default function RankingTable({
                   </TableCell>
                   
                   <TableCell className="py-3 px-2 text-center w-20">{ranking.gamesPlayed}</TableCell>
+
+                  {hasAnyElimPoints && (
+                    <>
+                      <TableCell className="py-3 px-2 text-center w-20 text-muted-foreground">
+                        {pos}
+                      </TableCell>
+                      <TableCell className="py-3 px-2 text-center w-20">
+                        {elim > 0 ? (
+                          <span className="text-poker-gold">+{elim}</span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
+                      </TableCell>
+                    </>
+                  )}
                   
                   <TableCell className="py-3 px-2 text-center font-bold text-poker-gold w-20">
                     {ranking.totalPoints}
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>
