@@ -66,11 +66,16 @@ export function usePlayerStatsExport() {
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(11);
       
+      const eliminationPoints = playerData.pointsFromEliminations ?? 0;
+      const positionPoints = playerData.pointsFromPosition ?? (playerData.totalPoints - eliminationPoints);
+
       const mainStats = [
         ['Partidas Jogadas:', playerData.gamesPlayed.toString()],
         ['Vitórias:', playerData.victories.toString()],
         ['Taxa de Vitórias:', `${playerData.winRate.toFixed(1)}%`],
         ['Posição Média:', playerData.averagePosition.toFixed(1)],
+        ['Pontos por Colocação:', positionPoints.toString()],
+        ['Pontos por Eliminação:', eliminationPoints.toString()],
         ['Total de Pontos:', playerData.totalPoints.toString()],
         ['ROI:', `${playerData.roi.toFixed(1)}%`],
         ['Taxa ITM:', `${playerData.itmRate.toFixed(1)}%`],
@@ -108,10 +113,15 @@ export function usePlayerStatsExport() {
           const gamePlayer = game.players.find(p => p.playerId === playerId);
           if (!gamePlayer) return [];
 
+          const gameEliminationPoints = gamePlayer.pointsFromEliminations ?? 0;
+          const gamePositionPoints = gamePlayer.pointsFromPosition ?? ((gamePlayer.points || 0) - gameEliminationPoints);
+
           return [
             `#${game.number.toString().padStart(3, '0')}`,
             formatDate(game.date),
             gamePlayer.position?.toString() || '-',
+            gamePositionPoints.toString(),
+            gameEliminationPoints > 0 ? `+${gameEliminationPoints}` : '0',
             gamePlayer.points.toString(),
             gamePlayer.rebuys.toString(),
             gamePlayer.addons.toString(),
@@ -122,7 +132,7 @@ export function usePlayerStatsExport() {
         });
 
         autoTable(pdf, {
-          head: [['Partida', 'Data', 'Pos.', 'Pts', 'RB', 'AD', 'Janta', 'Prêmio', 'Saldo']],
+          head: [['Partida', 'Data', 'Pos.', 'Coloc.', 'Elim.', 'Total', 'RB', 'AD', 'Janta', 'Prêmio', 'Saldo']],
           body: tableData,
           startY: yPosition,
           styles: { fontSize: 8 },

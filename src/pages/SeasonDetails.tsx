@@ -16,6 +16,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useSeasonReport } from "@/hooks/useSeasonReport";
 import { useShareableLink } from "@/hooks/useShareableLink";
 import { HostScheduleCard } from "@/components/season/HostScheduleCard";
+import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -27,6 +28,8 @@ interface PlayerStat {
   averagePosition: number;
   bestPosition: number;
   totalPoints: number;
+  pointsFromPosition?: number;
+  pointsFromEliminations?: number;
 }
 
 // Interface para os ganhadores do jackpot
@@ -217,6 +220,8 @@ export default function SeasonDetails() {
       const playerStat = playerStatsMap.get(rankingEntry.playerId);
       if (playerStat) {
         playerStat.totalPoints = rankingEntry.totalPoints;
+          playerStat.pointsFromPosition = rankingEntry.pointsFromPosition ?? rankingEntry.totalPoints;
+          playerStat.pointsFromEliminations = rankingEntry.pointsFromEliminations ?? 0;
         if ('averagePosition' in rankingEntry) {
           playerStat.averagePosition = (rankingEntry as any).averagePosition;
         } else {
@@ -297,22 +302,23 @@ export default function SeasonDetails() {
         
         // Carregar ranking da temporada
         const rankingsData = await pokerDB.getRankings(seasonId);
+        const enrichedRankings = enrichRankingsWithPointBreakdown(rankingsData, gamesData, seasonData.scoreSchema ?? []);
         console.log("Rankings carregados:", rankingsData.map(r => ({ 
           name: r.playerName, 
           points: r.totalPoints 
         })));
         
         // Calcular ganhadores do jackpot com a função corrigida
-        const winners = calculateJackpotWinners(seasonData, rankingsData, gamesData);
+        const winners = calculateJackpotWinners(seasonData, enrichedRankings, gamesData);
         console.log("Ganhadores calculados:", winners);
         
         // Calcular estatísticas dos jogadores
-        calculatePlayerStats(gamesData, rankingsData);
+        calculatePlayerStats(gamesData, enrichedRankings);
         
         // Atualizar todos os estados
         setSeason(seasonData);
         setGames(gamesData);
-        setRankings(rankingsData);
+        setRankings(enrichedRankings);
         setJackpotWinners(winners);
         
         // Restaurar posição do scroll após carregar os dados
@@ -611,22 +617,32 @@ export default function SeasonDetails() {
                   </CardHeader>
                   <CardContent>
                     <ul className="list-none space-y-2">
-                      {playerStats.slice(0, 5).map((player, index) => (
-                        <li key={player.playerId} className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="font-semibold mr-2">{index + 1}.</span>
-                            {player.photoUrl ? (
-                              <img src={player.photoUrl} alt={player.playerName} className="rounded-full w-8 h-8 mr-2" />
-                            ) : (
-                              <div className="rounded-full w-8 h-8 mr-2 bg-gray-700 flex items-center justify-center text-white">
-                                {player.playerName.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <span>{player.playerName}</span>
-                          </div>
-                          <span className="text-sm text-muted-foreground">{player.totalPoints} pontos</span>
-                        </li>
-                      ))}
+                      {playerStats.slice(0, 5).map((player, index) => {
+                        const eliminationPoints = player.pointsFromEliminations ?? 0;
+                        const positionPoints = player.pointsFromPosition ?? (player.totalPoints - eliminationPoints);
+
+                        return (
+                          <li key={player.playerId} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <span className="font-semibold mr-2">{index + 1}.</span>
+                              {player.photoUrl ? (
+                                <img src={player.photoUrl} alt={player.playerName} className="rounded-full w-8 h-8 mr-2" />
+                              ) : (
+                                <div className="rounded-full w-8 h-8 mr-2 bg-gray-700 flex items-center justify-center text-white">
+                                  {player.playerName.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <span>{player.playerName}</span>
+                            </div>
+                            <span className="text-sm text-muted-foreground text-right">
+                              <span className="block">{player.totalPoints} pontos</span>
+                              {eliminationPoints > 0 && (
+                                <span className="block text-xs">{positionPoints} coloc. + {eliminationPoints} elim.</span>
+                              )}
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </CardContent>
                 </Card>

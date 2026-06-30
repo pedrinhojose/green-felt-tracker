@@ -10,7 +10,7 @@ import { RankingPagination } from "@/components/ranking/RankingPagination";
 import { useRankingSync } from "@/hooks/useRankingSync";
 
 export default function RankingPage() {
-  const { rankings, activeSeason, isLoading } = usePoker();
+  const { rankings, activeSeason, isLoading, updateRankings } = usePoker();
   const { currentOrganization } = useOrganization();
   const { validateRankingConsistency } = useRankingSync();
   const [sortedRankings, setSortedRankings] = useState(rankings);
@@ -46,7 +46,7 @@ useEffect(() => {
 // Validação automática de consistência ao abrir a página
 useEffect(() => {
   if (activeSeason?.id) {
-    validateRankingConsistency(activeSeason.id);
+    validateRankingConsistency(activeSeason.id).then(() => updateRankings(activeSeason.id));
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [activeSeason?.id]);

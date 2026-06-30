@@ -9,6 +9,7 @@ import { useRankingFunctions } from './useRankingFunctions';
 import { usePokerUtils } from './usePokerUtils';
 import { useGameFunctions } from './useGameFunctions';
 import { useOrganization } from './OrganizationContext';
+import { enrichRankingsWithPointBreakdown } from '@/lib/utils/pointsBreakdown';
 
 // Create context with undefined as initial value
 const PokerContext = createContext<PokerContextProps | undefined>(undefined);
@@ -100,8 +101,13 @@ export function PokerProvider({ children }: { children: ReactNode }) {
           // Load rankings for active season
           console.log("PokerContext: Carregando rankings para temporada ativa:", activeSeasonData.id);
           const rankingsData = await pokerDB.getRankings(activeSeasonData.id);
-          console.log("PokerContext: Rankings carregados:", rankingsData.length);
-          setRankings(rankingsData);
+          const enrichedRankings = enrichRankingsWithPointBreakdown(
+            rankingsData,
+            gamesData,
+            activeSeasonData.scoreSchema ?? []
+          );
+          console.log("PokerContext: Rankings carregados:", enrichedRankings.length);
+          setRankings(enrichedRankings);
         } else {
           console.log("PokerContext: Nenhuma temporada ativa, limpando jogos e rankings");
           setGames([]);
@@ -172,6 +178,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     
     // Rankings
     rankings,
+    updateRankings,
     
     // Utilities
     isLoading,
@@ -218,6 +225,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       
       // Rankings
       rankings: [],
+      updateRankings: async () => [],
       
       // Utilities
       isLoading: true,

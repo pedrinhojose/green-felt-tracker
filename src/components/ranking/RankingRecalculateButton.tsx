@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export default function RankingRecalculateButton() {
   const [isRecalculating, setIsRecalculating] = useState(false);
-  const { activeSeason } = usePoker();
+  const { activeSeason, updateRankings } = usePoker();
   const { recalculateRankings, validateRankingConsistency } = useRankingSync();
   const { toast } = useToast();
 
@@ -32,14 +32,12 @@ export default function RankingRecalculateButton() {
       // Recalcular rankings
       console.log("Recalculando rankings...");
       const newRankings = await recalculateRankings(activeSeason.id);
+      await updateRankings(activeSeason.id);
       
       toast({
         title: "Rankings atualizados",
         description: `Rankings recalculados com sucesso para ${newRankings.length} jogadores.`,
       });
-      
-      // Recarregar a página para mostrar os dados atualizados
-      window.location.reload();
     } catch (error) {
       console.error("Erro ao recalcular rankings:", error);
       toast({

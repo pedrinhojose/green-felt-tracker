@@ -6,6 +6,7 @@ import { Trophy, Users, Calendar, DollarSign, Utensils } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { Game, Player, RankingEntry } from "@/lib/db/models";
 import { supabase } from "@/integrations/supabase/client";
+import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 export default function PublicGameView() {
   const { shareToken } = useParams<{ shareToken: string }>();
@@ -104,6 +105,11 @@ export default function PublicGameView() {
           .eq('season_id', game.seasonId)
           .order('total_points', { ascending: false });
 
+        const [{ data: seasonData }, { data: gamesData }] = await Promise.all([
+          supabase.from('seasons').select('score_schema').eq('id', game.seasonId).maybeSingle(),
+          supabase.from('games').select('*').eq('season_id', game.seasonId),
+        ]);
+
         if (!rankingsError && rankingsData) {
           const convertedRankings: RankingEntry[] = rankingsData.map(r => {
             // Buscar foto atualizada dos dados dos jogadores carregados
@@ -122,7 +128,23 @@ export default function PublicGameView() {
             };
           });
           
-          setRankings(convertedRankings);
+          const convertedGames: Game[] = (gamesData || []).map(g => ({
+            id: g.id,
+            number: g.number,
+            date: new Date(g.date),
+            seasonId: g.season_id,
+            players: g.players as any,
+            totalPrizePool: g.total_prize_pool,
+            dinnerCost: g.dinner_cost,
+            isFinished: g.is_finished,
+            createdAt: new Date(g.created_at)
+          }));
+          const enrichedRankings = enrichRankingsWithPointBreakdown(
+            convertedRankings,
+            convertedGames,
+            (seasonData?.score_schema as any) ?? []
+          );
+          setRankings(enrichedRankings);
         }
       } catch (error) {
         console.error('Erro ao carregar rankings:', error);
@@ -169,6 +191,8 @@ export default function PublicGameView() {
 
   const sortedPlayers = [...game.players].sort((a, b) => a.position - b.position);
   const winners = sortedPlayers.filter(p => p.prize > 0);
+  const showGamePointBreakdown = sortedPlayers.some((player) => (player.pointsFromEliminations ?? 0) > 0);
+  const showRankingPointBreakdown = rankings.some((ranking) => (ranking.pointsFromEliminations ?? 0) > 0);
   
   // Calcular custo individual da janta
   const dinnerParticipants = game.players.filter(p => p.joinedDinner).length;
@@ -310,7 +334,13 @@ export default function PublicGameView() {
                   <TableRow>
                     <TableHead className="w-16">Pos.</TableHead>
                     <TableHead>Jogador</TableHead>
-                    <TableHead className="text-right">Pontos</TableHead>
+                    {showGamePointBreakdown && (
+                      <>
+                        <TableHead className="text-right">Coloc.</TableHead>
+                        <TableHead className="text-right">Elim.</TableHead>
+                      </>
+                    )}
+                    <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-right">Prêmio</TableHead>
                     <TableHead className="text-right">Rebuys</TableHead>
                     <TableHead className="text-right">Add-ons</TableHead>
@@ -319,7 +349,11 @@ export default function PublicGameView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedPlayers.map((player) => (
+                  {sortedPlayers.map((player) => {
+                    const eliminationPoints = player.pointsFromEliminations ?? 0;
+                    const positionPoints = player.pointsFromPosition ?? ((player.points || 0) - eliminationPoints);
+
+                    return (
                     <TableRow key={player.playerId}>
                       <TableCell className="font-medium">
                         {player.position}º
@@ -342,6 +376,16 @@ export default function PublicGameView() {
                           {getPlayerName(player.playerId)}
                         </div>
                       </TableCell>
+                      {showGamePointBreakdown && (
+                        <>
+                          <TableCell className="text-right text-muted-foreground">
+                            {positionPoints}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {eliminationPoints > 0 ? `+${eliminationPoints}` : '0'}
+                          </TableCell>
+                        </>
+                      )}
                       <TableCell className="text-right font-semibold">
                         {player.points}
                       </TableCell>
@@ -363,7 +407,8 @@ export default function PublicGameView() {
                         {formatCurrency(player.balance)}
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -389,13 +434,23 @@ export default function PublicGameView() {
                     <TableRow>
                       <TableHead className="w-16">Pos.</TableHead>
                       <TableHead>Jogador</TableHead>
-                      <TableHead className="text-right">Pontos</TableHead>
+                      {showRankingPointBreakdown && (
+                        <>
+                          <TableHead className="text-right">Coloc.</TableHead>
+                          <TableHead className="text-right">Elim.</TableHead>
+                        </>
+                      )}
+                      <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right">Jogos</TableHead>
                       <TableHead className="text-right">Melhor Pos.</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rankings.map((ranking, index) => (
+                    {rankings.map((ranking, index) => {
+                      const eliminationPoints = ranking.pointsFromEliminations ?? 0;
+                      const positionPoints = ranking.pointsFromPosition ?? (ranking.totalPoints - eliminationPoints);
+
+                      return (
                       <TableRow key={ranking.id}>
                         <TableCell className="font-medium">
                           {index + 1}º
@@ -423,7 +478,17 @@ export default function PublicGameView() {
                              {ranking.playerName}
                            </div>
                          </TableCell>
-                        <TableCell className="text-right font-semibold text-primary">
+                         {showRankingPointBreakdown && (
+                          <>
+                            <TableCell className="text-right text-muted-foreground">
+                              {positionPoints}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {eliminationPoints > 0 ? `+${eliminationPoints}` : '0'}
+                            </TableCell>
+                          </>
+                         )}
+                         <TableCell className="text-right font-semibold text-primary">
                           {ranking.totalPoints}
                         </TableCell>
                         <TableCell className="text-right">
@@ -433,7 +498,8 @@ export default function PublicGameView() {
                           {ranking.bestPosition}º
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

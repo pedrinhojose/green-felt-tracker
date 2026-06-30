@@ -1,6 +1,7 @@
 
 import { Game, Player, Season, RankingEntry } from "@/lib/db/models";
 import { PlayerPerformanceStats, getPlayerName } from "../types";
+import { getGamePlayerPointBreakdown } from "@/lib/utils/pointsBreakdown";
 
 interface CalculationParams {
   targetGames: Game[];
@@ -59,6 +60,8 @@ export function calculatePlayerStats({
       totalInvestment: 0, // Será calculado abaixo
       balance: 0, // Será calculado abaixo
       totalPoints: ranking.totalPoints, // Usar pontos do ranking
+      pointsFromPosition: ranking.pointsFromPosition ?? ranking.totalPoints,
+      pointsFromEliminations: ranking.pointsFromEliminations ?? 0,
       totalRebuys: 0, // Será calculado abaixo
       roi: 0,
       winRate: 0,
@@ -97,6 +100,8 @@ export function calculatePlayerStats({
         totalInvestment: 0,
         balance: 0,
         totalPoints: 0, // Sem pontos se não há ranking
+        pointsFromPosition: 0,
+        pointsFromEliminations: 0,
         totalRebuys: 0,
         roi: 0,
         winRate: 0,
@@ -129,6 +134,8 @@ export function calculatePlayerStats({
           totalInvestment: 0,
           balance: 0,
           totalPoints: 0, // Sem pontos se não estiver no ranking
+          pointsFromPosition: 0,
+          pointsFromEliminations: 0,
           totalRebuys: 0,
           roi: 0,
           winRate: 0,
@@ -171,6 +178,13 @@ export function calculatePlayerStats({
       
       // Adicionar rebuys
       playerStat.totalRebuys += gamePlayer.rebuys || 0;
+
+      if (targetRankings.length === 0) {
+        const breakdown = getGamePlayerPointBreakdown(gamePlayer, targetSeason.scoreSchema ?? []);
+        playerStat.totalPoints += breakdown.total;
+        playerStat.pointsFromPosition = (playerStat.pointsFromPosition ?? 0) + breakdown.position;
+        playerStat.pointsFromEliminations = (playerStat.pointsFromEliminations ?? 0) + breakdown.eliminations;
+      }
     });
   });
   

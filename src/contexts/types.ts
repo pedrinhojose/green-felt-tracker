@@ -29,6 +29,7 @@ export interface PokerContextProps {
   
   // Rankings
   rankings: RankingEntry[];
+  updateRankings: (seasonId?: string) => Promise<RankingEntry[] | undefined>;
   
   // Utilities
   isLoading: boolean;

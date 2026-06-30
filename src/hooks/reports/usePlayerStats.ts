@@ -25,12 +25,6 @@ export function usePlayerStats(seasonId?: string) {
       return;
     }
 
-    // Evitar recálculos desnecessários
-    if (targetSeasonId === lastCalculatedSeasonId && playerStats.length > 0) {
-      console.log("Stats already calculated for this season, skipping");
-      return;
-    }
-
     setLoading(true);
     
     try {

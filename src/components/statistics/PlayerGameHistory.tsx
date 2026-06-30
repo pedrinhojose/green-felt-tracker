@@ -50,6 +50,8 @@ export function PlayerGameHistory({ games, playerId, players }: PlayerGameHistor
             {sortedGames.map((game) => {
               const gamePlayer = game.players.find(p => p.playerId === playerId);
               if (!gamePlayer) return null;
+              const eliminationPoints = gamePlayer.pointsFromEliminations ?? 0;
+              const positionPoints = gamePlayer.pointsFromPosition ?? ((gamePlayer.points || 0) - eliminationPoints);
 
               return (
                 <div
@@ -81,6 +83,7 @@ export function PlayerGameHistory({ games, playerId, players }: PlayerGameHistor
                     {/* Pontos */}
                     <Badge variant="outline" className="border-poker-gold/30 text-poker-gold">
                       {gamePlayer.points} pts
+                      {eliminationPoints > 0 && ` (${positionPoints}+${eliminationPoints} elim.)`}
                     </Badge>
                   </div>
 

@@ -7,11 +7,12 @@ import { Download, RefreshCw } from "lucide-react";
 import { useRankingExport } from "@/lib/utils/rankingExportUtils";
 import { useRankingSync } from "@/hooks/useRankingSync";
 import { useNavigate } from "react-router-dom";
+import { RankingEntry } from "@/lib/db/models";
 
 export default function RankingCard() {
   const { rankings, activeSeason } = usePoker();
   const navigate = useNavigate();
-  const [topPlayers, setTopPlayers] = useState([]);
+  const [topPlayers, setTopPlayers] = useState<RankingEntry[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
@@ -44,6 +45,22 @@ export default function RankingCard() {
       case 2: return '🥉';
       default: return (position + 1).toString();
     }
+  };
+
+  const renderPoints = (player: RankingEntry) => {
+    const eliminationPoints = player.pointsFromEliminations ?? 0;
+    const positionPoints = player.pointsFromPosition ?? (player.totalPoints - eliminationPoints);
+
+    return (
+      <>
+        <div className="font-bold text-poker-gold">{player.totalPoints} pts</div>
+        {eliminationPoints > 0 && (
+          <div className="text-[10px] text-muted-foreground">
+            {positionPoints} coloc. + {eliminationPoints} elim.
+          </div>
+        )}
+      </>
+    );
   };
   
   const handleExportTop3 = async () => {
@@ -99,7 +116,7 @@ export default function RankingCard() {
               <div className="mt-1 text-base font-bold text-gray-400">🥈</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[80px]">{secondPlace.playerName}</div>
-                <div className="font-bold text-gray-400">{secondPlace.totalPoints} pts</div>
+                {renderPoints(secondPlace)}
                 <div className="text-xs text-muted-foreground">{secondPlace.gamesPlayed} jogos</div>
               </div>
             </div>
@@ -119,7 +136,7 @@ export default function RankingCard() {
               <div className="mt-1 text-lg font-bold text-poker-gold">🥇</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[100px]">{firstPlace.playerName}</div>
-                <div className="font-bold text-poker-gold">{firstPlace.totalPoints} pts</div>
+                {renderPoints(firstPlace)}
                 <div className="text-xs text-muted-foreground">{firstPlace.gamesPlayed} jogos</div>
               </div>
             </div>
@@ -139,7 +156,7 @@ export default function RankingCard() {
               <div className="mt-1 text-base font-bold text-amber-700">🥉</div>
               <div className="mt-1 text-center">
                 <div className="font-medium text-white truncate max-w-[80px]">{thirdPlace.playerName}</div>
-                <div className="font-bold text-amber-700">{thirdPlace.totalPoints} pts</div>
+                {renderPoints(thirdPlace)}
                 <div className="text-xs text-muted-foreground">{thirdPlace.gamesPlayed} jogos</div>
               </div>
             </div>
