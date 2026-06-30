@@ -18,6 +18,7 @@ interface PlayerPerformanceTableProps {
 
 export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanceTableProps) {
   const isMobile = useIsMobile();
+  const showBreakdown = playerStats.some((player) => (player.pointsFromEliminations ?? 0) > 0);
   
   return (
     <div className={`bg-poker-dark-green/30 rounded-lg overflow-hidden ${isMobile ? 'mx-0' : ''}`}>
@@ -35,7 +36,13 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
               <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-8 text-xs py-2 px-1' : 'w-10'}`}>V</TableHead>
               <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-8 text-xs py-2 px-1' : 'w-10'}`}>RB</TableHead>
               <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-12 text-xs py-2 px-1' : 'w-16'}`}>Pos. Med</TableHead>
-              <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-12 text-xs py-2 px-1' : 'w-16'}`}>Pontos</TableHead>
+              {showBreakdown && (
+                <>
+                  <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-12 text-xs py-2 px-1' : 'w-16'}`}>Coloc.</TableHead>
+                  <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-12 text-xs py-2 px-1' : 'w-16'}`}>Elim.</TableHead>
+                </>
+              )}
+              <TableHead className={`text-center text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-12 text-xs py-2 px-1' : 'w-16'}`}>Total</TableHead>
               <TableHead className={`text-right text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-16 text-xs py-2 px-1' : 'w-20'}`}>Maior Prêmio</TableHead>
               <TableHead className={`text-right text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-16 text-xs py-2 px-1' : 'w-20'}`}>Ganhos</TableHead>
               <TableHead className={`text-right text-white bg-poker-dark-green border-white/10 ${isMobile ? 'w-16 text-xs py-2 px-1' : 'w-20'}`}>Perdas</TableHead>
@@ -54,6 +61,20 @@ export default function PlayerPerformanceTable({ playerStats }: PlayerPerformanc
                     ? player.averagePosition.toFixed(1) 
                     : "-"}
                 </TableCell>
+                {showBreakdown && (
+                  <>
+                    <TableCell className={`text-center text-white/70 bg-poker-black border-white/10 ${isMobile ? 'text-xs py-2 px-1' : ''}`}>
+                      {player.pointsFromPosition ?? ((player.totalPoints || 0) - (player.pointsFromEliminations ?? 0))}
+                    </TableCell>
+                    <TableCell className={`text-center bg-poker-black border-white/10 ${isMobile ? 'text-xs py-2 px-1' : ''}`}>
+                      {(player.pointsFromEliminations ?? 0) > 0 ? (
+                        <span className="text-poker-gold">+{player.pointsFromEliminations}</span>
+                      ) : (
+                        <span className="text-white/50">0</span>
+                      )}
+                    </TableCell>
+                  </>
+                )}
                 <TableCell className={`text-center font-semibold text-white bg-poker-black border-white/10 ${isMobile ? 'text-xs py-2 px-1' : ''}`}>
                   {player.totalPoints || 0}
                 </TableCell>
