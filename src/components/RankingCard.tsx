@@ -7,6 +7,7 @@ import { Download, RefreshCw } from "lucide-react";
 import { useRankingExport } from "@/lib/utils/rankingExportUtils";
 import { useRankingSync } from "@/hooks/useRankingSync";
 import { useNavigate } from "react-router-dom";
+import { RankingEntry } from "@/lib/db/models";
 
 export default function RankingCard() {
   const { rankings, activeSeason } = usePoker();
@@ -46,7 +47,7 @@ export default function RankingCard() {
     }
   };
 
-  const renderPoints = (player) => {
+  const renderPoints = (player: RankingEntry) => {
     const eliminationPoints = player.pointsFromEliminations ?? 0;
     const positionPoints = player.pointsFromPosition ?? (player.totalPoints - eliminationPoints);
 
