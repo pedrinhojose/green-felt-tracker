@@ -147,11 +147,12 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
       try {
         const { data: elimRows } = await supabase
           .from('eliminations')
-          .select('eliminator_id')
+          .select('eliminator_player_id')
           .eq('game_id', game.id);
-        (elimRows || []).forEach((row: { eliminator_id: string | null }) => {
-          if (!row.eliminator_id) return;
-          eliminationsByPlayer[row.eliminator_id] = (eliminationsByPlayer[row.eliminator_id] || 0) + 1;
+        (elimRows || []).forEach((row) => {
+          const eid = row.eliminator_player_id;
+          if (!eid) return;
+          eliminationsByPlayer[eid] = (eliminationsByPlayer[eid] || 0) + 1;
         });
       } catch (err) {
         console.error('Error loading eliminations for points calculation:', err);
