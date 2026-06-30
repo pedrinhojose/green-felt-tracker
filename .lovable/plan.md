@@ -1,50 +1,56 @@
-## Objetivo
-No ranking, deixar claro quantos pontos cada jogador ganhou **por posição** e quantos **por eliminações**, mantendo o total como hoje.
+Plano de correção e ampliação
 
-## Como ficará a UI
+1. Corrigir por que não aparece agora
+- A tela de Ranking está recebendo `rankings` carregados diretamente por `pokerDB.getRankings`, que traz apenas `totalPoints`, `gamesPlayed` e `bestPosition`.
+- A quebra `pointsFromPosition` / `pointsFromEliminations` é calculada em `updateRankings`, mas essa função não está sendo usada no carregamento inicial do contexto nem atualiza o estado após a validação automática.
+- Além disso, ao finalizar partida, `useGameFunctions` recalcula e salva rankings sem incluir os campos de quebra, então a tela depende de derivar isso dos jogos finalizados.
 
-Tabela de ranking (desktop) ganha duas colunas extras antes da coluna "Pontos":
+2. Criar uma fonte única para calcular a quebra
+- Criar/centralizar uma função utilitária que, para uma temporada, leia os jogos finalizados e retorne por jogador:
+  - pontos por colocação
+  - pontos por eliminação
+  - total
+- Regra:
+  - se `gamePlayer.pointsFromPosition` e `gamePlayer.pointsFromEliminations` existirem, usar esses valores;
+  - se não existirem, calcular posição pelo `scoreSchema` e eliminação como `max(0, points - pontosPosição)` quando possível;
+  - partidas antigas sem informação caem como tudo em colocação e 0 em eliminação.
 
-```
-#  Jogador     Jogos   Posição   Elim.   Pontos
-🥇  RICARDO     1       10        +1      11
-🥈  CESAR       1        9         0       9
-```
+3. Fazer o ranking mostrar a quebra sempre que houver recompensa de eliminação
+- Ajustar o carregamento inicial em `PokerContext` para usar rankings enriquecidos com a quebra.
+- Ajustar `RankingPage` para, ao validar/recalcular, atualizar também o estado do ranking exibido.
+- Ajustar `useRankingSync` e `useGameFunctions` para salvar/repassar rankings já com `pointsFromPosition` e `pointsFromEliminations` em memória.
+- Na tabela de ranking, quando houver qualquer ponto de eliminação na temporada, mostrar:
+  - `Colocação`
+  - `Elim.`
+  - `Total`
+- Se não houver eliminação pontuada, manter a tabela simples como hoje.
 
-- **Posição**: soma dos pontos vindos do `scoreSchema` (colocação final).
-- **Elim.**: soma dos pontos ganhos pela recompensa por eliminação (mostrado com prefixo `+` e ícone ⚔️; fica `0` / em cinza quando não há).
-- **Pontos**: total (igual hoje, destaque dourado).
+4. Adicionar em todos os lugares com estatística/pontos
+- Ranking principal (`/ranking`): colunas/sublinha com colocação, eliminação e total.
+- Card Top 3 do painel: mostrar total e, quando houver eliminação, a linha `posição + eliminação`.
+- Estatísticas gerais (`/statistics`): no card/lista do jogador, mostrar pontos totais e detalhamento.
+- Detalhe do jogador (`/statistics/player/...`): no card de pontos e no histórico de partidas, mostrar:
+  - pontos por colocação
+  - pontos por eliminação
+  - total da partida
+- Detalhes da temporada (`SeasonDetails`): top jogadores e tabela de desempenho com a quebra.
+- Relatório da temporada (`SeasonReport` / `PlayerPerformanceTable`): adicionar colunas ou subtítulo para colocação, eliminação e total.
+- Views públicas (`PublicSeasonView`, `PublicGameView`): mostrar a quebra no ranking público quando houver eliminação pontuada.
+- Exportações/PDF/imagem onde aparece `Pontos`: incluir a discriminação `Colocação`, `Eliminação`, `Total`.
 
-Mobile (cards): abaixo do total dourado, uma linha pequena `10 pos • +1 elim` aparece somente quando há pontos de eliminação. Se não houver, o card continua idêntico ao atual.
+5. Atualizar tipos de estatística
+- Estender `PlayerPerformanceStats` com:
+  - `pointsFromPosition`
+  - `pointsFromEliminations`
+- Atualizar cálculos em `playerStatsCalculations` para preencher esses campos a partir dos rankings enriquecidos e/ou dos jogos.
 
-Quando **nenhum jogador da temporada** tem pontos de eliminação (recompensa desativada ou em dinheiro), as duas colunas extras ficam ocultas para não poluir.
-
-## Como será calculado
-
-Hoje `RankingEntry.totalPoints` já contém posição + eliminação somados (vem de `GamePlayer.points`). Falta apenas expor a quebra.
-
-1. Estender `RankingEntry` (`src/lib/db/models.ts`) com dois campos opcionais derivados:
-   - `pointsFromPosition?: number`
-   - `pointsFromEliminations?: number`
-2. Em `useRankingSync.recalculateRankings` (`src/hooks/useRankingSync.ts`): ao percorrer `game.players`, somar `gamePlayer.pointsFromPosition ?? scoreSchema[position] ?? 0` e `gamePlayer.pointsFromEliminations ?? 0` por jogador, e gravar nos novos campos. `totalPoints` permanece `posição + eliminações` (consistente com o que já é mostrado).
-3. Em `useRankingFunctions.updateRankings` (`src/contexts/useRankingFunctions.ts`): após buscar rankings do banco, complementar cada entrada lendo os jogos finalizados da temporada (já em memória via `pokerDB.getGames`) e calculando a mesma quebra. Isso garante que partidas antigas (anteriores à introdução dos campos no `GamePlayer`) caiam no fallback `pointsFromPosition = totalPoints` e `pointsFromEliminations = 0`, sem precisar de migração.
-4. Persistência: não vamos alterar o schema SQL da tabela `rankings`. Os dois campos são calculados em runtime quando o ranking é carregado/recalculado — fica em memória apenas. O total persistido continua correto.
-
-## UI
-
-5. `src/components/ranking/RankingTable.tsx`: adicionar as duas colunas (desktop) e a sublinha (mobile) conforme descrito. Detectar `hasAnyElimPoints = sortedRankings.some(r => (r.pointsFromEliminations ?? 0) > 0)` para mostrar/ocultar as colunas extras.
-6. Botão "Recalcular Rankings" já refaz tudo — nenhuma mudança necessária ali.
-
-## O que NÃO muda
-
-- Schema do banco (`rankings`, `games`).
-- Cálculo do total (`totalPoints` continua igual).
-- Export do ranking (`RankingExporter`) — fora do escopo desta tarefa; só a tabela na tela.
-- Estatísticas individuais do jogador, relatórios e histórico.
-
-## Validação
-
-- Ricardo no print: deve aparecer `Posição: 10`, `Elim.: +1`, `Pontos: 11`.
-- Cesar: `Posição: 9`, `Elim.: 0`, `Pontos: 9`.
-- Temporada sem recompensa por eliminação: colunas extras ficam ocultas, layout idêntico ao atual.
-- Partidas antigas (sem `pointsFromPosition`): caem no fallback e o total continua correto.
+6. Validação esperada
+- Ricardo deve aparecer no ranking como:
+  - Colocação: 10
+  - Elim.: +1
+  - Total/Pontos: 11
+- Cesar deve aparecer como:
+  - Colocação: 9
+  - Elim.: 0
+  - Total/Pontos: 9
+- Se recompensa por eliminação estiver desligada ou não houver pontos de eliminação, as telas continuam mostrando apenas pontos normais.
