@@ -165,6 +165,7 @@ export class SeasonRepository extends SupabaseCore {
           houseRules: data.house_rules || '',
           hostSchedule: (data.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
           caixinhaBalance: Number(data.caixinha_balance) || 0,
+          eliminationRewardConfig: (data as any).elimination_reward_config ?? undefined,
           createdAt: new Date(data.created_at),
           organizationId: data.organization_id || undefined
         } as Season;
