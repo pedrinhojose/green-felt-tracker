@@ -381,6 +381,7 @@ export class SeasonRepository extends SupabaseCore {
         financial_params: season.financialParams as unknown as Json,
         blind_structure: season.blindStructure as unknown as Json,
         jackpot: season.jackpot,
+        elimination_reward_config: (season.eliminationRewardConfig ?? null) as unknown as Json,
         created_at: season.createdAt.toISOString(),
         user_id: userId,
         organization_id: orgId
