@@ -55,6 +55,7 @@ export class SeasonRepository extends SupabaseCore {
           houseRules: season.house_rules || '',
           hostSchedule: (season.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
           caixinhaBalance: Number(season.caixinha_balance) || 0,
+          eliminationRewardConfig: (season as any).elimination_reward_config ?? undefined,
           createdAt: new Date(season.created_at),
           organizationId: season.organization_id || undefined
         })) as Season[];
@@ -109,6 +110,7 @@ export class SeasonRepository extends SupabaseCore {
           houseRules: data.house_rules || '',
           hostSchedule: (data.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
           caixinhaBalance: Number(data.caixinha_balance) || 0,
+          eliminationRewardConfig: (data as any).elimination_reward_config ?? undefined,
           createdAt: new Date(data.created_at),
           organizationId: data.organization_id || undefined
         } as Season;
@@ -163,6 +165,7 @@ export class SeasonRepository extends SupabaseCore {
           houseRules: data.house_rules || '',
           hostSchedule: (data.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
           caixinhaBalance: Number(data.caixinha_balance) || 0,
+          eliminationRewardConfig: (data as any).elimination_reward_config ?? undefined,
           createdAt: new Date(data.created_at),
           organizationId: data.organization_id || undefined
         } as Season;
@@ -200,6 +203,7 @@ export class SeasonRepository extends SupabaseCore {
           house_rules: season.houseRules || '',
           host_schedule: season.hostSchedule as unknown as Json,
           caixinha_balance: season.caixinhaBalance || 0,
+          elimination_reward_config: (season.eliminationRewardConfig ?? null) as unknown as Json,
           created_at: season.createdAt.toISOString(),
           user_id: userId,
           organization_id: orgId
@@ -377,6 +381,7 @@ export class SeasonRepository extends SupabaseCore {
         financial_params: season.financialParams as unknown as Json,
         blind_structure: season.blindStructure as unknown as Json,
         jackpot: season.jackpot,
+        elimination_reward_config: (season.eliminationRewardConfig ?? null) as unknown as Json,
         created_at: season.createdAt.toISOString(),
         user_id: userId,
         organization_id: orgId

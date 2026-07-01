@@ -499,6 +499,7 @@ export type Database = {
           blind_structure: Json
           caixinha_balance: number
           created_at: string
+          elimination_reward_config: Json | null
           end_date: string | null
           expected_end_date: string | null
           financial_params: Json
@@ -523,6 +524,7 @@ export type Database = {
           blind_structure?: Json
           caixinha_balance?: number
           created_at?: string
+          elimination_reward_config?: Json | null
           end_date?: string | null
           expected_end_date?: string | null
           financial_params?: Json
@@ -547,6 +549,7 @@ export type Database = {
           blind_structure?: Json
           caixinha_balance?: number
           created_at?: string
+          elimination_reward_config?: Json | null
           end_date?: string | null
           expected_end_date?: string | null
           financial_params?: Json
