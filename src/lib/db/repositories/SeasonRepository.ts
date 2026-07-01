@@ -203,6 +203,7 @@ export class SeasonRepository extends SupabaseCore {
           house_rules: season.houseRules || '',
           host_schedule: season.hostSchedule as unknown as Json,
           caixinha_balance: season.caixinhaBalance || 0,
+          elimination_reward_config: (season.eliminationRewardConfig ?? null) as unknown as Json,
           created_at: season.createdAt.toISOString(),
           user_id: userId,
           organization_id: orgId
