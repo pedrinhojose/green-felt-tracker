@@ -55,6 +55,7 @@ export class SeasonRepository extends SupabaseCore {
           houseRules: season.house_rules || '',
           hostSchedule: (season.host_schedule as unknown as import('../models').HostScheduleEntry[]) || [],
           caixinhaBalance: Number(season.caixinha_balance) || 0,
+          eliminationRewardConfig: (season as any).elimination_reward_config ?? undefined,
           createdAt: new Date(season.created_at),
           organizationId: season.organization_id || undefined
         })) as Season[];
