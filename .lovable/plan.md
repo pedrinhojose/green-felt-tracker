@@ -1,44 +1,37 @@
-## Causa raiz
-A tabela `seasons` no Supabase **não tem** a coluna `elimination_reward_config`. Verifiquei o schema:
+## Problema
+
+Ao tentar excluir a partida `f2893f9f-...`, o console mostra:
 ```
-blind_structure, caixinha_balance, created_at, end_date, expected_end_date,
-financial_params, game_frequency, games_per_period, games_per_week,
-host_schedule, house_rules, id, is_active, jackpot, name, organization_id,
-public_share_token, score_schema, season_prize_schema, start_date, user_id,
-weekly_prize_schema
+GameRepository.getGame: Game encontrado: false
+Error: Game not found
 ```
-Sem essa coluna, o campo enviado no upsert é descartado. A config só "existe" enquanto o objeto está em memória — no próximo reload volta `undefined`, e todo o resto da feature (pontos extras, quebra no ranking, badge de elim.) fica silencioso.
 
-## Correção
+Consultando o Supabase, essa partida **não existe mais no banco** (foi removida em cascata quando a temporada foi excluída), mas continua aparecendo na lista local (`gamesCount: 2`) porque o estado em memória do `PokerContext` não foi ressincronizado após a exclusão da temporada.
 
-### 1. Migration Supabase
-Adicionar a coluna JSONB opcional:
-```sql
-ALTER TABLE public.seasons
-ADD COLUMN IF NOT EXISTS elimination_reward_config jsonb;
-```
-Sem default e sem NOT NULL → temporadas antigas continuam válidas com `null`. Não mexo em RLS/GRANTs (a tabela já está OK).
+O `deleteGame` em `src/contexts/useGameFunctions.ts` faz `pokerDB.getGame(gameId)` e, se não encontrar, lança `Error('Game not found')` — impedindo a limpeza da lista. Ou seja, é uma partida "fantasma" que nunca pode ser removida pela UI.
 
-### 2. `src/lib/db/repositories/SeasonRepository.ts`
-Mapear o campo nos dois sentidos, em todos os pontos:
-- **Leitura** (`getSeasons`, `getActiveSeason`, `getSeason`): incluir
-  `eliminationRewardConfig: (data as any).elimination_reward_config ?? undefined`.
-- **Escrita** (`saveSeason` e `migrateSeasonsFromIndexedDB`): incluir
-  `elimination_reward_config: season.eliminationRewardConfig ?? null` no payload do upsert.
+## Solução
 
-### 3. Nada mais no frontend
-`useSeasonFormSubmitter`, `useSeasonFormInitializer`, `EliminationRewardConfig.tsx`, `usePrizeDistribution`, ranking/estatísticas/exports já usam `season.eliminationRewardConfig` corretamente. Assim que a coluna passar a persistir, tudo volta a funcionar.
+Tornar o `deleteGame` **idempotente** e resiliente a partidas órfãs, e garantir que a lista local reflita o banco.
 
-### 4. Passo do usuário após deploy
-1. Abrir "Configuração da Temporada" → aba "Recompensas por Eliminação".
-2. Reconfigurar (1 ponto a cada 1 eliminação, no seu caso) e salvar.
-3. A partir daí a config persiste entre reloads.
+### Alterações
 
-### 5. Validação
-- Recarregar `/season-config`: a aba carrega os valores salvos.
-- Criar jogo, eliminar jogador → pontos extras aparecem em `PlayerTableRow`/`PlayerMobileCard`.
-- Finalizar → ranking mostra `Colocação` + `Elim. ⚔️` + `Total`, e o mesmo aparece em estatísticas, detalhe do jogador, views públicas e exportações.
+**1. `src/contexts/useGameFunctions.ts` — função `deleteGame`**
+- Se `pokerDB.getGame(gameId)` retornar `undefined`, **não lançar erro**. Em vez disso:
+  - Pular toda a lógica de reversão de rankings/jackpot (não há o que reverter).
+  - Ainda chamar `pokerDB.deleteGame(gameId)` (best-effort, ignorando erro caso a linha realmente não exista).
+  - Remover o jogo do estado local (`setGames(prev => prev.filter(g => g.id !== gameId))`).
+  - Atualizar `lastGame` se necessário.
+  - Exibir toast de sucesso ("Partida removida da lista").
+- Mantém o comportamento atual quando a partida existe no banco.
 
-## Fora de escopo
-- Não altero `deleteGame` nem o recálculo de ranking — o "sumiço" do jogo Ricardo/Cesar foi consequência de o jogo ter sido apagado (rankings decrementaram corretamente para 0). Sem relação com a config de eliminação.
-- Não crio colunas `points_from_position` / `points_from_eliminations` em `rankings` — o breakdown continua sendo calculado dos jogos em runtime.
+**2. `src/pages/GamesList.tsx` — `handleDeleteGame`**
+- Ajustar o tratamento de erro para não exibir toast de erro quando o motivo era "Game not found" (agora resolvido internamente, mas defensivo).
+
+### Resultado
+
+O usuário conseguirá excluir a partida órfã que sobrou da temporada apagada. Além disso, o sistema fica protegido contra futuras inconsistências entre cache local e banco.
+
+### Observação
+
+Não é necessária alteração de RLS — as políticas de `DELETE` da tabela `games` já funcionam (as outras partidas foram excluídas com sucesso). O problema é puramente de estado local vs. banco.

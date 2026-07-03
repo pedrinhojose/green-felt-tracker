@@ -107,8 +107,22 @@ export function useGameFunctions(
       // Get the game before deleting it to check if it's the last game
       const game = await pokerDB.getGame(gameId);
       if (!game) {
-        throw new Error('Game not found');
+        // Partida órfã: existe apenas no estado local (ex.: temporada excluída em cascata).
+        // Tentar remover do banco best-effort e limpar o estado local.
+        console.warn(`deleteGame: partida ${gameId} não encontrada no banco. Limpando estado local.`);
+        try {
+          await pokerDB.deleteGame(gameId);
+        } catch (err) {
+          console.warn('deleteGame: falha ao remover partida inexistente (ignorado):', err);
+        }
+        setGames(prev => prev.filter(g => g.id !== gameId));
+        if (lastGame?.id === gameId) {
+          const newLastGame = await pokerDB.getLastGame();
+          setLastGame(newLastGame || null);
+        }
+        return true;
       }
+
       
       // First, delete all eliminations associated with this game
       await deleteEliminationsByGameId(gameId);
