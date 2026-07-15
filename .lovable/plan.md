@@ -1,37 +1,39 @@
-## Problema
 
-Ao tentar excluir a partida `f2893f9f-...`, o console mostra:
-```
-GameRepository.getGame: Game encontrado: false
-Error: Game not found
-```
+## Contexto
 
-Consultando o Supabase, essa partida **não existe mais no banco** (foi removida em cascata quando a temporada foi excluída), mas continua aparecendo na lista local (`gamesCount: 2`) porque o estado em memória do `PokerContext` não foi ressincronizado após a exclusão da temporada.
+Os dois requisitos principais já existem:
 
-O `deleteGame` em `src/contexts/useGameFunctions.ts` faz `pokerDB.getGame(gameId)` e, se não encontrar, lança `Error('Game not found')` — impedindo a limpeza da lista. Ou seja, é uma partida "fantasma" que nunca pode ser removida pela UI.
+- **Onboarding obrigatório**: `App.tsx` envolve as rotas protegidas com `RequireAuth > OrganizationRequired`. Se o usuário não tem organização, ele fica travado na tela `CreateFirstOrganization` (usa a RPC `create_organization_with_admin`).
+- **Filtro por organização**: os repositórios (`PlayerRepository`, `GameRepository`, `SeasonRepository`, `RankingRepository`, `JackpotDistributionRepository`) já usam `getUserAndOrgIds()` e aplicam `.eq('organization_id', orgId)` em SELECTs/INSERTs, com RLS reforçando no servidor.
 
-## Solução
+A auditoria encontrou pontos fora dos repositórios que **fazem queries diretas sem filtrar por `organization_id`**. Esses são os focos da correção.
 
-Tornar o `deleteGame` **idempotente** e resiliente a partidas órfãs, e garantir que a lista local reflita o banco.
+## Correções
 
-### Alterações
+### 1. Hooks de leitura sem filtro por organização
 
-**1. `src/contexts/useGameFunctions.ts` — função `deleteGame`**
-- Se `pokerDB.getGame(gameId)` retornar `undefined`, **não lançar erro**. Em vez disso:
-  - Pular toda a lógica de reversão de rankings/jackpot (não há o que reverter).
-  - Ainda chamar `pokerDB.deleteGame(gameId)` (best-effort, ignorando erro caso a linha realmente não exista).
-  - Remover o jogo do estado local (`setGames(prev => prev.filter(g => g.id !== gameId))`).
-  - Atualizar `lastGame` se necessário.
-  - Exibir toast de sucesso ("Partida removida da lista").
-- Mantém o comportamento atual quando a partida existe no banco.
+Adicionar `.eq('organization_id', currentOrganization.id)` (obtido via `useOrganization()`) e abortar cedo se não houver organização:
 
-**2. `src/pages/GamesList.tsx` — `handleDeleteGame`**
-- Ajustar o tratamento de erro para não exibir toast de erro quando o motivo era "Game not found" (agora resolvido internamente, mas defensivo).
+- `src/hooks/useCaixinhaUnifiedTransactions.ts` — queries em `caixinha_transactions`, `players`, `games`.
+- `src/hooks/elimination/useEliminationData.ts` — queries em `games` e `eliminations` (linhas 34, 52, 65, 93, 107, 122).
+- `src/hooks/usePrizeDistribution.ts` (linha 149) — leitura de `eliminations` para calcular recompensa.
+- `src/hooks/useShareableLink.ts` e `src/hooks/useGameShareableLink.ts` — operações em `seasons`/`games` para gerar/consumir tokens de compartilhamento: filtrar por org em quem cria/edita; a leitura pública por token permanece sem filtro (é o caso de uso público).
 
-### Resultado
+### 2. Restore de Excel
 
-O usuário conseguirá excluir a partida órfã que sobrou da temporada apagada. Além disso, o sistema fica protegido contra futuras inconsistências entre cache local e banco.
+`src/components/ExcelRestoreButton.tsx` hoje usa `p.organization_id || orgId`, o que permite que uma planilha exportada de outro clube seja importada mantendo o `organization_id` original (vaza dados entre tenants). Forçar sempre `organization_id: orgId` (ignorar o valor do arquivo) em todos os `upsert` (players, seasons, games, rankings, caixinha, eliminations, jackpot). Idem para `user_id`, usar sempre o usuário logado.
 
-### Observação
+### 3. Public views (fora do escopo, apenas confirmar)
 
-Não é necessária alteração de RLS — as políticas de `DELETE` da tabela `games` já funcionam (as outras partidas foram excluídas com sucesso). O problema é puramente de estado local vs. banco.
+`src/pages/PublicGameView.tsx` faz queries em `seasons`/`games` sem filtro — é intencional (acesso público por token). Não alterar, apenas registrar.
+
+### 4. Verificação final
+
+Após as edições, rodar `rg` para reconfirmar que não sobrou nenhuma chamada `supabase.from('players'|'games'|'seasons'|'rankings'|'eliminations'|'caixinha_transactions'|'club_fund_transactions'|'season_jackpot_distributions')` fora dos repositórios/públicos sem `organization_id`.
+
+## O que NÃO muda
+
+- Estrutura do banco, RLS e migrations (o modelo já suporta multi-tenancy corretamente).
+- Fluxo de onboarding (`OrganizationRequired` + `CreateFirstOrganization`).
+- Repositórios em `src/lib/db/repositories/*` (já corretos).
+- Rotas públicas por token.
