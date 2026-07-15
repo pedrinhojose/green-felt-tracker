@@ -145,10 +145,13 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
       // Count eliminations per player for this game (for elimination-reward points)
       const eliminationsByPlayer: Record<string, number> = {};
       try {
-        const { data: elimRows } = await supabase
+        const orgId = localStorage.getItem('currentOrganizationId');
+        let query = supabase
           .from('eliminations')
           .select('eliminator_player_id')
           .eq('game_id', game.id);
+        if (orgId) query = query.eq('organization_id', orgId);
+        const { data: elimRows } = await query;
         (elimRows || []).forEach((row) => {
           const eid = row.eliminator_player_id;
           if (!eid) return;
@@ -157,6 +160,7 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
       } catch (err) {
         console.error('Error loading eliminations for points calculation:', err);
       }
+
 
       const elimConfig = activeSeason.eliminationRewardConfig;
 
