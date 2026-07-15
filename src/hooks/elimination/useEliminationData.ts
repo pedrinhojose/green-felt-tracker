@@ -27,13 +27,20 @@ export function useEliminationData(seasonId?: string) {
     const fetchEliminations = async () => {
       try {
         setLoading(true);
-        
+
+        const orgId = localStorage.getItem('currentOrganizationId');
+        if (!orgId) {
+          setEliminations([]);
+          return;
+        }
+
         if (seasonId) {
-          // First get all games from the season
+          // First get all games from the season (scoped to org)
           const { data: games, error: gamesError } = await supabase
             .from('games')
             .select('id')
-            .eq('season_id', seasonId);
+            .eq('season_id', seasonId)
+            .eq('organization_id', orgId);
 
           if (gamesError) {
             console.error('Error fetching games:', gamesError);
@@ -47,10 +54,11 @@ export function useEliminationData(seasonId?: string) {
 
           const gameIds = games.map(game => game.id);
 
-          // Then get eliminations from those games
+          // Then get eliminations from those games (scoped to org)
           const { data, error } = await supabase
             .from('eliminations')
             .select('*')
+            .eq('organization_id', orgId)
             .in('game_id', gameIds);
 
           if (error) {
@@ -60,10 +68,11 @@ export function useEliminationData(seasonId?: string) {
 
           setEliminations(data || []);
         } else {
-          // If no seasonId, fetch all eliminations
+          // Fetch all eliminations for the current organization
           const { data, error } = await supabase
             .from('eliminations')
-            .select('*');
+            .select('*')
+            .eq('organization_id', orgId);
 
           if (error) {
             console.error('Error fetching eliminations:', error);
@@ -81,6 +90,7 @@ export function useEliminationData(seasonId?: string) {
 
     fetchEliminations();
   }, [seasonId]);
+
 
   const saveElimination = async (elimination: Omit<EliminationRecord, 'id' | 'created_at'>) => {
     try {
@@ -102,10 +112,11 @@ export function useEliminationData(seasonId?: string) {
         return;
       }
 
-      // Refresh data
+      // Refresh data (scoped to org)
       const { data } = await supabase
         .from('eliminations')
         .select('*')
+        .eq('organization_id', orgId)
         .eq('game_id', elimination.game_id);
       
       if (data) {
@@ -118,9 +129,13 @@ export function useEliminationData(seasonId?: string) {
 
   const deleteEliminationsByGameId = async (gameId: string) => {
     try {
+      const orgId = localStorage.getItem('currentOrganizationId');
+      if (!orgId) throw new Error('No organization selected');
+
       const { error } = await supabase
         .from('eliminations')
         .delete()
+        .eq('organization_id', orgId)
         .eq('game_id', gameId);
 
       if (error) {
@@ -135,6 +150,7 @@ export function useEliminationData(seasonId?: string) {
       throw error;
     }
   };
+
 
   return {
     eliminations,

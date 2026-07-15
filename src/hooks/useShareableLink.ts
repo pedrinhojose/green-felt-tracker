@@ -75,11 +75,15 @@ export function useShareableLink() {
       debugUUID(shareToken, 'generateShareableLink - shareToken');
       console.log('Token gerado:', shareToken);
       
-      // Atualizar temporada com o token usando ID sanitizado
-      const { error } = await supabase
+      // Atualizar temporada com o token (escopado à organização atual)
+      const orgId = localStorage.getItem('currentOrganizationId');
+      let updateQuery = supabase
         .from('seasons')
         .update({ public_share_token: shareToken })
         .eq('id', sanitizedSeasonId);
+      if (orgId) updateQuery = updateQuery.eq('organization_id', orgId);
+      const { error } = await updateQuery;
+
 
       if (error) {
         console.error('Erro ao gerar token de compartilhamento:', error);
@@ -159,10 +163,14 @@ export function useShareableLink() {
       
       debugUUID(seasonId, 'removeShareableLink - seasonId');
       
-      const { error } = await supabase
+      const orgId = localStorage.getItem('currentOrganizationId');
+      let updateQuery = supabase
         .from('seasons')
         .update({ public_share_token: null })
         .eq('id', sanitizedSeasonId);
+      if (orgId) updateQuery = updateQuery.eq('organization_id', orgId);
+      const { error } = await updateQuery;
+
 
       if (error) {
         console.error('Erro ao remover token de compartilhamento:', error);

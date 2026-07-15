@@ -19,10 +19,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async getPlayer(id: string): Promise<Player | undefined> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('players')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', orgId)
       .maybeSingle();
 
     if (error) throw error;
@@ -47,7 +49,8 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       const { error } = await supabase
         .from('players')
         .update(playerData)
-        .eq('id', player.id);
+        .eq('id', player.id)
+        .eq('organization_id', orgId);
       
       if (error) throw error;
       return player.id;
@@ -64,10 +67,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async deletePlayer(id: string): Promise<void> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { error } = await supabase
       .from('players')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('organization_id', orgId);
 
     if (error) throw error;
   }
@@ -88,10 +93,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async getSeason(id: string): Promise<Season | undefined> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('seasons')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', orgId)
       .maybeSingle();
 
     if (error) throw error;
@@ -125,7 +132,8 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       const { error } = await supabase
         .from('seasons')
         .update(seasonData)
-        .eq('id', season.id);
+        .eq('id', season.id)
+        .eq('organization_id', orgId);
       
       if (error) throw error;
       return season.id;
@@ -142,10 +150,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async deleteSeason(id: string): Promise<void> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { error } = await supabase
       .from('seasons')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('organization_id', orgId);
 
     if (error) throw error;
   }
@@ -181,10 +191,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async getGame(id: string): Promise<Game | undefined> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('games')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', orgId)
       .maybeSingle();
 
     if (error) throw error;
@@ -211,7 +223,8 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       const { error } = await supabase
         .from('games')
         .update(gameData)
-        .eq('id', game.id);
+        .eq('id', game.id)
+        .eq('organization_id', orgId);
       
       if (error) throw error;
       return game.id;
@@ -228,19 +241,23 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async deleteGame(id: string): Promise<void> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { error } = await supabase
       .from('games')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('organization_id', orgId);
 
     if (error) throw error;
   }
 
   async getGamesBySeasonId(seasonId: string): Promise<Game[]> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('games')
       .select('*')
       .eq('season_id', seasonId)
+      .eq('organization_id', orgId)
       .order('date', { ascending: false });
 
     if (error) throw error;
@@ -264,10 +281,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async getRanking(id: string): Promise<RankingEntry | undefined> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('rankings')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', orgId)
       .maybeSingle();
 
     if (error) throw error;
@@ -294,7 +313,8 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
       const { error } = await supabase
         .from('rankings')
         .update(rankingData)
-        .eq('id', ranking.id);
+        .eq('id', ranking.id)
+        .eq('organization_id', orgId);
       
       if (error) throw error;
       return ranking.id;
@@ -311,19 +331,23 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async deleteRanking(id: string): Promise<void> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { error } = await supabase
       .from('rankings')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('organization_id', orgId);
 
     if (error) throw error;
   }
 
   async getRankingsBySeasonId(seasonId: string): Promise<RankingEntry[]> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('rankings')
       .select('*')
       .eq('season_id', seasonId)
+      .eq('organization_id', orgId)
       .order('total_points', { ascending: false });
 
     if (error) throw error;
@@ -375,10 +399,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async getJackpotDistributionsBySeasonId(seasonId: string): Promise<SeasonJackpotDistribution[]> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('season_jackpot_distributions')
       .select('*')
       .eq('season_id', seasonId)
+      .eq('organization_id', orgId)
       .order('position', { ascending: true });
 
     if (error) throw error;
@@ -400,10 +426,12 @@ export class SupabaseRepository extends SupabaseCore implements DatabaseInterfac
   }
 
   async getJackpotDistributionsByPlayerId(playerId: string): Promise<SeasonJackpotDistribution[]> {
+    const { orgId } = await this.getUserAndOrgIds();
     const { data, error } = await supabase
       .from('season_jackpot_distributions')
       .select('*')
       .eq('player_id', playerId)
+      .eq('organization_id', orgId)
       .order('distributed_at', { ascending: false });
 
     if (error) throw error;

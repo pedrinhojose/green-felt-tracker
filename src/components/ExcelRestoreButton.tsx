@@ -80,8 +80,8 @@ export default function ExcelRestoreButton() {
             birth_date: p.data_nascimento || null,
             photo_url: p.foto_url || null,
             is_active: p.ativo === true || p.ativo === "true",
-            user_id: p.user_id || userId,
-            organization_id: p.organization_id || orgId,
+            user_id: userId,
+            organization_id: orgId,
             created_at: p.criado_em || new Date().toISOString(),
           }, { onConflict: "id" });
         }
@@ -117,8 +117,8 @@ export default function ExcelRestoreButton() {
             financial_params: parseJson(s.financial_params),
             blind_structure: parseJson(s.blind_structure),
             host_schedule: parseJson(s.host_schedule),
-            user_id: s.user_id || userId,
-            organization_id: s.organization_id || orgId,
+            user_id: userId,
+            organization_id: orgId,
             created_at: s.criado_em || new Date().toISOString(),
           }, { onConflict: "id" });
         }
@@ -167,8 +167,8 @@ export default function ExcelRestoreButton() {
             dinner_cost: game.custo_jantar ? Number(game.custo_jantar) : null,
             is_finished: game.finalizada === true || game.finalizada === "true",
             players: players,
-            user_id: game.user_id || userId,
-            organization_id: game.organization_id || orgId,
+            user_id: userId,
+            organization_id: orgId,
             created_at: game.criado_em || new Date().toISOString(),
           }, { onConflict: "id" });
         }
@@ -188,8 +188,8 @@ export default function ExcelRestoreButton() {
             games_played: Number(r.jogos) || 0,
             best_position: Number(r.melhor_posicao) || 0,
             photo_url: r.foto_url || null,
-            user_id: r.user_id || userId,
-            organization_id: r.organization_id || orgId,
+            user_id: userId,
+            organization_id: orgId,
           }, { onConflict: "id" });
         }
         totalRows += rankingsData.length;
@@ -206,9 +206,9 @@ export default function ExcelRestoreButton() {
             amount: Number(t.valor),
             season_id: t.season_id,
             withdrawal_date: t.data || new Date().toISOString(),
-            user_id: t.user_id || userId,
-            created_by: t.user_id || userId,
-            organization_id: t.organization_id || orgId,
+            user_id: userId,
+            created_by: userId,
+            organization_id: orgId,
             created_at: t.criado_em || new Date().toISOString(),
           }, { onConflict: "id" });
         }
@@ -226,8 +226,8 @@ export default function ExcelRestoreButton() {
             eliminator_player_id: e.eliminador_id || null,
             position: Number(e.posicao),
             elimination_time: e.horario || new Date().toISOString(),
-            user_id: e.user_id || userId,
-            organization_id: e.organization_id || orgId,
+            user_id: userId,
+            organization_id: orgId,
             created_at: e.criado_em || new Date().toISOString(),
           }, { onConflict: "id" });
         }
@@ -248,8 +248,8 @@ export default function ExcelRestoreButton() {
             prize_amount: Number(j.premio),
             total_jackpot: Number(j.jackpot_total),
             distributed_at: j.distribuido_em || new Date().toISOString(),
-            user_id: j.user_id || userId,
-            organization_id: j.organization_id || orgId,
+            user_id: userId,
+            organization_id: orgId,
             created_at: j.criado_em || new Date().toISOString(),
           }, { onConflict: "id" });
         }

@@ -272,7 +272,9 @@ export default function CaixinhaManagement() {
           description: editDescription,
           withdrawal_date: editDate.toISOString(),
         })
-        .eq('id', editingTransaction.id);
+        .eq('id', editingTransaction.id)
+        .eq('organization_id', currentOrganization.id);
+
 
       if (error) throw error;
 
@@ -298,13 +300,15 @@ export default function CaixinhaManagement() {
   };
 
   const handleDeleteTransaction = async () => {
-    if (!transactionToDelete) return;
+    if (!transactionToDelete || !currentOrganization) return;
 
     try {
       const { error } = await supabase
         .from('caixinha_transactions')
         .delete()
-        .eq('id', transactionToDelete.id);
+        .eq('id', transactionToDelete.id)
+        .eq('organization_id', currentOrganization.id);
+
 
       if (error) throw error;
 
