@@ -70,6 +70,11 @@ export function useUserRole() {
     return isOrgAdmin || userRoles.includes('admin');
   }, [userRoles, isOrgAdmin]);
 
+  // Apenas admin do sistema (papel global em user_roles), ignora admin de clube
+  const isSystemAdmin = useCallback((): boolean => {
+    return userRoles.includes('admin');
+  }, [userRoles]);
+
   const isViewer = useCallback((): boolean => {
     return hasRole('viewer');
   }, [hasRole]);
