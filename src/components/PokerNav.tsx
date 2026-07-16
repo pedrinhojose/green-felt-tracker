@@ -7,13 +7,14 @@ import { ProfileDropdown } from './ProfileDropdown';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
-import { ShieldAlert, Menu, X } from 'lucide-react';
+import { ShieldAlert, Menu, X, Crown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NavItem {
   name: string;
   path: string;
   requiredRole?: 'admin' | 'player' | 'viewer';
+  superAdminOnly?: boolean;
   hideForViewer?: boolean;
 }
 
@@ -28,6 +29,7 @@ const navItems: NavItem[] = [
   { name: 'Regras da Casa', path: '/house-rules' },
   { name: 'Caixinha', path: '/caixinha', hideForViewer: true },
   { name: 'Usuários', path: '/users', requiredRole: 'admin' },
+  { name: 'Super Admin', path: '/super-admin', superAdminOnly: true },
 ];
 
 export default function PokerNav() {
