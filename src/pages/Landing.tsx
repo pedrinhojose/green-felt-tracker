@@ -488,10 +488,10 @@ export default function Landing() {
         <div className="text-center text-xs uppercase tracking-widest text-white/40 mb-8">
           Clubes que já jogam com a gente
         </div>
-        <div className="flex items-center justify-center gap-8 sm:gap-14 flex-wrap opacity-80">
-          <img src={logoCards.url} alt="APA Poker" className="h-20 sm:h-24 rounded-lg object-cover" />
-          <img src={chipApa.url} alt="APA Poker Chip" className="h-24 sm:h-28" />
-          <img src={logoBadge.url} alt="APA Poker Badge" className="h-20 sm:h-24 rounded-lg object-cover" />
+        <div className="flex items-center justify-center gap-8 sm:gap-14 flex-wrap opacity-90">
+          <img src={apaLogo.url} alt="APA Poker" className="h-24 sm:h-28 rounded-xl object-cover ring-1 ring-poker-gold/20" />
+          <img src={logoCards.url} alt="APA Poker" className="h-20 sm:h-24 rounded-lg object-cover opacity-80" />
+          <img src={logoBadge.url} alt="APA Poker Badge" className="h-20 sm:h-24 rounded-lg object-cover opacity-80" />
         </div>
       </section>
 
@@ -499,8 +499,7 @@ export default function Landing() {
       <section id="cta" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="relative rounded-3xl border border-poker-gold/30 bg-gradient-to-br from-poker-gold/10 via-emerald-500/5 to-transparent p-10 sm:p-14 text-center overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(223,198,97,0.18),transparent_70%)]" />
-          <img src={chipApa.url} alt="" className="absolute -left-10 -bottom-10 w-40 opacity-30 -rotate-12" />
-          <img src={chipApa.url} alt="" className="absolute -right-10 -top-10 w-32 opacity-25 rotate-12" />
+          <img src={apaLogo.url} alt="" className="absolute -right-8 -top-8 w-36 rounded-2xl opacity-15 rotate-6 pointer-events-none" />
           <div className="relative">
             <h2 className="font-poppins text-3xl sm:text-4xl font-bold">
               Pronto para elevar o nível do seu clube?
