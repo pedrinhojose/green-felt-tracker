@@ -69,6 +69,7 @@ export function AddClubAdminDialog({ onCreated }: { onCreated?: () => void } = {
       });
       reset();
       setOpen(false);
+      onCreated?.();
     } catch (err: any) {
       console.error(err);
       toast({
