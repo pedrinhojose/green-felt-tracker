@@ -256,8 +256,9 @@ export default function Landing() {
           {/* Carousel mockup */}
           <div className="relative">
             <div className="absolute -inset-6 bg-gradient-to-br from-poker-gold/20 via-emerald-500/10 to-transparent rounded-3xl blur-2xl" />
-            {/* Chip behind mockup */}
-            <img src={chipApa.url} alt="" className="absolute -top-16 -right-10 w-40 opacity-90 rotate-12 drop-shadow-[0_10px_40px_rgba(0,0,0,0.6)] z-10 animate-[float_5s_ease-in-out_infinite]" />
+            {/* Subtle logo watermark behind mockup */}
+            <img src={apaLogo.url} alt="" className="absolute -top-14 -right-8 w-32 rounded-xl opacity-20 rotate-6 blur-[0.5px] z-0 pointer-events-none" />
+
             <div className={`relative rounded-2xl border border-white/10 bg-gradient-to-br ${current.accent} p-1 shadow-2xl shadow-black/50 transition-all duration-700`}>
               <div className="rounded-xl bg-poker-black/80 backdrop-blur-sm">
                 <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/5">
