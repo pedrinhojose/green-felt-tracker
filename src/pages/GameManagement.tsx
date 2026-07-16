@@ -229,7 +229,7 @@ export default function GameManagement() {
 
   return (
     <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
-      {!isSelectingPlayers && (
+      {(!isSelectingPlayers || isViewer) && (
         <GameHeader
           gameNumber={game.number}
           gameDate={game.date}
@@ -270,7 +270,7 @@ export default function GameManagement() {
         // Game management screen
         <div className={`space-y-${isMobile ? '4' : '6'}`}>
           {/* Aviso de edição de partida finalizada */}
-          {isEditingFinishedGame && (
+          {!isViewer && isEditingFinishedGame && (
             <div className="bg-orange-500/10 border border-orange-500 rounded-lg p-4">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
