@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
-export function AddClubAdminDialog() {
+export function AddClubAdminDialog({ onCreated }: { onCreated?: () => void } = {}) {
   const { currentOrganization } = useOrganization();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -69,6 +69,7 @@ export function AddClubAdminDialog() {
       });
       reset();
       setOpen(false);
+      onCreated?.();
     } catch (err: any) {
       console.error(err);
       toast({
