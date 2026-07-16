@@ -13,14 +13,28 @@ export interface ApahubAccessKey {
   updated_at: string;
 }
 
+// Generates a readable but strong random password
+export function generateRandomPassword(length = 12): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  const array = new Uint32Array(length);
+  crypto.getRandomValues(array);
+  let out = '';
+  for (let i = 0; i < length; i++) out += chars[array[i] % chars.length];
+  return out;
+}
+
 export function useApahubAccessKey() {
   const [accessKey, setAccessKey] = useState<ApahubAccessKey | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const { currentOrganization } = useOrganization();
+  const { currentOrganization, isLoading: isOrgLoading } = useOrganization();
 
   const fetchAccessKey = useCallback(async () => {
+    if (isOrgLoading) {
+      setIsLoading(true);
+      return;
+    }
     if (!currentOrganization?.id) {
       setAccessKey(null);
       setIsLoading(false);
@@ -47,7 +61,7 @@ export function useApahubAccessKey() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentOrganization?.id, toast]);
+  }, [currentOrganization?.id, isOrgLoading, toast]);
 
   const createAccessKey = async (email: string, password: string) => {
     if (!currentOrganization?.id) {
@@ -142,6 +156,12 @@ export function useApahubAccessKey() {
     }
   };
 
+  const regeneratePassword = async (): Promise<string | null> => {
+    const newPassword = generateRandomPassword(12);
+    const ok = await updatePassword(newPassword);
+    return ok ? newPassword : null;
+  };
+
   const toggleActive = async () => {
     if (!currentOrganization?.id) {
       toast({
@@ -193,6 +213,7 @@ export function useApahubAccessKey() {
     isSaving,
     createAccessKey,
     updatePassword,
+    regeneratePassword,
     toggleActive,
     refetch: fetchAccessKey
   };
