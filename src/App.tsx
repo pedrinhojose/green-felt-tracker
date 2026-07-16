@@ -88,6 +88,7 @@ function App() {
                       <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                       <Route path="/organization/members" element={<OrganizationMembersPage />} />
                       <Route path="/caixinha" element={<CaixinhaManagement />} />
+                      <Route path="/super-admin" element={<SuperAdminDashboard />} />
                     </Route>
                   </Route>
                   
