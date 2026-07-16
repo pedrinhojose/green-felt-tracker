@@ -24,6 +24,7 @@ import HouseRules from '@/pages/HouseRules';
 import UserManagement from '@/pages/UserManagement';
 import NotFound from '@/pages/NotFound';
 import RequireAuth from '@/components/RequireAuth';
+import { RequireEditor } from '@/components/auth/RequireEditor';
 import { OrganizationRequired } from '@/components/organizations/OrganizationRequired';
 import AppLayout from '@/components/layout/AppLayout';
 import OrganizationSettingsPage from '@/pages/OrganizationSettingsPage';
