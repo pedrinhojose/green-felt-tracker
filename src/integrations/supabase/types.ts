@@ -288,6 +288,50 @@ export type Database = {
           },
         ]
       }
+      organization_viewer_keys: {
+        Row: {
+          access_email: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          organization_id: string
+          password_hash: string
+          updated_at: string
+          viewer_user_id: string
+        }
+        Insert: {
+          access_email: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          password_hash: string
+          updated_at?: string
+          viewer_user_id: string
+        }
+        Update: {
+          access_email?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          password_hash?: string
+          updated_at?: string
+          viewer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_viewer_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -623,6 +667,22 @@ export type Database = {
           updated_at: string
         }[]
       }
+      create_organization_viewer_key: {
+        Args: {
+          p_access_email: string
+          p_organization_id: string
+          p_password: string
+          p_viewer_user_id: string
+        }
+        Returns: {
+          access_email: string
+          created_at: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          updated_at: string
+        }[]
+      }
       create_organization_with_admin: {
         Args: { p_name: string }
         Returns: {
@@ -652,6 +712,7 @@ export type Database = {
       }
       is_admin_of_organization: { Args: { org_id: string }; Returns: boolean }
       is_member_of_organization: { Args: { org_id: string }; Returns: boolean }
+      is_viewer_of_organization: { Args: { org_id: string }; Returns: boolean }
       set_user_role: {
         Args: { p_role: string; p_user_id: string }
         Returns: undefined
@@ -660,7 +721,15 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: boolean
       }
+      toggle_organization_viewer_key: {
+        Args: { p_organization_id: string }
+        Returns: boolean
+      }
       update_apahub_access_key_password: {
+        Args: { p_new_password: string; p_organization_id: string }
+        Returns: boolean
+      }
+      update_organization_viewer_password: {
         Args: { p_new_password: string; p_organization_id: string }
         Returns: boolean
       }
@@ -686,6 +755,14 @@ export type Database = {
         Returns: {
           organization_id: string
           organization_name: string
+        }[]
+      }
+      verify_organization_viewer_login: {
+        Args: { p_email: string; p_password: string }
+        Returns: {
+          access_email: string
+          organization_id: string
+          viewer_user_id: string
         }[]
       }
     }
