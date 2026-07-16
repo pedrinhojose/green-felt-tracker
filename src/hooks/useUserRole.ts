@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
-export type AppRole = 'admin' | 'player' | 'viewer';
+export type AppRole = 'admin' | 'player' | 'viewer' | 'super_admin';
 
 export function useUserRole() {
   const { user } = useAuth();
