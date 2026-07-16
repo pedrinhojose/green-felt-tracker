@@ -66,6 +66,23 @@ export function useUserManagement() {
   };
 
   const toggleUserRole = async (userId: string, role: AppRole, currentlyHasRole: boolean) => {
+    // Proteção: não permitir remover o último admin do sistema
+    if (currentlyHasRole && role === 'admin') {
+      const adminCount = users.filter(u => u.roles.includes('admin')).length;
+      if (adminCount <= 1) {
+        toast({
+          title: 'Ação bloqueada',
+          description: 'Este é o último administrador do sistema. Promova outro usuário antes de remover.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      const confirmed = window.confirm(
+        `Remover o papel de administrador deste usuário? Ele perderá acesso ao gerenciamento de usuários.`
+      );
+      if (!confirmed) return;
+    }
+
     try {
       if (currentlyHasRole) {
         // Remove role
