@@ -68,22 +68,26 @@ function App() {
                   
                   <Route element={<RequireAuth><OrganizationRequired><PokerProvider><AppLayout /></PokerProvider></OrganizationRequired></RequireAuth>}>
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/season" element={<SeasonConfig />} />
                     <Route path="/seasons" element={<SeasonsList />} />
                     <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
                     <Route path="/games" element={<GamesList />} />
                     <Route path="/games/:gameId" element={<GameManagement />} />
                     <Route path="/timer/:gameId" element={<TimerPage />} />
                     <Route path="/ranking" element={<RankingPage />} />
-                    <Route path="/players" element={<PlayersManagement />} />
                     <Route path="/statistics" element={<PlayerStatistics />} />
                     <Route path="/statistics/player/:playerId" element={<PlayerStatisticsDetail />} />
                     <Route path="/house-rules" element={<HouseRules />} />
-                    <Route path="/users" element={<UserManagement />} />
-                    <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
-                    <Route path="/organization/members" element={<OrganizationMembersPage />} />
                     <Route path="/reports/season" element={<SeasonReport />} />
-                    <Route path="/caixinha" element={<CaixinhaManagement />} />
+
+                    {/* Rotas bloqueadas para visitantes */}
+                    <Route element={<RequireEditor />}>
+                      <Route path="/season" element={<SeasonConfig />} />
+                      <Route path="/players" element={<PlayersManagement />} />
+                      <Route path="/users" element={<UserManagement />} />
+                      <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
+                      <Route path="/organization/members" element={<OrganizationMembersPage />} />
+                      <Route path="/caixinha" element={<CaixinhaManagement />} />
+                    </Route>
                   </Route>
                   
                   <Route path="*" element={<NotFound />} />
