@@ -177,14 +177,22 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.user) {
-        // Criar a organização automaticamente
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .insert({ name: clubName.trim() })
-          .select('id')
-          .single();
+        // Garantir sessão ativa (necessária para a RPC usar auth.uid())
+        if (!data.session) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (signInError) {
+            console.error('Erro ao iniciar sessão pós-cadastro:', signInError);
+          }
+        }
 
-        if (orgError) {
+        // Criar organização de forma atômica (bypass seguro de RLS)
+        const { data: orgData, error: orgError } = await supabase
+          .rpc('create_organization_with_admin', { p_name: clubName.trim() });
+
+        if (orgError || !orgData || orgData.length === 0) {
           console.error('Erro ao criar organização:', orgError);
           toast({
             title: 'Erro ao criar clube',
@@ -194,21 +202,9 @@ export default function Auth() {
           return;
         }
 
-        // Vincular usuário como admin da organização
-        const { error: memberError } = await supabase
-          .from('organization_members')
-          .insert({
-            organization_id: orgData.id,
-            user_id: data.user.id,
-            role: 'admin'
-          });
-
-        if (memberError) {
-          console.error('Erro ao vincular usuário:', memberError);
-        }
-
         // Salvar no localStorage para seleção automática
-        localStorage.setItem('currentOrganizationId', orgData.id);
+        localStorage.setItem('currentOrganizationId', orgData[0].id);
+
 
         toast({
           title: 'Conta criada com sucesso',
