@@ -41,6 +41,7 @@ export default function PokerNav() {
 
   // Filtragem dos itens de navegação com base nos papéis do usuário
   const filteredNavItems = navItems.filter(item => {
+    if (isViewer) return !item.hideForViewer && !item.requiredRole;
     if (item.hideForViewer && isViewer) return false;
     if (!item.requiredRole) return true;
     return hasRole(item.requiredRole);

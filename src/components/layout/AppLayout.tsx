@@ -1,10 +1,30 @@
 
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { PokerNav } from '@/components/PokerNav';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
+
+const viewerAllowedPaths = [
+  '/dashboard',
+  '/seasons',
+  '/games',
+  '/ranking',
+  '/statistics',
+  '/house-rules',
+];
+
+function isViewerAllowedPath(pathname: string) {
+  return viewerAllowedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
 
 export default function AppLayout() {
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const { isViewer } = useOrgMemberRole();
+
+  if (isViewer && !isViewerAllowedPath(location.pathname)) {
+    return <Navigate to="/dashboard" replace />;
+  }
   
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground w-full">

@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 
 export default function SeasonsList() {
   const { toast } = useToast();
@@ -29,6 +30,7 @@ export default function SeasonsList() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const { activateSeason, deactivateSeason } = useSeasonFunctions();
+  const { canEdit } = useOrgMemberRole();
   
   useEffect(() => {
     const loadSeasons = async () => {
@@ -174,14 +176,14 @@ export default function SeasonsList() {
           </p>
         </div>
         
-        <div>
+        {canEdit && <div>
           <Button 
             variant="outline" 
             onClick={() => navigate("/season")}
           >
             Nova Temporada
           </Button>
-        </div>
+        </div>}
       </div>
       
       {loading ? (
@@ -207,7 +209,7 @@ export default function SeasonsList() {
                       {getStatusBadge(status)}
                     </CardTitle>
                     
-                    <div className="flex gap-1">
+                    {canEdit && <div className="flex gap-1">
                       {/* Activate/Deactivate Button */}
                       {status === "inactive" && (
                         <Button 
@@ -278,7 +280,7 @@ export default function SeasonsList() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-                    </div>
+                    </div>}
                   </div>
                 </CardHeader>
                 
@@ -326,12 +328,12 @@ export default function SeasonsList() {
       ) : (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">Nenhuma temporada encontrada</p>
-          <Button 
+          {canEdit && <Button 
             onClick={() => navigate("/season")}
             className="bg-poker-gold hover:bg-poker-gold/80 text-black"
           >
             Criar Primeira Temporada
-          </Button>
+          </Button>}
         </div>
       )}
     </div>

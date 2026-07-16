@@ -138,6 +138,10 @@ Deno.serve(async (req) => {
       if (upErr) throw upErr;
     }
 
+    await admin.from('user_roles').delete().eq('user_id', viewerUserId).in('role', ['admin', 'player']);
+    await admin.from('user_roles').upsert({ user_id: viewerUserId, role: 'viewer' }, { onConflict: 'user_id,role' });
+    await admin.from('profiles').update({ default_role: 'viewer' }).eq('id', viewerUserId);
+
     // Persistir credencial (hash + user_id) via RPC (SECURITY DEFINER cuida do hash)
     const { data: keyRows, error: rpcErr } = await admin.rpc('create_organization_viewer_key', {
       p_organization_id: body.organization_id,

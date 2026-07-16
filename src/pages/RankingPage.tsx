@@ -8,11 +8,13 @@ import RankingRecalculateButton from "@/components/ranking/RankingRecalculateBut
 import EmptyRanking from "@/components/ranking/EmptyRanking";
 import { RankingPagination } from "@/components/ranking/RankingPagination";
 import { useRankingSync } from "@/hooks/useRankingSync";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 
 export default function RankingPage() {
   const { rankings, activeSeason, isLoading, updateRankings } = usePoker();
   const { currentOrganization } = useOrganization();
   const { validateRankingConsistency } = useRankingSync();
+  const { isViewer } = useOrgMemberRole();
   const [sortedRankings, setSortedRankings] = useState(rankings);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -45,11 +47,11 @@ useEffect(() => {
 
 // Validação automática de consistência ao abrir a página
 useEffect(() => {
-  if (activeSeason?.id) {
+  if (!isViewer && activeSeason?.id) {
     validateRankingConsistency(activeSeason.id).then(() => updateRankings(activeSeason.id));
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [activeSeason?.id]);
+}, [activeSeason?.id, isViewer]);
   
   const getInitials = (name: string) => {
     return name
@@ -108,7 +110,7 @@ useEffect(() => {
         </div>
         
         <div className="flex gap-2">
-          <RankingRecalculateButton />
+          {!isViewer && <RankingRecalculateButton />}
           <RankingExporter
             sortedRankings={sortedRankings}
             activeSeason={activeSeason}

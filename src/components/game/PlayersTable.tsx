@@ -17,6 +17,7 @@ interface PlayersTableProps {
   onUpdatePlayerStats: (playerId: string, field: keyof GamePlayer, value: any) => void;
   onSwapPositions?: (player1Id: string, player2Id: string) => Promise<boolean>;
   isEditingFinishedGame?: boolean;
+  isReadOnly?: boolean;
 }
 
 export default function PlayersTable({
@@ -28,6 +29,7 @@ export default function PlayersTable({
   onUpdatePlayerStats,
   onSwapPositions,
   isEditingFinishedGame = false,
+  isReadOnly = false,
 }: PlayersTableProps) {
   const [isSwapDialogOpen, setIsSwapDialogOpen] = useState(false);
   const [playerToSwap, setPlayerToSwap] = useState<GamePlayer | null>(null);
@@ -54,6 +56,7 @@ export default function PlayersTable({
   const canSwapPosition = (gamePlayer: GamePlayer) => {
     return gamePlayer.isEliminated && 
            gamePlayer.position !== null && 
+           !isReadOnly &&
            (!game.isFinished || isEditingFinishedGame) &&
            playersWithPosition.length > 1 &&
            onSwapPositions !== undefined;
@@ -93,7 +96,7 @@ export default function PlayersTable({
                       player={player}
                       dinnerSharePerPlayer={dinnerSharePerPlayer}
                       activeSeason={activeSeason}
-                      isFinished={game.isFinished && !isEditingFinishedGame}
+                      isFinished={isReadOnly || (game.isFinished && !isEditingFinishedGame)}
                       onEliminatePlayer={onEliminatePlayer}
                       onReactivatePlayer={onReactivatePlayer}
                       onUpdatePlayerStats={onUpdatePlayerStats}
@@ -144,7 +147,7 @@ export default function PlayersTable({
                       player={player}
                       dinnerSharePerPlayer={dinnerSharePerPlayer}
                       activeSeason={activeSeason}
-                      isFinished={game.isFinished && !isEditingFinishedGame}
+                      isFinished={isReadOnly || (game.isFinished && !isEditingFinishedGame)}
                       onEliminatePlayer={onEliminatePlayer}
                       onReactivatePlayer={onReactivatePlayer}
                       onUpdatePlayerStats={onUpdatePlayerStats}
