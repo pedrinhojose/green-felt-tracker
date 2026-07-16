@@ -36,18 +36,6 @@ export function UserTableRow({ user, onToggleRole, isMobile = false }: UserTable
             hasRole={user.roles.includes('admin')}
             onToggle={onToggleRole}
           />
-          <UserRoleToggle 
-            userId={user.id}
-            role="player"
-            hasRole={user.roles.includes('player')}
-            onToggle={onToggleRole}
-          />
-          <UserRoleToggle 
-            userId={user.id}
-            role="viewer"
-            hasRole={user.roles.includes('viewer')}
-            onToggle={onToggleRole}
-          />
         </div>
       </div>
     );
