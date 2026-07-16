@@ -36,13 +36,14 @@ export default function PokerNav() {
   const location = useLocation();
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
-  const { hasRole } = useUserRole();
+  const { hasRole, isSuperAdmin } = useUserRole();
   const { isViewer } = useOrgMemberRole();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Filtragem dos itens de navegação com base nos papéis do usuário
   const filteredNavItems = navItems.filter(item => {
+    if (item.superAdminOnly) return isSuperAdmin();
     if (isViewer) return !item.hideForViewer && !item.requiredRole;
     if (item.hideForViewer && isViewer) return false;
     if (!item.requiredRole) return true;
