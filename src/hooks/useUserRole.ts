@@ -154,6 +154,7 @@ export function useUserRole() {
     userRoles,
     hasRole,
     isAdmin,
+    isSystemAdmin,
     isViewer,
     isPlayer,
     addRole,
