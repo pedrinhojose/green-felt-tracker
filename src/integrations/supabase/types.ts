@@ -336,7 +336,9 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_blocked: boolean
           name: string
+          plan_status: string
           settings: Json
           subscription_plan: string
           updated_at: string
@@ -344,7 +346,9 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_blocked?: boolean
           name: string
+          plan_status?: string
           settings?: Json
           subscription_plan?: string
           updated_at?: string
@@ -352,7 +356,9 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_blocked?: boolean
           name?: string
+          plan_status?: string
           settings?: Json
           subscription_plan?: string
           updated_at?: string
@@ -691,6 +697,7 @@ export type Database = {
         }[]
       }
       get_caixinha_stats: { Args: { p_season_id: string }; Returns: Json }
+      get_super_admin_dashboard: { Args: never; Returns: Json }
       get_user_organizations: {
         Args: { p_user_id: string }
         Returns: {
@@ -713,9 +720,19 @@ export type Database = {
       is_admin_of_organization: { Args: { org_id: string }; Returns: boolean }
       is_current_user_viewer_account: { Args: never; Returns: boolean }
       is_member_of_organization: { Args: { org_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_viewer_of_organization: { Args: { org_id: string }; Returns: boolean }
       set_user_role: {
         Args: { p_role: string; p_user_id: string }
+        Returns: undefined
+      }
+      super_admin_set_organization_status: {
+        Args: {
+          p_is_blocked?: boolean
+          p_organization_id: string
+          p_plan_status?: string
+          p_subscription_plan?: string
+        }
         Returns: undefined
       }
       toggle_apahub_access_key: {
@@ -768,7 +785,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "player" | "viewer"
+      app_role: "admin" | "player" | "viewer" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -896,7 +913,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "player", "viewer"],
+      app_role: ["admin", "player", "viewer", "super_admin"],
     },
   },
 } as const
