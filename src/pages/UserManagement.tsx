@@ -55,6 +55,9 @@ export default function UserManagement() {
         </CardContent>
       </Card>
 
+      {/* Credencial de Visitante (somente leitura) */}
+      <ViewerAccessKeyCard />
+
       {/* Seção de Chave de Acesso ApaHub */}
       <ApahubAccessKeyCard />
     </div>
