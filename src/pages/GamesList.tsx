@@ -113,7 +113,7 @@ export default function GamesList() {
         </div>
         
         <div className="flex gap-2 mt-4 sm:mt-0">
-          {activeSeason && sortedGames.length > 0 && (
+          {canEdit && activeSeason && sortedGames.length > 0 && (
             <Button 
               variant="outline"
               onClick={() => navigate('/reports/season')}

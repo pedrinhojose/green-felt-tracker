@@ -157,7 +157,7 @@ export default function SeasonsList() {
   };
   
   const handleViewSeason = (seasonId: string, isActive: boolean) => {
-    if (isActive) {
+    if (isActive && canEdit) {
       // If active, go to the report page
       navigate("/reports/season");
     } else {
