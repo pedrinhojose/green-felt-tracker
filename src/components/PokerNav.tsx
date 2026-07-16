@@ -127,6 +127,9 @@ export default function PokerNav() {
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
+                  {item.superAdminOnly && (
+                    <Crown className="mr-2 h-4 w-4 text-poker-gold" />
+                  )}
                   {item.requiredRole === 'admin' && (
                     <ShieldAlert className="mr-2 h-4 w-4" />
                   )}
