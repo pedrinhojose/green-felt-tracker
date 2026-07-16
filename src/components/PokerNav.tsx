@@ -7,13 +7,14 @@ import { ProfileDropdown } from './ProfileDropdown';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
-import { ShieldAlert, Menu, X } from 'lucide-react';
+import { ShieldAlert, Menu, X, Crown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NavItem {
   name: string;
   path: string;
   requiredRole?: 'admin' | 'player' | 'viewer';
+  superAdminOnly?: boolean;
   hideForViewer?: boolean;
 }
 
@@ -28,19 +29,21 @@ const navItems: NavItem[] = [
   { name: 'Regras da Casa', path: '/house-rules' },
   { name: 'Caixinha', path: '/caixinha', hideForViewer: true },
   { name: 'Usuários', path: '/users', requiredRole: 'admin' },
+  { name: 'Super Admin', path: '/super-admin', superAdminOnly: true },
 ];
 
 export default function PokerNav() {
   const location = useLocation();
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
-  const { hasRole } = useUserRole();
+  const { hasRole, isSuperAdmin } = useUserRole();
   const { isViewer } = useOrgMemberRole();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Filtragem dos itens de navegação com base nos papéis do usuário
   const filteredNavItems = navItems.filter(item => {
+    if (item.superAdminOnly) return isSuperAdmin();
     if (isViewer) return !item.hideForViewer && !item.requiredRole;
     if (item.hideForViewer && isViewer) return false;
     if (!item.requiredRole) return true;
@@ -84,6 +87,9 @@ export default function PokerNav() {
                     location.pathname === item.path ? "text-poker-gold font-medium px-3 py-2 rounded hover:bg-white/5" : "text-white/80 px-3 py-2 rounded hover:bg-white/5"
                   )}
                 >
+                  {item.superAdminOnly && (
+                    <Crown className="mr-1 h-3 w-3 text-poker-gold" />
+                  )}
                   {item.requiredRole === 'admin' && (
                     <ShieldAlert className="mr-1 h-3 w-3" />
                   )}
@@ -121,6 +127,9 @@ export default function PokerNav() {
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
+                  {item.superAdminOnly && (
+                    <Crown className="mr-2 h-4 w-4 text-poker-gold" />
+                  )}
                   {item.requiredRole === 'admin' && (
                     <ShieldAlert className="mr-2 h-4 w-4" />
                   )}

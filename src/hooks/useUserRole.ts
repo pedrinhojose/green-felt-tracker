@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
-export type AppRole = 'admin' | 'player' | 'viewer';
+export type AppRole = 'admin' | 'player' | 'viewer' | 'super_admin';
 
 export function useUserRole() {
   const { user } = useAuth();
@@ -73,6 +73,11 @@ export function useUserRole() {
   // Apenas admin do sistema (papel global em user_roles), ignora admin de clube
   const isSystemAdmin = useCallback((): boolean => {
     return userRoles.includes('admin');
+  }, [userRoles]);
+
+  // Super Admin da plataforma inteira (SaaS owner)
+  const isSuperAdmin = useCallback((): boolean => {
+    return userRoles.includes('super_admin');
   }, [userRoles]);
 
   const isViewer = useCallback((): boolean => {
@@ -155,6 +160,7 @@ export function useUserRole() {
     hasRole,
     isAdmin,
     isSystemAdmin,
+    isSuperAdmin,
     isViewer,
     isPlayer,
     addRole,
