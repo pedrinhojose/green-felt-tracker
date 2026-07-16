@@ -711,6 +711,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_of_organization: { Args: { org_id: string }; Returns: boolean }
+      is_current_user_viewer_account: { Args: never; Returns: boolean }
       is_member_of_organization: { Args: { org_id: string }; Returns: boolean }
       is_viewer_of_organization: { Args: { org_id: string }; Returns: boolean }
       set_user_role: {
