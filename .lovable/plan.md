@@ -1,39 +1,85 @@
 
-## Contexto
+## Ideia geral
 
-Os dois requisitos principais já existem:
+Cada clube gera **uma credencial de visitante** (email + senha, gerenciada pelo admin) que loga como um **usuário Supabase real** com papel `viewer` na organização daquele clube. Todo o resto do app respeita esse papel — no banco (RLS bloqueia escrita) e na UI (esconde configurações e botões de edição).
 
-- **Onboarding obrigatório**: `App.tsx` envolve as rotas protegidas com `RequireAuth > OrganizationRequired`. Se o usuário não tem organização, ele fica travado na tela `CreateFirstOrganization` (usa a RPC `create_organization_with_admin`).
-- **Filtro por organização**: os repositórios (`PlayerRepository`, `GameRepository`, `SeasonRepository`, `RankingRepository`, `JackpotDistributionRepository`) já usam `getUserAndOrgIds()` e aplicam `.eq('organization_id', orgId)` em SELECTs/INSERTs, com RLS reforçando no servidor.
+Isso reaproveita o padrão já existente da "Chave ApaHub", só que agora com sessão Supabase real para que o RLS funcione naturalmente.
 
-A auditoria encontrou pontos fora dos repositórios que **fazem queries diretas sem filtrar por `organization_id`**. Esses são os focos da correção.
+## Banco de dados (migração)
 
-## Correções
+**1. Novo enum member role**
+- Adicionar valor `'viewer'` ao tipo usado em `organization_members.role` (hoje é `text`, então basta aceitar o novo valor — sem alterar coluna).
 
-### 1. Hooks de leitura sem filtro por organização
+**2. Tabela `organization_viewer_keys`** (espelho da `apahub_access_keys`)
+- Campos: `organization_id` (uniq), `access_email` (uniq), `password_hash`, `viewer_user_id` (uuid do usuário Supabase criado), `is_active`, `created_by`, timestamps.
+- GRANTs padrão + RLS: só admin da org lê/escreve.
 
-Adicionar `.eq('organization_id', currentOrganization.id)` (obtido via `useOrganization()`) e abortar cedo se não houver organização:
+**3. Funções SQL (SECURITY DEFINER)**
+- `create_organization_viewer_key(p_organization_id, p_access_email, p_password, p_viewer_user_id)` — só admin da org pode chamar; faz upsert com `crypt(p_password, gen_salt('bf'))`.
+- `update_organization_viewer_password(p_organization_id, p_new_password)`.
+- `toggle_organization_viewer_key(p_organization_id)`.
+- `verify_organization_viewer_login(p_email, p_password)` → retorna `organization_id`, `viewer_user_id`, `access_email` se `is_active` e senha bate.
+- `is_viewer_of_organization(org_id)` → `role = 'viewer'` em `organization_members`; usada nas policies e no front.
 
-- `src/hooks/useCaixinhaUnifiedTransactions.ts` — queries em `caixinha_transactions`, `players`, `games`.
-- `src/hooks/elimination/useEliminationData.ts` — queries em `games` e `eliminations` (linhas 34, 52, 65, 93, 107, 122).
-- `src/hooks/usePrizeDistribution.ts` (linha 149) — leitura de `eliminations` para calcular recompensa.
-- `src/hooks/useShareableLink.ts` e `src/hooks/useGameShareableLink.ts` — operações em `seasons`/`games` para gerar/consumir tokens de compartilhamento: filtrar por org em quem cria/edita; a leitura pública por token permanece sem filtro (é o caso de uso público).
+**4. Ajuste das policies RLS de escrita**
+Nas tabelas `players`, `seasons`, `games`, `rankings`, `eliminations`, `caixinha_transactions`, `club_fund_transactions`, `season_jackpot_distributions`:
+- SELECT: manter membership atual (viewer entra normalmente porque é membro).
+- INSERT/UPDATE/DELETE: adicionar `AND NOT public.is_viewer_of_organization(organization_id)` a todas as policies existentes que autorizam mutação. Isso bloqueia o viewer no servidor, independente do que a UI mostre.
 
-### 2. Restore de Excel
+## Edge function
 
-`src/components/ExcelRestoreButton.tsx` hoje usa `p.organization_id || orgId`, o que permite que uma planilha exportada de outro clube seja importada mantendo o `organization_id` original (vaza dados entre tenants). Forçar sempre `organization_id: orgId` (ignorar o valor do arquivo) em todos os `upsert` (players, seasons, games, rankings, caixinha, eliminations, jackpot). Idem para `user_id`, usar sempre o usuário logado.
+Criar `supabase/functions/create-viewer-account/index.ts`:
+- Auth: valida JWT do admin chamador; confere via `user_can_admin_organization(org_id)`.
+- Input (Zod): `organization_id`, `access_email`, `password`.
+- Ações:
+  1. Usa `SUPABASE_SERVICE_ROLE_KEY` para criar (ou atualizar senha de) usuário Supabase Auth com `email_confirm: true`.
+  2. Insere/atualiza `organization_members` com `role = 'viewer'` para esse usuário nessa org.
+  3. Chama `create_organization_viewer_key` (armazena o hash + `viewer_user_id`).
+- Response: dados do viewer (sem senha).
 
-### 3. Public views (fora do escopo, apenas confirmar)
+Necessário porque criar usuário Auth requer service role — não pode ser feito só via SQL do cliente.
 
-`src/pages/PublicGameView.tsx` faz queries em `seasons`/`games` sem filtro — é intencional (acesso público por token). Não alterar, apenas registrar.
+## Front-end
 
-### 4. Verificação final
+**Hook novo `useOrgMemberRole()`**
+- Lê `role` do usuário atual em `organization_members` para `currentOrganization.id`.
+- Expõe: `role`, `isViewer`, `isAdmin`, `isOwner`, `canEdit` (= `!isViewer`).
 
-Após as edições, rodar `rg` para reconfirmar que não sobrou nenhuma chamada `supabase.from('players'|'games'|'seasons'|'rankings'|'eliminations'|'caixinha_transactions'|'club_fund_transactions'|'season_jackpot_distributions')` fora dos repositórios/públicos sem `organization_id`.
+**Substituir botão atual**
+- `GuestAccessButton` deixa de fazer login hardcoded. Vira "Entrar como Visitante", abre modal (`ViewerLoginModal`) pedindo email + senha do clube; chama `signInWithPassword`.
+- Remover `useGuestAccess.ts` e credenciais hardcoded `visitante@apapoker.com/123456`.
 
-## O que NÃO muda
+**Gate de UI (usando `isViewer`)**
+- `PokerNav`: esconder itens **Configuração** (`/season-config`), **Usuários** (`/users`), **Caixinha** (edição), e o **botão de criar/editar/apagar** em toda a app.
+- Rotas: adicionar `RequireEditor` que redireciona viewer para `/dashboard`; envolver as rotas `/season-config/*`, `/users`, edição de partidas, edição de temporadas, `/caixinha` (ações), gestão de jogadores.
+- Componentes com botões de ação (`Editar`, `Excluir`, `Adicionar`, `Nova partida`, etc.): ocultar quando `isViewer` for verdadeiro.
+- Cards do Dashboard, `Ranking`, `PlayerStatistics`, `SeasonReport`, `HouseRules`, `GamesList` (visualização) continuam visíveis normalmente.
 
-- Estrutura do banco, RLS e migrations (o modelo já suporta multi-tenancy corretamente).
-- Fluxo de onboarding (`OrganizationRequired` + `CreateFirstOrganization`).
-- Repositórios em `src/lib/db/repositories/*` (já corretos).
-- Rotas públicas por token.
+**Nova tela de gestão da credencial (para admin)**
+- Em `UserManagement` (ou junto do `ApahubAccessKeyCard`), acrescentar card **"Credencial de Visitante"** com:
+  - Formulário para definir email + senha (chama a edge function).
+  - Botão para trocar senha, ativar/desativar.
+  - Mensagem explicando que qualquer pessoa com essa credencial poderá **ver** os dados do clube mas não editar.
+
+## Fluxo completo
+
+1. Admin do clube abre gestão de usuários → cria credencial de visitante (`visitantes@meuclube.com` + senha).
+2. Admin compartilha a credencial com quem quiser.
+3. Visitante clica em **Entrar como Visitante** na tela de login → digita email/senha → é autenticado como usuário Supabase real com papel `viewer` naquele clube.
+4. Ao entrar, `OrganizationContext` seleciona o único clube dele; `useOrgMemberRole` marca `isViewer = true`.
+5. Nav mostra apenas: Dashboard, Temporadas, Partidas, Ranking, Estatísticas, Regras da Casa.
+6. Nenhum botão de editar/criar/apagar aparece. Se alguém forçar rota, `RequireEditor` redireciona.
+7. Caso um viewer tente uma mutação (via devtools, por exemplo), o RLS derruba a request no servidor.
+
+## Segurança — pontos importantes
+
+- Senha do visitante nunca vai para o cliente em texto: hash bcrypt via `pgcrypto`.
+- Criação do usuário Auth só pela edge function autenticada e restrita a admin da org.
+- Bloqueio de escrita é **duplo**: RLS (servidor) + UI (cliente).
+- Um viewer é membro de apenas uma organização — o `organization_members` já isola dados por org.
+
+## Fora do escopo
+
+- Contas Supabase individuais por visitante (fica para depois se quiser rastrear por pessoa).
+- Acesso público sem senha (link mágico) — se precisar depois, dá para gerar via a mesma tabela.
+- Alterar visibilidade de módulos além do que foi listado (permanecem visíveis: Dashboard, Temporadas, Partidas, Ranking, Estatísticas, Regras).
