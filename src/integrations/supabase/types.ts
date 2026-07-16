@@ -675,12 +675,12 @@ export type Database = {
           p_viewer_user_id: string
         }
         Returns: {
-          access_email: string
-          created_at: string
-          id: string
-          is_active: boolean
-          organization_id: string
-          updated_at: string
+          key_access_email: string
+          key_created_at: string
+          key_id: string
+          key_is_active: boolean
+          key_organization_id: string
+          key_updated_at: string
         }[]
       }
       create_organization_with_admin: {
