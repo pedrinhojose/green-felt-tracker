@@ -75,6 +75,11 @@ export function useUserRole() {
     return userRoles.includes('admin');
   }, [userRoles]);
 
+  // Super Admin da plataforma inteira (SaaS owner)
+  const isSuperAdmin = useCallback((): boolean => {
+    return userRoles.includes('super_admin');
+  }, [userRoles]);
+
   const isViewer = useCallback((): boolean => {
     return hasRole('viewer');
   }, [hasRole]);
