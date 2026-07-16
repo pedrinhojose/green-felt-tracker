@@ -20,10 +20,12 @@ import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
 import { PlayerEliminationDialog } from "@/components/game/PlayerEliminationDialog";
 import { UserPlus, UserMinus } from "lucide-react";
 import { GamePlayer } from "@/lib/db/models";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 
 export default function GameManagement() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { isViewer } = useOrgMemberRole();
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
   const [isRemovePlayerDialogOpen, setIsRemovePlayerDialogOpen] = useState(false);
   const [isEliminationDialogOpen, setIsEliminationDialogOpen] = useState(false);
@@ -240,6 +242,7 @@ export default function GameManagement() {
           isEditingFinishedGame={isEditingFinishedGame}
           canFinishGame={canFinishGame}
           finishGameBlockReason={finishGameBlockReason}
+          isReadOnly={isViewer}
           onExportReport={handleExportReport}
           onExportReportAsImage={handleExportReportAsImage}
           onExportLink={handleExportLink}
@@ -251,7 +254,7 @@ export default function GameManagement() {
         />
       )}
       
-      {isSelectingPlayers ? (
+      {isSelectingPlayers && !isViewer ? (
         // Player selection screen
         <PlayerSelection 
           players={players} 
@@ -293,11 +296,12 @@ export default function GameManagement() {
                 game={game}
                 players={players}
                 activeSeason={activeSeason}
+                isReadOnly={isViewer}
               />
             </div>
             
             {/* Botões para gerenciar jogadores */}
-            {(!game.isFinished || isEditingFinishedGame) && (
+            {!isViewer && (!game.isFinished || isEditingFinishedGame) && (
               <div className={`flex ${isMobile ? 'w-full flex-col' : 'flex-row'} gap-2 ${isMobile ? 'mt-2' : 'mt-2 lg:mt-0'}`}>
                 <Button 
                   onClick={() => setIsAddPlayerDialogOpen(true)}
@@ -333,36 +337,37 @@ export default function GameManagement() {
             onUpdatePlayerStats={updatePlayerStats}
             onSwapPositions={swapPositions}
             isEditingFinishedGame={isEditingFinishedGame}
+            isReadOnly={isViewer}
           />
           
           {/* Dialog para adicionar jogador tardio */}
-          <AddLatePlayerDialog
+          {!isViewer && <AddLatePlayerDialog
             isOpen={isAddPlayerDialogOpen}
             onClose={() => setIsAddPlayerDialogOpen(false)}
             onAddPlayer={handleAddLatePlayer}
             availablePlayers={getAvailablePlayers()}
             isLoading={isAddingPlayer}
-          />
+          />}
           
           {/* Dialog para remover jogador */}
-          <RemovePlayerDialog
+          {!isViewer && <RemovePlayerDialog
             isOpen={isRemovePlayerDialogOpen}
             onClose={() => setIsRemovePlayerDialogOpen(false)}
             onRemovePlayer={handleRemovePlayer}
             game={game}
             players={players}
             isLoading={isRemovingPlayer}
-          />
+          />}
 
           {/* Dialog para eliminar jogador individual */}
-          <PlayerEliminationDialog
+          {!isViewer && <PlayerEliminationDialog
             open={isEliminationDialogOpen}
             onOpenChange={setIsEliminationDialogOpen}
             playerToEliminate={playerToEliminate}
             players={game.players}
             allPlayers={players}
             onConfirm={onConfirmElimination}
-          />
+          />}
         </div>
       )}
     </div>

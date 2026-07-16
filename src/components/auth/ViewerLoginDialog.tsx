@@ -26,15 +26,37 @@ export function ViewerLoginDialog({ open, onOpenChange }: Props) {
     }
     try {
       setLoading(true);
+      const normalizedEmail = email.trim().toLowerCase();
+
       cleanupAuthState();
       try { await supabase.auth.signOut({ scope: 'global' }); } catch {}
       await new Promise((r) => setTimeout(r, 200));
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+      const { data: viewerRows, error: verifyError } = await (supabase.rpc as any)('verify_organization_viewer_login', {
+        p_email: normalizedEmail,
+        p_password: password,
+      });
+
+      if (verifyError) throw verifyError;
+
+      const viewerAccess = Array.isArray(viewerRows) ? viewerRows[0] : null;
+      if (!viewerAccess?.organization_id || !viewerAccess?.viewer_user_id) {
+        throw new Error('Credencial de visitante inválida ou inativa.');
+      }
+
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
         password,
       });
       if (error) throw error;
+
+      if (signInData.user?.id !== viewerAccess.viewer_user_id) {
+        cleanupAuthState();
+        try { await supabase.auth.signOut({ scope: 'global' }); } catch {}
+        throw new Error('Esta credencial não pertence ao visitante configurado para o clube.');
+      }
+
+      localStorage.setItem('currentOrganizationId', viewerAccess.organization_id);
 
       toast({
         title: 'Bem-vindo, visitante!',

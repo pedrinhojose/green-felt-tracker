@@ -1,19 +1,12 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
-import { useUserRole } from '@/hooks/useUserRole';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 
 export function ViewerBadge() {
-  const { isViewer } = useUserRole();
-  const { user, profile } = useAuth();
+  const { isViewer } = useOrgMemberRole();
 
-  // Verificar se é o usuário visitante específico ou tem role de viewer
-  const isGuestUser = user?.email === 'visitante@apapoker.com' || 
-                      profile?.username === 'visitante' || 
-                      isViewer;
-
-  if (!isGuestUser) return null;
+  if (!isViewer) return null;
 
   return (
     <Badge variant="outline" className="border-poker-gold/50 text-poker-gold bg-poker-gold/10 animate-pulse">

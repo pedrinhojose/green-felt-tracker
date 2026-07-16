@@ -12,10 +12,12 @@ import { useSeasonReport } from "@/hooks/useSeasonReport";
 import { useShareableLink } from "@/hooks/useShareableLink";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { HostScheduleCard } from "@/components/season/HostScheduleCard";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 
 export default function SeasonReport() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { isViewer } = useOrgMemberRole();
   
   console.log("=== SeasonReport Component DEBUG ===");
   console.log("Component rendering...");
@@ -144,7 +146,7 @@ export default function SeasonReport() {
               <Image className="ml-2 h-4 w-4" />
             </Button>
 
-            <Button
+            {!isViewer && <Button
               onClick={handleExportLink}
               disabled={isGenerating}
               variant="outline"
@@ -153,7 +155,7 @@ export default function SeasonReport() {
             >
               {isGenerating ? "Gerando..." : "Exportar Link"}
               <Share className="ml-2 h-4 w-4" />
-            </Button>
+            </Button>}
           </div>
         </div>
         

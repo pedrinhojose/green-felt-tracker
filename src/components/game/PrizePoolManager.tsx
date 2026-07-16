@@ -18,6 +18,7 @@ interface PrizePoolManagerProps {
   game: Game;
   players: Player[];
   activeSeason: Season | null;
+  isReadOnly?: boolean;
 }
 
 export default function PrizePoolManager({ 
@@ -27,7 +28,8 @@ export default function PrizePoolManager({
   initialDinnerCost = 0,
   game,
   players,
-  activeSeason
+  activeSeason,
+  isReadOnly = false
 }: PrizePoolManagerProps) {
   const [dinnerCost, setDinnerCost] = useState<number>(initialDinnerCost);
   const [showWinners, setShowWinners] = useState<boolean>(
@@ -69,7 +71,7 @@ export default function PrizePoolManager({
             </div>
           )}
           
-          <div className="flex gap-2 mt-2">
+          {!isReadOnly && <div className="flex gap-2 mt-2">
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline">Gerenciar Janta</Button>
@@ -101,7 +103,7 @@ export default function PrizePoolManager({
             </Dialog>
             
             <Button onClick={handleDistributePrizes}>Calcular Prêmios</Button>
-          </div>
+          </div>}
         </div>
         
         <div className="flex-1">

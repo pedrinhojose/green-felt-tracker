@@ -7,9 +7,9 @@ import { useOrganization } from '@/contexts/OrganizationContext';
  * Visitantes (role = 'viewer') são redirecionados para /dashboard.
  */
 export function RequireEditor() {
-  const { isLoading } = useOrganization();
-  const { isViewer } = useOrgMemberRole();
-  if (isLoading) return null;
-  if (isViewer) return <Navigate to="/dashboard" replace />;
+  const { isLoading, currentOrganization } = useOrganization();
+  const { isViewer, canEdit } = useOrgMemberRole();
+  if (isLoading || !currentOrganization) return null;
+  if (isViewer || !canEdit) return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 }

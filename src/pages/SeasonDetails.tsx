@@ -17,6 +17,7 @@ import { useSeasonReport } from "@/hooks/useSeasonReport";
 import { useShareableLink } from "@/hooks/useShareableLink";
 import { HostScheduleCard } from "@/components/season/HostScheduleCard";
 import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -44,6 +45,7 @@ export default function SeasonDetails() {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isViewer } = useOrgMemberRole();
   
   const [season, setSeason] = useState<Season | null>(null);
   const [games, setGames] = useState<Game[]>([]);
@@ -480,7 +482,7 @@ export default function SeasonDetails() {
             {isExportingImage ? "Gerando Imagem..." : "Exportar Imagem"}
           </Button>
           
-          <Button
+          {!isViewer && <Button
             variant="outline"
             size="sm"
             onClick={() => generateShareableLink(seasonId!)}
@@ -489,7 +491,7 @@ export default function SeasonDetails() {
           >
             <Share2 className="h-4 w-4" />
             {isGenerating ? "Gerando Link..." : "Gerar Link"}
-          </Button>
+          </Button>}
         </div>
       </div>
       

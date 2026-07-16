@@ -17,10 +17,12 @@ import { useRankingSync } from "@/hooks/useRankingSync";
 import { toast } from "@/hooks/use-toast";
 import { isSameDay } from "date-fns";
 import { getDaysSinceLastBackup } from "@/lib/utils/excelBackupExport";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 
 export default function Dashboard() {
   const { activeSeason, isLoading, updateSeason, players, setCaixinhaBalance, recalculateSeasonJackpot, fixSeasonJackpot } = usePoker();
   const { validateRankingConsistency } = useRankingSync();
+  const { isViewer } = useOrgMemberRole();
   const [error, setError] = useState<Error | null>(null);
   const birthdayToastShown = useRef(false);
   const caixinhaFixApplied = useRef(false);
@@ -28,7 +30,7 @@ export default function Dashboard() {
 
   // One-time fix: Transfer caixinha balance from previous season (2ª Temporada 2025)
   useEffect(() => {
-    if (caixinhaFixApplied.current || isLoading || !activeSeason) return;
+    if (isViewer || caixinhaFixApplied.current || isLoading || !activeSeason) return;
     
     const fixKey = `caixinha_fix_applied_${activeSeason.id}`;
     const alreadyFixed = localStorage.getItem(fixKey);
@@ -42,12 +44,12 @@ export default function Dashboard() {
       setCaixinhaBalance(activeSeason.id, transferAmount);
       localStorage.setItem(fixKey, 'true');
     }
-  }, [activeSeason, isLoading, setCaixinhaBalance]);
+  }, [activeSeason, isLoading, isViewer, setCaixinhaBalance]);
 
   // Auto-fix jackpot if incorrect
   useEffect(() => {
     const verifyAndFixJackpot = async () => {
-      if (jackpotFixApplied.current || isLoading || !activeSeason) return;
+      if (isViewer || jackpotFixApplied.current || isLoading || !activeSeason) return;
       
       try {
         const correctJackpot = await recalculateSeasonJackpot(activeSeason.id);
@@ -64,7 +66,7 @@ export default function Dashboard() {
     };
     
     verifyAndFixJackpot();
-  }, [activeSeason, isLoading, recalculateSeasonJackpot, fixSeasonJackpot]);
+  }, [activeSeason, isLoading, isViewer, recalculateSeasonJackpot, fixSeasonJackpot]);
   useEffect(() => {
     if (birthdayToastShown.current || isLoading || players.length === 0) return;
     
@@ -113,11 +115,11 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (activeSeason?.id) {
+    if (!isViewer && activeSeason?.id) {
       validateRankingConsistency(activeSeason.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSeason?.id]);
+  }, [activeSeason?.id, isViewer]);
 
   if (isLoading) {
     return (
@@ -177,7 +179,7 @@ export default function Dashboard() {
         <BirthdayReminderCard />
       </div>
       
-      <div className="mt-8">
+      {!isViewer && <div className="mt-8">
         <div className="bg-poker-navy/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Gerenciamento de Dados</h3>
           
@@ -205,7 +207,7 @@ export default function Dashboard() {
             <ExcelRestoreButton />
           </div>
         </div>
-      </div>
+      </div>}
     </>
   );
 }

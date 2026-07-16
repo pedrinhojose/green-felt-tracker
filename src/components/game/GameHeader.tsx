@@ -54,6 +54,7 @@ interface GameHeaderProps {
   onReopenGame?: () => void;
   onSaveEditedGame?: () => void;
   onCancelEdit?: () => void;
+  isReadOnly?: boolean;
 }
 
 export default function GameHeader({
@@ -76,6 +77,7 @@ export default function GameHeader({
   onReopenGame,
   onSaveEditedGame,
   onCancelEdit,
+  isReadOnly = false,
 }: GameHeaderProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -142,7 +144,7 @@ export default function GameHeader({
           <Image className="ml-2 h-4 w-4" />
         </Button>
         
-        {isFinished && (
+        {isFinished && !isReadOnly && (
           <Button
             onClick={onExportLink}
             disabled={isGeneratingLink}
@@ -156,7 +158,7 @@ export default function GameHeader({
         )}
         
         {/* Botões específicos para edição de partida finalizada */}
-        {isEditingFinishedGame && (
+        {isEditingFinishedGame && !isReadOnly && (
           <>
             <Button
               onClick={onSaveEditedGame}
@@ -182,7 +184,7 @@ export default function GameHeader({
 
         {isFinished && !isEditingFinishedGame ? (
           <>
-            <Button
+            {!isReadOnly && <Button
               onClick={onReopenGame}
               variant="outline"
               size={isMobile ? "sm" : "sm"}
@@ -190,7 +192,7 @@ export default function GameHeader({
             >
               <Edit3 className="mr-2 h-4 w-4" />
               {isMobile ? "Editar" : "Editar Partida"}
-            </Button>
+            </Button>}
             
             <Button
               onClick={() => navigate('/games')}
@@ -204,7 +206,7 @@ export default function GameHeader({
         ) : !isFinished && !isEditingFinishedGame ? (
           <>
             {/* Botão para cancelar partida */}
-            <AlertDialog>
+            {!isReadOnly && <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="outline"
@@ -235,10 +237,10 @@ export default function GameHeader({
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
+            </AlertDialog>}
 
             {/* Botão para encerrar partida */}
-            {canFinishGame && !isGuest ? (
+            {!isReadOnly && canFinishGame && !isGuest ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
@@ -267,7 +269,7 @@ export default function GameHeader({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            ) : (
+            ) : !isReadOnly ? (
               <Button 
                 variant="destructive"
                 size={isMobile ? "sm" : "sm"}
@@ -284,7 +286,7 @@ export default function GameHeader({
               >
                 {isMobile ? "Encerrar" : "Encerrar Partida"}
               </Button>
-            )}
+            ) : null}
           </>
         ) : null}
         

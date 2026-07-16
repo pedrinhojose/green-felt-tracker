@@ -7,6 +7,7 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { FileText, Trash } from "lucide-react";
+import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ export default function GamesList() {
   const navigate = useNavigate();
   const { games, activeSeason, createGame, getGameNumber, deleteGame, isLoading } = usePoker();
   const { currentOrganization } = useOrganization();
+  const { canEdit } = useOrgMemberRole();
   const [isCreating, setIsCreating] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -122,7 +124,7 @@ export default function GamesList() {
             </Button>
           )}
           
-          {activeSeason ? (
+          {canEdit && (activeSeason ? (
             <Button 
               onClick={handleCreateGame} 
               disabled={isCreating}
@@ -137,7 +139,7 @@ export default function GamesList() {
             >
               Criar Temporada
             </Button>
-          )}
+          ))}
         </div>
       </div>
       
@@ -153,7 +155,7 @@ export default function GamesList() {
                   )}
                 </CardTitle>
                 
-                <AlertDialog>
+                {canEdit && <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-500/10 hover:text-red-600 p-1 h-auto">
                       <Trash className="h-4 w-4" />
@@ -180,7 +182,7 @@ export default function GamesList() {
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
-                </AlertDialog>
+                </AlertDialog>}
               </CardHeader>
               <CardContent onClick={() => navigate(`/games/${game.id}`)} className="cursor-pointer">
                 <p className="text-sm text-muted-foreground mb-2">{formatDate(game.date)}</p>
@@ -193,7 +195,7 @@ export default function GamesList() {
       ) : (
         <div className="text-center py-10">
           <p className="text-muted-foreground mb-4">Nenhuma partida registrada ainda</p>
-          {activeSeason && (
+          {canEdit && activeSeason && (
             <Button 
               onClick={handleCreateGame}
               disabled={isCreating}
