@@ -6,14 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Key, Mail, Eye, EyeOff, Loader2, Calendar, CheckCircle2, XCircle } from 'lucide-react';
+import { Key, Mail, Eye, EyeOff, Loader2, Calendar, CheckCircle2, XCircle, RefreshCw, Info } from 'lucide-react';
 import { useApahubAccessKey } from '@/hooks/useApahubAccessKey';
 import { EditApahubPasswordDialog } from './EditApahubPasswordDialog';
+import { ApahubCredentialsDialog } from './ApahubCredentialsDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function ApahubAccessKeyCard() {
-  const { accessKey, isLoading, isSaving, createAccessKey, updatePassword, toggleActive } = useApahubAccessKey();
+  const { accessKey, isLoading, isSaving, createAccessKey, updatePassword, regeneratePassword, toggleActive } = useApahubAccessKey();
   
   // Form state for creating new key
   const [email, setEmail] = useState('');
@@ -24,6 +25,12 @@ export function ApahubAccessKeyCard() {
   
   // Dialog state
   const [editPasswordOpen, setEditPasswordOpen] = useState(false);
+  const [credentialsDialog, setCredentialsDialog] = useState<{
+    open: boolean;
+    email: string;
+    password: string;
+    title: string;
+  }>({ open: false, email: '', password: '', title: '' });
 
   const handleCreateKey = async () => {
     setFormError('');
@@ -48,11 +55,36 @@ export function ApahubAccessKeyCard() {
       return;
     }
 
-    const success = await createAccessKey(email, password);
+    const emailToSave = email.trim().toLowerCase();
+    const passwordToSave = password;
+    const success = await createAccessKey(emailToSave, passwordToSave);
     if (success) {
       setEmail('');
       setPassword('');
       setConfirmPassword('');
+      setCredentialsDialog({
+        open: true,
+        email: emailToSave,
+        password: passwordToSave,
+        title: 'Chave de acesso criada — copie e guarde',
+      });
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!accessKey) return;
+    const confirmed = window.confirm(
+      'Deseja gerar uma nova senha? A senha atual deixará de funcionar imediatamente.'
+    );
+    if (!confirmed) return;
+    const newPassword = await regeneratePassword();
+    if (newPassword) {
+      setCredentialsDialog({
+        open: true,
+        email: accessKey.access_email,
+        password: newPassword,
+        title: 'Nova senha gerada — copie e guarde',
+      });
     }
   };
 
@@ -131,13 +163,33 @@ export function ApahubAccessKeyCard() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
+            <div className="rounded-md border border-muted bg-muted/40 p-3 flex gap-2 text-sm text-muted-foreground">
+              <Info className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>
+                Por segurança, a senha é armazenada criptografada e não pode ser recuperada.
+                Se o jogador esquecer, use <strong>Gerar nova senha</strong> ou <strong>Alterar senha</strong>.
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Button
+                variant="outline"
                 onClick={() => setEditPasswordOpen(true)}
                 disabled={isSaving}
               >
                 Alterar Senha
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleRegenerate}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                )}
+                Gerar nova senha
               </Button>
             </div>
           </CardContent>
@@ -146,8 +198,27 @@ export function ApahubAccessKeyCard() {
         <EditApahubPasswordDialog
           open={editPasswordOpen}
           onOpenChange={setEditPasswordOpen}
-          onSave={updatePassword}
+          onSave={async (newPassword) => {
+            const ok = await updatePassword(newPassword);
+            if (ok) {
+              setCredentialsDialog({
+                open: true,
+                email: accessKey.access_email,
+                password: newPassword,
+                title: 'Senha alterada — copie e guarde',
+              });
+            }
+            return ok;
+          }}
           isSaving={isSaving}
+        />
+
+        <ApahubCredentialsDialog
+          open={credentialsDialog.open}
+          onOpenChange={(open) => setCredentialsDialog((prev) => ({ ...prev, open }))}
+          email={credentialsDialog.email}
+          password={credentialsDialog.password}
+          title={credentialsDialog.title}
         />
       </>
     );
@@ -155,83 +226,101 @@ export function ApahubAccessKeyCard() {
 
   // If no key exists, show create form
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Key className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">Chave de Acesso ApaHub</CardTitle>
-        </div>
-        <CardDescription>
-          Crie uma chave de acesso para que membros do clube possam visualizar dados no app ApaHub.
-          Esta é uma credencial separada do seu login de administrador.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="access-email">Email de Acesso</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="access-email"
-                type="email"
-                placeholder="apapoker@clube.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Key className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg">Chave de Acesso ApaHub</CardTitle>
           </div>
+          <CardDescription>
+            Crie uma chave de acesso para que membros do clube possam visualizar dados no app ApaHub.
+            Esta é uma credencial separada do seu login de administrador.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="access-email">Email de Acesso</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="access-email"
+                  type="email"
+                  placeholder="apapoker@clube.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="access-password">Senha</Label>
-            <div className="relative">
-              <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className="space-y-2">
+              <Label htmlFor="access-password">Senha</Label>
+              <div className="relative">
+                <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="access-password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Mínimo 6 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="confirm-password">Confirmar Senha</Label>
               <Input
-                id="access-password"
+                id="confirm-password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Mínimo 6 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10"
+                placeholder="Digite a senha novamente"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                )}
-              </Button>
             </div>
           </div>
 
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="confirm-password">Confirmar Senha</Label>
-            <Input
-              id="confirm-password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Digite a senha novamente"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+          <div className="rounded-md border border-muted bg-muted/40 p-3 flex gap-2 text-sm text-muted-foreground">
+            <Info className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>
+              A senha é armazenada criptografada — após criar, ela <strong>não</strong> poderá ser exibida
+              novamente. Copie e guarde no momento da criação.
+            </span>
           </div>
-        </div>
 
-        {formError && (
-          <p className="text-sm text-destructive">{formError}</p>
-        )}
+          {formError && (
+            <p className="text-sm text-destructive">{formError}</p>
+          )}
 
-        <Button onClick={handleCreateKey} disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Criar Chave de Acesso
-        </Button>
-      </CardContent>
-    </Card>
+          <Button onClick={handleCreateKey} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Criar Chave de Acesso
+          </Button>
+        </CardContent>
+      </Card>
+
+      <ApahubCredentialsDialog
+        open={credentialsDialog.open}
+        onOpenChange={(open) => setCredentialsDialog((prev) => ({ ...prev, open }))}
+        email={credentialsDialog.email}
+        password={credentialsDialog.password}
+        title={credentialsDialog.title}
+      />
+    </>
   );
 }
