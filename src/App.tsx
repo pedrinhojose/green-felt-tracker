@@ -22,6 +22,7 @@ import RankingPage from '@/pages/RankingPage';
 import PlayersManagement from '@/pages/PlayersManagement';
 import HouseRules from '@/pages/HouseRules';
 import UserManagement from '@/pages/UserManagement';
+import SuperAdminDashboard from '@/pages/SuperAdminDashboard';
 import NotFound from '@/pages/NotFound';
 import RequireAuth from '@/components/RequireAuth';
 import { RequireEditor } from '@/components/auth/RequireEditor';
