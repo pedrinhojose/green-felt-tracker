@@ -11,6 +11,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { UserTable } from '@/components/users/UserTable';
 import { ApahubAccessKeyCard } from '@/components/users/ApahubAccessKeyCard';
+import { ViewerAccessKeyCard } from '@/components/users/ViewerAccessKeyCard';
 
 export default function UserManagement() {
   const { users, isLoading, fetchUsers, toggleUserRole } = useUserManagement();
