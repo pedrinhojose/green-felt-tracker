@@ -12,8 +12,11 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { UserTable } from '@/components/users/UserTable';
 import { ApahubAccessKeyCard } from '@/components/users/ApahubAccessKeyCard';
 import { ViewerAccessKeyCard } from '@/components/users/ViewerAccessKeyCard';
+import { AddClubAdminDialog } from '@/components/users/AddClubAdminDialog';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export default function UserManagement() {
+  const { currentOrganization } = useOrganization();
   const { users, isLoading, fetchUsers, toggleUserRole } = useUserManagement();
   const { isAdmin, isSystemAdmin } = useUserRole();
 
@@ -65,6 +68,20 @@ export default function UserManagement() {
               Gerencie as credenciais de acesso do seu clube ao app ApaHub e à visualização somente leitura.
             </CardDescription>
           </CardHeader>
+        </Card>
+      )}
+
+      {currentOrganization && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Administradores do Clube</CardTitle>
+            <CardDescription>
+              Cadastre novos administradores para <strong>{currentOrganization.name}</strong>. Eles terão poder total dentro deste clube, sem acesso ao painel de Super Admin.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AddClubAdminDialog />
+          </CardContent>
         </Card>
       )}
 
