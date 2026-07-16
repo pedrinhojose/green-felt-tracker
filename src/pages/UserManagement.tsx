@@ -12,8 +12,11 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { UserTable } from '@/components/users/UserTable';
 import { ApahubAccessKeyCard } from '@/components/users/ApahubAccessKeyCard';
 import { ViewerAccessKeyCard } from '@/components/users/ViewerAccessKeyCard';
+import { AddClubAdminDialog } from '@/components/users/AddClubAdminDialog';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export default function UserManagement() {
+  const { currentOrganization } = useOrganization();
   const { users, isLoading, fetchUsers, toggleUserRole } = useUserManagement();
   const { isAdmin, isSystemAdmin } = useUserRole();
 
