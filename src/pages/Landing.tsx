@@ -336,8 +336,9 @@ export default function Landing() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative order-2 lg:order-1 flex justify-center">
             <div className="absolute -inset-10 bg-gradient-to-br from-emerald-500/20 to-poker-gold/10 rounded-full blur-3xl" />
-            {/* Chip beside phone */}
-            <img src={chipApa.url} alt="" className="absolute -left-6 bottom-10 w-32 opacity-90 -rotate-12 z-20 animate-[float_6s_ease-in-out_infinite] drop-shadow-[0_10px_30px_rgba(0,0,0,0.6)]" />
+            {/* Subtle logo behind phone */}
+            <img src={apaLogo.url} alt="" className="absolute -left-8 top-4 w-24 rounded-xl opacity-25 -rotate-6 pointer-events-none" />
+
             <div className="relative w-[280px] h-[560px] rounded-[3rem] bg-gradient-to-b from-neutral-800 to-neutral-900 p-3 shadow-2xl shadow-black/60 border border-white/10">
               <div className="absolute top-6 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-b-2xl z-10" />
               <div className="w-full h-full rounded-[2.3rem] bg-poker-black overflow-hidden relative">
