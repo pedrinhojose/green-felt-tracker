@@ -71,7 +71,16 @@ export function useApahubAccessKey() {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setAccessKey(data[0] as ApahubAccessKey);
+        const row = data[0] as any;
+        setAccessKey({
+          id: row.key_id,
+          organization_id: row.key_organization_id,
+          access_email: row.key_access_email,
+          organization_name: row.key_organization_name,
+          is_active: row.key_is_active,
+          created_at: row.key_created_at,
+          updated_at: row.key_updated_at,
+        });
       }
 
       toast({

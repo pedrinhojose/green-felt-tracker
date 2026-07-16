@@ -658,13 +658,13 @@ export type Database = {
           p_password: string
         }
         Returns: {
-          access_email: string
-          created_at: string
-          id: string
-          is_active: boolean
-          organization_id: string
-          organization_name: string
-          updated_at: string
+          key_access_email: string
+          key_created_at: string
+          key_id: string
+          key_is_active: boolean
+          key_organization_id: string
+          key_organization_name: string
+          key_updated_at: string
         }[]
       }
       create_organization_viewer_key: {
