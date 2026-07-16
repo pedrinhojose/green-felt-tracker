@@ -236,7 +236,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent className="mobile-card">
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue={new URLSearchParams(location.search).get('tab') === 'signup' ? 'signup' : 'signin'} className="w-full">
             <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'mb-4' : 'mb-6'}`}>
               <TabsTrigger value="signin" className="mobile-text">Entrar</TabsTrigger>
               <TabsTrigger value="signup" className="mobile-text">Cadastrar</TabsTrigger>
