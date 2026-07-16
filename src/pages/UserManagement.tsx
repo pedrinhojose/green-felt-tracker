@@ -15,9 +15,9 @@ import { ViewerAccessKeyCard } from '@/components/users/ViewerAccessKeyCard';
 
 export default function UserManagement() {
   const { users, isLoading, fetchUsers, toggleUserRole } = useUserManagement();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isSystemAdmin } = useUserRole();
 
-  // Check if the user has permission to access this page
+  // Bloqueia acesso a quem não é admin (nem de sistema, nem de clube)
   if (!isAdmin()) {
     return (
       <Card className="border-red-500">
@@ -31,29 +31,42 @@ export default function UserManagement() {
     );
   }
 
+  const systemAdmin = isSystemAdmin();
+
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Gerenciamento de Usuários</CardTitle>
-          <CardDescription>
-            Gerencie os usuários do sistema e seus papéis de acesso.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex justify-end">
-            <Button onClick={fetchUsers} variant="outline" disabled={isLoading}>
-              {isLoading ? 'Carregando...' : 'Atualizar'}
-            </Button>
-          </div>
-          
-          <UserTable 
-            users={users}
-            isLoading={isLoading}
-            onToggleRole={toggleUserRole}
-          />
-        </CardContent>
-      </Card>
+      {systemAdmin ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Gerenciamento de Usuários</CardTitle>
+            <CardDescription>
+              Gerencie os usuários do sistema e seus papéis de acesso.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex justify-end">
+              <Button onClick={fetchUsers} variant="outline" disabled={isLoading}>
+                {isLoading ? 'Carregando...' : 'Atualizar'}
+              </Button>
+            </div>
+
+            <UserTable
+              users={users}
+              isLoading={isLoading}
+              onToggleRole={toggleUserRole}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Credenciais do Clube</CardTitle>
+            <CardDescription>
+              Gerencie as credenciais de acesso do seu clube ao app ApaHub e à visualização somente leitura.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Credencial de Visitante (somente leitura) */}
       <ViewerAccessKeyCard />

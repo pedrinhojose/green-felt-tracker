@@ -1,85 +1,40 @@
+## Objetivo
 
-## Ideia geral
+Separar claramente as duas responsabilidades hoje misturadas na tela `/users`:
 
-Cada clube gera **uma credencial de visitante** (email + senha, gerenciada pelo admin) que loga como um **usuário Supabase real** com papel `viewer` na organização daquele clube. Todo o resto do app respeita esse papel — no banco (RLS bloqueia escrita) e na UI (esconde configurações e botões de edição).
+- **Super admin do sistema** (Pedro) — continua vendo a tabela de usuários com botão "Tornar admin".
+- **Admin de clube** (Joaquim e futuros) — passa a ver apenas as credenciais do próprio clube (ApaHub + Visitante). Nunca poderá promover ninguém a admin do sistema.
 
-Isso reaproveita o padrão já existente da "Chave ApaHub", só que agora com sessão Supabase real para que o RLS funcione naturalmente.
+## O que muda na tela "Gerenciamento de Usuários" (`/users`)
 
-## Banco de dados (migração)
+- Se o usuário logado **é super admin** (tem role `admin` na `user_roles`): mostra tudo como hoje — tabela de usuários do sistema, coluna Papéis, botão "Tornar admin", e os cartões ApaHub/Visitante do clube atual.
+- Se o usuário logado **é apenas admin de clube** (só via `organization_members.role = 'admin'`): esconde totalmente a tabela de usuários e o botão. Mostra apenas:
+  - Título mais adequado, ex.: "Credenciais do Clube".
+  - Cartão de Credencial de Visitante do clube.
+  - Cartão de Chave de Acesso ApaHub do clube.
+- Se não é nem um nem outro: mensagem "acesso negado" (comportamento já existente).
 
-**1. Novo enum member role**
-- Adicionar valor `'viewer'` ao tipo usado em `organization_members.role` (hoje é `text`, então basta aceitar o novo valor — sem alterar coluna).
+## Como diferenciar os dois no código
 
-**2. Tabela `organization_viewer_keys`** (espelho da `apahub_access_keys`)
-- Campos: `organization_id` (uniq), `access_email` (uniq), `password_hash`, `viewer_user_id` (uuid do usuário Supabase criado), `is_active`, `created_by`, timestamps.
-- GRANTs padrão + RLS: só admin da org lê/escreve.
+Criar um helper `isSystemAdmin()` que consulta apenas `user_roles` (ignora a role da organização), e usar:
 
-**3. Funções SQL (SECURITY DEFINER)**
-- `create_organization_viewer_key(p_organization_id, p_access_email, p_password, p_viewer_user_id)` — só admin da org pode chamar; faz upsert com `crypt(p_password, gen_salt('bf'))`.
-- `update_organization_viewer_password(p_organization_id, p_new_password)`.
-- `toggle_organization_viewer_key(p_organization_id)`.
-- `verify_organization_viewer_login(p_email, p_password)` → retorna `organization_id`, `viewer_user_id`, `access_email` se `is_active` e senha bate.
-- `is_viewer_of_organization(org_id)` → `role = 'viewer'` em `organization_members`; usada nas policies e no front.
+- `isSystemAdmin()` para decidir se renderiza a tabela de usuários e o botão de promover.
+- `isAdmin()` atual (que já inclui admin de clube) para decidir se libera o acesso à tela.
 
-**4. Ajuste das policies RLS de escrita**
-Nas tabelas `players`, `seasons`, `games`, `rankings`, `eliminations`, `caixinha_transactions`, `club_fund_transactions`, `season_jackpot_distributions`:
-- SELECT: manter membership atual (viewer entra normalmente porque é membro).
-- INSERT/UPDATE/DELETE: adicionar `AND NOT public.is_viewer_of_organization(organization_id)` a todas as policies existentes que autorizam mutação. Isso bloqueia o viewer no servidor, independente do que a UI mostre.
+Assim o Joaquim continua entrando na página (precisa, para gerenciar as credenciais do clube), mas não vê nada relativo a papéis globais.
 
-## Edge function
+## Arquivos afetados
 
-Criar `supabase/functions/create-viewer-account/index.ts`:
-- Auth: valida JWT do admin chamador; confere via `user_can_admin_organization(org_id)`.
-- Input (Zod): `organization_id`, `access_email`, `password`.
-- Ações:
-  1. Usa `SUPABASE_SERVICE_ROLE_KEY` para criar (ou atualizar senha de) usuário Supabase Auth com `email_confirm: true`.
-  2. Insere/atualiza `organization_members` com `role = 'viewer'` para esse usuário nessa org.
-  3. Chama `create_organization_viewer_key` (armazena o hash + `viewer_user_id`).
-- Response: dados do viewer (sem senha).
+- `src/hooks/useUserRole.ts` — expor novo `isSystemAdmin()` que retorna `userRoles.includes('admin')` (sem considerar `isOrgAdmin`).
+- `src/pages/UserManagement.tsx` — renderização condicional: bloco "Gerenciamento de Usuários" só se `isSystemAdmin()`; cartões de credencial permanecem para qualquer admin (sistema ou clube). Ajustar título/subtítulo quando for só admin de clube.
 
-Necessário porque criar usuário Auth requer service role — não pode ser feito só via SQL do cliente.
+## O que NÃO muda
 
-## Front-end
+- Regras do banco (RLS, `user_roles`, `organization_members`) — já estão corretas.
+- Fluxo de criação de novo clube — o criador continua virando admin da organização automaticamente, sem receber role global.
+- Botão "Tornar admin" continua existindo, só que visível/utilizável apenas pelo super admin.
 
-**Hook novo `useOrgMemberRole()`**
-- Lê `role` do usuário atual em `organization_members` para `currentOrganization.id`.
-- Expõe: `role`, `isViewer`, `isAdmin`, `isOwner`, `canEdit` (= `!isViewer`).
+## Verificação após implementar
 
-**Substituir botão atual**
-- `GuestAccessButton` deixa de fazer login hardcoded. Vira "Entrar como Visitante", abre modal (`ViewerLoginModal`) pedindo email + senha do clube; chama `signInWithPassword`.
-- Remover `useGuestAccess.ts` e credenciais hardcoded `visitante@apapoker.com/123456`.
-
-**Gate de UI (usando `isViewer`)**
-- `PokerNav`: esconder itens **Configuração** (`/season-config`), **Usuários** (`/users`), **Caixinha** (edição), e o **botão de criar/editar/apagar** em toda a app.
-- Rotas: adicionar `RequireEditor` que redireciona viewer para `/dashboard`; envolver as rotas `/season-config/*`, `/users`, edição de partidas, edição de temporadas, `/caixinha` (ações), gestão de jogadores.
-- Componentes com botões de ação (`Editar`, `Excluir`, `Adicionar`, `Nova partida`, etc.): ocultar quando `isViewer` for verdadeiro.
-- Cards do Dashboard, `Ranking`, `PlayerStatistics`, `SeasonReport`, `HouseRules`, `GamesList` (visualização) continuam visíveis normalmente.
-
-**Nova tela de gestão da credencial (para admin)**
-- Em `UserManagement` (ou junto do `ApahubAccessKeyCard`), acrescentar card **"Credencial de Visitante"** com:
-  - Formulário para definir email + senha (chama a edge function).
-  - Botão para trocar senha, ativar/desativar.
-  - Mensagem explicando que qualquer pessoa com essa credencial poderá **ver** os dados do clube mas não editar.
-
-## Fluxo completo
-
-1. Admin do clube abre gestão de usuários → cria credencial de visitante (`visitantes@meuclube.com` + senha).
-2. Admin compartilha a credencial com quem quiser.
-3. Visitante clica em **Entrar como Visitante** na tela de login → digita email/senha → é autenticado como usuário Supabase real com papel `viewer` naquele clube.
-4. Ao entrar, `OrganizationContext` seleciona o único clube dele; `useOrgMemberRole` marca `isViewer = true`.
-5. Nav mostra apenas: Dashboard, Temporadas, Partidas, Ranking, Estatísticas, Regras da Casa.
-6. Nenhum botão de editar/criar/apagar aparece. Se alguém forçar rota, `RequireEditor` redireciona.
-7. Caso um viewer tente uma mutação (via devtools, por exemplo), o RLS derruba a request no servidor.
-
-## Segurança — pontos importantes
-
-- Senha do visitante nunca vai para o cliente em texto: hash bcrypt via `pgcrypto`.
-- Criação do usuário Auth só pela edge function autenticada e restrita a admin da org.
-- Bloqueio de escrita é **duplo**: RLS (servidor) + UI (cliente).
-- Um viewer é membro de apenas uma organização — o `organization_members` já isola dados por org.
-
-## Fora do escopo
-
-- Contas Supabase individuais por visitante (fica para depois se quiser rastrear por pessoa).
-- Acesso público sem senha (link mágico) — se precisar depois, dá para gerar via a mesma tabela.
-- Alterar visibilidade de módulos além do que foi listado (permanecem visíveis: Dashboard, Temporadas, Partidas, Ranking, Estatísticas, Regras).
+- Logado como Pedro (super admin): a tela mostra tudo como hoje.
+- Logado como Joaquim (admin de clube): a tela mostra só os dois cartões de credencial, sem tabela de usuários nem botão de papéis.
