@@ -71,19 +71,7 @@ export default function UserManagement() {
         </Card>
       )}
 
-      {currentOrganization && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Administradores do Clube</CardTitle>
-            <CardDescription>
-              Cadastre novos administradores para <strong>{currentOrganization.name}</strong>. Eles terão poder total dentro deste clube, sem acesso ao painel de Super Admin.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AddClubAdminDialog />
-          </CardContent>
-        </Card>
-      )}
+      {currentOrganization && <ClubAdminsCard />}
 
       {/* Credencial de Visitante (somente leitura) */}
       <ViewerAccessKeyCard />
