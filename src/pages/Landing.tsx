@@ -24,6 +24,7 @@ import {
 import chipApa from "@/assets/chip-apa.png.asset.json";
 import logoCards from "@/assets/apa-logo-cards.jpg.asset.json";
 import logoBadge from "@/assets/apa-logo-badge.jpg.asset.json";
+import apaLogo from "@/assets/apa-poker-logo.jpg.asset.json";
 
 const slides = [
   {
@@ -178,23 +179,12 @@ export default function Landing() {
         />
       </div>
 
-      {/* Floating chips + cards decor */}
+      {/* Subtle playing cards decor */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <img
-          src={chipApa.url}
-          alt=""
-          className="absolute -top-10 -right-20 w-72 opacity-20 rotate-12 animate-[spin_40s_linear_infinite]"
-        />
-        <img
-          src={chipApa.url}
-          alt=""
-          className="absolute top-[45%] -left-24 w-56 opacity-10 -rotate-12 animate-[spin_60s_linear_infinite_reverse]"
-        />
-        {/* Playing cards */}
-        <div className="absolute top-40 right-8 hidden lg:block animate-[float_6s_ease-in-out_infinite]">
+        <div className="absolute top-40 right-8 hidden lg:block animate-[float_6s_ease-in-out_infinite] opacity-70">
           <PlayingCard suit="♠" value="A" tone="black" rotate={12} />
         </div>
-        <div className="absolute top-64 right-24 hidden lg:block animate-[float_7s_ease-in-out_infinite_0.5s]">
+        <div className="absolute top-64 right-24 hidden lg:block animate-[float_7s_ease-in-out_infinite_0.5s] opacity-70">
           <PlayingCard suit="♥" value="K" tone="red" rotate={-8} />
         </div>
       </div>
@@ -266,8 +256,9 @@ export default function Landing() {
           {/* Carousel mockup */}
           <div className="relative">
             <div className="absolute -inset-6 bg-gradient-to-br from-poker-gold/20 via-emerald-500/10 to-transparent rounded-3xl blur-2xl" />
-            {/* Chip behind mockup */}
-            <img src={chipApa.url} alt="" className="absolute -top-16 -right-10 w-40 opacity-90 rotate-12 drop-shadow-[0_10px_40px_rgba(0,0,0,0.6)] z-10 animate-[float_5s_ease-in-out_infinite]" />
+            {/* Subtle logo watermark behind mockup */}
+            <img src={apaLogo.url} alt="" className="absolute -top-14 -right-8 w-32 rounded-xl opacity-20 rotate-6 blur-[0.5px] z-0 pointer-events-none" />
+
             <div className={`relative rounded-2xl border border-white/10 bg-gradient-to-br ${current.accent} p-1 shadow-2xl shadow-black/50 transition-all duration-700`}>
               <div className="rounded-xl bg-poker-black/80 backdrop-blur-sm">
                 <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/5">
@@ -345,8 +336,9 @@ export default function Landing() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative order-2 lg:order-1 flex justify-center">
             <div className="absolute -inset-10 bg-gradient-to-br from-emerald-500/20 to-poker-gold/10 rounded-full blur-3xl" />
-            {/* Chip beside phone */}
-            <img src={chipApa.url} alt="" className="absolute -left-6 bottom-10 w-32 opacity-90 -rotate-12 z-20 animate-[float_6s_ease-in-out_infinite] drop-shadow-[0_10px_30px_rgba(0,0,0,0.6)]" />
+            {/* Subtle logo behind phone */}
+            <img src={apaLogo.url} alt="" className="absolute -left-8 top-4 w-24 rounded-xl opacity-25 -rotate-6 pointer-events-none" />
+
             <div className="relative w-[280px] h-[560px] rounded-[3rem] bg-gradient-to-b from-neutral-800 to-neutral-900 p-3 shadow-2xl shadow-black/60 border border-white/10">
               <div className="absolute top-6 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-b-2xl z-10" />
               <div className="w-full h-full rounded-[2.3rem] bg-poker-black overflow-hidden relative">
@@ -496,10 +488,10 @@ export default function Landing() {
         <div className="text-center text-xs uppercase tracking-widest text-white/40 mb-8">
           Clubes que já jogam com a gente
         </div>
-        <div className="flex items-center justify-center gap-8 sm:gap-14 flex-wrap opacity-80">
-          <img src={logoCards.url} alt="APA Poker" className="h-20 sm:h-24 rounded-lg object-cover" />
-          <img src={chipApa.url} alt="APA Poker Chip" className="h-24 sm:h-28" />
-          <img src={logoBadge.url} alt="APA Poker Badge" className="h-20 sm:h-24 rounded-lg object-cover" />
+        <div className="flex items-center justify-center gap-8 sm:gap-14 flex-wrap opacity-90">
+          <img src={apaLogo.url} alt="APA Poker" className="h-24 sm:h-28 rounded-xl object-cover ring-1 ring-poker-gold/20" />
+          <img src={logoCards.url} alt="APA Poker" className="h-20 sm:h-24 rounded-lg object-cover opacity-80" />
+          <img src={logoBadge.url} alt="APA Poker Badge" className="h-20 sm:h-24 rounded-lg object-cover opacity-80" />
         </div>
       </section>
 
@@ -507,8 +499,7 @@ export default function Landing() {
       <section id="cta" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="relative rounded-3xl border border-poker-gold/30 bg-gradient-to-br from-poker-gold/10 via-emerald-500/5 to-transparent p-10 sm:p-14 text-center overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(223,198,97,0.18),transparent_70%)]" />
-          <img src={chipApa.url} alt="" className="absolute -left-10 -bottom-10 w-40 opacity-30 -rotate-12" />
-          <img src={chipApa.url} alt="" className="absolute -right-10 -top-10 w-32 opacity-25 rotate-12" />
+          <img src={apaLogo.url} alt="" className="absolute -right-8 -top-8 w-36 rounded-2xl opacity-15 rotate-6 pointer-events-none" />
           <div className="relative">
             <h2 className="font-poppins text-3xl sm:text-4xl font-bold">
               Pronto para elevar o nível do seu clube?
