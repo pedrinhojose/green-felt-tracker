@@ -87,6 +87,9 @@ export default function PokerNav() {
                     location.pathname === item.path ? "text-poker-gold font-medium px-3 py-2 rounded hover:bg-white/5" : "text-white/80 px-3 py-2 rounded hover:bg-white/5"
                   )}
                 >
+                  {item.superAdminOnly && (
+                    <Crown className="mr-1 h-3 w-3 text-poker-gold" />
+                  )}
                   {item.requiredRole === 'admin' && (
                     <ShieldAlert className="mr-1 h-3 w-3" />
                   )}
