@@ -24,6 +24,7 @@ import {
 import chipApa from "@/assets/chip-apa.png.asset.json";
 import logoCards from "@/assets/apa-logo-cards.jpg.asset.json";
 import logoBadge from "@/assets/apa-logo-badge.jpg.asset.json";
+import apaLogo from "@/assets/apa-poker-logo.jpg.asset.json";
 
 const slides = [
   {
@@ -178,23 +179,12 @@ export default function Landing() {
         />
       </div>
 
-      {/* Floating chips + cards decor */}
+      {/* Subtle playing cards decor */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <img
-          src={chipApa.url}
-          alt=""
-          className="absolute -top-10 -right-20 w-72 opacity-20 rotate-12 animate-[spin_40s_linear_infinite]"
-        />
-        <img
-          src={chipApa.url}
-          alt=""
-          className="absolute top-[45%] -left-24 w-56 opacity-10 -rotate-12 animate-[spin_60s_linear_infinite_reverse]"
-        />
-        {/* Playing cards */}
-        <div className="absolute top-40 right-8 hidden lg:block animate-[float_6s_ease-in-out_infinite]">
+        <div className="absolute top-40 right-8 hidden lg:block animate-[float_6s_ease-in-out_infinite] opacity-70">
           <PlayingCard suit="♠" value="A" tone="black" rotate={12} />
         </div>
-        <div className="absolute top-64 right-24 hidden lg:block animate-[float_7s_ease-in-out_infinite_0.5s]">
+        <div className="absolute top-64 right-24 hidden lg:block animate-[float_7s_ease-in-out_infinite_0.5s] opacity-70">
           <PlayingCard suit="♥" value="K" tone="red" rotate={-8} />
         </div>
       </div>
