@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProfileDropdown } from './ProfileDropdown';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { ShieldAlert, Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -13,17 +14,19 @@ interface NavItem {
   name: string;
   path: string;
   requiredRole?: 'admin' | 'player' | 'viewer';
+  hideForViewer?: boolean;
 }
 
 const navItems: NavItem[] = [
   { name: 'Painel', path: '/dashboard' },
-  { name: 'Configuração', path: '/season' },
+  { name: 'Configuração', path: '/season', hideForViewer: true },
   { name: 'Temporadas', path: '/seasons' },
   { name: 'Partidas', path: '/games' },
   { name: 'Ranking', path: '/ranking' },
-  { name: 'Jogadores', path: '/players' },
+  { name: 'Jogadores', path: '/players', hideForViewer: true },
   { name: 'Estatísticas', path: '/statistics' },
   { name: 'Regras da Casa', path: '/house-rules' },
+  { name: 'Caixinha', path: '/caixinha', hideForViewer: true },
   { name: 'Usuários', path: '/users', requiredRole: 'admin' },
 ];
 
@@ -32,11 +35,13 @@ export default function PokerNav() {
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
   const { hasRole } = useUserRole();
+  const { isViewer } = useOrgMemberRole();
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Filtragem dos itens de navegação com base nos papéis do usuário
   const filteredNavItems = navItems.filter(item => {
+    if (item.hideForViewer && isViewer) return false;
     if (!item.requiredRole) return true;
     return hasRole(item.requiredRole);
   });
