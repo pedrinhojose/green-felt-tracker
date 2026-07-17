@@ -23,7 +23,7 @@ import {
 export default function GamesList() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { games, activeSeason, createGame, getGameNumber, deleteGame, isLoading } = usePoker();
+  const { games, activeSeason, createGame, createStandaloneGame, getGameNumber, deleteGame, isLoading } = usePoker();
   const { currentOrganization } = useOrganization();
   const { canEdit } = useOrgMemberRole();
   const [isCreating, setIsCreating] = useState(false);
