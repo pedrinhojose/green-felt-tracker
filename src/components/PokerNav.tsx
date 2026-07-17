@@ -100,6 +100,8 @@ export default function PokerNav() {
             ))}
           </ul>
           
+          <SeasonSelector />
+
           {/* Perfil do Usuário - Desktop */}
           {user ? (
             <ProfileDropdown />
