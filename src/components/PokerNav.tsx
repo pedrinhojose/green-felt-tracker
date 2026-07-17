@@ -9,6 +9,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { ShieldAlert, Menu, X, Crown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SeasonSelector } from './navigation/SeasonSelector';
 
 interface NavItem {
   name: string;
