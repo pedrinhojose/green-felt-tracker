@@ -228,7 +228,8 @@ export class GameRepository extends SupabaseCore {
         const supabaseGame = {
           id: game.id,
           number: game.number,
-          season_id: game.seasonId,
+          season_id: game.seasonId ?? null,
+          is_standalone: game.isStandalone ?? false,
           date: game.date.toISOString(),
           players: game.players as unknown as Json,
           total_prize_pool: game.totalPrizePool,
