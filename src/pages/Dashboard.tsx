@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import JackpotCard from "@/components/JackpotCard";
-import CaixinhaCard from "@/components/CaixinhaCard";
+import FinancialSummaryCard from "@/components/FinancialSummaryCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import { UpcomingDinnerCard } from "@/components/UpcomingDinnerCard";
@@ -163,8 +162,7 @@ export default function Dashboard() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <JackpotCard />
-        <CaixinhaCard />
+        <FinancialSummaryCard />
         <RankingCard />
         <LastGameCard />
       </div>
