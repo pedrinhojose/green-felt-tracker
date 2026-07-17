@@ -16,7 +16,7 @@ const PokerContext = createContext<PokerContextProps | undefined>(undefined);
 
 export function PokerProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const { currentOrganization, isLoading: orgLoading } = useOrganization();
+  const { currentOrganization, isLoading: orgLoading, selectedSeasonId, setSelectedSeasonId } = useOrganization();
   
   console.log("PokerProvider: Renderizando com organização:", currentOrganization?.name || 'nenhuma', "orgLoading:", orgLoading);
   
