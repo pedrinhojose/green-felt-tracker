@@ -385,6 +385,7 @@ export function useGameFunctions(
     setLastGame,
     getGameNumber,
     createGame,
+    createStandaloneGame,
     updateGame,
     deleteGame,
     finishGame
