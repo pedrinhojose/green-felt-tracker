@@ -158,6 +158,16 @@ export default function GamesList() {
               Criar Temporada
             </Button>
           ))}
+
+          {canEdit && (
+            <Button
+              variant="outline"
+              onClick={handleCreateStandaloneGame}
+              disabled={isCreating}
+            >
+              {isCreating ? "Criando..." : "Nova partida avulsa"}
+            </Button>
+          )}
         </div>
       </div>
       
