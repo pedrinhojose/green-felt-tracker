@@ -227,6 +227,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       games: [],
       lastGame: null,
       createGame: async () => '',
+      createStandaloneGame: async () => '',
       updateGame: async () => {},
       deleteGame: async () => false,
       finishGame: async () => {},
