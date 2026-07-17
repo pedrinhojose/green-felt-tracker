@@ -329,7 +329,7 @@ export default function SeasonsList() {
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">Nenhuma temporada encontrada</p>
           {canEdit && <Button 
-            onClick={() => navigate("/season")}
+            onClick={() => navigate("/season?new=1")}
             className="bg-poker-gold hover:bg-poker-gold/80 text-black"
           >
             Criar Primeira Temporada
