@@ -1,5 +1,6 @@
 
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -29,7 +30,9 @@ import {
 
 export default function SeasonConfig() {
   const { activeSeason, seasons, createSeason, updateSeason, endSeason } = usePoker();
-  const [isCreating, setIsCreating] = useState(!activeSeason);
+  const [searchParams] = useSearchParams();
+  const forceNew = searchParams.get('new') === '1';
+  const [isCreating, setIsCreating] = useState(forceNew || !activeSeason);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inheritFromPrevious, setInheritFromPrevious] = useState(true);
 
