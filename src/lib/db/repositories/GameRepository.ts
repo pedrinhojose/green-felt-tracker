@@ -94,6 +94,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: game.dinner_cost ? Number(game.dinner_cost) : undefined,
           isFinished: game.is_finished,
           createdAt: new Date(game.created_at)
+        ,
+          isStandalone: game.is_standalone ?? false
         })) as Game[];
       } catch (error) {
         console.error("GameRepository.getGames: Error fetching games from Supabase:", error);
@@ -149,6 +151,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
           createdAt: new Date(data.created_at)
+        },
+          isStandalone: data.is_standalone ?? false
         } as Game;
       } catch (error) {
         console.error("GameRepository.getGame: Error fetching game from Supabase:", error);
@@ -204,6 +208,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
           createdAt: new Date(data.created_at)
+        },
+          isStandalone: data.is_standalone ?? false
         } as Game;
       } catch (error) {
         console.error("GameRepository.getLastGame: Error fetching last game from Supabase:", error);
