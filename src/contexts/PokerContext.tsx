@@ -179,6 +179,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     games,
     lastGame,
     createGame,
+    createStandaloneGame,
     updateGame,
     deleteGame,
     finishGame,
