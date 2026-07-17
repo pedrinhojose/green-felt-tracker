@@ -98,6 +98,22 @@ export function useSeasonFormSubmitter(
           description: "Nova temporada criada com sucesso.",
         });
       } else if (activeSeason) {
+        // Proteção: confirmar renomeação da temporada existente
+        if (activeSeason.name && data.name && activeSeason.name.trim() !== data.name.trim()) {
+          const confirmed = typeof window !== 'undefined' && window.confirm(
+            `Você está renomeando a temporada "${activeSeason.name}" para "${data.name}".\n\n` +
+            `Isso NÃO cria uma nova temporada — apenas altera o nome da atual (todos os jogos, ranking, jackpot e caixinha continuam vinculados a ela).\n\n` +
+            `Se sua intenção era criar uma nova temporada, cancele e clique no botão "Nova Temporada" no topo da página.\n\n` +
+            `Deseja continuar com a renomeação?`
+          );
+          if (!confirmed) {
+            toast({
+              title: "Alteração cancelada",
+              description: "A temporada não foi renomeada.",
+            });
+            return false;
+          }
+        }
         await updateSeason({
           id: activeSeason.id,
           ...seasonData

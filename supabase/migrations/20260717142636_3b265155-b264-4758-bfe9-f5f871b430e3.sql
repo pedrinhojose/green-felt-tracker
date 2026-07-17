@@ -1,0 +1,1 @@
+UPDATE public.seasons SET name = '2ª Temporada 2026' WHERE id = '3e0a471b-18c9-4d24-97bc-2c41854232c0';
