@@ -176,7 +176,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         isLoading,
         selectOrganization,
         createOrganization,
-        refreshOrganizations
+        refreshOrganizations,
+        selectedSeasonId,
+        setSelectedSeasonId,
       }}
     >
       {children}
