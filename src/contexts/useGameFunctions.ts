@@ -246,11 +246,26 @@ export function useGameFunctions(
       if (!game) {
         throw new Error('Game not found');
       }
-      
+
+      // Standalone: apenas marcar como finalizado, sem caixinha/jackpot/ranking
+      if (game.isStandalone || !game.seasonId) {
+        const updatedGame = { ...game, isFinished: true };
+        await pokerDB.saveGame(updatedGame);
+        setGames(prev => {
+          const idx = prev.findIndex(g => g.id === updatedGame.id);
+          if (idx >= 0) return [...prev.slice(0, idx), updatedGame, ...prev.slice(idx + 1)];
+          return prev;
+        });
+        setLastGame(updatedGame);
+        toast({ title: "Partida Finalizada", description: "Partida avulsa finalizada." });
+        return;
+      }
+
       const season = await pokerDB.getSeason(game.seasonId);
       if (!season) {
         throw new Error('Season not found');
       }
+
       
       // Calculate jackpot contribution
       const playerCount = game.players.filter(p => p.buyIn).length;
