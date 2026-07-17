@@ -68,6 +68,36 @@ export function useGameFunctions(
     return id;
   };
 
+  /**
+   * Create a standalone game not linked to any season.
+   * Standalone games skip caixinha/jackpot/ranking logic entirely.
+   */
+  const createStandaloneGame = async () => {
+    // Standalone games get their own numbering per organization,
+    // scoped simply by picking the next available number among existing standalone games.
+    const existingStandalone = games.filter(g => g.isStandalone);
+    const existingNumbers = existingStandalone.map(g => g.number);
+    const gameNumber = findNextAvailableNumber(existingNumbers);
+
+    const newGame: Game = {
+      id: uuidv4(),
+      number: gameNumber,
+      seasonId: null,
+      isStandalone: true,
+      date: new Date(),
+      players: [],
+      totalPrizePool: 0,
+      isFinished: false,
+      createdAt: new Date(),
+    };
+
+    const id = await pokerDB.saveGame(newGame);
+    setGames(prev => [...prev, newGame]);
+    setLastGame(newGame);
+    return id;
+  };
+
+
   const updateGame = async (gameData: Partial<Game>) => {
     if (!gameData.id) {
       throw new Error('Game ID is required');
