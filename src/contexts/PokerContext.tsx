@@ -44,7 +44,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   const { 
     games, setGames, 
     lastGame, setLastGame, 
-    getGameNumber, createGame, updateGame, deleteGame, finishGame
+    getGameNumber, createGame, createStandaloneGame, updateGame, deleteGame, finishGame
   } = useGameFunctions(
     async () => {
       if (activeSeason) {
