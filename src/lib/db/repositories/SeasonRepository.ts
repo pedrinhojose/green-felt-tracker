@@ -209,10 +209,10 @@ export class SeasonRepository extends SupabaseCore {
           organization_id: orgId
         };
         
-        // If this is set as the active season, deactivate all others first
-        if (season.isActive) {
-          await this.deactivateAllSeasons();
-        }
+        // NOTE: Multiple active seasons per organization are allowed.
+        // Previously we deactivated all other seasons here; that behavior
+        // was removed to support running several tournaments in parallel.
+
         
         const { error } = await supabase
           .from('seasons')
