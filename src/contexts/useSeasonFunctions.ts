@@ -24,7 +24,8 @@ export function useSeasonFunctions() {
   const { recalculateSeasonJackpot, fixSeasonJackpot } = useJackpotRecalculation();
 
   /**
-   * Activates a season and deactivates all others
+   * Activates a season. Multiple active seasons per organization are allowed;
+   * other seasons are NOT deactivated automatically.
    */
   const activateSeason = async (seasonId: string) => {
     const season = await pokerDB.getSeason(seasonId);
@@ -32,23 +33,10 @@ export function useSeasonFunctions() {
       throw new Error('Season not found');
     }
 
-    // Deactivate all other seasons first
-    const allSeasons = await pokerDB.getSeasons();
-    for (const s of allSeasons) {
-      if (s.isActive && s.id !== seasonId) {
-        await pokerDB.saveSeason({ ...s, isActive: false });
-      }
-    }
-
-    // Activate the target season
     const updatedSeason = { ...season, isActive: true };
     await pokerDB.saveSeason(updatedSeason);
 
-    // Update local state
-    setSeasons(prev => prev.map(s => ({
-      ...s,
-      isActive: s.id === seasonId
-    })));
+    setSeasons(prev => prev.map(s => (s.id === seasonId ? updatedSeason : s)));
     setActiveSeason(updatedSeason);
   };
 

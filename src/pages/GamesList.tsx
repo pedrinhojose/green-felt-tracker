@@ -23,7 +23,7 @@ import {
 export default function GamesList() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { games, activeSeason, createGame, getGameNumber, deleteGame, isLoading } = usePoker();
+  const { games, activeSeason, createGame, createStandaloneGame, getGameNumber, deleteGame, isLoading } = usePoker();
   const { currentOrganization } = useOrganization();
   const { canEdit } = useOrgMemberRole();
   const [isCreating, setIsCreating] = useState(false);
@@ -68,6 +68,24 @@ export default function GamesList() {
       setIsCreating(false);
     }
   };
+
+  const handleCreateStandaloneGame = async () => {
+    try {
+      setIsCreating(true);
+      const gameId = await createStandaloneGame();
+      navigate(`/games/${gameId}`);
+    } catch (error) {
+      console.error("Error creating standalone game:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar uma partida avulsa.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   
   const handleDeleteGame = async (gameId: string) => {
     try {
@@ -140,6 +158,16 @@ export default function GamesList() {
               Criar Temporada
             </Button>
           ))}
+
+          {canEdit && (
+            <Button
+              variant="outline"
+              onClick={handleCreateStandaloneGame}
+              disabled={isCreating}
+            >
+              {isCreating ? "Criando..." : "Nova partida avulsa"}
+            </Button>
+          )}
         </div>
       </div>
       
@@ -148,11 +176,16 @@ export default function GamesList() {
           {sortedGames.map(game => (
             <Card key={game.id} className="bg-poker-green hover:bg-poker-green/90 transition-all duration-200">
               <CardHeader className="pb-2 flex flex-row justify-between items-start">
-                <CardTitle className="flex justify-between items-center">
+                <CardTitle className="flex justify-between items-center gap-2 flex-wrap">
                   <span>Partida #{game.number.toString().padStart(3, '0')}</span>
-                  {game.isFinished && (
-                    <span className="text-sm bg-poker-gold text-black px-2 py-1 rounded-full">Finalizada</span>
-                  )}
+                  <div className="flex gap-1">
+                    {game.isStandalone && (
+                      <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-1 rounded-full">Avulsa</span>
+                    )}
+                    {game.isFinished && (
+                      <span className="text-sm bg-poker-gold text-black px-2 py-1 rounded-full">Finalizada</span>
+                    )}
+                  </div>
                 </CardTitle>
                 
                 {canEdit && <AlertDialog>

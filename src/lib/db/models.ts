@@ -68,13 +68,14 @@ export interface FinancialParams {
 export interface Game {
   id: string;
   number: number;
-  seasonId: string;
+  seasonId: string | null;
   date: Date;
   players: GamePlayer[];
   totalPrizePool: number;
   dinnerCost?: number;
   isFinished: boolean;
   createdAt: Date;
+  isStandalone?: boolean;
 }
 
 export interface GamePlayer {

@@ -15,11 +15,8 @@ export function useSeasonCrud() {
    * Checks for pending caixinha transfer from previous season
    */
   const createSeason = async (seasonData: Partial<Season>) => {
-    // Set any existing active season to inactive
-    if (activeSeason) {
-      const updatedActiveSeason = { ...activeSeason, isActive: false };
-      await pokerDB.saveSeason(updatedActiveSeason);
-    }
+    // Multiple active seasons are allowed — do not deactivate the current one.
+
     
     // Check for pending caixinha transfer from previous season
     let caixinhaBalance = seasonData.caixinhaBalance || 0;

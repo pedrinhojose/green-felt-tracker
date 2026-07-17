@@ -9,6 +9,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { ShieldAlert, Menu, X, Crown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SeasonSelector } from './navigation/SeasonSelector';
 
 interface NavItem {
   name: string;
@@ -99,6 +100,8 @@ export default function PokerNav() {
             ))}
           </ul>
           
+          <SeasonSelector />
+
           {/* Perfil do Usuário - Desktop */}
           {user ? (
             <ProfileDropdown />
@@ -116,6 +119,9 @@ export default function PokerNav() {
       {/* Mobile Menu Dropdown - otimizado */}
       {isMobileMenuOpen && (
         <nav className="md:hidden bg-poker-black/95 backdrop-blur-md border-t border-white/5 animate-slide-down">
+          <div className="px-4 py-3 border-b border-white/5">
+            <SeasonSelector />
+          </div>
           <ul className="flex flex-col">
             {filteredNavItems.map((item) => (
               <li key={item.path}>

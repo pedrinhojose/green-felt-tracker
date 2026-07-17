@@ -203,11 +203,12 @@ export type Database = {
           dinner_cost: number | null
           id: string
           is_finished: boolean
+          is_standalone: boolean
           number: number
           organization_id: string | null
           players: Json
           public_share_token: string | null
-          season_id: string
+          season_id: string | null
           total_prize_pool: number
           user_id: string
         }
@@ -217,11 +218,12 @@ export type Database = {
           dinner_cost?: number | null
           id: string
           is_finished?: boolean
+          is_standalone?: boolean
           number: number
           organization_id?: string | null
           players?: Json
           public_share_token?: string | null
-          season_id: string
+          season_id?: string | null
           total_prize_pool?: number
           user_id: string
         }
@@ -231,11 +233,12 @@ export type Database = {
           dinner_cost?: number | null
           id?: string
           is_finished?: boolean
+          is_standalone?: boolean
           number?: number
           organization_id?: string | null
           players?: Json
           public_share_token?: string | null
-          season_id?: string
+          season_id?: string | null
           total_prize_pool?: number
           user_id?: string
         }

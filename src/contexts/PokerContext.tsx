@@ -16,7 +16,7 @@ const PokerContext = createContext<PokerContextProps | undefined>(undefined);
 
 export function PokerProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const { currentOrganization, isLoading: orgLoading } = useOrganization();
+  const { currentOrganization, isLoading: orgLoading, selectedSeasonId, setSelectedSeasonId } = useOrganization();
   
   console.log("PokerProvider: Renderizando com organização:", currentOrganization?.name || 'nenhuma', "orgLoading:", orgLoading);
   
@@ -44,7 +44,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
   const { 
     games, setGames, 
     lastGame, setLastGame, 
-    getGameNumber, createGame, updateGame, deleteGame, finishGame
+    getGameNumber, createGame, createStandaloneGame, updateGame, deleteGame, finishGame
   } = useGameFunctions(
     async () => {
       if (activeSeason) {
@@ -85,31 +85,38 @@ export function PokerProvider({ children }: { children: ReactNode }) {
         console.log("PokerContext: Temporadas carregadas:", seasonsData.length);
         setSeasons(seasonsData);
         
-        // Load active season
-        console.log("PokerContext: Carregando temporada ativa...");
-        const activeSeasonData = await pokerDB.getActiveSeason();
-        console.log("PokerContext: Temporada ativa:", activeSeasonData?.id || 'nenhuma');
-        setActiveSeason(activeSeasonData || null);
+        // Determine which season is the "current" one for this org.
+        // Priority: user-selected season > first isActive season > first season.
+        let chosenSeason = null as (typeof seasonsData)[number] | null;
+        if (selectedSeasonId) {
+          chosenSeason = seasonsData.find(s => s.id === selectedSeasonId) || null;
+        }
+        if (!chosenSeason) {
+          chosenSeason = seasonsData.find(s => s.isActive) || null;
+        }
+        console.log("PokerContext: Temporada corrente selecionada:", chosenSeason?.id || 'nenhuma');
+        setActiveSeason(chosenSeason);
+        if (chosenSeason && chosenSeason.id !== selectedSeasonId) {
+          setSelectedSeasonId(chosenSeason.id);
+        }
         
-        if (activeSeasonData) {
-          // Load games for active season
-          console.log("PokerContext: Carregando jogos para temporada ativa:", activeSeasonData.id);
-          const gamesData = await pokerDB.getGames(activeSeasonData.id);
+        if (chosenSeason) {
+          console.log("PokerContext: Carregando jogos para temporada:", chosenSeason.id);
+          const gamesData = await pokerDB.getGames(chosenSeason.id);
           console.log("PokerContext: Jogos carregados:", gamesData.length);
           setGames(gamesData);
           
-          // Load rankings for active season
-          console.log("PokerContext: Carregando rankings para temporada ativa:", activeSeasonData.id);
-          const rankingsData = await pokerDB.getRankings(activeSeasonData.id);
+          console.log("PokerContext: Carregando rankings para temporada:", chosenSeason.id);
+          const rankingsData = await pokerDB.getRankings(chosenSeason.id);
           const enrichedRankings = enrichRankingsWithPointBreakdown(
             rankingsData,
             gamesData,
-            activeSeasonData.scoreSchema ?? []
+            chosenSeason.scoreSchema ?? []
           );
           console.log("PokerContext: Rankings carregados:", enrichedRankings.length);
           setRankings(enrichedRankings);
         } else {
-          console.log("PokerContext: Nenhuma temporada ativa, limpando jogos e rankings");
+          console.log("PokerContext: Nenhuma temporada, limpando jogos e rankings");
           setGames([]);
           setRankings([]);
         }
@@ -147,7 +154,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     };
     
     initData();
-  }, [currentOrganization, toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
+  }, [currentOrganization, selectedSeasonId, toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
 
   // Create the context value
   const contextValue: PokerContextProps = {
@@ -172,6 +179,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     games,
     lastGame,
     createGame,
+    createStandaloneGame,
     updateGame,
     deleteGame,
     finishGame,
@@ -219,6 +227,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
       games: [],
       lastGame: null,
       createGame: async () => '',
+      createStandaloneGame: async () => '',
       updateGame: async () => {},
       deleteGame: async () => false,
       finishGame: async () => {},

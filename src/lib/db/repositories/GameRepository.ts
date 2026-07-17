@@ -93,7 +93,8 @@ export class GameRepository extends SupabaseCore {
           totalPrizePool: Number(game.total_prize_pool),
           dinnerCost: game.dinner_cost ? Number(game.dinner_cost) : undefined,
           isFinished: game.is_finished,
-          createdAt: new Date(game.created_at)
+          createdAt: new Date(game.created_at),
+          isStandalone: game.is_standalone ?? false
         })) as Game[];
       } catch (error) {
         console.error("GameRepository.getGames: Error fetching games from Supabase:", error);
@@ -148,7 +149,8 @@ export class GameRepository extends SupabaseCore {
           totalPrizePool: Number(data.total_prize_pool),
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
-          createdAt: new Date(data.created_at)
+          createdAt: new Date(data.created_at),
+          isStandalone: data.is_standalone ?? false
         } as Game;
       } catch (error) {
         console.error("GameRepository.getGame: Error fetching game from Supabase:", error);
@@ -203,7 +205,8 @@ export class GameRepository extends SupabaseCore {
           totalPrizePool: Number(data.total_prize_pool),
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
-          createdAt: new Date(data.created_at)
+          createdAt: new Date(data.created_at),
+          isStandalone: data.is_standalone ?? false
         } as Game;
       } catch (error) {
         console.error("GameRepository.getLastGame: Error fetching last game from Supabase:", error);
@@ -228,7 +231,8 @@ export class GameRepository extends SupabaseCore {
         const supabaseGame = {
           id: game.id,
           number: game.number,
-          season_id: game.seasonId,
+          season_id: game.seasonId ?? null,
+          is_standalone: game.isStandalone ?? false,
           date: game.date.toISOString(),
           players: game.players as unknown as Json,
           total_prize_pool: game.totalPrizePool,
