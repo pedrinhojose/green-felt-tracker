@@ -176,11 +176,16 @@ export default function GamesList() {
           {sortedGames.map(game => (
             <Card key={game.id} className="bg-poker-green hover:bg-poker-green/90 transition-all duration-200">
               <CardHeader className="pb-2 flex flex-row justify-between items-start">
-                <CardTitle className="flex justify-between items-center">
+                <CardTitle className="flex justify-between items-center gap-2 flex-wrap">
                   <span>Partida #{game.number.toString().padStart(3, '0')}</span>
-                  {game.isFinished && (
-                    <span className="text-sm bg-poker-gold text-black px-2 py-1 rounded-full">Finalizada</span>
-                  )}
+                  <div className="flex gap-1">
+                    {game.isStandalone && (
+                      <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-1 rounded-full">Avulsa</span>
+                    )}
+                    {game.isFinished && (
+                      <span className="text-sm bg-poker-gold text-black px-2 py-1 rounded-full">Finalizada</span>
+                    )}
+                  </div>
                 </CardTitle>
                 
                 {canEdit && <AlertDialog>
