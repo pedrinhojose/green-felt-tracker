@@ -154,7 +154,7 @@ export function PokerProvider({ children }: { children: ReactNode }) {
     };
     
     initData();
-  }, [currentOrganization, toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
+  }, [currentOrganization, selectedSeasonId, toast, setPlayers, setSeasons, setActiveSeason, setGames, setRankings, setLastGame, setIsLoading]);
 
   // Create the context value
   const contextValue: PokerContextProps = {
