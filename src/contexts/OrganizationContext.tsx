@@ -28,9 +28,31 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedSeasonId, setSelectedSeasonIdState] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Persist per-organization season selection
+  const seasonStorageKey = (orgId: string) => `selectedSeasonId:${orgId}`;
+
+  const setSelectedSeasonId = (seasonId: string | null) => {
+    setSelectedSeasonIdState(seasonId);
+    if (currentOrganization) {
+      if (seasonId) localStorage.setItem(seasonStorageKey(currentOrganization.id), seasonId);
+      else localStorage.removeItem(seasonStorageKey(currentOrganization.id));
+    }
+  };
+
+  // Load persisted season selection when org changes
+  useEffect(() => {
+    if (currentOrganization) {
+      const stored = localStorage.getItem(seasonStorageKey(currentOrganization.id));
+      setSelectedSeasonIdState(stored);
+    } else {
+      setSelectedSeasonIdState(null);
+    }
+  }, [currentOrganization]);
 
   // Load user's organizations
   const fetchOrganizations = async () => {
