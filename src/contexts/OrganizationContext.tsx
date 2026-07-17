@@ -18,6 +18,8 @@ interface OrganizationContextType {
   selectOrganization: (orgId: string) => Promise<void>;
   createOrganization: (name: string) => Promise<Organization | null>;
   refreshOrganizations: () => Promise<void>;
+  selectedSeasonId: string | null;
+  setSelectedSeasonId: (seasonId: string | null) => void;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
