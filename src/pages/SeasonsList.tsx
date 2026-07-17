@@ -179,7 +179,7 @@ export default function SeasonsList() {
         {canEdit && <div>
           <Button 
             variant="outline" 
-            onClick={() => navigate("/season")}
+            onClick={() => navigate("/season?new=1")}
           >
             Nova Temporada
           </Button>
