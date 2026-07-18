@@ -204,10 +204,10 @@ export default function Landing() {
             <a href="#plans" className="hover:text-poker-gold transition-colors">Planos</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" className="text-white/80 hover:text-poker-gold hover:bg-white/5" onClick={() => navigate("/auth")}>
+            <Button variant="ghost" className="text-white/80 hover:text-poker-gold hover:bg-white/5" onClick={() => navigate("/login")}>
               Entrar
             </Button>
-            <Button className="bg-poker-gold hover:bg-amber-500 text-poker-black font-semibold shadow-lg shadow-poker-gold/20" onClick={() => navigate("/auth?tab=signup")}>
+            <Button className="bg-poker-gold hover:bg-amber-500 text-poker-black font-semibold shadow-lg shadow-poker-gold/20" onClick={() => navigate("/login?tab=signup")}>
               Testar Grátis
             </Button>
           </div>
@@ -237,11 +237,11 @@ export default function Landing() {
               para clubes e home games que levam o jogo a sério.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button size="lg" className="bg-poker-gold hover:bg-amber-500 text-poker-black font-semibold h-12 px-6 shadow-lg shadow-poker-gold/30" onClick={() => navigate("/auth?tab=signup")}>
+              <Button size="lg" className="bg-poker-gold hover:bg-amber-500 text-poker-black font-semibold h-12 px-6 shadow-lg shadow-poker-gold/30" onClick={() => navigate("/login?tab=signup")}>
                 Cadastre e Experimente Grátis
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
-              <Button size="lg" variant="outline" className="h-12 px-6 border-poker-gold/40 text-white bg-white/5 hover:bg-poker-gold/10 hover:text-poker-gold" onClick={() => navigate("/auth")}>
+              <Button size="lg" variant="outline" className="h-12 px-6 border-poker-gold/40 text-white bg-white/5 hover:bg-poker-gold/10 hover:text-poker-gold" onClick={() => navigate("/login")}>
                 Já sou membro · Entrar
               </Button>
             </div>
@@ -471,7 +471,7 @@ export default function Landing() {
                     ? "bg-poker-gold hover:bg-amber-500 text-poker-black"
                     : "bg-white/10 hover:bg-white/20 text-white"
                 }`}
-                onClick={() => navigate("/auth?tab=signup")}
+                onClick={() => navigate("/login?tab=signup")}
               >
                 {p.cta}
               </Button>
@@ -508,11 +508,11 @@ export default function Landing() {
               Crie sua conta em menos de 1 minuto e ganhe <span className="text-poker-gold font-semibold">3 meses grátis</span> — sem cartão de crédito.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button size="lg" className="bg-poker-gold hover:bg-amber-500 text-poker-black font-semibold h-12 px-6" onClick={() => navigate("/auth?tab=signup")}>
+              <Button size="lg" className="bg-poker-gold hover:bg-amber-500 text-poker-black font-semibold h-12 px-6" onClick={() => navigate("/login?tab=signup")}>
                 Começar Grátis Agora
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
-              <Button size="lg" variant="outline" className="h-12 px-6 border-white/20 bg-white/5 hover:bg-white/10" onClick={() => navigate("/auth")}>
+              <Button size="lg" variant="outline" className="h-12 px-6 border-white/20 bg-white/5 hover:bg-white/10" onClick={() => navigate("/login")}>
                 Já tenho conta · Entrar
               </Button>
             </div>
@@ -531,7 +531,7 @@ export default function Landing() {
             <a href="#features" className="hover:text-poker-gold transition-colors">Recursos</a>
             <a href="#plans" className="hover:text-poker-gold transition-colors">Planos</a>
             <a href="#player-app" className="hover:text-poker-gold transition-colors">App</a>
-            <button onClick={() => navigate("/auth")} className="hover:text-poker-gold transition-colors">Entrar</button>
+            <button onClick={() => navigate("/login")} className="hover:text-poker-gold transition-colors">Entrar</button>
           </div>
         </div>
       </footer>
