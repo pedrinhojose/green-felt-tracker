@@ -57,6 +57,7 @@ function App() {
               <AudioProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Auth />} />
                   <Route path="/auth" element={<Auth />} />
                   {/* Redirecionar rotas de organização antigas para dashboard */}
                   <Route path="/organizations" element={<Navigate to="/dashboard" replace />} />
