@@ -27,7 +27,7 @@ export default function RequireAuth({ children, requiredRole }: RequireAuthProps
   if (!user) {
     // Redireciona para /auth, mas salva a localização atual
     // para que o usuário possa voltar após o login
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Verificação de papel, se necessário

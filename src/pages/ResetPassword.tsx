@@ -33,7 +33,7 @@ export default function ResetPassword() {
             description: 'Use o link enviado para seu email para redefinir a senha.',
             variant: 'destructive',
           });
-          navigate('/auth');
+          navigate('/login');
         }
       });
     }
@@ -162,7 +162,7 @@ export default function ResetPassword() {
               type="button"
               variant="ghost" 
               className="w-full"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/login')}
             >
               Voltar para o login
             </Button>

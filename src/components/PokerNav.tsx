@@ -107,7 +107,7 @@ export default function PokerNav() {
             <ProfileDropdown />
           ) : (
             <Link 
-              to="/auth"
+              to="/login"
               className="text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded transition-colors"
             >
               Entrar
@@ -154,7 +154,7 @@ export default function PokerNav() {
             ) : (
               <li>
                 <Link
-                  to="/auth"
+                  to="/login"
                   className="flex items-center py-3 px-4 text-poker-gold hover:bg-white/5 transition-colors min-h-[48px]"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

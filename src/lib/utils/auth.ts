@@ -59,7 +59,7 @@ export const signOut = async () => {
   }
   
   // Redirecionar para página de autenticação
-  window.location.href = "/auth";
+  window.location.href = "/login";
 };
 
 // Função para obter o perfil do usuário atual
@@ -104,8 +104,8 @@ export const configureSupabaseClient = () => {
       cleanupAuthState();
       
       // Verificar se não está na página de autenticação
-      if (!window.location.pathname.includes('/auth')) {
-        window.location.href = '/auth';
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
       }
     }
   });
