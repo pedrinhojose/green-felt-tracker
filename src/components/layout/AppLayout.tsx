@@ -55,6 +55,9 @@ export default function AppLayout() {
       <div className="flex min-h-screen w-full bg-background text-foreground">
         <AppSidebar />
         <div className="flex flex-col flex-1 min-w-0">
+          <header className="sticky top-0 z-40 flex h-12 items-center gap-2 border-b border-white/5 bg-poker-black/90 backdrop-blur-md px-3">
+            <SidebarTrigger className="text-poker-gold hover:bg-white/5" />
+          </header>
           <main className="flex-1 overflow-auto w-full">
             <div className="w-full px-4 py-4 max-w-full">
               <Outlet />
