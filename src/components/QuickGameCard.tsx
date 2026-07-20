@@ -1,14 +1,16 @@
 import { usePoker } from "@/contexts/PokerContext";
-import { PlayCircle, Zap } from "lucide-react";
+import { PlayCircle, Zap, Play, Loader2 } from "lucide-react";
 import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 const QuickGameCard = memo(function QuickGameCard() {
   const { activeSeason, createGame, createStandaloneGame } = usePoker();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isCreating, setIsCreating] = useState(false);
+  const [creatingType, setCreatingType] = useState<null | "season" | "standalone">(null);
+  const isCreating = creatingType !== null;
 
   const handleOpenSeasonGame = async () => {
     if (isCreating) return;
@@ -21,7 +23,7 @@ const QuickGameCard = memo(function QuickGameCard() {
       return;
     }
     try {
-      setIsCreating(true);
+      setCreatingType("season");
       const gameId = await createGame(activeSeason.id);
       navigate(`/games/${gameId}`);
     } catch (error) {
@@ -32,14 +34,14 @@ const QuickGameCard = memo(function QuickGameCard() {
         variant: "destructive",
       });
     } finally {
-      setIsCreating(false);
+      setCreatingType(null);
     }
   };
 
   const handleOpenStandaloneGame = async () => {
     if (isCreating) return;
     try {
-      setIsCreating(true);
+      setCreatingType("standalone");
       const gameId = await createStandaloneGame();
       navigate(`/games/${gameId}`);
     } catch (error) {
@@ -50,58 +52,91 @@ const QuickGameCard = memo(function QuickGameCard() {
         variant: "destructive",
       });
     } finally {
-      setIsCreating(false);
+      setCreatingType(null);
     }
   };
 
   const seasonDisabled = isCreating || !activeSeason;
+  const seasonLoading = creatingType === "season";
+  const standaloneLoading = creatingType === "standalone";
 
   return (
-    <div className="card-dashboard h-full min-h-[260px] hover:scale-[1.02] transition-all duration-200 ease-out">
+    <div className="card-dashboard h-full min-h-[260px] transition-all duration-200 ease-out">
       <div className="text-lg md:text-xl font-medium text-poker-gold mb-2 md:mb-3 pb-2 border-b border-white/10">
         Partidas
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 gap-3">
         {/* Partida da temporada */}
-        <button
-          type="button"
-          onClick={handleOpenSeasonGame}
-          disabled={seasonDisabled}
-          className="flex-1 flex items-center gap-4 px-2 border-b border-white/10 text-left hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-poker-green/40 border border-poker-green flex items-center justify-center shrink-0">
-            <PlayCircle className="w-6 h-6 md:w-7 md:h-7 text-poker-gold" />
+        <div className="flex-1 flex flex-col justify-between gap-2 p-3 rounded-lg bg-poker-green/10 border border-poker-green/40 hover:border-poker-green transition-colors">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-full bg-poker-green/40 border border-poker-green flex items-center justify-center shrink-0">
+              <PlayCircle className="w-5 h-5 text-poker-gold" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                Partida da Temporada
+              </span>
+              <span className="text-sm md:text-base font-bold text-poker-gold truncate">
+                {activeSeason ? activeSeason.name : "Sem temporada ativa"}
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm text-muted-foreground">
-              {isCreating ? "Criando..." : "Abrir partida da temporada"}
-            </span>
-            <span className="text-base md:text-lg font-bold text-poker-gold truncate">
-              {activeSeason ? activeSeason.name : "Sem temporada ativa"}
-            </span>
-          </div>
-        </button>
+          <Button
+            type="button"
+            onClick={handleOpenSeasonGame}
+            disabled={seasonDisabled}
+            className="w-full bg-poker-gold hover:bg-poker-gold/90 text-poker-black font-semibold shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
+            title={!activeSeason ? "Nenhuma temporada ativa" : undefined}
+          >
+            {seasonLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-2 fill-current" />
+                Iniciar partida
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Partida avulsa */}
-        <button
-          type="button"
-          onClick={handleOpenStandaloneGame}
-          disabled={isCreating}
-          className="flex-1 flex items-center gap-4 px-2 text-left hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-900/40 border border-blue-500 flex items-center justify-center shrink-0">
-            <Zap className="w-6 h-6 md:w-7 md:h-7 text-blue-300" />
+        <div className="flex-1 flex flex-col justify-between gap-2 p-3 rounded-lg bg-blue-900/10 border border-blue-500/40 hover:border-blue-500 transition-colors">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-full bg-blue-900/40 border border-blue-500 flex items-center justify-center shrink-0">
+              <Zap className="w-5 h-5 text-blue-300" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                Partida Avulsa
+              </span>
+              <span className="text-sm md:text-base font-bold text-blue-300 truncate">
+                Sem vínculo com temporada
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm text-muted-foreground">
-              {isCreating ? "Criando..." : "Abrir partida avulsa"}
-            </span>
-            <span className="text-base md:text-lg font-bold text-blue-300 truncate">
-              Sem vínculo com temporada
-            </span>
-          </div>
-        </button>
+          <Button
+            type="button"
+            onClick={handleOpenStandaloneGame}
+            disabled={isCreating}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
+          >
+            {standaloneLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-2 fill-current" />
+                Iniciar partida avulsa
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
