@@ -12,6 +12,7 @@ const viewerAllowedPaths = [
   '/statistics',
   '/house-rules',
   '/themes',
+  '/gallery',
 ];
 
 function isViewerAllowedPath(pathname: string) {
