@@ -196,12 +196,48 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_folders: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_folders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_photos: {
         Row: {
           caption: string | null
           created_at: string
           event_date: string | null
           file_size: number | null
+          folder_id: string | null
           game_id: string | null
           id: string
           organization_id: string
@@ -216,6 +252,7 @@ export type Database = {
           created_at?: string
           event_date?: string | null
           file_size?: number | null
+          folder_id?: string | null
           game_id?: string | null
           id?: string
           organization_id: string
@@ -230,6 +267,7 @@ export type Database = {
           created_at?: string
           event_date?: string | null
           file_size?: number | null
+          folder_id?: string | null
           game_id?: string | null
           id?: string
           organization_id?: string
@@ -240,6 +278,13 @@ export type Database = {
           uploaded_by?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "gallery_photos_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gallery_photos_organization_id_fkey"
             columns: ["organization_id"]
