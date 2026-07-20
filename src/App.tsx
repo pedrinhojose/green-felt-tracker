@@ -8,6 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { PokerProvider } from '@/contexts/PokerContext';
 import { AudioProvider } from '@/contexts/AudioContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
@@ -39,11 +40,13 @@ import PublicSeasonView from '@/pages/PublicSeasonView';
 import PublicGameView from '@/pages/PublicGameView';
 import ResetPassword from '@/pages/ResetPassword';
 import GalleryPage from '@/pages/GalleryPage';
+import ThemesPage from '@/pages/ThemesPage';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
+    <ThemeProvider>
     <div className="min-h-screen bg-gradient-to-br from-poker-black via-slate-900 to-poker-black">
       <QueryClientProvider client={queryClient}>
         <Toaster />
@@ -82,6 +85,7 @@ function App() {
                     <Route path="/house-rules" element={<HouseRules />} />
                     <Route path="/reports/season" element={<SeasonReport />} />
                     <Route path="/gallery" element={<GalleryPage />} />
+                    <Route path="/themes" element={<ThemesPage />} />
 
                     {/* Rotas bloqueadas para visitantes */}
                     <Route element={<RequireEditor />}>
@@ -103,6 +107,7 @@ function App() {
         </Router>
       </QueryClientProvider>
     </div>
+    </ThemeProvider>
   );
 }
 
