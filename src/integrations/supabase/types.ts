@@ -196,6 +196,59 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_date: string | null
+          file_size: number | null
+          game_id: string | null
+          id: string
+          organization_id: string
+          photo_url: string
+          season_id: string | null
+          thumbnail_url: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_date?: string | null
+          file_size?: number | null
+          game_id?: string | null
+          id?: string
+          organization_id: string
+          photo_url: string
+          season_id?: string | null
+          thumbnail_url: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_date?: string | null
+          file_size?: number | null
+          game_id?: string | null
+          id?: string
+          organization_id?: string
+          photo_url?: string
+          season_id?: string | null
+          thumbnail_url?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_photos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           created_at: string
