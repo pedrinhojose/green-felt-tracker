@@ -111,6 +111,7 @@ export function AppSidebar() {
                   >
                     <NavLink
                       to={item.path}
+                      onClick={handleNavClick}
                       className={cn(
                         'flex items-center gap-2',
                         isActive(item.path) ? 'text-poker-gold font-medium' : 'text-white/80'
