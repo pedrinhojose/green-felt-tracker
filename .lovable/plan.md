@@ -1,21 +1,25 @@
-## Objetivo
-Melhorar o menu sanduíche em mobile/tablet: fechar automaticamente ao clicar em um item e corrigir o fundo transparente que dificulta a leitura.
+## Melhorar navegação de fotos no mobile (lightbox)
 
-## Alterações
+Hoje no mobile o `PhotoLightbox` só mostra setas pequenas nos cantos — não fica óbvio que dá pra arrastar. Vamos deixar a navegação por swipe real e visualmente clara.
 
-### 1. `src/components/layout/AppSidebar.tsx`
-- Usar o hook `useSidebar()` para acessar `isMobile` e `setOpenMobile`.
-- No `onClick` de cada `NavLink` do menu: se `isMobile` for true, chamar `setOpenMobile(false)` para fechar o drawer automaticamente ao navegar.
-- Aplicar o mesmo comportamento ao logo do clube (link para `/dashboard`) no `SidebarHeader`.
+### Mudanças no `src/components/gallery/PhotoLightbox.tsx`
 
-### 2. Estilo do drawer mobile (fundo sólido)
-O drawer mobile é renderizado via `Sheet` dentro de `src/components/ui/sidebar.tsx`. Hoje ele herda `bg-sidebar` que, dependendo do tema ativo, pode ficar translúcido/pouco contrastado sobre o conteúdo.
-- Ajustar o `SheetContent` interno do `Sidebar` (branch `isMobile`) para usar fundo sólido do tema `poker-black` (mesma paleta do header) e adicionar `backdrop-blur-md` + borda à direita, garantindo leitura clara em qualquer tema.
-- Manter o overlay escuro padrão do `Sheet` (já existente) para escurecer o conteúdo atrás.
+1. **Swipe real com o dedo**
+   - Adicionar handlers `onTouchStart` / `onTouchMove` / `onTouchEnd` na área da imagem.
+   - Threshold de ~50px pra trocar de foto; abaixo disso, volta pra posição.
+   - Durante o arrasto, aplicar `translateX` na imagem pra dar feedback tátil imediato (a foto "segue o dedo").
+   - Animação suave de saída/entrada ao trocar (`transition-transform`).
 
-### 3. Sem mudanças em desktop
-O comportamento da sidebar fixa em desktop (`lg+`) permanece igual — expandida por padrão, colapsável via `SidebarTrigger`.
+2. **Dicas visuais de que dá pra arrastar**
+   - Contador "3 / 27" no topo da imagem (mostra que existem mais fotos).
+   - Pontinhos/paginação discreta embaixo (máx. ~7 pontinhos com o atual destacado) — só no mobile.
+   - Na primeira vez que o lightbox abre na sessão, mostrar um hint animado "← arraste →" que some após 1,5s (guardado em `sessionStorage` pra não repetir).
+   - Setas laterais: manter no desktop, esconder no mobile (o swipe substitui).
 
-## Detalhes técnicos
-- `useSidebar()` expõe `{ isMobile, openMobile, setOpenMobile, ... }` — é a API oficial do shadcn sidebar para controlar o drawer mobile.
-- Não é necessário mexer em `AppLayout.tsx` nem no `SidebarTrigger` do header.
+3. **Ajustes de UX**
+   - `touch-action: pan-y` na imagem pra o gesto horizontal não conflitar com scroll da página.
+   - Impedir o swipe quando estiver na primeira/última foto (efeito "resistência": arrasta menos).
+
+### Fora do escopo
+- Não muda o grid da galeria, upload, edição ou backend.
+- Não adiciona zoom/pinch (posso propor separado se quiser).
