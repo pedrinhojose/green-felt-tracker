@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import FinancialSummaryCard from "@/components/FinancialSummaryCard";
+import QuickGameCard from "@/components/QuickGameCard";
 import LastGameCard from "@/components/LastGameCard";
 import RankingCard from "@/components/RankingCard";
 import { UpcomingDinnerCard } from "@/components/UpcomingDinnerCard";
