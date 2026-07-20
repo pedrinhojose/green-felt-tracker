@@ -181,9 +181,38 @@
 }
 
 @layer components {
-  .card-dashboard {
-    @apply bg-card backdrop-blur-sm border border-opacity-20 border-white/5 rounded-xl p-4 md:p-6 shadow-apple hover:shadow-apple-hover transition-all duration-300 flex flex-col;
+  .surface-card {
+    background: var(--surface-bg);
+    border: var(--surface-border);
+    border-radius: var(--surface-radius);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: var(--surface-backdrop);
+    -webkit-backdrop-filter: var(--surface-backdrop);
+    color: hsl(var(--card-foreground));
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
   }
+  .surface-card:hover {
+    box-shadow: var(--surface-shadow-hover);
+  }
+  .surface-modal {
+    background: var(--modal-bg);
+    border: var(--surface-border);
+    border-radius: var(--surface-radius);
+    box-shadow: var(--modal-shadow);
+    backdrop-filter: var(--surface-backdrop);
+    -webkit-backdrop-filter: var(--surface-backdrop);
+    color: hsl(var(--card-foreground));
+  }
+  .surface-overlay {
+    background: var(--overlay-bg);
+    backdrop-filter: var(--overlay-backdrop);
+    -webkit-backdrop-filter: var(--overlay-backdrop);
+  }
+
+  .card-dashboard {
+    @apply surface-card p-4 md:p-6 flex flex-col;
+  }
+
   
   .card-dashboard-header {
     @apply text-lg md:text-xl font-medium text-poker-gold mb-3 md:mb-4 border-b border-white/10 pb-2 md:pb-3;
