@@ -166,6 +166,7 @@ export default function Dashboard() {
         <FinancialSummaryCard />
         <RankingCard />
         <LastGameCard />
+        {!isViewer && <QuickGameCard />}
       </div>
       
       {activeSeason && activeSeason.hostSchedule && activeSeason.hostSchedule.length > 0 && (
