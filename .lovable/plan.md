@@ -1,33 +1,35 @@
-## Objetivo
-Tornar o card "Partidas" do Dashboard mais intuitivo, com visual claro de botões clicáveis em vez de linhas de texto.
+## Problemas observados
+1. Em ~1200-1300px o menu do desktop tem itens demais e colide com o nome do clube; o `ProfileDropdown` sai da viewport (só aparece rolando horizontalmente).
+2. O card "Top 3" tem botões "Atualizar" e "Exportar" no cabeçalho que quebram o layout, sobrepondo o título e o texto "Atualizado em ...".
 
-## Mudanças em `src/components/QuickGameCard.tsx`
+## Ajustes
 
-Manter a mesma estrutura de card dividido em dois (temporada / avulsa), mas transformar cada metade em um **botão de ação visualmente evidente**:
+### 1. `src/components/PokerNav.tsx` — Nav responsivo sem estouro
+- Trocar o breakpoint do menu mobile de `md` para `lg`: hambúrguer aparece até 1023px (`lg:hidden`), menu desktop só a partir de 1024px (`hidden lg:flex`). Isso libera o desktop nav só quando há espaço real.
+- No desktop nav:
+  - `gap-6` → `gap-2 xl:gap-4`.
+  - `space-x-1` → `space-x-0`.
+  - Links: `px-3 py-2` → `px-2 py-2`, `text-sm`, `whitespace-nowrap`.
+  - `<ul>` com `min-w-0` para permitir shrink.
+- Logo/nome do clube:
+  - Manter `flex-1 min-w-0`, adicionar `truncate` no `<h1>`.
+  - `text-2xl` → `text-lg xl:text-xl` no desktop, liberando espaço para o menu.
+- `SeasonSelector` e `ProfileDropdown` sempre à direita com `flex-shrink-0`, garantindo o ícone de perfil sempre visível.
+- Resultado: em ≤1023px o hambúrguer aparece (mobile e tablet), em ≥1024px tudo cabe sem overflow, com o perfil visível.
 
-1. **CTA principal em cada metade**
-   - Botão sólido/destacado com rótulo de ação claro: **"Iniciar partida"** (temporada) e **"Iniciar partida avulsa"** (avulsa).
-   - Ícone `Play` dentro do botão, com hover (brilho + leve scale) e estado `active:` (pressionado).
-   - Cores: temporada usa verde/poker-gold; avulsa usa azul (mantendo paleta atual).
+### 2. `src/components/RankingCard.tsx` — Cabeçalho limpo
+- Remover botões "Atualizar" e "Exportar" e o texto "Atualizado em ...".
+- Remover imports/estados não usados (`isExporting`, `isRefreshing`, `lastUpdatedAt`, `RefreshCw`, `Download`, `Button`, `useRankingExport`, `useRankingSync`, `handleExportTop3`).
+- Cabeçalho fica só com `<h3>Top 3</h3>`.
+- Card continua clicável (leva para `/ranking`) onde o usuário atualiza/exporta com os controles daquela página.
 
-2. **Hierarquia visual**
-   - Ícone circular grande à esquerda (mantido) → passa a ter animação sutil no hover do card.
-   - Título curto acima (ex: "Partida da Temporada" / "Partida Avulsa").
-   - Subtítulo com contexto (nome da temporada ativa / "Sem vínculo com temporada").
-   - Botão CTA embaixo, ocupando largura total da metade.
+### 3. Escopo
+- Apenas UI/apresentação nesses dois arquivos. Sem mudança de lógica, rotas ou banco.
 
-3. **Área clicável**
-   - O card inteiro continua clicável (acessibilidade), mas o botão dentro reforça a ação.
-   - Cursor `pointer` e feedback visual em hover no card e no botão.
+## Como isso resolve
+- Menu e logo não se sobrepõem: o desktop nav só aparece com espaço suficiente (≥lg) e usa gaps/paddings menores; em telas menores o hambúrguer assume, eliminando o overflow horizontal.
+- O ícone de perfil passa a caber sempre na viewport, sem scroll.
+- O card Top 3 fica visualmente limpo e não quebra em telas médias.
 
-4. **Estados**
-   - Loading: botão mostra spinner + "Criando...".
-   - Sem temporada ativa: metade da temporada fica desabilitada com badge "Sem temporada ativa" e botão em estado `disabled` com tooltip explicativo.
-
-5. **Responsivo**
-   - Mobile: ícone + textos empilhados, botão largura total.
-   - Desktop: layout horizontal como hoje, com botão embaixo do bloco de texto.
-
-## Escopo
-- Somente `src/components/QuickGameCard.tsx` (UI/apresentação).
-- Nenhuma alteração de lógica, contexto, rotas ou banco.
+## Depois de aprovado
+Implemento, capturo screenshots em desktop (~1280px) e mobile (~390px) e envio para você conferir.

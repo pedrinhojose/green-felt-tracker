@@ -2,33 +2,21 @@
 import { useEffect, useState } from "react";
 import { usePoker } from "@/contexts/PokerContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Download, RefreshCw } from "lucide-react";
-import { useRankingExport } from "@/lib/utils/rankingExportUtils";
-import { useRankingSync } from "@/hooks/useRankingSync";
 import { useNavigate } from "react-router-dom";
 import { RankingEntry } from "@/lib/db/models";
 
 export default function RankingCard() {
-  const { rankings, activeSeason } = usePoker();
+  const { rankings } = usePoker();
   const navigate = useNavigate();
   const [topPlayers, setTopPlayers] = useState<RankingEntry[]>([]);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
-  const { downloadRankingAsImage } = useRankingExport();
-  const { validateRankingConsistency } = useRankingSync();
-  
+
   useEffect(() => {
-    // Get top 3 players from ranking
     const sorted = [...rankings]
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .slice(0, 3);
-    
-  setTopPlayers(sorted);
-    setLastUpdatedAt(new Date());
+    setTopPlayers(sorted);
   }, [rankings]);
-  
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -36,15 +24,6 @@ export default function RankingCard() {
       .join('')
       .toUpperCase()
       .substring(0, 2);
-  };
-
-  const getMedalEmoji = (position: number) => {
-    switch (position) {
-      case 0: return '🥇';
-      case 1: return '🥈';
-      case 2: return '🥉';
-      default: return (position + 1).toString();
-    }
   };
 
   const renderPoints = (player: RankingEntry) => {
@@ -62,27 +41,6 @@ export default function RankingCard() {
       </>
     );
   };
-  
-  const handleExportTop3 = async () => {
-    try {
-      setIsExporting(true);
-      await downloadRankingAsImage(topPlayers, activeSeason, getInitials, getMedalEmoji);
-    } catch (error) {
-      console.error("Erro ao exportar top 3:", error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // Helper function to get position-specific styling
-  const getPositionStyles = (index) => {
-    switch (index) {
-      case 0: return "bg-poker-gold/10 border-poker-gold";
-      case 1: return "bg-gray-400/10 border-gray-400";
-      case 2: return "bg-amber-700/10 border-amber-700";
-      default: return "bg-white/10 border-white/10";
-    }
-  };
 
   const renderPodium = () => {
     if (topPlayers.length === 0) {
@@ -93,16 +51,13 @@ export default function RankingCard() {
       );
     }
 
-    // Organize players for new podium layout
     const firstPlace = topPlayers[0] || null;
     const secondPlace = topPlayers[1] || null;
     const thirdPlace = topPlayers[2] || null;
 
     return (
       <div className="flex flex-col items-center w-full py-2">
-        {/* Nova estrutura do pódio ajustada para caber no card */}
         <div className="flex items-end justify-between w-full relative px-2 pt-10 pb-2">
-          {/* Second place (left side) */}
           {secondPlace && (
             <div className="flex flex-col items-center mb-2 w-1/3 max-w-[90px]">
               <Avatar className="h-12 w-12 border-2 border-gray-400">
@@ -122,7 +77,6 @@ export default function RankingCard() {
             </div>
           )}
 
-          {/* First place (center and elevated) */}
           {firstPlace && (
             <div className="flex flex-col items-center z-10 absolute top-[-20px] left-1/2 transform -translate-x-1/2">
               <Avatar className="h-16 w-16 border-2 border-poker-gold">
@@ -142,7 +96,6 @@ export default function RankingCard() {
             </div>
           )}
 
-          {/* Third place (right side) */}
           {thirdPlace && (
             <div className="flex flex-col items-center mb-4 w-1/3 max-w-[90px]">
               <Avatar className="h-11 w-11 border-2 border-amber-700">
@@ -175,46 +128,8 @@ export default function RankingCard() {
       className="card-dashboard cursor-pointer hover:scale-[1.02] transition-all duration-200 ease-out"
       onClick={handleCardClick}
     >
-      <div className="card-dashboard-header flex justify-between items-center">
+      <div className="card-dashboard-header">
         <h3>Top 3</h3>
-        <div className="flex items-center gap-2">
-          {lastUpdatedAt && (
-            <span className="text-xs text-muted-foreground">Atualizado em {lastUpdatedAt.toLocaleTimeString()}</span>
-          )}
-          {topPlayers.length > 0 && (
-            <>
-              <Button 
-                onClick={async () => {
-                  if (!activeSeason?.id) return;
-                  try {
-                    setIsRefreshing(true);
-                    await validateRankingConsistency(activeSeason.id);
-                    setLastUpdatedAt(new Date());
-                  } finally {
-                    setIsRefreshing(false);
-                  }
-                }}
-                disabled={isRefreshing}
-                size="sm" 
-                variant="outline" 
-                className="h-8 px-2 text-xs bg-transparent border border-white/20 hover:bg-white/5"
-              >
-                <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
-              <Button 
-                onClick={handleExportTop3}
-                disabled={isExporting}
-                size="sm" 
-                variant="outline" 
-                className="h-8 px-2 text-xs bg-transparent border border-white/20 hover:bg-white/5"
-              >
-                <Download className="h-3 w-3 mr-1" />
-                Exportar
-              </Button>
-            </>
-          )}
-        </div>
       </div>
       
       <div className="flex-1 flex items-center justify-center py-2">

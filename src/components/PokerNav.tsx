@@ -54,11 +54,11 @@ export default function PokerNav() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-poker-black/90 backdrop-blur-md border-b border-white/5">
-      <div className={`w-full flex h-14 md:h-16 items-center justify-between ${isMobile ? 'px-3' : 'px-4'}`}>
+      <div className={`w-full flex h-14 md:h-16 items-center justify-between gap-2 ${isMobile ? 'px-3' : 'px-4'}`}>
         {/* Logo - Nome do Clube */}
-        <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-          <Link to="/dashboard" className="flex-shrink-0">
-            <h1 className={`font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+        <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink">
+          <Link to="/dashboard" className="min-w-0">
+            <h1 className="font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent text-lg xl:text-xl truncate">
               {currentOrganization?.name || 'Poker Manager'}
             </h1>
           </Link>
@@ -66,7 +66,7 @@ export default function PokerNav() {
         
         {/* Mobile Menu Toggle */}
         <button 
-          className={`md:hidden p-2 text-poker-gold hover:bg-white/5 rounded-md transition-colors ${isMobile ? 'min-w-[40px] min-h-[40px]' : ''}`}
+          className={`lg:hidden p-2 text-poker-gold hover:bg-white/5 rounded-md transition-colors ${isMobile ? 'min-w-[40px] min-h-[40px]' : ''}`}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -78,15 +78,15 @@ export default function PokerNav() {
         </button>
         
         {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center gap-6">
-          <ul className="flex space-x-1">
+        <nav className="hidden lg:flex items-center gap-2 xl:gap-4 min-w-0 flex-1 justify-end">
+          <ul className="flex items-center min-w-0">
             {filteredNavItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   className={cn(
-                    "nav-tab flex items-center",
-                    location.pathname === item.path ? "text-poker-gold font-medium px-3 py-2 rounded hover:bg-white/5" : "text-white/80 px-3 py-2 rounded hover:bg-white/5"
+                    "nav-tab flex items-center text-sm whitespace-nowrap px-2 py-2 rounded hover:bg-white/5",
+                    location.pathname === item.path ? "text-poker-gold font-medium" : "text-white/80"
                   )}
                 >
                   {item.superAdminOnly && (
@@ -101,25 +101,29 @@ export default function PokerNav() {
             ))}
           </ul>
           
-          <SeasonSelector />
+          <div className="flex-shrink-0">
+            <SeasonSelector />
+          </div>
 
           {/* Perfil do Usuário - Desktop */}
-          {user ? (
-            <ProfileDropdown />
-          ) : (
-            <Link 
-              to="/login"
-              className="text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded transition-colors"
-            >
-              Entrar
-            </Link>
-          )}
+          <div className="flex-shrink-0">
+            {user ? (
+              <ProfileDropdown />
+            ) : (
+              <Link 
+                to="/login"
+                className="text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded transition-colors"
+              >
+                Entrar
+              </Link>
+            )}
+          </div>
         </nav>
       </div>
       
       {/* Mobile Menu Dropdown - otimizado */}
       {isMobileMenuOpen && (
-        <nav className="md:hidden bg-poker-black/95 backdrop-blur-md border-t border-white/5 animate-slide-down">
+        <nav className="lg:hidden bg-poker-black/95 backdrop-blur-md border-t border-white/5 animate-slide-down">
           <div className="px-4 py-3 border-b border-white/5">
             <SeasonSelector />
           </div>
