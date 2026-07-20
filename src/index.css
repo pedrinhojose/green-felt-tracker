@@ -36,6 +36,95 @@
     --ring: 45 70% 60%;
 
     --radius: 0.75rem;
+
+    /* Elevation tokens per theme */
+    --surface-bg: hsl(160 90% 8%);
+    --surface-border: 1px solid hsl(214 20% 25% / 0.5);
+    --surface-radius: 0.75rem;
+    --surface-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --surface-shadow-hover: 0 8px 20px rgba(0, 0, 0, 0.5);
+    --surface-backdrop: none;
+    --modal-bg: hsl(160 90% 8%);
+    --modal-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    --overlay-bg: rgba(0, 0, 0, 0.8);
+    --overlay-backdrop: blur(2px);
+  }
+
+  /* ===== Modern (Apple-like) ===== */
+  [data-theme="modern"] {
+    --background: 240 10% 6%;
+    --foreground: 0 0% 96%;
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 10% 10%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 210 20% 90%;
+    --primary-foreground: 240 10% 8%;
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 240 5% 18%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 190 80% 60%;
+    --accent-foreground: 240 10% 8%;
+    --border: 240 5% 20%;
+    --input: 240 5% 20%;
+    --ring: 190 80% 60%;
+    --radius: 1.1rem;
+
+    --surface-bg: rgba(255, 255, 255, 0.04);
+    --surface-border: 1px solid rgba(255, 255, 255, 0.10);
+    --surface-radius: 1.25rem;
+    --surface-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --surface-shadow-hover: 0 28px 60px -20px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    --surface-backdrop: blur(24px) saturate(140%);
+    --modal-bg: rgba(20, 20, 28, 0.85);
+    --modal-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --overlay-bg: rgba(0, 0, 0, 0.6);
+    --overlay-backdrop: blur(16px) saturate(140%);
+  }
+
+  /* ===== Neon Vegas (casino) ===== */
+  [data-theme="neon"] {
+    --background: 270 60% 5%;
+    --foreground: 45 100% 92%;
+    --card: 275 55% 10%;
+    --card-foreground: 45 100% 92%;
+    --popover: 275 55% 10%;
+    --popover-foreground: 45 100% 92%;
+    --primary: 292 84% 60%;
+    --primary-foreground: 45 100% 96%;
+    --secondary: 265 60% 15%;
+    --secondary-foreground: 45 100% 92%;
+    --muted: 270 30% 20%;
+    --muted-foreground: 280 20% 75%;
+    --accent: 45 90% 60%;
+    --accent-foreground: 270 60% 8%;
+    --border: 292 60% 30%;
+    --input: 270 40% 18%;
+    --ring: 292 84% 60%;
+    --radius: 0.9rem;
+
+    --surface-bg: linear-gradient(180deg, hsl(275 55% 12%), hsl(270 60% 7%));
+    --surface-border: 1px solid rgba(217, 70, 239, 0.35);
+    --surface-radius: 0.9rem;
+    --surface-shadow:
+      0 0 0 1px rgba(217, 70, 239, 0.2),
+      0 8px 24px rgba(124, 58, 237, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+    --surface-shadow-hover:
+      0 0 0 1px rgba(217, 70, 239, 0.4),
+      0 12px 36px rgba(217, 70, 239, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.55);
+    --surface-backdrop: none;
+    --modal-bg: linear-gradient(180deg, hsl(275 55% 14%), hsl(270 60% 8%));
+    --modal-shadow:
+      0 0 0 1px rgba(217, 70, 239, 0.4),
+      0 30px 80px rgba(124, 58, 237, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --overlay-bg: rgba(20, 0, 40, 0.75);
+    --overlay-backdrop: blur(6px);
   }
 
   * {
@@ -92,9 +181,38 @@
 }
 
 @layer components {
-  .card-dashboard {
-    @apply bg-card backdrop-blur-sm border border-opacity-20 border-white/5 rounded-xl p-4 md:p-6 shadow-apple hover:shadow-apple-hover transition-all duration-300 flex flex-col;
+  .surface-card {
+    background: var(--surface-bg);
+    border: var(--surface-border);
+    border-radius: var(--surface-radius);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: var(--surface-backdrop);
+    -webkit-backdrop-filter: var(--surface-backdrop);
+    color: hsl(var(--card-foreground));
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
   }
+  .surface-card:hover {
+    box-shadow: var(--surface-shadow-hover);
+  }
+  .surface-modal {
+    background: var(--modal-bg);
+    border: var(--surface-border);
+    border-radius: var(--surface-radius);
+    box-shadow: var(--modal-shadow);
+    backdrop-filter: var(--surface-backdrop);
+    -webkit-backdrop-filter: var(--surface-backdrop);
+    color: hsl(var(--card-foreground));
+  }
+  .surface-overlay {
+    background: var(--overlay-bg);
+    backdrop-filter: var(--overlay-backdrop);
+    -webkit-backdrop-filter: var(--overlay-backdrop);
+  }
+
+  .card-dashboard {
+    @apply surface-card p-4 md:p-6 flex flex-col;
+  }
+
   
   .card-dashboard-header {
     @apply text-lg md:text-xl font-medium text-poker-gold mb-3 md:mb-4 border-b border-white/10 pb-2 md:pb-3;

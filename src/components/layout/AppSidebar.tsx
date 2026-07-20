@@ -12,6 +12,7 @@ import {
   PiggyBank,
   ShieldAlert,
   Crown,
+  Palette,
 } from 'lucide-react';
 
 import {
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
   { name: 'Galeria', path: '/gallery', icon: ImageIcon },
   { name: 'Regras da Casa', path: '/house-rules', icon: BookOpen },
   { name: 'Caixinha', path: '/caixinha', icon: PiggyBank, hideForViewer: true },
+  { name: 'Temas', path: '/themes', icon: Palette },
   { name: 'Usuários', path: '/users', icon: ShieldAlert, requiredRole: 'admin' },
   { name: 'Super Admin', path: '/super-admin', icon: Crown, superAdminOnly: true },
 ];
