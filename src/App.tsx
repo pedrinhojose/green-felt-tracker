@@ -38,6 +38,7 @@ import CaixinhaManagement from '@/pages/CaixinhaManagement';
 import PublicSeasonView from '@/pages/PublicSeasonView';
 import PublicGameView from '@/pages/PublicGameView';
 import ResetPassword from '@/pages/ResetPassword';
+import GalleryPage from '@/pages/GalleryPage';
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ function App() {
                     <Route path="/statistics/player/:playerId" element={<PlayerStatisticsDetail />} />
                     <Route path="/house-rules" element={<HouseRules />} />
                     <Route path="/reports/season" element={<SeasonReport />} />
+                    <Route path="/gallery" element={<GalleryPage />} />
 
                     {/* Rotas bloqueadas para visitantes */}
                     <Route element={<RequireEditor />}>
