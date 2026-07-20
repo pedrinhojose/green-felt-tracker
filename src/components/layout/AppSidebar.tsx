@@ -88,7 +88,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-white/5">
         <div className="flex items-center justify-between gap-2 px-2 py-1">
           {!collapsed && (
-            <Link to="/dashboard" className="min-w-0 flex-1">
+            <Link to="/dashboard" className="min-w-0 flex-1" onClick={handleNavClick}>
               <h1 className="font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent text-base truncate">
                 {currentOrganization?.name || 'Poker Manager'}
               </h1>
