@@ -10,7 +10,7 @@ interface Props {
   uploading: boolean;
 }
 
-const MAX_FILES = 20;
+const MAX_FILES = 100;
 
 export function PhotoUploadDialog({ open, onOpenChange, onUpload, uploading }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
