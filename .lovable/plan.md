@@ -1,35 +1,59 @@
-## Problemas observados
-1. Em ~1200-1300px o menu do desktop tem itens demais e colide com o nome do clube; o `ProfileDropdown` sai da viewport (só aparece rolando horizontalmente).
-2. O card "Top 3" tem botões "Atualizar" e "Exportar" no cabeçalho que quebram o layout, sobrepondo o título e o texto "Atualizado em ...".
+# Sidebar lateral no desktop (mobile permanece igual)
 
-## Ajustes
+## O que muda
 
-### 1. `src/components/PokerNav.tsx` — Nav responsivo sem estouro
-- Trocar o breakpoint do menu mobile de `md` para `lg`: hambúrguer aparece até 1023px (`lg:hidden`), menu desktop só a partir de 1024px (`hidden lg:flex`). Isso libera o desktop nav só quando há espaço real.
-- No desktop nav:
-  - `gap-6` → `gap-2 xl:gap-4`.
-  - `space-x-1` → `space-x-0`.
-  - Links: `px-3 py-2` → `px-2 py-2`, `text-sm`, `whitespace-nowrap`.
-  - `<ul>` com `min-w-0` para permitir shrink.
-- Logo/nome do clube:
-  - Manter `flex-1 min-w-0`, adicionar `truncate` no `<h1>`.
-  - `text-2xl` → `text-lg xl:text-xl` no desktop, liberando espaço para o menu.
-- `SeasonSelector` e `ProfileDropdown` sempre à direita com `flex-shrink-0`, garantindo o ícone de perfil sempre visível.
-- Resultado: em ≤1023px o hambúrguer aparece (mobile e tablet), em ≥1024px tudo cabe sem overflow, com o perfil visível.
+No **desktop e tablet (≥1024px)**, a navegação sai do topo e vira uma **sidebar lateral fixa à esquerda**, expandida por padrão (~240px) com ícone + texto de cada item, e um botão para recolher em modo mini (só ícones, ~56px). Tudo dentro da sidebar: logo do clube, itens de menu, seletor de temporada e dropdown do perfil.
 
-### 2. `src/components/RankingCard.tsx` — Cabeçalho limpo
-- Remover botões "Atualizar" e "Exportar" e o texto "Atualizado em ...".
-- Remover imports/estados não usados (`isExporting`, `isRefreshing`, `lastUpdatedAt`, `RefreshCw`, `Download`, `Button`, `useRankingExport`, `useRankingSync`, `handleExportTop3`).
-- Cabeçalho fica só com `<h3>Top 3</h3>`.
-- Card continua clicável (leva para `/ranking`) onde o usuário atualiza/exporta com os controles daquela página.
+No **mobile (<1024px)**, nada muda — continua com a barra superior atual e o menu hambúrguer que já funciona bem.
 
-### 3. Escopo
-- Apenas UI/apresentação nesses dois arquivos. Sem mudança de lógica, rotas ou banco.
+## Layout desktop
 
-## Como isso resolve
-- Menu e logo não se sobrepõem: o desktop nav só aparece com espaço suficiente (≥lg) e usa gaps/paddings menores; em telas menores o hambúrguer assume, eliminando o overflow horizontal.
-- O ícone de perfil passa a caber sempre na viewport, sem scroll.
-- O card Top 3 fica visualmente limpo e não quebra em telas médias.
+```text
+┌──────────────┬────────────────────────────────┐
+│  APA Poker   │                                │
+│  ───────     │                                │
+│  ▸ Painel    │                                │
+│  ▸ Config.   │        Conteúdo (Outlet)       │
+│  ▸ Partidas  │                                │
+│  ▸ Ranking   │                                │
+│  ▸ ...       │                                │
+│              │                                │
+│  ───────     │                                │
+│  Temporada:  │                                │
+│  [Selector]  │                                │
+│  ───────     │                                │
+│  [Perfil ▾]  │                                │
+└──────────────┴────────────────────────────────┘
+```
 
-## Depois de aprovado
-Implemento, capturo screenshots em desktop (~1280px) e mobile (~390px) e envio para você conferir.
+Recolhida: mesma coluna com apenas os ícones e um botão de expandir no topo.
+
+## Estrutura técnica
+
+- **Novo componente** `src/components/layout/AppSidebar.tsx` usando o shadcn `Sidebar` já disponível em `src/components/ui/sidebar.tsx` (`collapsible="icon"`, ícone + texto expandido por padrão).
+  - Reutiliza a mesma lista `navItems` e o mesmo filtro por role (admin / viewer / super admin) que hoje vive em `PokerNav.tsx`.
+  - Cada item recebe um ícone lucide (Home, Settings, Trophy, Users, Image, etc.) — hoje só existe texto.
+  - `SidebarHeader` → nome do clube (logo/link para `/dashboard`).
+  - `SidebarContent` → lista de itens com `NavLink` marcando `isActive`.
+  - `SidebarFooter` → `SeasonSelector` + `ProfileDropdown` (ou botão "Entrar" quando deslogado).
+  - Trigger de recolher/expandir dentro do próprio `SidebarHeader`.
+
+- **`AppLayout.tsx`** passa a renderizar condicionalmente:
+  - `isMobile` (breakpoint atual `< 1024px`, já usado em `PokerNav`): mantém `<PokerNav />` como está.
+  - Desktop/tablet: envolve o conteúdo em `<SidebarProvider>` com `<AppSidebar />` + `<main>` contendo o `<Outlet />`. Mantém o `<footer>` embaixo.
+
+- **`PokerNav.tsx`**: sem alterações de lógica. Continua sendo usado no mobile. (Opcional: esconder o bloco desktop via `lg:hidden` para eliminar código morto, mas não é obrigatório.)
+
+- **Persistência do estado recolhido**: o `SidebarProvider` já grava em cookie automaticamente — sem trabalho adicional.
+
+## Detalhes de estilo
+
+- Cor de fundo da sidebar alinhada ao tema atual (`bg-poker-black/90` ou tokens `--sidebar-background`) para casar com o resto do app.
+- Item ativo em `text-poker-gold`, hover suave `bg-white/5`, mantendo a identidade visual atual.
+- Ícones dos badges especiais preservados: `Crown` para Super Admin, `ShieldAlert` para Usuários.
+
+## Fora de escopo
+
+- Nenhuma mudança no mobile.
+- Nenhuma mudança nas rotas, roles, permissões, dados ou em qualquer página de conteúdo.
+- Sem alteração nos cards do Dashboard já ajustados anteriormente.
