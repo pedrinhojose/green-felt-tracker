@@ -86,16 +86,33 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-white/5">
       <SidebarHeader className="border-b border-white/5">
-        <div className="flex items-center justify-between gap-2 px-2 py-1">
+        <div className="flex items-center gap-2 px-1 py-1">
+          {user ? (
+            <ProfileDropdown />
+          ) : (
+            !collapsed && (
+              <Link
+                to="/login"
+                className="text-xs font-medium bg-poker-gold hover:bg-amber-500 text-white px-2 py-1 rounded transition-colors"
+              >
+                Entrar
+              </Link>
+            )
+          )}
           {!collapsed && (
             <Link to="/dashboard" className="min-w-0 flex-1" onClick={handleNavClick}>
-              <h1 className="font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent text-base truncate">
+              <h1 className="font-bold bg-gradient-to-r from-poker-gold to-amber-300 bg-clip-text text-transparent text-sm truncate">
                 {currentOrganization?.name || 'Poker Manager'}
               </h1>
             </Link>
           )}
-          <SidebarTrigger className="text-poker-gold hover:bg-white/5" />
+          {!collapsed && <SidebarTrigger className="text-poker-gold hover:bg-white/5 shrink-0" />}
         </div>
+        {collapsed && (
+          <div className="flex justify-center">
+            <SidebarTrigger className="text-poker-gold hover:bg-white/5" />
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent>
@@ -108,17 +125,18 @@ export function AppSidebar() {
                     asChild
                     isActive={isActive(item.path)}
                     tooltip={item.name}
+                    size="lg"
                   >
                     <NavLink
                       to={item.path}
                       onClick={handleNavClick}
                       className={cn(
-                        'flex items-center gap-2',
+                        'flex items-center gap-3',
                         isActive(item.path) ? 'text-poker-gold font-medium' : 'text-white/80'
                       )}
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.name}</span>
+                      <item.icon className="h-5 w-5 shrink-0" />
+                      <span className="truncate text-[0.95rem]">{item.name}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -128,26 +146,12 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-white/5 gap-2">
+      <SidebarFooter className="border-t border-white/5">
         {!collapsed && (
           <div className="px-2">
             <SeasonSelector />
           </div>
         )}
-        <div className={cn('flex', collapsed ? 'justify-center' : 'justify-end px-2')}>
-          {user ? (
-            <ProfileDropdown />
-          ) : (
-            !collapsed && (
-              <Link
-                to="/login"
-                className="text-sm font-medium bg-poker-gold hover:bg-amber-500 text-white px-4 py-2 rounded transition-colors"
-              >
-                Entrar
-              </Link>
-            )
-          )}
-        </div>
       </SidebarFooter>
     </Sidebar>
   );
