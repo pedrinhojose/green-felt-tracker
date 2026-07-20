@@ -18,9 +18,9 @@ function applyTheme(theme: AppTheme) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<AppTheme>(() => {
-    if (typeof window === 'undefined') return 'classic';
+    if (typeof window === 'undefined') return 'modern';
     const saved = localStorage.getItem(STORAGE_KEY) as AppTheme | null;
-    return saved && ['classic', 'modern', 'neon'].includes(saved) ? saved : 'classic';
+    return saved && ['classic', 'modern', 'neon'].includes(saved) ? saved : 'modern';
   });
 
   useEffect(() => {
