@@ -7,12 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageHeader } from '@/components/navigation/PageHeader';
-import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2 } from 'lucide-react';
+import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils/dateUtils';
 import { useReceivables, RECEIVABLES_CUTOFF_DATE, type ReceivableRow, type SettlementStatus } from '@/hooks/useReceivables';
 import { SettlePaymentDialog } from '@/components/finance/SettlePaymentDialog';
+import { PlayerReceivableBreakdown } from '@/components/finance/PlayerReceivableBreakdown';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { useToast } from '@/hooks/use-toast';
+
 
 type StatusFilter = 'todos' | 'pendentes' | 'a_receber' | 'quitados';
 
