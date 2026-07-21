@@ -88,7 +88,11 @@ export function PlayerCard({ player, onEdit, onDeactivate, onReactivate, onViewD
                 </span>
               )}
             </div>
+            </div>
           </div>
+          </div>
+          
+
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
