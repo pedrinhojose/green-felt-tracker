@@ -23,6 +23,7 @@ export interface ReceivableRow {
   gameId: string;
   gameNumber: number;
   gameDate: Date;
+  seasonId: string | null;
   playerId: string;
   playerName: string;
   playerPhoto?: string;
@@ -31,15 +32,21 @@ export interface ReceivableRow {
   paymentMethod: string | null;
   settledAt: string | null;
   settlementId: string | null;
+  gamePlayer: any; // raw snapshot for breakdown
+  dinnerCost: number;
+  dinnerParticipants: number;
 }
 
 interface GameRow {
   id: string;
   number: number;
   date: string;
+  season_id: string | null;
   players: any;
+  dinner_cost: number | null;
   is_finished: boolean;
 }
+
 
 export function useReceivables() {
   const { currentOrganization } = useOrganization();
