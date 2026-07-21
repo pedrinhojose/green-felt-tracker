@@ -34,6 +34,12 @@ export default function FinanceReceivables() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos');
   const [search, setSearch] = useState('');
   const [dialogRow, setDialogRow] = useState<ReceivableRow | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpanded = (key: string) => setExpanded(prev => {
+    const n = new Set(prev);
+    n.has(key) ? n.delete(key) : n.add(key);
+    return n;
+  });
 
   const summary = useMemo(() => {
     let toReceive = 0, toPay = 0, quitado = 0;
