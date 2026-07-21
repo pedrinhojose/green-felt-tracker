@@ -96,8 +96,11 @@ function App() {
                       <Route path="/players" element={<PlayersManagement />} />
                       <Route path="/users" element={<UserManagement />} />
                       <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
-                      <Route path="/organization/members" element={<OrganizationMembersPage />} />
+                    <Route path="/organization/members" element={<OrganizationMembersPage />} />
                       <Route path="/caixinha" element={<CaixinhaManagement />} />
+                      <Route path="/finance/receivables" element={<FinanceReceivables />} />
+                      <Route path="/finance/jackpot" element={<FinanceJackpot />} />
+                      <Route path="/finance/club-cash" element={<FinanceClubCash />} />
                       <Route path="/super-admin" element={<SuperAdminDashboard />} />
                     </Route>
                   </Route>
