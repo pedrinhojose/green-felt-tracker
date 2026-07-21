@@ -12,6 +12,7 @@ interface PlayerCardProps {
   onEdit: (player: Player) => void;
   onDeactivate: (playerId: string) => void;
   onReactivate: (playerId: string) => void;
+  onViewDetails?: (player: Player) => void;
   isDeleting: boolean;
 }
 
@@ -32,7 +33,7 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
-export function PlayerCard({ player, onEdit, onDeactivate, onReactivate, isDeleting }: PlayerCardProps) {
+export function PlayerCard({ player, onEdit, onDeactivate, onReactivate, onViewDetails, isDeleting }: PlayerCardProps) {
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -53,6 +54,10 @@ export function PlayerCard({ player, onEdit, onDeactivate, onReactivate, isDelet
     }`}>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+            onClick={() => onViewDetails?.(player)}
+          >
           <Avatar className={`h-12 w-12 border-2 ${isInactive ? 'border-muted/30' : 'border-poker-gold/50'}`}>
             {player.photoUrl ? (
               <AvatarImage src={player.photoUrl} alt={player.name} />
@@ -83,7 +88,14 @@ export function PlayerCard({ player, onEdit, onDeactivate, onReactivate, isDelet
                 </span>
               )}
             </div>
+            </div>
           </div>
+
+
+          
+
+          
+
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

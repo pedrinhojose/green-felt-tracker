@@ -12,6 +12,7 @@ interface PlayersListProps {
   onEditPlayer: (player: Player) => void;
   onDeactivatePlayer: (playerId: string) => void;
   onReactivatePlayer: (playerId: string) => void;
+  onViewDetails?: (player: Player) => void;
   isDeleting: boolean;
 }
 
@@ -22,6 +23,7 @@ export function PlayersList({
   onEditPlayer, 
   onDeactivatePlayer,
   onReactivatePlayer,
+  onViewDetails,
   isDeleting 
 }: PlayersListProps) {
   const isMobile = useIsMobile();
@@ -45,6 +47,7 @@ export function PlayersList({
             onEdit={onEditPlayer}
             onDeactivate={onDeactivatePlayer}
             onReactivate={onReactivatePlayer}
+            onViewDetails={onViewDetails}
             isDeleting={isDeleting}
           />
         ))}
