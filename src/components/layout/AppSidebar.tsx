@@ -9,14 +9,10 @@ import {
   BarChart3,
   Image as ImageIcon,
   BookOpen,
-  PiggyBank,
   ShieldAlert,
   Crown,
   Palette,
-  Receipt,
-  Coins,
   Wallet,
-  ChevronRight,
 } from 'lucide-react';
 
 import {
