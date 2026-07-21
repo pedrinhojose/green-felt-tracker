@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { applyPlayerPhotoMask } from "@/lib/utils/playerPhotoMask";
 import { uploadImageToStorage } from "@/lib/utils/storageUtils";
@@ -11,6 +11,7 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
   const [isProcessing, setIsProcessing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const startCamera = async () => {
     try {
@@ -22,30 +23,58 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
         });
         return;
       }
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setIsCameraActive(true);
-      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "user" } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      // Ativa a UI; o <video> só é montado após esta re-renderização,
+      // então o srcObject é atribuído no useEffect abaixo.
+      setIsCameraActive(true);
     } catch (error) {
       console.error("Error accessing camera:", error);
+      const msg = error instanceof Error ? `${error.name}: ${error.message}` : "Não foi possível acessar a câmera.";
       toast({
-        title: "Acesso negado",
-        description: "Não foi possível acessar a câmera.",
+        title: "Acesso à câmera falhou",
+        description: msg,
         variant: "destructive",
       });
     }
   };
-  
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setIsCameraActive(false);
+
+  // Atribui o stream ao <video> assim que ele é montado pela troca de estado.
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      // iOS Safari exige play() explícito mesmo com autoPlay/playsInline.
+      videoRef.current.play().catch((err) => {
+        console.warn("video.play() falhou:", err);
+      });
     }
+  }, [isCameraActive]);
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
   };
+
+  // Cleanup ao desmontar (ex.: diálogo fechado com câmera aberta).
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
   
   const capturePhoto = async () => {
     setIsProcessing(true);
