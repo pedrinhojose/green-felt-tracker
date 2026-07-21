@@ -78,20 +78,22 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
 
   const age = player.birthDate ? calculateAge(parseLocalDate(player.birthDate as any)) : null;
 
-  const formatGameLabel = (g: Game) => {
-    const d = new Date(g.date);
+  const formatRowLabel = (r: ParticipationRow) => {
+    const d = new Date(r.date);
     return `${format(d, "dd/MM/yyyy", { locale: ptBR })} (há ${formatDistanceToNowStrict(d, { locale: ptBR })})`;
   };
 
-  const currentSeasonLabel = activeSeason
-    ? (lastGameCurrentSeason
-        ? formatGameLabel(lastGameCurrentSeason)
-        : "Sem participação na temporada atual")
-    : "Nenhuma temporada ativa";
+  const currentSeasonLabel = loadingLast
+    ? "Carregando..."
+    : activeSeason
+      ? (lastCurrent ? formatRowLabel(lastCurrent) : "Sem participação na temporada atual")
+      : "Nenhuma temporada ativa";
 
-  const allTimeLabel = lastGameEver
-    ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatGameLabel(lastGameEver)}`
-    : "Nunca participou";
+  const allTimeLabel = loadingLast
+    ? "Carregando..."
+    : lastEver
+      ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatRowLabel(lastEver)}`
+      : "Nunca participou";
 
   return (
     <Dialog open={!!player} onOpenChange={onOpenChange}>
