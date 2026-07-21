@@ -90,7 +90,8 @@ export function PlayerCard({ player, onEdit, onDeactivate, onReactivate, onViewD
             </div>
             </div>
           </div>
-          </div>
+          
+
           
 
           
