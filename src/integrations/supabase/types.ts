@@ -294,6 +294,73 @@ export type Database = {
           },
         ]
       }
+      game_player_settlements: {
+        Row: {
+          amount: number
+          created_at: string
+          game_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          payment_method: string | null
+          player_id: string
+          settled_at: string | null
+          settled_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          game_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          payment_method?: string | null
+          player_id: string
+          settled_at?: string | null
+          settled_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          game_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          payment_method?: string | null
+          player_id?: string
+          settled_at?: string | null
+          settled_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_player_settlements_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_player_settlements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_player_settlements_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           created_at: string
