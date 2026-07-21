@@ -185,6 +185,9 @@ export default function PlayersManagement() {
         inactiveCount={inactiveCount}
       />
       <PlayerSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <div className="mb-4">
+        <StandardizePhotosButton />
+      </div>
       <PlayersList 
         players={filteredPlayers} 
         searchQuery={searchQuery}
