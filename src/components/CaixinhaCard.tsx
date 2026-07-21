@@ -98,7 +98,7 @@ const CaixinhaCard = memo(function CaixinhaCard() {
   }, [caixinhaTotal]);
 
   const handleClick = () => {
-    navigate('/caixinha');
+    navigate('/finance/caixinha');
   };
 
   return (

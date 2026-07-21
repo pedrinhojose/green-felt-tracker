@@ -35,10 +35,10 @@ import { Navigate } from 'react-router-dom';
 import SeasonReport from '@/pages/SeasonReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
-import CaixinhaManagement from '@/pages/CaixinhaManagement';
+import Finance from '@/pages/Finance';
 import FinanceReceivables from '@/pages/FinanceReceivables';
 import FinanceJackpot from '@/pages/FinanceJackpot';
-import FinanceClubCash from '@/pages/FinanceClubCash';
+import CaixinhaManagement from '@/pages/CaixinhaManagement';
 import PublicSeasonView from '@/pages/PublicSeasonView';
 import PublicGameView from '@/pages/PublicGameView';
 import ResetPassword from '@/pages/ResetPassword';
@@ -97,10 +97,14 @@ function App() {
                       <Route path="/users" element={<UserManagement />} />
                       <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                       <Route path="/organization/members" element={<OrganizationMembersPage />} />
-                      <Route path="/caixinha" element={<CaixinhaManagement />} />
-                      <Route path="/finance/receivables" element={<FinanceReceivables />} />
-                      <Route path="/finance/jackpot" element={<FinanceJackpot />} />
-                      <Route path="/finance/club-cash" element={<FinanceClubCash />} />
+                      <Route path="/caixinha" element={<Navigate to="/finance/caixinha" replace />} />
+                      <Route path="/finance/club-cash" element={<Navigate to="/finance/caixinha" replace />} />
+                      <Route path="/finance" element={<Finance />}>
+                        <Route index element={<Navigate to="/finance/receivables" replace />} />
+                        <Route path="receivables" element={<FinanceReceivables />} />
+                        <Route path="jackpot" element={<FinanceJackpot />} />
+                        <Route path="caixinha" element={<CaixinhaManagement />} />
+                      </Route>
                       <Route path="/super-admin" element={<SuperAdminDashboard />} />
                     </Route>
                   </Route>

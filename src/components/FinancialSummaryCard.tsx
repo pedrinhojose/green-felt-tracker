@@ -124,7 +124,7 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
           {/* Caixinha */}
           <div
             className="flex-1 flex items-center gap-4 px-2 cursor-pointer hover:bg-white/5 transition-colors"
-            onClick={() => navigate('/caixinha')}
+            onClick={() => navigate('/finance/caixinha')}
           >
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-800/40 border border-emerald-600 flex items-center justify-center shrink-0">
               <Vault className="w-6 h-6 md:w-7 md:h-7 text-emerald-300" />
