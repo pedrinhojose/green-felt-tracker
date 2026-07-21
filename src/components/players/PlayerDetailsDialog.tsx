@@ -115,10 +115,18 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Última participação:</span>
-              <span>{lastLabel}</span>
+            <div className="flex items-start gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="flex flex-col gap-1">
+                <div>
+                  <span className="text-muted-foreground">Temporada atual: </span>
+                  <span>{currentSeasonLabel}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Última participação: </span>
+                  <span>{allTimeLabel}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
