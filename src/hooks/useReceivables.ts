@@ -23,6 +23,7 @@ export interface ReceivableRow {
   gameId: string;
   gameNumber: number;
   gameDate: Date;
+  seasonId: string | null;
   playerId: string;
   playerName: string;
   playerPhoto?: string;
@@ -31,15 +32,21 @@ export interface ReceivableRow {
   paymentMethod: string | null;
   settledAt: string | null;
   settlementId: string | null;
+  gamePlayer: any; // raw snapshot for breakdown
+  dinnerCost: number;
+  dinnerParticipants: number;
 }
 
 interface GameRow {
   id: string;
   number: number;
   date: string;
+  season_id: string | null;
   players: any;
+  dinner_cost: number | null;
   is_finished: boolean;
 }
+
 
 export function useReceivables() {
   const { currentOrganization } = useOrganization();
@@ -54,12 +61,13 @@ export function useReceivables() {
     if (!orgId) return;
     const { data, error } = await supabase
       .from('games')
-      .select('id, number, date, players, is_finished')
+      .select('id, number, date, season_id, players, dinner_cost, is_finished')
       .eq('organization_id', orgId)
       .eq('is_finished', true)
       .gte('date', RECEIVABLES_CUTOFF_DATE)
       .order('date', { ascending: false });
     if (!error && data) setGames(data as GameRow[]);
+
   }, [orgId]);
 
   const loadSettlements = useCallback(async () => {
@@ -107,6 +115,8 @@ export function useReceivables() {
     const out: ReceivableRow[] = [];
     for (const g of games) {
       const gp: any[] = Array.isArray(g.players) ? g.players : [];
+      const dinnerParticipants = gp.filter(p => p?.joinedDinner).length;
+      const dinnerCost = Number(g.dinner_cost ?? 0);
       for (const p of gp) {
         const balance = Number(p?.balance ?? 0);
         if (!balance) continue;
@@ -121,6 +131,7 @@ export function useReceivables() {
           gameId: g.id,
           gameNumber: g.number,
           gameDate: new Date(g.date),
+          seasonId: g.season_id,
           playerId,
           playerName: info?.name ?? 'Jogador',
           playerPhoto: info?.photoUrl,
@@ -129,11 +140,15 @@ export function useReceivables() {
           paymentMethod: s?.payment_method ?? null,
           settledAt: s?.settled_at ?? null,
           settlementId: s?.id ?? null,
+          gamePlayer: p,
+          dinnerCost,
+          dinnerParticipants,
         });
       }
     }
     return out;
   }, [games, settlementMap, playerMap]);
+
 
   const gamesList = useMemo(() =>
     games.map(g => ({ id: g.id, number: g.number, date: new Date(g.date) })),

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageHeader } from '@/components/navigation/PageHeader';
-import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2 } from 'lucide-react';
+import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils/dateUtils';
 import { useReceivables, RECEIVABLES_CUTOFF_DATE, type ReceivableRow, type SettlementStatus } from '@/hooks/useReceivables';
 import { SettlePaymentDialog } from '@/components/finance/SettlePaymentDialog';
+import { PlayerReceivableBreakdown } from '@/components/finance/PlayerReceivableBreakdown';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { useToast } from '@/hooks/use-toast';
+
 
 type StatusFilter = 'todos' | 'pendentes' | 'a_receber' | 'quitados';
 
@@ -32,6 +34,12 @@ export default function FinanceReceivables() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos');
   const [search, setSearch] = useState('');
   const [dialogRow, setDialogRow] = useState<ReceivableRow | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpanded = (key: string) => setExpanded(prev => {
+    const n = new Set(prev);
+    n.has(key) ? n.delete(key) : n.add(key);
+    return n;
+  });
 
   const summary = useMemo(() => {
     let toReceive = 0, toPay = 0, quitado = 0;
@@ -142,6 +150,7 @@ export default function FinanceReceivables() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"></TableHead>
                   <TableHead>Jogador</TableHead>
                   <TableHead>Partida / Data</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
@@ -151,11 +160,11 @@ export default function FinanceReceivables() {
               </TableHeader>
               <TableBody>
                 {isLoading && (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Carregando...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Carregando...</TableCell></TableRow>
                 )}
                 {!isLoading && filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                       <Receipt className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       Nenhum recebimento encontrado.
                     </TableCell>
@@ -165,42 +174,64 @@ export default function FinanceReceivables() {
                   const isDebt = r.amount < 0;
                   const isQuit = r.status === 'pago' || r.status === 'premiado_pago';
                   const meta = statusMeta[r.status];
+                  const isOpen = expanded.has(r.key);
                   return (
-                    <TableRow key={r.key}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={r.playerPhoto} alt={r.playerName} />
-                            <AvatarFallback>{r.playerName.slice(0, 2).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{r.playerName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">#{r.gameNumber}</div>
-                        <div className="text-xs text-muted-foreground">{formatDate(r.gameDate)}</div>
-                      </TableCell>
-                      <TableCell className={`text-right font-semibold ${isDebt ? 'text-red-500' : 'text-emerald-500'}`}>
-                        {isDebt ? '' : '+'}{formatCurrency(r.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={meta.className}>{meta.label}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {canEdit && !isQuit && (
-                          <Button size="sm" onClick={() => setDialogRow(r)}>
-                            {isDebt ? 'Dar Baixa' : 'Pagar Prêmio'}
+                    <Fragment key={r.key}>
+                      <TableRow key={r.key} className="cursor-pointer" onClick={() => toggleExpanded(r.key)}>
+                        <TableCell className="w-10">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={(e) => { e.stopPropagation(); toggleExpanded(r.key); }}
+                            aria-label={isOpen ? 'Recolher detalhes' : 'Ver detalhes'}
+                          >
+                            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                           </Button>
-                        )}
-                        {canEdit && isQuit && (
-                          <Button size="sm" variant="ghost" onClick={() => handleUndo(r)}>
-                            <Undo2 className="w-4 h-4 mr-1" /> Desfazer
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={r.playerPhoto} alt={r.playerName} />
+                              <AvatarFallback>{r.playerName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{r.playerName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">#{r.gameNumber}</div>
+                          <div className="text-xs text-muted-foreground">{formatDate(r.gameDate)}</div>
+                        </TableCell>
+                        <TableCell className={`text-right font-semibold ${isDebt ? 'text-red-500' : 'text-emerald-500'}`}>
+                          {isDebt ? '' : '+'}{formatCurrency(r.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={meta.className}>{meta.label}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          {canEdit && !isQuit && (
+                            <Button size="sm" onClick={() => setDialogRow(r)}>
+                              {isDebt ? 'Dar Baixa' : 'Pagar Prêmio'}
+                            </Button>
+                          )}
+                          {canEdit && isQuit && (
+                            <Button size="sm" variant="ghost" onClick={() => handleUndo(r)}>
+                              <Undo2 className="w-4 h-4 mr-1" /> Desfazer
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      {isOpen && (
+                        <TableRow key={`${r.key}-details`} className="hover:bg-transparent">
+                          <TableCell colSpan={6} className="bg-muted/20 p-4">
+                            <PlayerReceivableBreakdown row={r} />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
                   );
                 })}
+
               </TableBody>
             </Table>
           </div>
