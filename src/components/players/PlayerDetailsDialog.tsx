@@ -3,10 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Cake, MapPin, Phone, Calendar, Edit } from "lucide-react";
-import { Player, Game } from "@/lib/db/models";
+import { Player } from "@/lib/db/models";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePoker } from "@/contexts/PokerContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface PlayerDetailsDialogProps {
@@ -33,16 +34,22 @@ function getInitials(name: string) {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().substring(0, 2);
 }
 
-type ParticipationRow = { id: string; date: string; season_id: string | null };
+type ParticipationRow = { id: string; date: string; season_id: string | null; players?: unknown };
+
+function rowHasPlayer(row: ParticipationRow, playerId: string) {
+  if (!Array.isArray(row.players)) return false;
+  return row.players.some((gamePlayer: any) => gamePlayer?.playerId === playerId || gamePlayer?.id === playerId);
+}
 
 export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDetailsDialogProps) {
   const { seasons, activeSeason } = usePoker() as any;
+  const { currentOrganization } = useOrganization();
   const [lastCurrent, setLastCurrent] = useState<ParticipationRow | null>(null);
   const [lastEver, setLastEver] = useState<ParticipationRow | null>(null);
   const [loadingLast, setLoadingLast] = useState(false);
 
   useEffect(() => {
-    if (!player) return;
+    if (!player || !currentOrganization) return;
     let cancelled = false;
     (async () => {
       setLoadingLast(true);
@@ -50,11 +57,12 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
         const { data, error } = await supabase
           .from("games")
           .select("id,date,season_id,players")
-          .contains("players", [{ playerId: player.id }])
-          .order("date", { ascending: false });
+          .eq("organization_id", currentOrganization.id)
+          .order("date", { ascending: false })
+          .limit(5000);
         if (error) throw error;
         if (cancelled) return;
-        const rows = (data || []) as ParticipationRow[];
+        const rows = ((data || []) as ParticipationRow[]).filter(row => rowHasPlayer(row, player.id));
         setLastEver(rows[0] ?? null);
         setLastCurrent(
           activeSeason ? rows.find(r => r.season_id === activeSeason.id) ?? null : null
@@ -67,7 +75,7 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
       }
     })();
     return () => { cancelled = true; };
-  }, [player, activeSeason]);
+  }, [player, activeSeason, currentOrganization]);
 
   const lastSeasonName = lastEver
     ? (seasons as any[]).find(s => s.id === lastEver.season_id)?.name ?? null
