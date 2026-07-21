@@ -13,11 +13,13 @@ import { PlayerSearch } from "@/components/players/PlayerSearch";
 interface PlayerSelectionProps {
   players: Player[];
   onStartGame: (selectedPlayerIds: Set<string>) => void;
+  onCancel?: () => void;
+  isCancelling?: boolean;
   season?: Season;
   game?: Game;
 }
 
-export default function PlayerSelection({ players, onStartGame, season, game }: PlayerSelectionProps) {
+export default function PlayerSelection({ players, onStartGame, onCancel, isCancelling, season, game }: PlayerSelectionProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
