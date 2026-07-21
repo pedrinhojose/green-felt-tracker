@@ -115,6 +115,8 @@ export function useReceivables() {
     const out: ReceivableRow[] = [];
     for (const g of games) {
       const gp: any[] = Array.isArray(g.players) ? g.players : [];
+      const dinnerParticipants = gp.filter(p => p?.joinedDinner).length;
+      const dinnerCost = Number(g.dinner_cost ?? 0);
       for (const p of gp) {
         const balance = Number(p?.balance ?? 0);
         if (!balance) continue;
@@ -129,6 +131,7 @@ export function useReceivables() {
           gameId: g.id,
           gameNumber: g.number,
           gameDate: new Date(g.date),
+          seasonId: g.season_id,
           playerId,
           playerName: info?.name ?? 'Jogador',
           playerPhoto: info?.photoUrl,
@@ -137,11 +140,15 @@ export function useReceivables() {
           paymentMethod: s?.payment_method ?? null,
           settledAt: s?.settled_at ?? null,
           settlementId: s?.id ?? null,
+          gamePlayer: p,
+          dinnerCost,
+          dinnerParticipants,
         });
       }
     }
     return out;
   }, [games, settlementMap, playerMap]);
+
 
   const gamesList = useMemo(() =>
     games.map(g => ({ id: g.id, number: g.number, date: new Date(g.date) })),
