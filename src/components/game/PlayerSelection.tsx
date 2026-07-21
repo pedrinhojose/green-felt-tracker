@@ -8,6 +8,10 @@ import { Player, GamePlayer, Season, Game } from "@/lib/db/models";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PlayerSearch } from "@/components/players/PlayerSearch";
+import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
+import { usePlayerPhotoManager } from "@/hooks/usePlayerPhotoManager";
+import { usePoker } from "@/contexts/PokerContext";
+import { UserPlus } from "lucide-react";
 
 
 interface PlayerSelectionProps {
@@ -22,8 +26,18 @@ interface PlayerSelectionProps {
 export default function PlayerSelection({ players, onStartGame, onCancel, isCancelling, season, game }: PlayerSelectionProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [newPlayer, setNewPlayer] = useState<{
+    name: string;
+    photoUrl?: string;
+    phone?: string;
+    city?: string;
+  }>({ name: "" });
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { savePlayer } = usePoker();
+  const photoManager = usePlayerPhotoManager();
   
   // Filter players based on search query and active status (only active players)
   const filteredPlayers = players
@@ -108,6 +122,51 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
     
     onStartGame(selectedPlayers);
   };
+
+  const clearNewPlayerPhoto = () => {
+    setNewPlayer({ ...newPlayer, photoUrl: undefined });
+    photoManager.clearPhoto();
+  };
+
+  const handleAddNewPlayer = async () => {
+    if (!newPlayer.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, insira o nome do jogador.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const newId = await savePlayer(newPlayer);
+      // Pré-selecionar automaticamente o novo jogador
+      if (newId) {
+        setSelectedPlayers(prev => {
+          const next = new Set(prev);
+          next.add(newId);
+          return next;
+        });
+      }
+      setNewPlayer({ name: "" });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Jogador adicionado",
+        description: "O jogador foi adicionado e já está selecionado.",
+      });
+    } catch (error) {
+      console.error("Error adding player:", error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Não foi possível adicionar o jogador.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+      photoManager.stopCamera();
+    }
+  };
   
   const getInitials = (name: string) => {
     return name
@@ -130,10 +189,23 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
           </CardTitle>
         </CardHeader>
       <CardContent className={isMobile ? "px-3" : ""}>
-        <PlayerSearch 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
-        />
+        <div className={`flex ${isMobile ? "flex-col" : "flex-row items-start"} gap-2 mb-2`}>
+          <div className="flex-1 w-full">
+            <PlayerSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsAddDialogOpen(true)}
+            className={`${isMobile ? "w-full" : ""} bg-poker-gold hover:bg-poker-gold/80 text-black border-poker-gold`}
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Novo jogador
+          </Button>
+        </div>
         
         {sortedPlayers.length === 0 && searchQuery && (
           <div className="text-center py-8">
@@ -217,6 +289,33 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
         </div>
       </CardContent>
     </Card>
+
+    <AddPlayerDialog
+      isOpen={isAddDialogOpen}
+      onOpenChange={setIsAddDialogOpen}
+      newPlayer={newPlayer}
+      setNewPlayer={setNewPlayer}
+      isSaving={isSaving}
+      handleAddPlayer={handleAddNewPlayer}
+      isCameraActive={photoManager.isCameraActive}
+      setIsCameraActive={photoManager.setIsCameraActive}
+      videoRef={photoManager.videoRef}
+      fileInputRef={photoManager.fileInputRef}
+      startCamera={photoManager.startCamera}
+      stopCamera={photoManager.stopCamera}
+      capturePhoto={async () => {
+        const url = await photoManager.capturePhoto();
+        if (url) setNewPlayer(prev => ({ ...prev, photoUrl: url }));
+        return url;
+      }}
+      handleFileUpload={async (e) => {
+        const url = await photoManager.handleFileUpload(e);
+        if (url) setNewPlayer(prev => ({ ...prev, photoUrl: url }));
+        return url;
+      }}
+      clearPhoto={clearNewPlayerPhoto}
+      isProcessing={photoManager.isProcessing}
+    />
     </div>
   );
 }
