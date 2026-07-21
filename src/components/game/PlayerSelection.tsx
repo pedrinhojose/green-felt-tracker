@@ -193,10 +193,21 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
           </div>
         )}
         
-        <div className={`${isMobile ? "mt-4" : "mt-6"} flex justify-center`}>
+        <div className={`${isMobile ? "mt-4" : "mt-6"} flex ${isMobile ? "flex-col" : "flex-row justify-center"} gap-3`}>
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isCancelling}
+              className={isMobile ? "w-full py-3 text-lg" : ""}
+            >
+              {isCancelling ? "Cancelando..." : "Cancelar"}
+            </Button>
+          )}
           <Button
             onClick={handleStartGame}
-            disabled={selectedPlayers.size === 0}
+            disabled={selectedPlayers.size === 0 || isCancelling}
             className={`bg-poker-gold hover:bg-poker-gold/80 text-black ${
               isMobile ? "w-full py-3 text-lg" : ""
             }`}
