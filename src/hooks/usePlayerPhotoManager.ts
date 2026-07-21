@@ -1,7 +1,7 @@
 
 import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { optimizeImage } from "@/lib/utils/imageUtils";
+import { applyPlayerPhotoMask } from "@/lib/utils/playerPhotoMask";
 import { uploadImageToStorage } from "@/lib/utils/storageUtils";
 
 export function usePlayerPhotoManager(initialPhotoUrl?: string) {
