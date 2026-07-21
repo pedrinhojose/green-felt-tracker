@@ -6,6 +6,7 @@ import { Player } from "@/lib/db/models";
 import { usePlayerPhotoManager } from "@/hooks/usePlayerPhotoManager";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { EditPlayerDialog } from "@/components/players/EditPlayerDialog";
+import { PlayerDetailsDialog } from "@/components/players/PlayerDetailsDialog";
 import { PlayersHeader } from "@/components/players/PlayersHeader";
 import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { PlayersList } from "@/components/players/PlayersList";
@@ -22,6 +23,7 @@ export default function PlayersManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [viewingPlayer, setViewingPlayer] = useState<Player | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [newPlayer, setNewPlayer] = useState<{ 
     name: string; 
@@ -195,8 +197,16 @@ export default function PlayersManagement() {
         onEditPlayer={setEditingPlayer}
         onDeactivatePlayer={handleDeactivatePlayer}
         onReactivatePlayer={handleReactivatePlayer}
+        onViewDetails={setViewingPlayer}
         isDeleting={isDeleting}
       />
+
+      <PlayerDetailsDialog
+        player={viewingPlayer}
+        onOpenChange={(open) => !open && setViewingPlayer(null)}
+        onEdit={setEditingPlayer}
+      />
+      
       
       {/* Add Player Dialog */}
       <AddPlayerDialog
