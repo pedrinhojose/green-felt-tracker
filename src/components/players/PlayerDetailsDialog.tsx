@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +7,7 @@ import { Player, Game } from "@/lib/db/models";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePoker } from "@/contexts/PokerContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PlayerDetailsDialogProps {
   player: Player | null;
@@ -32,42 +33,67 @@ function getInitials(name: string) {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().substring(0, 2);
 }
 
-export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDetailsDialogProps) {
-  const { games, seasons, activeSeason } = usePoker() as any;
+type ParticipationRow = { id: string; date: string; season_id: string | null };
 
-  const { lastGameCurrentSeason, lastGameEver, lastSeasonName } = useMemo(() => {
-    if (!player) return { lastGameCurrentSeason: null as Game | null, lastGameEver: null as Game | null, lastSeasonName: null as string | null };
-    const played = (games as Game[])
-      .filter(g => g.players?.some(p => p.playerId === player.id))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const inCurrent = activeSeason
-      ? played.find(g => g.seasonId === activeSeason.id) ?? null
-      : null;
-    const ever = played[0] ?? null;
-    const seasonName = ever
-      ? (seasons as any[]).find(s => s.id === ever.seasonId)?.name ?? null
-      : null;
-    return { lastGameCurrentSeason: inCurrent, lastGameEver: ever, lastSeasonName: seasonName };
-  }, [games, seasons, activeSeason, player]);
+export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDetailsDialogProps) {
+  const { seasons, activeSeason } = usePoker() as any;
+  const [lastCurrent, setLastCurrent] = useState<ParticipationRow | null>(null);
+  const [lastEver, setLastEver] = useState<ParticipationRow | null>(null);
+  const [loadingLast, setLoadingLast] = useState(false);
+
+  useEffect(() => {
+    if (!player) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingLast(true);
+      try {
+        const { data, error } = await supabase
+          .from("games")
+          .select("id,date,season_id,players")
+          .contains("players", [{ playerId: player.id }])
+          .order("date", { ascending: false });
+        if (error) throw error;
+        if (cancelled) return;
+        const rows = (data || []) as ParticipationRow[];
+        setLastEver(rows[0] ?? null);
+        setLastCurrent(
+          activeSeason ? rows.find(r => r.season_id === activeSeason.id) ?? null : null
+        );
+      } catch (e) {
+        console.error("PlayerDetailsDialog: erro ao buscar participações", e);
+        if (!cancelled) { setLastEver(null); setLastCurrent(null); }
+      } finally {
+        if (!cancelled) setLoadingLast(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [player, activeSeason]);
+
+  const lastSeasonName = lastEver
+    ? (seasons as any[]).find(s => s.id === lastEver.season_id)?.name ?? null
+    : null;
+
 
   if (!player) return null;
 
   const age = player.birthDate ? calculateAge(parseLocalDate(player.birthDate as any)) : null;
 
-  const formatGameLabel = (g: Game) => {
-    const d = new Date(g.date);
+  const formatRowLabel = (r: ParticipationRow) => {
+    const d = new Date(r.date);
     return `${format(d, "dd/MM/yyyy", { locale: ptBR })} (há ${formatDistanceToNowStrict(d, { locale: ptBR })})`;
   };
 
-  const currentSeasonLabel = activeSeason
-    ? (lastGameCurrentSeason
-        ? formatGameLabel(lastGameCurrentSeason)
-        : "Sem participação na temporada atual")
-    : "Nenhuma temporada ativa";
+  const currentSeasonLabel = loadingLast
+    ? "Carregando..."
+    : activeSeason
+      ? (lastCurrent ? formatRowLabel(lastCurrent) : "Sem participação na temporada atual")
+      : "Nenhuma temporada ativa";
 
-  const allTimeLabel = lastGameEver
-    ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatGameLabel(lastGameEver)}`
-    : "Nunca participou";
+  const allTimeLabel = loadingLast
+    ? "Carregando..."
+    : lastEver
+      ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatRowLabel(lastEver)}`
+      : "Nunca participou";
 
   return (
     <Dialog open={!!player} onOpenChange={onOpenChange}>
