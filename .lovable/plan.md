@@ -1,25 +1,34 @@
-## Melhorar navegação de fotos no mobile (lightbox)
+## Objetivo
 
-Hoje no mobile o `PhotoLightbox` só mostra setas pequenas nos cantos — não fica óbvio que dá pra arrastar. Vamos deixar a navegação por swipe real e visualmente clara.
+Permitir cadastrar um jogador novo direto da tela de seleção de jogadores (ao abrir uma partida), sem precisar cancelar e sair para a tela de Jogadores.
 
-### Mudanças no `src/components/gallery/PhotoLightbox.tsx`
+## Mudanças
 
-1. **Swipe real com o dedo**
-   - Adicionar handlers `onTouchStart` / `onTouchMove` / `onTouchEnd` na área da imagem.
-   - Threshold de ~50px pra trocar de foto; abaixo disso, volta pra posição.
-   - Durante o arrasto, aplicar `translateX` na imagem pra dar feedback tátil imediato (a foto "segue o dedo").
-   - Animação suave de saída/entrada ao trocar (`transition-transform`).
+### 1. `src/components/game/PlayerSelection.tsx`
+- Adicionar botão **"+ Novo jogador"** ao lado do campo de busca (no topo do card, junto do `PlayerSearch`).
+- Ao clicar, abre o `AddPlayerDialog` já existente (mesmo componente usado em `PlayersManagement`).
+- Estado local no `PlayerSelection`:
+  - `isAddDialogOpen`
+  - `newPlayer` (name, photoUrl, phone, city)
+  - `isSaving`
+- Usar o hook `usePlayerPhotoManager` (mesmo padrão do `PlayersManagement`) para foto/câmera/upload.
+- Usar `usePoker().addPlayer` para persistir. Após salvar com sucesso:
+  - Fechar o diálogo, limpar o form.
+  - **Pré-selecionar automaticamente** o novo jogador (adicionar o `id` retornado ao `selectedPlayers`), para que já entre na partida sem exigir clique extra.
+  - O `players` do contexto atualiza sozinho, então ele aparecerá na grade filtrada.
+- Toast de sucesso/erro.
 
-2. **Dicas visuais de que dá pra arrastar**
-   - Contador "3 / 27" no topo da imagem (mostra que existem mais fotos).
-   - Pontinhos/paginação discreta embaixo (máx. ~7 pontinhos com o atual destacado) — só no mobile.
-   - Na primeira vez que o lightbox abre na sessão, mostrar um hint animado "← arraste →" que some após 1,5s (guardado em `sessionStorage` pra não repetir).
-   - Setas laterais: manter no desktop, esconder no mobile (o swipe substitui).
+### 2. Nada mais precisa mudar
+- `AddPlayerDialog` e `PlayerForm` são reutilizados como estão.
+- `GameManagement.tsx` já passa `players` do contexto, que reflete a inclusão automaticamente.
 
-3. **Ajustes de UX**
-   - `touch-action: pan-y` na imagem pra o gesto horizontal não conflitar com scroll da página.
-   - Impedir o swipe quando estiver na primeira/última foto (efeito "resistência": arrasta menos).
+## Detalhes técnicos
 
-### Fora do escopo
-- Não muda o grid da galeria, upload, edição ou backend.
-- Não adiciona zoom/pinch (posso propor separado se quiser).
+- `addPlayer` no `PokerContext` retorna o registro criado (ou seu `id`) — se não retornar, buscar o jogador recém-criado por nome/`createdAt` no `players` atualizado, ou ajustar o retorno do hook `addPlayer` para expor o id. Verificar `useGameFunctions`/`usePlayerFunctions` antes de implementar; se necessário, retornar o id do jogador criado.
+- Manter o layout responsivo: no mobile o botão fica em linha própria abaixo da busca; no desktop, ao lado direito da busca.
+- Sem alterações de schema, RLS ou backend.
+
+## Fora de escopo
+
+- Edição/exclusão de jogador a partir dessa tela.
+- Importação em massa.
