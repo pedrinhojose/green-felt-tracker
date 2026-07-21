@@ -65,9 +65,10 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
           
           stopCamera();
           
-          // Optimize the image before uploading
-          const optimizedImageUrl = await optimizeImage(imageDataUrl);
-          console.log('⚡ Imagem otimizada, novo tamanho:', Math.round(optimizedImageUrl.length / 1024), 'KB');
+          // Aplica máscara padrão (fundo preto + contorno branco) e comprime
+          console.log('🎨 Aplicando máscara padrão...');
+          const optimizedImageUrl = await applyPlayerPhotoMask(imageDataUrl);
+          console.log('⚡ Máscara aplicada, novo tamanho:', Math.round(optimizedImageUrl.length / 1024), 'KB');
           
           // Upload to Supabase Storage - fotos bucket, players folder
           console.log('🚀 Fazendo upload para Supabase Storage: bucket=fotos, folder=players');
