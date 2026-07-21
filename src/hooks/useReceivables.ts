@@ -61,12 +61,13 @@ export function useReceivables() {
     if (!orgId) return;
     const { data, error } = await supabase
       .from('games')
-      .select('id, number, date, players, is_finished')
+      .select('id, number, date, season_id, players, dinner_cost, is_finished')
       .eq('organization_id', orgId)
       .eq('is_finished', true)
       .gte('date', RECEIVABLES_CUTOFF_DATE)
       .order('date', { ascending: false });
     if (!error && data) setGames(data as GameRow[]);
+
   }, [orgId]);
 
   const loadSettlements = useCallback(async () => {
