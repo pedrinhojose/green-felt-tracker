@@ -33,25 +33,40 @@ function getInitials(name: string) {
 }
 
 export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDetailsDialogProps) {
-  const { games } = usePoker();
+  const { games, seasons, activeSeason } = usePoker() as any;
 
-  const lastGame = useMemo<Game | null>(() => {
-    if (!player) return null;
-    const played = games
+  const { lastGameCurrentSeason, lastGameEver, lastSeasonName } = useMemo(() => {
+    if (!player) return { lastGameCurrentSeason: null as Game | null, lastGameEver: null as Game | null, lastSeasonName: null as string | null };
+    const played = (games as Game[])
       .filter(g => g.players?.some(p => p.playerId === player.id))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return played[0] ?? null;
-  }, [games, player]);
+    const inCurrent = activeSeason
+      ? played.find(g => g.seasonId === activeSeason.id) ?? null
+      : null;
+    const ever = played[0] ?? null;
+    const seasonName = ever
+      ? (seasons as any[]).find(s => s.id === ever.seasonId)?.name ?? null
+      : null;
+    return { lastGameCurrentSeason: inCurrent, lastGameEver: ever, lastSeasonName: seasonName };
+  }, [games, seasons, activeSeason, player]);
 
   if (!player) return null;
 
   const age = player.birthDate ? calculateAge(parseLocalDate(player.birthDate as any)) : null;
 
-  const lastLabel = lastGame
-    ? (() => {
-        const d = new Date(lastGame.date);
-        return `${format(d, "dd/MM/yyyy", { locale: ptBR })} (há ${formatDistanceToNowStrict(d, { locale: ptBR })})`;
-      })()
+  const formatGameLabel = (g: Game) => {
+    const d = new Date(g.date);
+    return `${format(d, "dd/MM/yyyy", { locale: ptBR })} (há ${formatDistanceToNowStrict(d, { locale: ptBR })})`;
+  };
+
+  const currentSeasonLabel = activeSeason
+    ? (lastGameCurrentSeason
+        ? formatGameLabel(lastGameCurrentSeason)
+        : "Sem participação na temporada atual")
+    : "Nenhuma temporada ativa";
+
+  const allTimeLabel = lastGameEver
+    ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatGameLabel(lastGameEver)}`
     : "Nunca participou";
 
   return (
