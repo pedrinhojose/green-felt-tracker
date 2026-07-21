@@ -115,11 +115,12 @@ export function usePlayerPhotoManager(initialPhotoUrl?: string) {
     try {
       console.log('📁 Iniciando upload de arquivo:', file.name, 'Tamanho:', Math.round(file.size / 1024), 'KB');
       
-      // Check file size before processing
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      // Aceita arquivos grandes (celulares tiram fotos de 10-20MB); a máscara/compressão reduz para ~100KB.
+      // Limite alto só para evitar travar o navegador com arquivos absurdos.
+      if (file.size > 50 * 1024 * 1024) { // 50MB
         toast({
           title: "Arquivo muito grande",
-          description: "O tamanho máximo permitido é 5MB. Por favor, escolha uma imagem menor.",
+          description: "O tamanho máximo é 50MB. Escolha uma imagem menor.",
           variant: "destructive",
         });
         setIsProcessing(false);
