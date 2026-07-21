@@ -260,6 +260,8 @@ export default function GameManagement() {
           players={players} 
           season={activeSeason}
           game={game}
+          onCancel={handleDeleteGame}
+          isCancelling={isDeleting}
           onStartGame={(selectedPlayers) => {
             handleStartGame(selectedPlayers).then(success => {
               if (success) setIsSelectingPlayers(false);
