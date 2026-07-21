@@ -100,6 +100,7 @@ function App() {
                       <Route path="/caixinha" element={<Navigate to="/finance/caixinha" replace />} />
                       <Route path="/finance/club-cash" element={<Navigate to="/finance/caixinha" replace />} />
                       <Route path="/finance" element={<Finance />}>
+                        <Route index element={<Navigate to="/finance/receivables" replace />} />
                         <Route path="receivables" element={<FinanceReceivables />} />
                         <Route path="jackpot" element={<FinanceJackpot />} />
                         <Route path="caixinha" element={<CaixinhaManagement />} />
