@@ -12,6 +12,7 @@ interface PlayerCardProps {
   onEdit: (player: Player) => void;
   onDeactivate: (playerId: string) => void;
   onReactivate: (playerId: string) => void;
+  onViewDetails?: (player: Player) => void;
   isDeleting: boolean;
 }
 
