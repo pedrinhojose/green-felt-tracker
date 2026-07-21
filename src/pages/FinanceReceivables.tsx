@@ -176,7 +176,7 @@ export default function FinanceReceivables() {
                   const meta = statusMeta[r.status];
                   const isOpen = expanded.has(r.key);
                   return (
-                    <>
+                    <Fragment key={r.key}>
                       <TableRow key={r.key} className="cursor-pointer" onClick={() => toggleExpanded(r.key)}>
                         <TableCell className="w-10">
                           <Button
