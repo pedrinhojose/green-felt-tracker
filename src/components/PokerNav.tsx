@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
   { name: 'Estatísticas', path: '/statistics' },
   { name: 'Galeria', path: '/gallery' },
   { name: 'Regras da Casa', path: '/house-rules' },
-  { name: 'Caixinha', path: '/caixinha', hideForViewer: true },
+  { name: 'Financeiro', path: '/finance', hideForViewer: true },
   { name: 'Usuários', path: '/users', requiredRole: 'admin' },
   { name: 'Super Admin', path: '/super-admin', superAdminOnly: true },
 ];
