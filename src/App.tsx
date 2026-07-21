@@ -36,6 +36,9 @@ import SeasonReport from '@/pages/SeasonReport';
 import PlayerStatistics from '@/pages/PlayerStatistics';
 import PlayerStatisticsDetail from '@/pages/PlayerStatisticsDetail';
 import CaixinhaManagement from '@/pages/CaixinhaManagement';
+import FinanceReceivables from '@/pages/FinanceReceivables';
+import FinanceJackpot from '@/pages/FinanceJackpot';
+import FinanceClubCash from '@/pages/FinanceClubCash';
 import PublicSeasonView from '@/pages/PublicSeasonView';
 import PublicGameView from '@/pages/PublicGameView';
 import ResetPassword from '@/pages/ResetPassword';
@@ -95,6 +98,9 @@ function App() {
                       <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                       <Route path="/organization/members" element={<OrganizationMembersPage />} />
                       <Route path="/caixinha" element={<CaixinhaManagement />} />
+                      <Route path="/finance/receivables" element={<FinanceReceivables />} />
+                      <Route path="/finance/jackpot" element={<FinanceJackpot />} />
+                      <Route path="/finance/club-cash" element={<FinanceClubCash />} />
                       <Route path="/super-admin" element={<SuperAdminDashboard />} />
                     </Route>
                   </Route>
