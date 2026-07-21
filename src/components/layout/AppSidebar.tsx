@@ -29,7 +29,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -57,16 +56,10 @@ const mainNavItems: NavItem[] = [
   { name: 'Estatísticas', path: '/statistics', icon: BarChart3 },
   { name: 'Galeria', path: '/gallery', icon: ImageIcon },
   { name: 'Regras da Casa', path: '/house-rules', icon: BookOpen },
-  { name: 'Caixinha', path: '/caixinha', icon: PiggyBank, hideForViewer: true },
+  { name: 'Financeiro', path: '/finance', icon: Wallet, hideForViewer: true },
   { name: 'Temas', path: '/themes', icon: Palette },
   { name: 'Usuários', path: '/users', icon: ShieldAlert, requiredRole: 'admin' },
   { name: 'Super Admin', path: '/super-admin', icon: Crown, superAdminOnly: true },
-];
-
-const financeNavItems: NavItem[] = [
-  { name: 'Recebimentos', path: '/finance/receivables', icon: Receipt, hideForViewer: true },
-  { name: 'Jackpot', path: '/finance/jackpot', icon: Coins, hideForViewer: true },
-  { name: 'Caixa do Clube', path: '/finance/club-cash', icon: Wallet, hideForViewer: true },
 ];
 
 function useFilteredItems(items: NavItem[]) {
@@ -93,10 +86,8 @@ export function AppSidebar() {
   const { currentOrganization } = useOrganization();
 
   const filteredMainItems = useFilteredItems(mainNavItems);
-  const filteredFinanceItems = useFilteredItems(financeNavItems);
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
-  const isFinanceActive = financeNavItems.some((item) => isActive(item.path));
 
   return (
     <Sidebar collapsible="icon" className="border-r border-white/5">
@@ -159,47 +150,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {filteredFinanceItems.length > 0 && (
-          <Collapsible defaultOpen={isFinanceActive} className="group/collapsible">
-            <SidebarGroup>
-              <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="w-full flex items-center justify-between cursor-pointer hover:text-sidebar-foreground">
-                  <span>Financeiro</span>
-                  <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {filteredFinanceItems.map((item) => (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive(item.path)}
-                          tooltip={item.name}
-                          size="lg"
-                        >
-                          <NavLink
-                            to={item.path}
-                            onClick={handleNavClick}
-                            className={cn(
-                              'flex items-center gap-3',
-                              isActive(item.path) ? 'text-poker-gold font-medium' : 'text-white/80'
-                            )}
-                          >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                            <span className="truncate text-[0.95rem]">{item.name}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-white/5">
