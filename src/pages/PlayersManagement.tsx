@@ -9,6 +9,7 @@ import { EditPlayerDialog } from "@/components/players/EditPlayerDialog";
 import { PlayersHeader } from "@/components/players/PlayersHeader";
 import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { PlayersList } from "@/components/players/PlayersList";
+import { StandardizePhotosButton } from "@/components/players/StandardizePhotosButton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRankingSync } from "@/hooks/useRankingSync";
 
