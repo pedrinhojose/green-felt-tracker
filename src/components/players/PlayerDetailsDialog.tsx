@@ -58,7 +58,8 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
           .from("games")
           .select("id,date,season_id,players")
           .eq("organization_id", currentOrganization.id)
-          .order("date", { ascending: false });
+          .order("date", { ascending: false })
+          .limit(5000);
         if (error) throw error;
         if (cancelled) return;
         const rows = ((data || []) as ParticipationRow[]).filter(row => rowHasPlayer(row, player.id));
