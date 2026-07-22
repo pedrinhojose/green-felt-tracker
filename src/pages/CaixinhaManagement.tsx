@@ -33,7 +33,7 @@ export default function CaixinhaManagement() {
   const { isAdmin } = useUserRole();
   
   // Use unified transactions hook
-  const { unifiedTransactions, manualTransactions, isLoading, reload } = useCaixinhaUnifiedTransactions(activeSeason?.id);
+  const { unifiedTransactions, manualTransactions, gameContributions, isLoading, reload } = useCaixinhaUnifiedTransactions(activeSeason?.id);
   
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
