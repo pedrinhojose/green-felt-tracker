@@ -32,6 +32,38 @@ export default function FinanceReceivables() {
   const { rows, receivablesByPlayer, gamesList, isLoading, settlePayment, undoSettlement } = useReceivables();
   const { canEdit } = useOrgMemberRole();
   const { toast } = useToast();
+  const { players } = usePoker();
+  const phoneByPlayer = useMemo(() => {
+    const m = new Map<string, string | undefined>();
+    players.forEach(p => m.set(p.id, p.phone));
+    return m;
+  }, [players]);
+
+  const sanitizePhone = (phone?: string) => {
+    if (!phone) return '';
+    let digits = phone.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 11) digits = '55' + digits;
+    return digits;
+  };
+
+  const handleWhatsApp = (r: ReceivableRow) => {
+    const phone = phoneByPlayer.get(r.playerId);
+    const digits = sanitizePhone(phone);
+    if (!digits) {
+      toast({ title: 'Telefone não cadastrado', description: `Cadastre o telefone de ${r.playerName} no perfil do jogador.`, variant: 'destructive' });
+      return;
+    }
+    const firstName = r.playerName.split(' ')[0];
+    const valor = formatCurrency(Math.abs(r.amount));
+    const dataPartida = formatDate(r.gameDate);
+    let msg: string;
+    if (r.amount < 0) {
+      msg = `Olá, ${firstName}! 👋\n\nPassando para lembrar sobre o saldo pendente da partida #${r.gameNumber} (${dataPartida}) no valor de *${valor}*.\n\nAssim que puder, é só efetuar o pagamento. Qualquer dúvida, estou à disposição! 🃏`;
+    } else {
+      msg = `Olá, ${firstName}! 🎉\n\nInformo que foi realizado o pagamento do seu prêmio da partida #${r.gameNumber} (${dataPartida}) no valor de *${valor}*.\n\nParabéns e até a próxima! 🏆🃏`;
+    }
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
   const [gameFilter, setGameFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos');
