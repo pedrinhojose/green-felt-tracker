@@ -1,40 +1,46 @@
+## Objetivo
 
-# Reorganização das Configurações de Temporada
+Tornar **partidas avulsas 100% independentes** de temporada — hoje elas exigem uma temporada ativa para calcular buy-in, rebuy, addon e prize pool inicial.
 
-Objetivo: eliminar a confusão entre "criar nova temporada" vs "editar temporada existente", proteger configurações de temporadas já em andamento e mover o botão **Encerrar Temporada** para um local mais adequado.
+## Mudanças
 
-## O que muda
+### 1. Configuração global de "Partida Avulsa" (padrão do clube)
+Nova aba em **Configurações** (ou seção no Dashboard) para definir os valores padrão de partida avulsa por organização:
+- Buy-in, Rebuy, Add-on
+- Distribuição de prêmios (schema semanal simplificado — 1º, 2º, 3º %)
+- Contribuição para caixinha (opcional, padrão 0)
 
-### 1. Clareza visual (qual temporada estou editando)
-- No topo da tela `/season`, mostrar um banner grande e destacado com o nome da temporada sendo editada, seu status (Ativa / Encerrada / Nova) e as datas.
-- Ao trocar a temporada no seletor global, se houver alterações não salvas no formulário, exibir confirmação ("Descartar alterações?") antes de recarregar.
+Armazenado em nova tabela `organization_standalone_config` (org_id, buy_in, rebuy, addon, prize_schema jsonb, caixinha_contribution, updated_at) com RLS por organização e os GRANTs padrão.
 
-### 2. Separar "Criar nova" do fluxo de edição
-- Remover o botão **"Nova Temporada"** de dentro da tela de edição.
-- A criação passa a acontecer apenas a partir de `/seasons` (lista) via botão dedicado, que abre `/season?new=1` num modo claramente identificado como "Criação".
-- No modo criação, o cabeçalho fica em outra cor e mostra "Nova Temporada — não salva ainda".
+### 2. Diálogo ao iniciar partida avulsa
+Ao clicar em **"Iniciar partida avulsa"**, abrir modal com:
+- Valores pré-preenchidos do padrão do clube (editáveis só para esta partida).
+- Botão "Salvar como novo padrão" (opcional).
+- Confirmar → cria a partida com esses valores no snapshot.
 
-### 3. Bloquear/avisar edição quando a temporada já tem partidas
-- Se a temporada tem 1+ partidas finalizadas, campos estruturais (esquema de pontuação, prêmios, parâmetros financeiros, eliminações) ficam **somente leitura por padrão**, com um botão "Desbloquear edição avançada" que exibe aviso: "Alterações NÃO afetam partidas já jogadas — apenas as próximas".
-- Campos livres (nome, regras da casa, blinds, jantares, cronograma) continuam editáveis normalmente.
+### 3. Snapshot no `games`
+Adicionar coluna `standalone_config jsonb` na tabela `games` para armazenar buy-in/rebuy/addon/prize_schema usados naquela partida específica. Assim a partida avulsa não depende mais de `activeSeason` nem do padrão futuro do clube.
 
-### 4. Congelar a configuração no momento da partida
-- Cada partida (`games`) passa a guardar um snapshot da configuração relevante no momento em que é iniciada (esquema de pontuação, prêmios semanais, parâmetros financeiros, config de eliminação).
-- Cálculos de pontuação, prêmios e ranking da partida usam o snapshot da própria partida, não a config atual da temporada.
-- Partidas antigas ficam imunes a mudanças posteriores nas configurações.
+### 4. Refatorar hooks
+- `useStartGame`: quando `isStandalone`, ler do `standalone_config` da partida (ou do modal) em vez de `activeSeason`.
+- `usePrizeDistribution` / cálculo de prêmios: quando `isStandalone`, usar `game.standalone_config.prize_schema`.
+- Remover o fallback silencioso para `activeSeason` em partidas avulsas.
 
-### 5. Mover botão "Encerrar Temporada"
-- Remover o botão **"Encerrar Temporada"** da tela `/season` (Configuração).
-- Adicionar em `/seasons/:seasonId` (Detalhes da Temporada), no cabeçalho, visível apenas quando a temporada está ativa e o usuário é admin/editor.
-- Mantém o mesmo diálogo de confirmação atual.
+### 5. Permitir partida avulsa sem nenhuma temporada
+Hoje, se não há temporada ativa, o botão "Iniciar partida avulsa" ainda depende de dados de temporada em segundo plano. Após a mudança, será possível criar partida avulsa mesmo em clubes que nunca criaram uma temporada.
 
 ## Detalhes técnicos
 
-- **Snapshot da partida**: adicionar coluna JSONB `config_snapshot` em `games` (contendo `scoreSchema`, `weeklyPrizeSchema`, `financialParams`, `eliminationRewardConfig`). Preencher em `useStartGame` no momento da criação. Ajustar `usePrizeDistribution`, `useEliminationRewards` e cálculos de ranking para preferir `game.config_snapshot` quando presente, caindo pra `season.*` como fallback (compatível com partidas antigas).
-- **Bloqueio de edição avançada**: em `SeasonConfig.tsx`, checar se `games.length > 0` para a temporada aberta e passar `readOnly` para `ScoreSchemaConfig`, `PrizeSchemaConfig` (semanal e final), `FinancialParamsConfig` e `EliminationRewardConfig`. Estado local `advancedUnlocked` libera após confirmação.
-- **Confirmação ao trocar temporada**: `SeasonSelector` recebe callback `onBeforeChange` do form (via contexto leve ou prop), que consulta `formState.isDirty`.
-- **Botão Encerrar**: mover o bloco `AlertDialog` de `SeasonConfig.tsx` (linhas 102–120) para o cabeçalho de `SeasonDetails.tsx`, reutilizando `endSeason` do `usePoker()`.
+- Migração: nova tabela `organization_standalone_config` + coluna `standalone_config jsonb` em `games` + GRANTs + RLS.
+- Novo hook `useStandaloneConfig(orgId)` para ler/salvar padrão.
+- Novo componente `StandaloneGameDialog.tsx` (formulário buy-in/rebuy/addon/prêmios).
+- Editar `QuickGameCard.tsx` para abrir o diálogo em vez de iniciar direto.
+- Editar `useStartGame.ts` para aceitar `standaloneConfig` como parâmetro e persistir no `games.standalone_config`.
+- Editar `usePrizeDistribution.ts` (e onde mais consumir buy-in/prêmios) para checar `game.isStandalone` e usar o snapshot.
+- Sem impacto em partidas de temporada: fluxo atual preservado.
 
-## Fora de escopo
-- Recalcular retroativamente pontuação/prêmios de partidas antigas usando snapshot.
-- Versionamento/histórico das configurações da temporada (só o snapshot por partida).
+## Fora do escopo
+
+- Ranking próprio de avulsas (continuam sem ranking).
+- Contribuição para jackpot em avulsas (continua sem).
+- Snapshot de config por partida de temporada (item 4 do plano anterior, ainda pendente).
