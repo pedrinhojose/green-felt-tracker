@@ -137,17 +137,12 @@ const CaixinhaCard = memo(function CaixinhaCard() {
             {/* Caixinha value */}
             <div className="mt-8 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent drop-shadow-md">
-                {activeSeason ? (
-                  formattedTotal
-                ) : (
-                  "Sem temporada ativa"
-                )}
+                {formattedTotal}
               </div>
-              {activeSeason && (
-                <div className="text-xs text-emerald-300 mt-1">
-                  Clique para gerenciar
-                </div>
-              )}
+              <div className="text-xs text-emerald-300 mt-1">
+                Clique para gerenciar
+              </div>
+
             </div>
           </div>
         </div>
