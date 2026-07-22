@@ -109,7 +109,7 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
         {/* Jackpot (depends on active season) */}
         <div
           className="flex-1 flex items-center gap-4 px-2 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-colors"
-          onClick={() => navigate('/seasons')}
+          onClick={() => navigate('/finance/jackpot')}
         >
           <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-poker-green/40 border border-poker-green flex items-center justify-center shrink-0">
             <DollarSign className="w-6 h-6 md:w-7 md:h-7 text-poker-gold" />
