@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { usePoker } from "@/contexts/PokerContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Image, ArrowLeft, Share } from "lucide-react";
+import { FileText, Image, ArrowLeft, Share, CalendarDays } from "lucide-react";
 import PlayerPerformanceTable from "@/components/reports/PlayerPerformanceTable";
 import SeasonPrizePoolSummary from "@/components/reports/SeasonPrizePoolSummary";
 import JackpotWinnersCard from "@/components/reports/JackpotWinnersCard";
@@ -124,6 +124,16 @@ export default function SeasonReport() {
           </div>
           
           <div className={`flex gap-2 mt-4 sm:mt-0 ${isMobile ? 'w-full' : ''}`}>
+            <Button
+              onClick={() => navigate(`/seasons/${activeSeason.id}`)}
+              variant="outline"
+              size="sm"
+              className={isMobile ? 'flex-1' : ''}
+            >
+              Detalhes
+              <CalendarDays className="ml-2 h-4 w-4" />
+            </Button>
+
             <Button
               onClick={handleExportPdf}
               disabled={isExporting}
