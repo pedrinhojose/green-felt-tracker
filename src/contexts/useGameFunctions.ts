@@ -252,6 +252,7 @@ export function useGameFunctions(
       if (game.isStandalone || !game.seasonId) {
         const updatedGame = { ...game, isFinished: true };
         await pokerDB.saveGame(updatedGame);
+        await runOffsetCompensation(updatedGame.id);
         setGames(prev => {
           const idx = prev.findIndex(g => g.id === updatedGame.id);
           if (idx >= 0) return [...prev.slice(0, idx), updatedGame, ...prev.slice(idx + 1)];
