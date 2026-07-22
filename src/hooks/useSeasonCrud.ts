@@ -11,40 +11,22 @@ export function useSeasonCrud() {
   const [activeSeason, setActiveSeason] = useState<Season | null>(null);
 
   /**
-   * Creates a new season and sets it as active
-   * Checks for pending caixinha transfer from previous season
+   * Creates a new season and sets it as active.
+   * NOTE: Caixinha is organization-wide and continuous — we no longer transfer any
+   * balance into the new season. The dashboard/finance pages compute it live from
+   * all org transactions and game contributions.
    */
   const createSeason = async (seasonData: Partial<Season>) => {
     // Multiple active seasons are allowed — do not deactivate the current one.
 
-    
-    // Check for pending caixinha transfer from previous season
-    let caixinhaBalance = seasonData.caixinhaBalance || 0;
-    const pendingTransferJson = localStorage.getItem('pendingCaixinhaTransfer');
-    
-    if (pendingTransferJson) {
-      try {
-        const pendingTransfer = JSON.parse(pendingTransferJson);
-        if (pendingTransfer.amount > 0) {
-          caixinhaBalance = pendingTransfer.amount;
-          console.log(`Transferring caixinha balance of ${caixinhaBalance} from season ${pendingTransfer.fromSeasonName}`);
-          
-          // Show toast about the transfer
-          toast({
-            title: "Saldo da Caixinha Transferido",
-            description: `R$ ${caixinhaBalance.toFixed(2)} transferido da temporada "${pendingTransfer.fromSeasonName}".`,
-          });
-          
-          // Clear the pending transfer
-          localStorage.removeItem('pendingCaixinhaTransfer');
-        }
-      } catch (e) {
-        console.error('Error parsing pending caixinha transfer:', e);
-      }
-    }
-    
+    // Clean up any legacy pending transfer left over from older versions.
+    try { localStorage.removeItem('pendingCaixinhaTransfer'); } catch {}
+
+    const caixinhaBalance = seasonData.caixinhaBalance || 0;
+
     // Create the new season with defaults for missing values
     const newSeason = buildNewSeason({ ...seasonData, caixinhaBalance }, seasons.length);
+
     
     // Save to database
     const id = await pokerDB.saveSeason(newSeason);
