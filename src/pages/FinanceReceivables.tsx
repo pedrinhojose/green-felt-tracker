@@ -27,7 +27,7 @@ const statusMeta: Record<SettlementStatus, { label: string; className: string }>
 };
 
 export default function FinanceReceivables() {
-  const { rows, gamesList, isLoading, settlePayment, undoSettlement } = useReceivables();
+  const { rows, receivablesByPlayer, gamesList, isLoading, settlePayment, undoSettlement } = useReceivables();
   const { canEdit } = useOrgMemberRole();
   const { toast } = useToast();
 
