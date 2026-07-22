@@ -94,7 +94,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: game.dinner_cost ? Number(game.dinner_cost) : undefined,
           isFinished: game.is_finished,
           createdAt: new Date(game.created_at),
-          isStandalone: game.is_standalone ?? false
+          isStandalone: game.is_standalone ?? false,
+          standaloneConfig: (game as any).standalone_config ?? undefined
         })) as Game[];
       } catch (error) {
         console.error("GameRepository.getGames: Error fetching games from Supabase:", error);
@@ -150,7 +151,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
           createdAt: new Date(data.created_at),
-          isStandalone: data.is_standalone ?? false
+          isStandalone: data.is_standalone ?? false,
+          standaloneConfig: (data as any).standalone_config ?? undefined
         } as Game;
       } catch (error) {
         console.error("GameRepository.getGame: Error fetching game from Supabase:", error);
@@ -206,7 +208,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
           createdAt: new Date(data.created_at),
-          isStandalone: data.is_standalone ?? false
+          isStandalone: data.is_standalone ?? false,
+          standaloneConfig: (data as any).standalone_config ?? undefined
         } as Game;
       } catch (error) {
         console.error("GameRepository.getLastGame: Error fetching last game from Supabase:", error);
@@ -233,6 +236,7 @@ export class GameRepository extends SupabaseCore {
           number: game.number,
           season_id: game.seasonId ?? null,
           is_standalone: game.isStandalone ?? false,
+          standalone_config: (game.standaloneConfig ?? null) as unknown as Json,
           date: game.date.toISOString(),
           players: game.players as unknown as Json,
           total_prize_pool: game.totalPrizePool,

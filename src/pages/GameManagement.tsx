@@ -5,6 +5,7 @@ import { usePlayerActions } from "@/hooks/usePlayerActions";
 import { usePrizeDistribution } from "@/hooks/usePrizeDistribution";
 import { useGameShareableLink } from "@/hooks/useGameShareableLink";
 import { useEditFinishedGame } from "@/hooks/useEditFinishedGame";
+import { useEffectiveSeason } from "@/hooks/useEffectiveSeason";
 import { usePositionSwap } from "@/hooks/usePositionSwap";
 import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,7 +40,7 @@ export default function GameManagement() {
     setGame,
     isLoading,
     players,
-    activeSeason,
+    activeSeason: rawActiveSeason,
     dinnerCost,
     isSelectingPlayers,
     setIsSelectingPlayers,
@@ -52,6 +53,7 @@ export default function GameManagement() {
     handleFinishGame,
     handleDeleteGame,
   } = useGameManagement();
+  const activeSeason = useEffectiveSeason(game) ?? rawActiveSeason;
   
   // Player actions hook
   const {

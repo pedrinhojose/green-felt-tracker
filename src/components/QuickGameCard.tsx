@@ -4,12 +4,15 @@ import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import StandaloneGameDialog from "@/components/game/StandaloneGameDialog";
+import { StandaloneGameConfig } from "@/lib/db/models";
 
 const QuickGameCard = memo(function QuickGameCard() {
   const { activeSeason, createGame, createStandaloneGame } = usePoker();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [creatingType, setCreatingType] = useState<null | "season" | "standalone">(null);
+  const [standaloneDialogOpen, setStandaloneDialogOpen] = useState(false);
   const isCreating = creatingType !== null;
 
   const handleOpenSeasonGame = async () => {
@@ -38,11 +41,12 @@ const QuickGameCard = memo(function QuickGameCard() {
     }
   };
 
-  const handleOpenStandaloneGame = async () => {
+  const handleConfirmStandalone = async (config: StandaloneGameConfig) => {
     if (isCreating) return;
     try {
       setCreatingType("standalone");
-      const gameId = await createStandaloneGame();
+      const gameId = await createStandaloneGame(config);
+      setStandaloneDialogOpen(false);
       navigate(`/games/${gameId}`);
     } catch (error) {
       console.error("Error creating standalone game:", error);
@@ -120,7 +124,7 @@ const QuickGameCard = memo(function QuickGameCard() {
           </div>
           <Button
             type="button"
-            onClick={handleOpenStandaloneGame}
+            onClick={() => setStandaloneDialogOpen(true)}
             disabled={isCreating}
             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
           >
@@ -138,6 +142,12 @@ const QuickGameCard = memo(function QuickGameCard() {
           </Button>
         </div>
       </div>
+      <StandaloneGameDialog
+        open={standaloneDialogOpen}
+        onOpenChange={setStandaloneDialogOpen}
+        onConfirm={handleConfirmStandalone}
+        loading={creatingType === "standalone"}
+      />
     </div>
   );
 });

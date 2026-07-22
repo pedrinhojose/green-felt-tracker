@@ -377,6 +377,7 @@ export type Database = {
           players: Json
           public_share_token: string | null
           season_id: string | null
+          standalone_config: Json | null
           total_prize_pool: number
           user_id: string
         }
@@ -392,6 +393,7 @@ export type Database = {
           players?: Json
           public_share_token?: string | null
           season_id?: string | null
+          standalone_config?: Json | null
           total_prize_pool?: number
           user_id: string
         }
@@ -407,6 +409,7 @@ export type Database = {
           players?: Json
           public_share_token?: string | null
           season_id?: string | null
+          standalone_config?: Json | null
           total_prize_pool?: number
           user_id?: string
         }

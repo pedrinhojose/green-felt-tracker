@@ -23,7 +23,7 @@ export interface PokerContextProps {
   games: Game[];
   lastGame: Game | null;
   createGame: (seasonId: string) => Promise<string>;
-  createStandaloneGame: () => Promise<string>;
+  createStandaloneGame: (config?: import("@/lib/db/models").StandaloneGameConfig) => Promise<string>;
   updateGame: (gameData: Partial<Game>) => Promise<void>;
   deleteGame: (gameId: string) => Promise<boolean>;
   finishGame: (gameId: string) => Promise<void>;
