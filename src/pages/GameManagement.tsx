@@ -53,6 +53,7 @@ export default function GameManagement() {
     handleFinishGame,
     handleDeleteGame,
   } = useGameManagement();
+  const activeSeason = useEffectiveSeason(game) ?? rawActiveSeason;
   
   // Player actions hook
   const {
