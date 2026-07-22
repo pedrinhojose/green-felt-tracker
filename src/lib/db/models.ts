@@ -65,6 +65,13 @@ export interface FinancialParams {
   pixKey?: string;
 }
 
+export interface StandaloneGameConfig {
+  buyIn: number;
+  rebuy: number;
+  addon: number;
+  weeklyPrizeSchema: PrizeEntry[];
+}
+
 export interface Game {
   id: string;
   number: number;
@@ -76,6 +83,7 @@ export interface Game {
   isFinished: boolean;
   createdAt: Date;
   isStandalone?: boolean;
+  standaloneConfig?: StandaloneGameConfig;
 }
 
 export interface GamePlayer {
