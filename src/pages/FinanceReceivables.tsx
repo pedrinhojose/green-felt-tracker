@@ -252,6 +252,26 @@ export default function FinanceReceivables() {
                         <TableCell>
                           <Badge variant="outline" className={meta.className}>{meta.label}</Badge>
                         </TableCell>
+                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                                  onClick={() => handleWhatsApp(r)}
+                                  aria-label="Enviar mensagem no WhatsApp"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{r.amount < 0 ? 'Enviar cobrança amigável' : 'Avisar sobre pagamento do prêmio'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           {canEdit && !isQuit && (
                             <Button size="sm" onClick={() => setDialogRow(r)}>
