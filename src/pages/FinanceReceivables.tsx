@@ -287,7 +287,7 @@ export default function FinanceReceivables() {
                       </TableRow>
                       {isOpen && (
                         <TableRow key={`${r.key}-details`} className="hover:bg-transparent">
-                          <TableCell colSpan={6} className="bg-muted/20 p-4">
+                          <TableCell colSpan={7} className="bg-muted/20 p-4">
                             <PlayerReceivableBreakdown row={r} />
                           </TableCell>
                         </TableRow>
