@@ -4,11 +4,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { Game } from "@/lib/db/models";
 import { supabase } from "@/integrations/supabase/client";
 import { calculateEliminationRewards } from "@/hooks/useEliminationRewards";
+import { useEffectiveSeason } from "@/hooks/useEffectiveSeason";
 
 export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame } = usePoker();
   const { toast } = useToast();
-  const { activeSeason } = usePoker(); // Move this hook call to the top level
+  const activeSeason = useEffectiveSeason(game);
 
   // Calcular saldo do jogador (função duplicada de usePlayerStatsActions para manter a consistência)
   const calculatePlayerBalance = (player, dinnerCost, dinnerParticipants) => {
