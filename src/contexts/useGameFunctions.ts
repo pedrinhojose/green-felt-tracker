@@ -322,6 +322,8 @@ export function useGameFunctions(
         isFinished: true
       };
       await pokerDB.saveGame(updatedGame);
+      await runOffsetCompensation(updatedGame.id);
+      
       
       // Recalcular rankings a partir de TODOS os jogos finalizados da temporada
       const freshPlayers = await pokerDB.getPlayers();
