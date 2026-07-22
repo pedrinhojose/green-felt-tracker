@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Trophy, Trash, Play, Pause } from "lucide-react";
+import { Calendar, ChevronRight, Trophy, Trash, Play, Pause, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
@@ -156,14 +156,12 @@ export default function SeasonsList() {
     }
   };
   
-  const handleViewSeason = (seasonId: string, isActive: boolean) => {
-    if (isActive && canEdit) {
-      // If active, go to the report page
-      navigate("/reports/season");
-    } else {
-      // If inactive or finished, go to the season details page
-      navigate(`/seasons/${seasonId}`);
-    }
+  const handleViewSeason = (seasonId: string) => {
+    navigate(`/seasons/${seasonId}`);
+  };
+
+  const handleViewActiveSeasonReport = () => {
+    navigate("/reports/season");
   };
   
   return (
@@ -284,7 +282,7 @@ export default function SeasonsList() {
                   </div>
                 </CardHeader>
                 
-                <CardContent onClick={() => handleViewSeason(season.id, season.isActive)} className="cursor-pointer">
+                <CardContent onClick={() => handleViewSeason(season.id)} className="cursor-pointer">
                   <div className="space-y-2">
                     <div className="flex items-center text-sm">
                       <Calendar className="h-4 w-4 mr-2" />
@@ -305,14 +303,28 @@ export default function SeasonsList() {
                       </div>
                     )}
                     
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-4 flex flex-wrap justify-end gap-2">
+                      {status === "active" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewActiveSeasonReport();
+                          }}
+                        >
+                          Relatório
+                          <FileText className="h-4 w-4 ml-1" />
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="flex items-center"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleViewSeason(season.id, season.isActive);
+                          handleViewSeason(season.id);
                         }}
                       >
                         Ver detalhes
