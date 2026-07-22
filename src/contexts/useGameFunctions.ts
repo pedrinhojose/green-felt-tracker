@@ -16,6 +16,23 @@ export function useGameFunctions(
   const [games, setGames] = useState<Game[]>([]);
   const [lastGame, setLastGame] = useState<Game | null>(null);
 
+  const runOffsetCompensation = async (gameId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('settle_game_with_offsets', { p_game_id: gameId });
+      if (error) { console.warn('offset rpc error', error); return; }
+      const result = data as any;
+      const count = Number(result?.compensations ?? 0);
+      if (count > 0) {
+        toast({
+          title: 'Compensação automática',
+          description: `${count} pendência${count > 1 ? 's' : ''} anterior${count > 1 ? 'es' : ''} quitada${count > 1 ? 's' : ''} com esta partida.`,
+        });
+      }
+    } catch (e) {
+      console.warn('offset rpc failed', e);
+    }
+  };
+
   const findNextAvailableNumber = (existingNumbers: number[]): number => {
     if (existingNumbers.length === 0) {
       return 1;
