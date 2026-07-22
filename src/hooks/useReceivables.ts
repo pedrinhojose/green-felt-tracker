@@ -236,5 +236,5 @@ export function useReceivables() {
     if (error) throw error;
   }, []);
 
-  return { rows, gamesList, isLoading, settlePayment, undoSettlement, reload: () => { loadGames(); loadSettlements(); } };
+  return { rows, receivablesByPlayer, gamesList, isLoading, settlePayment, undoSettlement, reload: () => { loadGames(); loadSettlements(); } };
 }
