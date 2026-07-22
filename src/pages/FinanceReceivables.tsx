@@ -8,13 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/navigation/PageHeader';
-import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight, Users } from 'lucide-react';
+import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight, Users, MessageCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils/dateUtils';
 import { useReceivables, RECEIVABLES_CUTOFF_DATE, type ReceivableRow, type SettlementStatus } from '@/hooks/useReceivables';
 import { SettlePaymentDialog } from '@/components/finance/SettlePaymentDialog';
 import { PlayerReceivableBreakdown } from '@/components/finance/PlayerReceivableBreakdown';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { useToast } from '@/hooks/use-toast';
+import { usePoker } from '@/contexts/PokerContext';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 
 type StatusFilter = 'todos' | 'pendentes' | 'a_receber' | 'quitados';
