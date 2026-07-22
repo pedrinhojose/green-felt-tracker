@@ -124,7 +124,7 @@ const QuickGameCard = memo(function QuickGameCard() {
           </div>
           <Button
             type="button"
-            onClick={handleOpenStandaloneGame}
+            onClick={() => setStandaloneDialogOpen(true)}
             disabled={isCreating}
             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
           >
