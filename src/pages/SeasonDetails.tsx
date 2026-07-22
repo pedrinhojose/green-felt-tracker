@@ -57,7 +57,9 @@ export default function SeasonDetails() {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isViewer } = useOrgMemberRole();
+  const { isViewer, canEdit } = useOrgMemberRole();
+  const { endSeason } = usePoker();
+  const [isEndingSeason, setIsEndingSeason] = useState(false);
   
   const [season, setSeason] = useState<Season | null>(null);
   const [games, setGames] = useState<Game[]>([]);
