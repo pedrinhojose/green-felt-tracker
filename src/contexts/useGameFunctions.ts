@@ -90,7 +90,7 @@ export function useGameFunctions(
    * Create a standalone game not linked to any season.
    * Standalone games skip caixinha/jackpot/ranking logic entirely.
    */
-  const createStandaloneGame = async () => {
+  const createStandaloneGame = async (config?: import("@/lib/db/models").StandaloneGameConfig) => {
     // Standalone games get their own numbering per organization,
     // scoped simply by picking the next available number among existing standalone games.
     const existingStandalone = games.filter(g => g.isStandalone);
@@ -102,6 +102,7 @@ export function useGameFunctions(
       number: gameNumber,
       seasonId: null,
       isStandalone: true,
+      standaloneConfig: config,
       date: new Date(),
       players: [],
       totalPrizePool: 0,
