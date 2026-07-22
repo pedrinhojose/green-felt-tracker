@@ -236,6 +236,7 @@ export class GameRepository extends SupabaseCore {
           number: game.number,
           season_id: game.seasonId ?? null,
           is_standalone: game.isStandalone ?? false,
+          standalone_config: (game.standaloneConfig ?? null) as unknown as Json,
           date: game.date.toISOString(),
           players: game.players as unknown as Json,
           total_prize_pool: game.totalPrizePool,
