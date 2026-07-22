@@ -151,7 +151,8 @@ export class GameRepository extends SupabaseCore {
           dinnerCost: data.dinner_cost ? Number(data.dinner_cost) : undefined,
           isFinished: data.is_finished,
           createdAt: new Date(data.created_at),
-          isStandalone: data.is_standalone ?? false
+          isStandalone: data.is_standalone ?? false,
+          standaloneConfig: (data as any).standalone_config ?? undefined
         } as Game;
       } catch (error) {
         console.error("GameRepository.getGame: Error fetching game from Supabase:", error);
