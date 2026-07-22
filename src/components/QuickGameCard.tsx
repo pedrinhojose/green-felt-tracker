@@ -142,6 +142,12 @@ const QuickGameCard = memo(function QuickGameCard() {
           </Button>
         </div>
       </div>
+      <StandaloneGameDialog
+        open={standaloneDialogOpen}
+        onOpenChange={setStandaloneDialogOpen}
+        onConfirm={handleConfirmStandalone}
+        loading={creatingType === "standalone"}
+      />
     </div>
   );
 });
