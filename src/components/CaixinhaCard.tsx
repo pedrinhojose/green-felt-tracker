@@ -21,16 +21,15 @@ const CaixinhaCard = memo(function CaixinhaCard() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
 
-  // Load transactions from Supabase
+  // Load transactions from Supabase (organization-wide, continuous across seasons)
   useEffect(() => {
     const loadTransactions = async () => {
-      if (!activeSeason || !currentOrganization) return;
+      if (!currentOrganization) return;
 
       try {
         const { data, error } = await supabase
           .from('caixinha_transactions')
           .select('*')
-          .eq('season_id', activeSeason.id)
           .eq('organization_id', currentOrganization.id)
           .order('withdrawal_date', { ascending: false });
 
@@ -53,16 +52,13 @@ const CaixinhaCard = memo(function CaixinhaCard() {
     };
 
     loadTransactions();
-  }, [activeSeason, currentOrganization]);
+  }, [currentOrganization]);
   
-  // Calculate total accumulated from games (same logic as CaixinhaManagement)
+  // Total accumulated from ALL games of the organization (any season, incl. standalone)
   const totalAccumulated = useMemo(() => {
-    if (!activeSeason || !games) return 0;
-    
-    const seasonGames = games.filter(game => game.seasonId === activeSeason.id);
+    if (!games) return 0;
     let total = 0;
-    
-    seasonGames.forEach(game => {
+    games.forEach(game => {
       if (game.players && Array.isArray(game.players)) {
         game.players.forEach(player => {
           if (player.participatesInClubFund && player.clubFundContribution) {
@@ -71,9 +67,9 @@ const CaixinhaCard = memo(function CaixinhaCard() {
         });
       }
     });
-    
     return total;
-  }, [activeSeason, games]);
+  }, [games]);
+
 
   // Calculate deposits and withdrawals
   const totalDeposits = useMemo(() => {
@@ -141,17 +137,12 @@ const CaixinhaCard = memo(function CaixinhaCard() {
             {/* Caixinha value */}
             <div className="mt-8 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent drop-shadow-md">
-                {activeSeason ? (
-                  formattedTotal
-                ) : (
-                  "Sem temporada ativa"
-                )}
+                {formattedTotal}
               </div>
-              {activeSeason && (
-                <div className="text-xs text-emerald-300 mt-1">
-                  Clique para gerenciar
-                </div>
-              )}
+              <div className="text-xs text-emerald-300 mt-1">
+                Clique para gerenciar
+              </div>
+
             </div>
           </div>
         </div>

@@ -53,14 +53,12 @@ export default function CaixinhaManagement() {
   const [editDescription, setEditDescription] = useState("");
   const [editDate, setEditDate] = useState<Date>(new Date());
 
-  // Calculate total accumulated from games
+  // Caixinha is organization-wide and continuous across seasons.
+  // Total accumulated from ALL games of the organization (any season, incl. standalone).
   const totalAccumulated = useMemo(() => {
-    if (!activeSeason || !games) return 0;
-    
-    const seasonGames = games.filter(game => game.seasonId === activeSeason.id);
+    if (!games) return 0;
     let total = 0;
-    
-    seasonGames.forEach(game => {
+    games.forEach(game => {
       if (game.players && Array.isArray(game.players)) {
         game.players.forEach(player => {
           if (player.participatesInClubFund && player.clubFundContribution) {
@@ -69,11 +67,10 @@ export default function CaixinhaManagement() {
         });
       }
     });
-    
     return total;
-  }, [activeSeason, games]);
+  }, [games]);
 
-  // Calculate total deposits and withdrawals
+  // Calculate total deposits and withdrawals (all seasons)
   const totalDeposits = useMemo(() => {
     return manualTransactions
       .filter(transaction => transaction.type === 'deposit')
@@ -91,14 +88,11 @@ export default function CaixinhaManagement() {
     return totalAccumulated + totalDeposits - totalWithdrawals;
   }, [totalAccumulated, totalDeposits, totalWithdrawals]);
 
-  // Count participating players
+  // Count participating players across all games of the organization
   const participatingPlayersCount = useMemo(() => {
-    if (!activeSeason || !games) return 0;
-    
-    const seasonGames = games.filter(game => game.seasonId === activeSeason.id);
+    if (!games) return 0;
     const playerIds = new Set<string>();
-    
-    seasonGames.forEach(game => {
+    games.forEach(game => {
       if (game.players && Array.isArray(game.players)) {
         game.players.forEach(player => {
           if (player.participatesInClubFund) {
@@ -107,9 +101,9 @@ export default function CaixinhaManagement() {
         });
       }
     });
-    
     return playerIds.size;
-  }, [activeSeason, games]);
+  }, [games]);
+
 
 
   const handleWithdrawal = async () => {
