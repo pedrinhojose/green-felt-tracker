@@ -506,8 +506,54 @@ export default function SeasonDetails() {
             <Share2 className="h-4 w-4" />
             {isGenerating ? "Gerando Link..." : "Gerar Link"}
           </Button>}
+
+          {canEdit && season?.isActive && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isEndingSeason}
+                  className="flex items-center gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  {isEndingSeason ? "Encerrando..." : "Encerrar Temporada"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Encerrar Temporada</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja encerrar a temporada <strong>{season?.name}</strong>?
+                    O jackpot de {formatCurrency(season?.jackpot || 0)} será distribuído conforme
+                    a configuração e o ranking será finalizado.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      if (!season) return;
+                      try {
+                        setIsEndingSeason(true);
+                        await endSeason(season.id);
+                        navigate("/seasons");
+                      } catch (err) {
+                        console.error("Error ending season:", err);
+                      } finally {
+                        setIsEndingSeason(false);
+                      }
+                    }}
+                  >
+                    Encerrar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
+
       
       <Card>
         <CardHeader>
