@@ -33,7 +33,7 @@ export default function CaixinhaManagement() {
   const { isAdmin } = useUserRole();
   
   // Use unified transactions hook
-  const { unifiedTransactions, manualTransactions, isLoading, reload } = useCaixinhaUnifiedTransactions(activeSeason?.id);
+  const { unifiedTransactions, manualTransactions, gameContributions, isLoading, reload } = useCaixinhaUnifiedTransactions(activeSeason?.id);
   
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
@@ -54,21 +54,11 @@ export default function CaixinhaManagement() {
   const [editDate, setEditDate] = useState<Date>(new Date());
 
   // Caixinha is organization-wide and continuous across seasons.
-  // Total accumulated from ALL games of the organization (any season, incl. standalone).
+  // Use gameContributions from the unified hook (already loads ALL finished
+  // games of the organization, across any season, including standalone).
   const totalAccumulated = useMemo(() => {
-    if (!games) return 0;
-    let total = 0;
-    games.forEach(game => {
-      if (game.players && Array.isArray(game.players)) {
-        game.players.forEach(player => {
-          if (player.participatesInClubFund && player.clubFundContribution) {
-            total += player.clubFundContribution;
-          }
-        });
-      }
-    });
-    return total;
-  }, [games]);
+    return gameContributions.reduce((sum, gc) => sum + gc.amount, 0);
+  }, [gameContributions]);
 
   // Calculate total deposits and withdrawals (all seasons)
   const totalDeposits = useMemo(() => {
@@ -88,21 +78,14 @@ export default function CaixinhaManagement() {
     return totalAccumulated + totalDeposits - totalWithdrawals;
   }, [totalAccumulated, totalDeposits, totalWithdrawals]);
 
-  // Count participating players across all games of the organization
+  // Count unique participating players across all org games (any season).
   const participatingPlayersCount = useMemo(() => {
-    if (!games) return 0;
     const playerIds = new Set<string>();
-    games.forEach(game => {
-      if (game.players && Array.isArray(game.players)) {
-        game.players.forEach(player => {
-          if (player.participatesInClubFund) {
-            playerIds.add(player.playerId);
-          }
-        });
-      }
+    gameContributions.forEach(gc => {
+      gc.players.forEach(p => playerIds.add(p.id));
     });
     return playerIds.size;
-  }, [games]);
+  }, [gameContributions]);
 
 
 

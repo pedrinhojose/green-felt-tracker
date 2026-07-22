@@ -1,63 +1,55 @@
+# Corrigir saldo da caixinha e ajustar para R$ 64,00
 
-## Objetivo
+## Diagnóstico confirmado no banco
 
-Transformar recebimentos de "por partida" em "por jogador", com aviso visual na abertura de partida e compensação automática do saldo pendente ao encerrar uma nova partida.
+Organização ativa (`3ae276b2...`):
 
-## 1. Visão consolidada por jogador (aba Recebimentos)
+- Contribuições de jogos (todas as temporadas + avulsas): **R$ 880,00**
+- Depósitos manuais (todas as temporadas): **R$ 665,00**
+- Saques manuais (todas as temporadas): **R$ 1.421,00**
 
-Adicionar um toggle no topo da aba: **"Por partida" | "Por jogador"** (default: por jogador).
+**Saldo correto pela regra org-wide contínua:** 880 + 665 − 1.421 = **R$ 124,00**
 
-**Modo "Por jogador"** — nova tabela agrupada:
-- Colunas: Jogador, Saldo Total (soma de `amount` das linhas em aberto), Partidas em aberto (contador), Última partida, Ações.
-- Linha expansível mostra as partidas individuais que compõem o saldo (mesmo layout atual com o breakdown).
-- Ação **"Quitar tudo"** dá baixa em lote em todas as linhas pendentes do jogador (mesmo `payment_method`, mesma `settled_at`).
-- Cards de resumo do topo continuam iguais.
+**O que a UI mostra hoje (R$ 616,00) é um bug:** na página `CaixinhaManagement`, `totalAccumulated` usa o array `games` do `PokerContext`, que só carrega jogos da temporada ativa (R$ 140,00). Já os depósitos/saques vêm do hook org-wide (665/1421). Resultado híbrido: 140 + 665 − 1.421 = **−616** (exibido como 616 sem sinal). Cards do Dashboard (`CaixinhaCard`, `FinancialSummaryCard`) já estão corretos e usam org-wide.
 
-Modo "Por partida" mantém o comportamento atual sem mudanças.
+## O que será feito
 
-## 2. Aviso visual em PlayerSelection
+### 1. Corrigir o bug de escopo em CaixinhaManagement (frontend)
 
-Ao abrir a tela de seleção de jogadores:
-- Buscar em `game_player_settlements` (via novo hook `usePlayerOpenBalances`) todas as pendências em aberto (`status in ('pendente','a_receber')`) da organização, agrupadas por `player_id`.
-- No card de cada jogador com pendência: badge no canto superior com valor consolidado.
-  - Vermelho `-R$ X` se devedor
-  - Verde `+R$ X` se credor de prêmio
-- Tooltip ao passar o mouse: "3 partidas em aberto — clique em Recebimentos para detalhes".
-- Nenhum bloqueio; apenas informativo.
+Arquivo `src/pages/CaixinhaManagement.tsx`:
+- Substituir o `totalAccumulated` (que hoje soma `game.players` do `games` filtrado por temporada) por uma consulta org-wide, seguindo o mesmo padrão do `useCaixinhaUnifiedTransactions` (todos os jogos finalizados da organização, em qualquer temporada).
+- Fazer o mesmo para `participatingPlayersCount`, para que o card "Jogadores" também seja org-wide.
 
-## 3. Compensação automática ao finalizar partida
+Nenhuma mudança em `CaixinhaCard`, `FinancialSummaryCard` ou no hook `useCaixinhaUnifiedTransactions` — já estão corretos.
 
-Quando a partida é marcada como finalizada (`is_finished = true`) e as linhas de `game_player_settlements` da nova partida são criadas:
+### 2. Ajustar o saldo atual para R$ 64,00 via lançamento de conciliação (banco)
 
-Para cada jogador da partida recém-finalizada:
-1. Buscar todas as `settlements` em aberto anteriores do mesmo jogador (`pendente` ou `a_receber`).
-2. Se o jogador tem saldo antigo com sinal oposto ao da partida nova, compensar do mais antigo para o mais novo até esgotar:
-   - Ex.: devia R$ 50 (antigo) + ganhou R$ 80 (novo) → quita a linha antiga com `payment_method = 'compensacao_automatica'` e `notes = 'Compensado com partida #NN'`; a linha nova passa para status `a_receber` com valor original R$ 80 (mantido, para rastreio) mas ganha um campo `offset_amount = 50` para exibição do líquido.
-   - Ex. inverso: prêmio antigo R$ 30 + devedor novo R$ 100 → quita a linha antiga como `premiado_pago (compensacao)`, nova linha permanece `pendente`.
-3. Se sinais iguais (dois débitos, dois prêmios) → nada a compensar.
+Após a correção acima, o saldo passaria a R$ 124,00. Para chegar em R$ 64,00 conforme sua definição, inserir **um único lançamento de saque de R$ 60,00** na tabela `caixinha_transactions`:
 
-Todo o passo roda em uma função Postgres `settle_game_with_offsets(p_game_id uuid)` chamada imediatamente após a criação das linhas da partida nova. Assim, é atômico e não depende do cliente.
+- `type`: `withdrawal`
+- `amount`: `60.00`
+- `description`: `Ajuste de conciliação inicial da caixinha (saldo definido em R$ 64,00)`
+- `withdrawal_date`: data atual
+- `organization_id`: organização "3ae276b2..."
+- `season_id`: temporada ativa (só para histórico, não afeta cálculo)
+- `created_by` / `user_id`: seu usuário admin
 
-Regra: só compensa partidas com data ≥ 20/07/2026 (mantém corte histórico já em vigor).
+Isso aparecerá no histórico como qualquer outra transação, preservando rastreabilidade. Depósitos, saques e contribuições históricas ficam intactos, como você pediu.
 
-## 4. Alterações técnicas
+### 3. Daqui pra frente
 
-### Banco
-- Migration:
-  - Adicionar coluna `offset_amount numeric default 0` em `game_player_settlements` (para mostrar quanto do valor foi abatido por compensação).
-  - Adicionar `'compensacao_automatica'` como valor válido em `payment_method` (texto livre, só documentar).
-  - Criar função `public.settle_game_with_offsets(p_game_id uuid)` com `SECURITY DEFINER` que percorre os jogadores da partida, encontra pendências opostas anteriores e atualiza status/offset. Retorna JSON com o resumo do que foi compensado.
-- RLS: nenhuma mudança (função roda como definer).
+Regra org-wide contínua permanece: nenhum reset entre temporadas, saldo é global da organização.
 
-### Frontend
-- `src/hooks/usePlayerOpenBalances.ts` (novo): lê pendências agrupadas por `player_id` da organização atual, com realtime.
-- `src/components/game/PlayerSelection.tsx`: consumir o hook e renderizar badge no card do jogador.
-- `src/pages/FinanceReceivables.tsx`: adicionar toggle "Por partida | Por jogador" e a tabela agrupada; ação "Quitar tudo" abre o `SettlePaymentDialog` existente em modo lote.
-- `src/hooks/useReceivables.ts`: expor um segundo memo `receivablesByPlayer` agregando `rows`; incluir `offset_amount` na leitura para exibir "líquido após compensação" no breakdown.
-- `src/lib/db/repositories/GameRepository.ts` ou onde a partida é finalizada: após inserir as linhas em `game_player_settlements`, chamar `supabase.rpc('settle_game_with_offsets', { p_game_id })` e mostrar toast com o resumo ("2 pendências compensadas automaticamente").
-- Breakdown (`PlayerReceivableBreakdown.tsx`): quando `offset_amount > 0`, adicionar linha "Compensação de saldo anterior" e recalcular o "Resultado líquido a receber/pagar".
+## Cálculo final esperado
 
-## 5. Fora do escopo
+```text
+Contribuições de jogos (org):  R$   880,00
++ Depósitos (org):             R$   665,00
+- Saques (org, incl. ajuste):  R$ 1.481,00
+─────────────────────────────────────────
+Saldo Disponível:              R$    64,00
+```
 
-- Bloqueio de buy-in por dívida (foi descartado).
-- Migração retroativa de compensações em partidas já finalizadas antes desta feature — só passa a valer nas próximas partidas finalizadas.
+## Confirmação necessária
+
+Confirma que posso inserir o lançamento de saque de R$ 60,00 com essa descrição de conciliação? Se preferir outro texto ou outra data, me diga antes de aprovar.
