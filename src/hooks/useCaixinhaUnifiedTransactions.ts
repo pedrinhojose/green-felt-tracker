@@ -33,32 +33,32 @@ export interface GameContribution {
 
 export type UnifiedTransaction = CaixinhaTransaction | GameContribution;
 
-export const useCaixinhaUnifiedTransactions = (seasonId: string | undefined) => {
+export const useCaixinhaUnifiedTransactions = (_seasonId?: string | undefined) => {
   const { currentOrganization } = useOrganization();
   const [manualTransactions, setManualTransactions] = useState<CaixinhaTransaction[]>([]);
   const [gameContributions, setGameContributions] = useState<GameContribution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!seasonId || !currentOrganization?.id) {
+    if (!currentOrganization?.id) {
       setIsLoading(false);
       return;
     }
 
     loadTransactions();
-  }, [seasonId, currentOrganization?.id]);
+  }, [currentOrganization?.id]);
 
   const loadTransactions = async () => {
-    if (!seasonId || !currentOrganization?.id) return;
+    if (!currentOrganization?.id) return;
 
     try {
       setIsLoading(true);
 
-      // Load manual transactions
+      // Caixinha is organization-wide and continuous across seasons.
+      // Load ALL manual transactions of the organization (any season).
       const { data: manualData, error: manualError } = await supabase
         .from('caixinha_transactions')
         .select('*')
-        .eq('season_id', seasonId)
         .eq('organization_id', currentOrganization.id)
         .order('withdrawal_date', { ascending: false });
 
@@ -75,16 +75,16 @@ export const useCaixinhaUnifiedTransactions = (seasonId: string | undefined) => 
         (playersData || []).map(p => [p.id, p.name])
       );
 
-      // Load game contributions
+      // Load ALL finished games of the organization (any season, incl. standalone).
       const { data: gamesData, error: gamesError } = await supabase
         .from('games')
         .select('id, number, date, players')
-        .eq('season_id', seasonId)
         .eq('organization_id', currentOrganization.id)
         .eq('is_finished', true)
         .order('date', { ascending: false });
 
       if (gamesError) throw gamesError;
+
 
       // Process game contributions
       const contributions: GameContribution[] = (gamesData || [])
