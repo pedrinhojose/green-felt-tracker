@@ -21,15 +21,15 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
 
+  // Caixinha is organization-wide and continuous across seasons.
   useEffect(() => {
     const loadTransactions = async () => {
-      if (!activeSeason || !currentOrganization) return;
+      if (!currentOrganization) return;
 
       try {
         const { data, error } = await supabase
           .from('caixinha_transactions')
           .select('*')
-          .eq('season_id', activeSeason.id)
           .eq('organization_id', currentOrganization.id)
           .order('withdrawal_date', { ascending: false });
 
@@ -52,15 +52,13 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
     };
 
     loadTransactions();
-  }, [activeSeason, currentOrganization]);
+  }, [currentOrganization]);
 
+  // Total from ALL games of the organization (any season, incl. standalone)
   const totalAccumulated = useMemo(() => {
-    if (!activeSeason || !games) return 0;
-
-    const seasonGames = games.filter(game => game.seasonId === activeSeason.id);
+    if (!games) return 0;
     let total = 0;
-
-    seasonGames.forEach(game => {
+    games.forEach(game => {
       if (game.players && Array.isArray(game.players)) {
         game.players.forEach(player => {
           if (player.participatesInClubFund && player.clubFundContribution) {
@@ -69,9 +67,9 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
         });
       }
     });
-
     return total;
-  }, [activeSeason, games]);
+  }, [games]);
+
 
   const totalDeposits = useMemo(() => {
     return transactions
