@@ -198,6 +198,7 @@ export default function FinanceReceivables() {
                   <TableHead>Partida / Data</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-center w-16">Msg</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
