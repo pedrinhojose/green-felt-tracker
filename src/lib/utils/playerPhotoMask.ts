@@ -5,7 +5,26 @@
  * - Comprime até ~100 KB
  */
 
-import { removeBackground } from "@imgly/background-removal";
+// Carregado dinamicamente via CDN em runtime — ver loadRemoveBackground() abaixo.
+// Motivo: em produção o Vite externaliza onnxruntime-web (para o build do Vercel
+// não quebrar), então o bundle local do @imgly falha ao resolver essas deps.
+// Importando da esm.sh o navegador resolve tudo por conta própria.
+type RemoveBackgroundFn = (
+  input: Blob | string,
+  options?: { output?: { format?: string; quality?: number } }
+) => Promise<Blob>;
+
+let removeBackgroundPromise: Promise<RemoveBackgroundFn> | null = null;
+
+function loadRemoveBackground(): Promise<RemoveBackgroundFn> {
+  if (!removeBackgroundPromise) {
+    const cdnUrl = "https://esm.sh/@imgly/background-removal@1.7.0";
+    removeBackgroundPromise = import(/* @vite-ignore */ cdnUrl).then(
+      (mod: any) => mod.removeBackground as RemoveBackgroundFn
+    );
+  }
+  return removeBackgroundPromise;
+}
 
 export const MAX_PHOTO_SIZE_KB = 100;
 const OUTPUT_SIZE = 512;
