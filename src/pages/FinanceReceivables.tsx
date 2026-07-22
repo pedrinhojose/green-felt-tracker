@@ -245,7 +245,66 @@ export default function FinanceReceivables() {
             </Table>
           </div>
         </CardContent>
-      </Card>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="por-jogador" className="space-y-4">
+          <Card className="surface-card">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Jogador</TableHead>
+                      <TableHead className="text-center">Partidas em aberto</TableHead>
+                      <TableHead className="text-right">Total devendo</TableHead>
+                      <TableHead className="text-right">Prêmios a receber</TableHead>
+                      <TableHead className="text-right">Saldo líquido</TableHead>
+                      <TableHead>Última partida</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {receivablesByPlayer.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                          <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          Nenhuma pendência em aberto.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {receivablesByPlayer.map(p => (
+                      <TableRow key={p.playerId}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={p.playerPhoto} alt={p.playerName} />
+                              <AvatarFallback>{p.playerName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{p.playerName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">{p.openCount}</TableCell>
+                        <TableCell className="text-right text-red-500 font-semibold">
+                          {p.totalOwed > 0 ? formatCurrency(p.totalOwed) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-emerald-500 font-semibold">
+                          {p.totalPrize > 0 ? `+${formatCurrency(p.totalPrize)}` : '—'}
+                        </TableCell>
+                        <TableCell className={`text-right font-bold ${p.netBalance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                          {p.netBalance >= 0 ? '+' : ''}{formatCurrency(p.netBalance)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {p.lastGameDate ? formatDate(p.lastGameDate) : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <SettlePaymentDialog
         row={dialogRow}
@@ -254,5 +313,6 @@ export default function FinanceReceivables() {
         onConfirm={settlePayment}
       />
     </div>
+
   );
 }
