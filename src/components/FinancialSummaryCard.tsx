@@ -101,45 +101,40 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
         Financeiro
       </div>
 
-      {activeSeason ? (
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Jackpot */}
-          <div
-            className="flex-1 flex items-center gap-4 px-2 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-colors"
-            onClick={() => navigate('/seasons')}
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-poker-green/40 border border-poker-green flex items-center justify-center shrink-0">
-              <DollarSign className="w-6 h-6 md:w-7 md:h-7 text-poker-gold" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm text-muted-foreground">Jackpot Atual</span>
-              <span className="text-xl md:text-2xl font-bold text-poker-gold truncate">
-                {formattedJackpot}
-              </span>
-            </div>
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Jackpot (depends on active season) */}
+        <div
+          className="flex-1 flex items-center gap-4 px-2 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={() => navigate('/seasons')}
+        >
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-poker-green/40 border border-poker-green flex items-center justify-center shrink-0">
+            <DollarSign className="w-6 h-6 md:w-7 md:h-7 text-poker-gold" />
           </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm text-muted-foreground">Jackpot Atual</span>
+            <span className="text-xl md:text-2xl font-bold text-poker-gold truncate">
+              {activeSeason ? formattedJackpot : "Sem temporada ativa"}
+            </span>
+          </div>
+        </div>
 
-          {/* Caixinha */}
-          <div
-            className="flex-1 flex items-center gap-4 px-2 cursor-pointer hover:bg-white/5 transition-colors"
-            onClick={() => navigate('/finance/caixinha')}
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-800/40 border border-emerald-600 flex items-center justify-center shrink-0">
-              <Vault className="w-6 h-6 md:w-7 md:h-7 text-emerald-300" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm text-muted-foreground">Saldo da Caixinha</span>
-              <span className="text-xl md:text-2xl font-bold text-emerald-400 truncate">
-                {formattedCaixinha}
-              </span>
-            </div>
+        {/* Caixinha (organization-wide, continuous across seasons) */}
+        <div
+          className="flex-1 flex items-center gap-4 px-2 cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={() => navigate('/finance/caixinha')}
+        >
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-800/40 border border-emerald-600 flex items-center justify-center shrink-0">
+            <Vault className="w-6 h-6 md:w-7 md:h-7 text-emerald-300" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm text-muted-foreground">Saldo da Caixinha</span>
+            <span className="text-xl md:text-2xl font-bold text-emerald-400 truncate">
+              {formattedCaixinha}
+            </span>
           </div>
         </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground">
-          Sem temporada ativa
-        </div>
-      )}
+      </div>
+
     </div>
   );
 });
