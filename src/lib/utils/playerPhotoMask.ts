@@ -120,31 +120,62 @@ function compressCanvas(canvas: HTMLCanvasElement): Promise<string> {
 }
 
 /**
+ * Fallback: apenas normaliza + comprime, sem remoção de fundo.
+ * Usado quando o pipeline de IA falha (ex.: Safari iOS sem suporte a WebGPU/WASM).
+ */
+async function compressWithoutMask(imageDataUrl: string): Promise<string> {
+  const img = await loadImage(imageDataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = OUTPUT_SIZE;
+  canvas.height = OUTPUT_SIZE;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Sem contexto 2D");
+
+  const scale = Math.max(OUTPUT_SIZE / img.width, OUTPUT_SIZE / img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  const dx = (OUTPUT_SIZE - drawW) / 2;
+  const dy = (OUTPUT_SIZE - drawH) / 2;
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+  ctx.drawImage(img, dx, dy, drawW, drawH);
+
+  return compressCanvas(canvas);
+}
+
+/**
  * Pipeline principal — recebe imagem qualquer, retorna JPEG data URL padronizado.
+ * Se a remoção de fundo falhar (ex.: iOS Safari sem WebGPU/WASM), usa fallback
+ * apenas com normalização + compressão para não bloquear o cadastro.
  */
 export async function applyPlayerPhotoMask(imageDataUrl: string): Promise<string> {
   console.log("🎨 Aplicando máscara padrão na foto...");
 
-  // 1. Normaliza para 512×512 (reduz o custo do background removal)
-  const normalizedBlob = await normalizeToSquare(imageDataUrl);
-
-  // 2. Remove fundo (roda no browser, ~1-3s após primeiro carregamento do modelo)
-  console.log("🖼️ Removendo fundo...");
-  const cutoutBlob = await removeBackground(normalizedBlob, {
-    output: { format: "image/png", quality: 0.9 },
-  });
-
-  // 3. Carrega a silhueta e compõe
-  const cutoutUrl = URL.createObjectURL(cutoutBlob);
   try {
-    const silhouette = await loadImage(cutoutUrl);
-    const composed = composeMasked(silhouette);
+    // 1. Normaliza para 512×512 (reduz o custo do background removal)
+    const normalizedBlob = await normalizeToSquare(imageDataUrl);
 
-    // 4. Comprime
-    const finalDataUrl = await compressCanvas(composed);
-    console.log("✅ Máscara aplicada com sucesso");
-    return finalDataUrl;
-  } finally {
-    URL.revokeObjectURL(cutoutUrl);
+    // 2. Remove fundo (roda no browser, ~1-3s após primeiro carregamento do modelo)
+    console.log("🖼️ Removendo fundo...");
+    const cutoutBlob = await removeBackground(normalizedBlob, {
+      output: { format: "image/png", quality: 0.9 },
+    });
+
+    // 3. Carrega a silhueta e compõe
+    const cutoutUrl = URL.createObjectURL(cutoutBlob);
+    try {
+      const silhouette = await loadImage(cutoutUrl);
+      const composed = composeMasked(silhouette);
+      const finalDataUrl = await compressCanvas(composed);
+      console.log("✅ Máscara aplicada com sucesso");
+      return finalDataUrl;
+    } finally {
+      URL.revokeObjectURL(cutoutUrl);
+    }
+  } catch (err) {
+    console.warn("⚠️ Remoção de fundo falhou, usando fallback sem máscara:", err);
+    const fallback = await compressWithoutMask(imageDataUrl);
+    console.log("✅ Foto salva sem máscara (fallback)");
+    return fallback;
   }
 }
