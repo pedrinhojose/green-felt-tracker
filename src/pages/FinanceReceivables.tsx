@@ -8,13 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/navigation/PageHeader';
-import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight, Users } from 'lucide-react';
+import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight, Users, MessageCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils/dateUtils';
 import { useReceivables, RECEIVABLES_CUTOFF_DATE, type ReceivableRow, type SettlementStatus } from '@/hooks/useReceivables';
 import { SettlePaymentDialog } from '@/components/finance/SettlePaymentDialog';
 import { PlayerReceivableBreakdown } from '@/components/finance/PlayerReceivableBreakdown';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { useToast } from '@/hooks/use-toast';
+import { usePoker } from '@/contexts/PokerContext';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 
 type StatusFilter = 'todos' | 'pendentes' | 'a_receber' | 'quitados';
@@ -30,6 +32,38 @@ export default function FinanceReceivables() {
   const { rows, receivablesByPlayer, gamesList, isLoading, settlePayment, undoSettlement } = useReceivables();
   const { canEdit } = useOrgMemberRole();
   const { toast } = useToast();
+  const { players } = usePoker();
+  const phoneByPlayer = useMemo(() => {
+    const m = new Map<string, string | undefined>();
+    players.forEach(p => m.set(p.id, p.phone));
+    return m;
+  }, [players]);
+
+  const sanitizePhone = (phone?: string) => {
+    if (!phone) return '';
+    let digits = phone.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 11) digits = '55' + digits;
+    return digits;
+  };
+
+  const handleWhatsApp = (r: ReceivableRow) => {
+    const phone = phoneByPlayer.get(r.playerId);
+    const digits = sanitizePhone(phone);
+    if (!digits) {
+      toast({ title: 'Telefone não cadastrado', description: `Cadastre o telefone de ${r.playerName} no perfil do jogador.`, variant: 'destructive' });
+      return;
+    }
+    const firstName = r.playerName.split(' ')[0];
+    const valor = formatCurrency(Math.abs(r.amount));
+    const dataPartida = formatDate(r.gameDate);
+    let msg: string;
+    if (r.amount < 0) {
+      msg = `Olá, ${firstName}! 👋\n\nPassando para lembrar sobre o saldo pendente da partida #${r.gameNumber} (${dataPartida}) no valor de *${valor}*.\n\nAssim que puder, é só efetuar o pagamento. Qualquer dúvida, estou à disposição! 🃏`;
+    } else {
+      msg = `Olá, ${firstName}! 🎉\n\nInformo que foi realizado o pagamento do seu prêmio da partida #${r.gameNumber} (${dataPartida}) no valor de *${valor}*.\n\nParabéns e até a próxima! 🏆🃏`;
+    }
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
   const [gameFilter, setGameFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos');
@@ -164,16 +198,17 @@ export default function FinanceReceivables() {
                   <TableHead>Partida / Data</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-center w-16">Msg</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading && (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Carregando...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Carregando...</TableCell></TableRow>
                 )}
                 {!isLoading && filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
                       <Receipt className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       Nenhum recebimento encontrado.
                     </TableCell>
@@ -217,6 +252,26 @@ export default function FinanceReceivables() {
                         <TableCell>
                           <Badge variant="outline" className={meta.className}>{meta.label}</Badge>
                         </TableCell>
+                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                                  onClick={() => handleWhatsApp(r)}
+                                  aria-label="Enviar mensagem no WhatsApp"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{r.amount < 0 ? 'Enviar cobrança amigável' : 'Avisar sobre pagamento do prêmio'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           {canEdit && !isQuit && (
                             <Button size="sm" onClick={() => setDialogRow(r)}>
@@ -232,7 +287,7 @@ export default function FinanceReceivables() {
                       </TableRow>
                       {isOpen && (
                         <TableRow key={`${r.key}-details`} className="hover:bg-transparent">
-                          <TableCell colSpan={6} className="bg-muted/20 p-4">
+                          <TableCell colSpan={7} className="bg-muted/20 p-4">
                             <PlayerReceivableBreakdown row={r} />
                           </TableCell>
                         </TableRow>
