@@ -2,9 +2,20 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw, Download, Image, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw, Download, Image, Share2, XCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { Season, Game, GamePlayer, RankingEntry } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
@@ -18,6 +29,7 @@ import { useShareableLink } from "@/hooks/useShareableLink";
 import { HostScheduleCard } from "@/components/season/HostScheduleCard";
 import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
+import { usePoker } from "@/contexts/PokerContext";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
