@@ -111,38 +111,46 @@ export default function FinanceReceivables() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card className="surface-card">
-        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Select value={gameFilter} onValueChange={setGameFilter}>
-            <SelectTrigger><SelectValue placeholder="Selecionar partida" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Partidas</SelectItem>
-              {gamesList.map(g => (
-                <SelectItem key={g.id} value={g.id}>Partida #{g.number} · {formatDate(g.date)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="pendentes">Pendentes</SelectItem>
-              <SelectItem value="a_receber">A Receber (Prêmios)</SelectItem>
-              <SelectItem value="quitados">Quitados</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar jogador..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="por-partida" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="por-partida"><Receipt className="w-4 h-4 mr-2" />Por Partida</TabsTrigger>
+          <TabsTrigger value="por-jogador"><Users className="w-4 h-4 mr-2" />Por Jogador</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="por-partida" className="space-y-4">
+          {/* Filters */}
+          <Card className="surface-card">
+            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Select value={gameFilter} onValueChange={setGameFilter}>
+                <SelectTrigger><SelectValue placeholder="Selecionar partida" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Partidas</SelectItem>
+                  {gamesList.map(g => (
+                    <SelectItem key={g.id} value={g.id}>Partida #{g.number} · {formatDate(g.date)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os status</SelectItem>
+                  <SelectItem value="pendentes">Pendentes</SelectItem>
+                  <SelectItem value="a_receber">A Receber (Prêmios)</SelectItem>
+                  <SelectItem value="quitados">Quitados</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar jogador..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
 
       {/* Table */}
       <Card className="surface-card">
