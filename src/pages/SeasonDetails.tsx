@@ -2,9 +2,20 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw, Download, Image, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, Trophy, Users, DollarSign, Award, RotateCcw, Download, Image, Share2, XCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { formatDate, formatCurrency } from "@/lib/utils/dateUtils";
 import { Season, Game, GamePlayer, RankingEntry } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
@@ -18,6 +29,7 @@ import { useShareableLink } from "@/hooks/useShareableLink";
 import { HostScheduleCard } from "@/components/season/HostScheduleCard";
 import { enrichRankingsWithPointBreakdown } from "@/lib/utils/pointsBreakdown";
 import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
+import { usePoker } from "@/contexts/PokerContext";
 
 // Estrutura para armazenar estatísticas de jogador
 interface PlayerStat {
@@ -45,7 +57,9 @@ export default function SeasonDetails() {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isViewer } = useOrgMemberRole();
+  const { isViewer, canEdit } = useOrgMemberRole();
+  const { endSeason } = usePoker();
+  const [isEndingSeason, setIsEndingSeason] = useState(false);
   
   const [season, setSeason] = useState<Season | null>(null);
   const [games, setGames] = useState<Game[]>([]);
@@ -492,8 +506,54 @@ export default function SeasonDetails() {
             <Share2 className="h-4 w-4" />
             {isGenerating ? "Gerando Link..." : "Gerar Link"}
           </Button>}
+
+          {canEdit && season?.isActive && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isEndingSeason}
+                  className="flex items-center gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  {isEndingSeason ? "Encerrando..." : "Encerrar Temporada"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Encerrar Temporada</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja encerrar a temporada <strong>{season?.name}</strong>?
+                    O jackpot de {formatCurrency(season?.jackpot || 0)} será distribuído conforme
+                    a configuração e o ranking será finalizado.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      if (!season) return;
+                      try {
+                        setIsEndingSeason(true);
+                        await endSeason(season.id);
+                        navigate("/seasons");
+                      } catch (err) {
+                        console.error("Error ending season:", err);
+                      } finally {
+                        setIsEndingSeason(false);
+                      }
+                    }}
+                  >
+                    Encerrar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
+
       
       <Card>
         <CardHeader>

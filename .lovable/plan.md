@@ -1,55 +1,40 @@
-# Corrigir saldo da caixinha e ajustar para R$ 64,00
 
-## Diagnóstico confirmado no banco
+# Reorganização das Configurações de Temporada
 
-Organização ativa (`3ae276b2...`):
+Objetivo: eliminar a confusão entre "criar nova temporada" vs "editar temporada existente", proteger configurações de temporadas já em andamento e mover o botão **Encerrar Temporada** para um local mais adequado.
 
-- Contribuições de jogos (todas as temporadas + avulsas): **R$ 880,00**
-- Depósitos manuais (todas as temporadas): **R$ 665,00**
-- Saques manuais (todas as temporadas): **R$ 1.421,00**
+## O que muda
 
-**Saldo correto pela regra org-wide contínua:** 880 + 665 − 1.421 = **R$ 124,00**
+### 1. Clareza visual (qual temporada estou editando)
+- No topo da tela `/season`, mostrar um banner grande e destacado com o nome da temporada sendo editada, seu status (Ativa / Encerrada / Nova) e as datas.
+- Ao trocar a temporada no seletor global, se houver alterações não salvas no formulário, exibir confirmação ("Descartar alterações?") antes de recarregar.
 
-**O que a UI mostra hoje (R$ 616,00) é um bug:** na página `CaixinhaManagement`, `totalAccumulated` usa o array `games` do `PokerContext`, que só carrega jogos da temporada ativa (R$ 140,00). Já os depósitos/saques vêm do hook org-wide (665/1421). Resultado híbrido: 140 + 665 − 1.421 = **−616** (exibido como 616 sem sinal). Cards do Dashboard (`CaixinhaCard`, `FinancialSummaryCard`) já estão corretos e usam org-wide.
+### 2. Separar "Criar nova" do fluxo de edição
+- Remover o botão **"Nova Temporada"** de dentro da tela de edição.
+- A criação passa a acontecer apenas a partir de `/seasons` (lista) via botão dedicado, que abre `/season?new=1` num modo claramente identificado como "Criação".
+- No modo criação, o cabeçalho fica em outra cor e mostra "Nova Temporada — não salva ainda".
 
-## O que será feito
+### 3. Bloquear/avisar edição quando a temporada já tem partidas
+- Se a temporada tem 1+ partidas finalizadas, campos estruturais (esquema de pontuação, prêmios, parâmetros financeiros, eliminações) ficam **somente leitura por padrão**, com um botão "Desbloquear edição avançada" que exibe aviso: "Alterações NÃO afetam partidas já jogadas — apenas as próximas".
+- Campos livres (nome, regras da casa, blinds, jantares, cronograma) continuam editáveis normalmente.
 
-### 1. Corrigir o bug de escopo em CaixinhaManagement (frontend)
+### 4. Congelar a configuração no momento da partida
+- Cada partida (`games`) passa a guardar um snapshot da configuração relevante no momento em que é iniciada (esquema de pontuação, prêmios semanais, parâmetros financeiros, config de eliminação).
+- Cálculos de pontuação, prêmios e ranking da partida usam o snapshot da própria partida, não a config atual da temporada.
+- Partidas antigas ficam imunes a mudanças posteriores nas configurações.
 
-Arquivo `src/pages/CaixinhaManagement.tsx`:
-- Substituir o `totalAccumulated` (que hoje soma `game.players` do `games` filtrado por temporada) por uma consulta org-wide, seguindo o mesmo padrão do `useCaixinhaUnifiedTransactions` (todos os jogos finalizados da organização, em qualquer temporada).
-- Fazer o mesmo para `participatingPlayersCount`, para que o card "Jogadores" também seja org-wide.
+### 5. Mover botão "Encerrar Temporada"
+- Remover o botão **"Encerrar Temporada"** da tela `/season` (Configuração).
+- Adicionar em `/seasons/:seasonId` (Detalhes da Temporada), no cabeçalho, visível apenas quando a temporada está ativa e o usuário é admin/editor.
+- Mantém o mesmo diálogo de confirmação atual.
 
-Nenhuma mudança em `CaixinhaCard`, `FinancialSummaryCard` ou no hook `useCaixinhaUnifiedTransactions` — já estão corretos.
+## Detalhes técnicos
 
-### 2. Ajustar o saldo atual para R$ 64,00 via lançamento de conciliação (banco)
+- **Snapshot da partida**: adicionar coluna JSONB `config_snapshot` em `games` (contendo `scoreSchema`, `weeklyPrizeSchema`, `financialParams`, `eliminationRewardConfig`). Preencher em `useStartGame` no momento da criação. Ajustar `usePrizeDistribution`, `useEliminationRewards` e cálculos de ranking para preferir `game.config_snapshot` quando presente, caindo pra `season.*` como fallback (compatível com partidas antigas).
+- **Bloqueio de edição avançada**: em `SeasonConfig.tsx`, checar se `games.length > 0` para a temporada aberta e passar `readOnly` para `ScoreSchemaConfig`, `PrizeSchemaConfig` (semanal e final), `FinancialParamsConfig` e `EliminationRewardConfig`. Estado local `advancedUnlocked` libera após confirmação.
+- **Confirmação ao trocar temporada**: `SeasonSelector` recebe callback `onBeforeChange` do form (via contexto leve ou prop), que consulta `formState.isDirty`.
+- **Botão Encerrar**: mover o bloco `AlertDialog` de `SeasonConfig.tsx` (linhas 102–120) para o cabeçalho de `SeasonDetails.tsx`, reutilizando `endSeason` do `usePoker()`.
 
-Após a correção acima, o saldo passaria a R$ 124,00. Para chegar em R$ 64,00 conforme sua definição, inserir **um único lançamento de saque de R$ 60,00** na tabela `caixinha_transactions`:
-
-- `type`: `withdrawal`
-- `amount`: `60.00`
-- `description`: `Ajuste de conciliação inicial da caixinha (saldo definido em R$ 64,00)`
-- `withdrawal_date`: data atual
-- `organization_id`: organização "3ae276b2..."
-- `season_id`: temporada ativa (só para histórico, não afeta cálculo)
-- `created_by` / `user_id`: seu usuário admin
-
-Isso aparecerá no histórico como qualquer outra transação, preservando rastreabilidade. Depósitos, saques e contribuições históricas ficam intactos, como você pediu.
-
-### 3. Daqui pra frente
-
-Regra org-wide contínua permanece: nenhum reset entre temporadas, saldo é global da organização.
-
-## Cálculo final esperado
-
-```text
-Contribuições de jogos (org):  R$   880,00
-+ Depósitos (org):             R$   665,00
-- Saques (org, incl. ajuste):  R$ 1.481,00
-─────────────────────────────────────────
-Saldo Disponível:              R$    64,00
-```
-
-## Confirmação necessária
-
-Confirma que posso inserir o lançamento de saque de R$ 60,00 com essa descrição de conciliação? Se preferir outro texto ou outra data, me diga antes de aprovar.
+## Fora de escopo
+- Recalcular retroativamente pontuação/prêmios de partidas antigas usando snapshot.
+- Versionamento/histórico das configurações da temporada (só o snapshot por partida).
