@@ -5,6 +5,7 @@ import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
 import { useEliminationData } from '../hooks/elimination/useEliminationData';
 import { getGamePlayerPointBreakdown } from '@/lib/utils/pointsBreakdown';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useGameFunctions(
   updateRankings: () => Promise<void>,
