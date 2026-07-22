@@ -16,29 +16,36 @@ interface CaixinhaTransaction {
 }
 
 const FinancialSummaryCard = memo(function FinancialSummaryCard() {
-  const { activeSeason, games } = usePoker();
+  const { activeSeason } = usePoker();
   const { currentOrganization } = useOrganization();
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<CaixinhaTransaction[]>([]);
+  const [gamesTotal, setGamesTotal] = useState(0);
 
   // Caixinha is organization-wide and continuous across seasons.
+  // Load transactions AND all org games (any season, incl. standalone) directly.
   useEffect(() => {
-    const loadTransactions = async () => {
+    const load = async () => {
       if (!currentOrganization) return;
 
       try {
-        const { data, error } = await supabase
-          .from('caixinha_transactions')
-          .select('*')
-          .eq('organization_id', currentOrganization.id)
-          .order('withdrawal_date', { ascending: false });
+        const [{ data: txData, error: txError }, { data: gamesData, error: gamesError }] = await Promise.all([
+          supabase
+            .from('caixinha_transactions')
+            .select('*')
+            .eq('organization_id', currentOrganization.id)
+            .order('withdrawal_date', { ascending: false }),
+          supabase
+            .from('games')
+            .select('players')
+            .eq('organization_id', currentOrganization.id)
+            .eq('is_finished', true),
+        ]);
 
-        if (error) {
-          console.error('Error loading caixinha transactions:', error);
-          return;
-        }
+        if (txError) console.error('Error loading caixinha transactions:', txError);
+        if (gamesError) console.error('Error loading games:', gamesError);
 
-        setTransactions((data || []).map(item => ({
+        setTransactions((txData || []).map(item => ({
           id: item.id,
           amount: item.amount,
           description: item.description,
@@ -46,29 +53,26 @@ const FinancialSummaryCard = memo(function FinancialSummaryCard() {
           created_by: item.created_by,
           type: item.type as 'deposit' | 'withdrawal'
         })));
+
+        let total = 0;
+        (gamesData || []).forEach((g: any) => {
+          const players = Array.isArray(g.players) ? g.players : [];
+          players.forEach((p: any) => {
+            if (p.participatesInClubFund && p.clubFundContribution) {
+              total += Number(p.clubFundContribution) || 0;
+            }
+          });
+        });
+        setGamesTotal(total);
       } catch (error) {
-        console.error('Error loading caixinha transactions:', error);
+        console.error('Error loading financial summary:', error);
       }
     };
 
-    loadTransactions();
+    load();
   }, [currentOrganization]);
 
-  // Total from ALL games of the organization (any season, incl. standalone)
-  const totalAccumulated = useMemo(() => {
-    if (!games) return 0;
-    let total = 0;
-    games.forEach(game => {
-      if (game.players && Array.isArray(game.players)) {
-        game.players.forEach(player => {
-          if (player.participatesInClubFund && player.clubFundContribution) {
-            total += player.clubFundContribution;
-          }
-        });
-      }
-    });
-    return total;
-  }, [games]);
+  const totalAccumulated = gamesTotal;
 
 
   const totalDeposits = useMemo(() => {
