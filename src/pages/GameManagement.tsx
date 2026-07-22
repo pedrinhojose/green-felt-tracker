@@ -39,7 +39,7 @@ export default function GameManagement() {
     setGame,
     isLoading,
     players,
-    activeSeason,
+    activeSeason: rawActiveSeason,
     dinnerCost,
     isSelectingPlayers,
     setIsSelectingPlayers,
