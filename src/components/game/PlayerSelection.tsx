@@ -41,6 +41,9 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
   const isMobile = useIsMobile();
   const { savePlayer } = usePoker();
   const photoManager = usePlayerPhotoManager();
+  const { receivablesByPlayer } = useReceivables();
+  const openBalanceMap = new Map(receivablesByPlayer.map(p => [p.playerId, p]));
+
   
   // Filter players based on search query and active status (only active players)
   const filteredPlayers = players
