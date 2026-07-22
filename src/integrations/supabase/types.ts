@@ -301,6 +301,7 @@ export type Database = {
           game_id: string
           id: string
           notes: string | null
+          offset_amount: number
           organization_id: string
           payment_method: string | null
           player_id: string
@@ -315,6 +316,7 @@ export type Database = {
           game_id: string
           id?: string
           notes?: string | null
+          offset_amount?: number
           organization_id: string
           payment_method?: string | null
           player_id: string
@@ -329,6 +331,7 @@ export type Database = {
           game_id?: string
           id?: string
           notes?: string | null
+          offset_amount?: number
           organization_id?: string
           payment_method?: string | null
           player_id?: string
@@ -894,6 +897,7 @@ export type Database = {
         Args: { p_role: string; p_user_id: string }
         Returns: undefined
       }
+      settle_game_with_offsets: { Args: { p_game_id: string }; Returns: Json }
       super_admin_set_organization_status: {
         Args: {
           p_is_blocked?: boolean

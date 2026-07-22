@@ -28,6 +28,10 @@ export function PlayerReceivableBreakdown({ row }: Props) {
 
   const totalGasto = buyIn + rebuyTotal + addonTotal + dinnerShare + clubFund;
   const liquido = prize - totalGasto;
+  const offset = row.offsetAmount || 0;
+  const liquidoAposOffset = row.amount < 0
+    ? row.amount + offset  // debit reduced by offset
+    : row.amount - offset; // prize reduced by offset
 
   const Line = ({ label, value, muted, negative }: { label: string; value: string; muted?: boolean; negative?: boolean }) => (
     <div className="flex items-center justify-between py-1 text-sm">
@@ -61,6 +65,18 @@ export function PlayerReceivableBreakdown({ row }: Props) {
           {liquido >= 0 ? '+' : ''}{formatCurrency(liquido)}
         </span>
       </div>
+      {offset > 0 && (
+        <>
+          <div className="border-t border-border/60 my-2" />
+          <Line label="Compensação de saldo anterior" value={`- ${formatCurrency(offset)}`} muted />
+          <div className="flex items-center justify-between pt-1">
+            <span className="font-semibold">Líquido após compensação</span>
+            <span className={`font-bold tabular-nums ${liquidoAposOffset >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+              {liquidoAposOffset >= 0 ? '+' : ''}{formatCurrency(liquidoAposOffset)}
+            </span>
+          </div>
+        </>
+      )}
     </div>
   );
 }

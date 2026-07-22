@@ -5,6 +5,7 @@ import { pokerDB } from '../lib/db';
 import { useToast } from "@/components/ui/use-toast";
 import { useEliminationData } from '../hooks/elimination/useEliminationData';
 import { getGamePlayerPointBreakdown } from '@/lib/utils/pointsBreakdown';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useGameFunctions(
   updateRankings: () => Promise<void>,
@@ -14,6 +15,23 @@ export function useGameFunctions(
   const { deleteEliminationsByGameId } = useEliminationData();
   const [games, setGames] = useState<Game[]>([]);
   const [lastGame, setLastGame] = useState<Game | null>(null);
+
+  const runOffsetCompensation = async (gameId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('settle_game_with_offsets', { p_game_id: gameId });
+      if (error) { console.warn('offset rpc error', error); return; }
+      const result = data as any;
+      const count = Number(result?.compensations ?? 0);
+      if (count > 0) {
+        toast({
+          title: 'Compensação automática',
+          description: `${count} pendência${count > 1 ? 's' : ''} anterior${count > 1 ? 'es' : ''} quitada${count > 1 ? 's' : ''} com esta partida.`,
+        });
+      }
+    } catch (e) {
+      console.warn('offset rpc failed', e);
+    }
+  };
 
   const findNextAvailableNumber = (existingNumbers: number[]): number => {
     if (existingNumbers.length === 0) {
@@ -251,6 +269,7 @@ export function useGameFunctions(
       if (game.isStandalone || !game.seasonId) {
         const updatedGame = { ...game, isFinished: true };
         await pokerDB.saveGame(updatedGame);
+        await runOffsetCompensation(updatedGame.id);
         setGames(prev => {
           const idx = prev.findIndex(g => g.id === updatedGame.id);
           if (idx >= 0) return [...prev.slice(0, idx), updatedGame, ...prev.slice(idx + 1)];
@@ -303,6 +322,8 @@ export function useGameFunctions(
         isFinished: true
       };
       await pokerDB.saveGame(updatedGame);
+      await runOffsetCompensation(updatedGame.id);
+      
       
       // Recalcular rankings a partir de TODOS os jogos finalizados da temporada
       const freshPlayers = await pokerDB.getPlayers();

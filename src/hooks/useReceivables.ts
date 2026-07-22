@@ -16,6 +16,7 @@ export interface Settlement {
   payment_method: string | null;
   settled_at: string | null;
   notes: string | null;
+  offset_amount?: number | null;
 }
 
 export interface ReceivableRow {
@@ -35,6 +36,19 @@ export interface ReceivableRow {
   gamePlayer: any; // raw snapshot for breakdown
   dinnerCost: number;
   dinnerParticipants: number;
+  offsetAmount: number;
+}
+
+export interface ReceivableByPlayer {
+  playerId: string;
+  playerName: string;
+  playerPhoto?: string;
+  totalOwed: number;   // sum of abs debts still open
+  totalPrize: number;  // sum of prizes still open
+  netBalance: number;  // prizes - debts (positive = clube deve; negative = jogador deve)
+  openCount: number;
+  lastGameDate: Date | null;
+  rows: ReceivableRow[]; // only open rows
 }
 
 interface GameRow {
@@ -143,11 +157,45 @@ export function useReceivables() {
           gamePlayer: p,
           dinnerCost,
           dinnerParticipants,
+          offsetAmount: Number(s?.offset_amount ?? 0),
         });
       }
     }
     return out;
   }, [games, settlementMap, playerMap]);
+
+  const receivablesByPlayer: ReceivableByPlayer[] = useMemo(() => {
+    const map = new Map<string, ReceivableByPlayer>();
+    for (const r of rows) {
+      const isOpen = r.status === 'pendente' || r.status === 'a_receber';
+      if (!isOpen) continue;
+      let entry = map.get(r.playerId);
+      if (!entry) {
+        entry = {
+          playerId: r.playerId,
+          playerName: r.playerName,
+          playerPhoto: r.playerPhoto,
+          totalOwed: 0,
+          totalPrize: 0,
+          netBalance: 0,
+          openCount: 0,
+          lastGameDate: null,
+          rows: [],
+        };
+        map.set(r.playerId, entry);
+      }
+      const effective = r.amount < 0
+        ? r.amount + r.offsetAmount // debit reduced by offset
+        : r.amount - r.offsetAmount; // prize reduced by offset
+      if (effective < 0) entry.totalOwed += Math.abs(effective);
+      else if (effective > 0) entry.totalPrize += effective;
+      entry.netBalance += effective;
+      entry.openCount += 1;
+      if (!entry.lastGameDate || r.gameDate > entry.lastGameDate) entry.lastGameDate = r.gameDate;
+      entry.rows.push(r);
+    }
+    return Array.from(map.values()).sort((a, b) => b.openCount - a.openCount);
+  }, [rows]);
 
 
   const gamesList = useMemo(() =>
@@ -188,5 +236,5 @@ export function useReceivables() {
     if (error) throw error;
   }, []);
 
-  return { rows, gamesList, isLoading, settlePayment, undoSettlement, reload: () => { loadGames(); loadSettlements(); } };
+  return { rows, receivablesByPlayer, gamesList, isLoading, settlePayment, undoSettlement, reload: () => { loadGames(); loadSettlements(); } };
 }

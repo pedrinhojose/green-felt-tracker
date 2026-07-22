@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/navigation/PageHeader';
-import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Receipt, TrendingUp, TrendingDown, CheckCircle2, Search, Undo2, ChevronDown, ChevronRight, Users } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils/dateUtils';
 import { useReceivables, RECEIVABLES_CUTOFF_DATE, type ReceivableRow, type SettlementStatus } from '@/hooks/useReceivables';
 import { SettlePaymentDialog } from '@/components/finance/SettlePaymentDialog';
@@ -26,7 +27,7 @@ const statusMeta: Record<SettlementStatus, { label: string; className: string }>
 };
 
 export default function FinanceReceivables() {
-  const { rows, gamesList, isLoading, settlePayment, undoSettlement } = useReceivables();
+  const { rows, receivablesByPlayer, gamesList, isLoading, settlePayment, undoSettlement } = useReceivables();
   const { canEdit } = useOrgMemberRole();
   const { toast } = useToast();
 
@@ -110,38 +111,46 @@ export default function FinanceReceivables() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card className="surface-card">
-        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Select value={gameFilter} onValueChange={setGameFilter}>
-            <SelectTrigger><SelectValue placeholder="Selecionar partida" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Partidas</SelectItem>
-              {gamesList.map(g => (
-                <SelectItem key={g.id} value={g.id}>Partida #{g.number} · {formatDate(g.date)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="pendentes">Pendentes</SelectItem>
-              <SelectItem value="a_receber">A Receber (Prêmios)</SelectItem>
-              <SelectItem value="quitados">Quitados</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar jogador..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="por-partida" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="por-partida"><Receipt className="w-4 h-4 mr-2" />Por Partida</TabsTrigger>
+          <TabsTrigger value="por-jogador"><Users className="w-4 h-4 mr-2" />Por Jogador</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="por-partida" className="space-y-4">
+          {/* Filters */}
+          <Card className="surface-card">
+            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Select value={gameFilter} onValueChange={setGameFilter}>
+                <SelectTrigger><SelectValue placeholder="Selecionar partida" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Partidas</SelectItem>
+                  {gamesList.map(g => (
+                    <SelectItem key={g.id} value={g.id}>Partida #{g.number} · {formatDate(g.date)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os status</SelectItem>
+                  <SelectItem value="pendentes">Pendentes</SelectItem>
+                  <SelectItem value="a_receber">A Receber (Prêmios)</SelectItem>
+                  <SelectItem value="quitados">Quitados</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar jogador..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
 
       {/* Table */}
       <Card className="surface-card">
@@ -236,7 +245,66 @@ export default function FinanceReceivables() {
             </Table>
           </div>
         </CardContent>
-      </Card>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="por-jogador" className="space-y-4">
+          <Card className="surface-card">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Jogador</TableHead>
+                      <TableHead className="text-center">Partidas em aberto</TableHead>
+                      <TableHead className="text-right">Total devendo</TableHead>
+                      <TableHead className="text-right">Prêmios a receber</TableHead>
+                      <TableHead className="text-right">Saldo líquido</TableHead>
+                      <TableHead>Última partida</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {receivablesByPlayer.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                          <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          Nenhuma pendência em aberto.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {receivablesByPlayer.map(p => (
+                      <TableRow key={p.playerId}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={p.playerPhoto} alt={p.playerName} />
+                              <AvatarFallback>{p.playerName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{p.playerName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">{p.openCount}</TableCell>
+                        <TableCell className="text-right text-red-500 font-semibold">
+                          {p.totalOwed > 0 ? formatCurrency(p.totalOwed) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-emerald-500 font-semibold">
+                          {p.totalPrize > 0 ? `+${formatCurrency(p.totalPrize)}` : '—'}
+                        </TableCell>
+                        <TableCell className={`text-right font-bold ${p.netBalance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                          {p.netBalance >= 0 ? '+' : ''}{formatCurrency(p.netBalance)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {p.lastGameDate ? formatDate(p.lastGameDate) : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <SettlePaymentDialog
         row={dialogRow}
@@ -245,5 +313,6 @@ export default function FinanceReceivables() {
         onConfirm={settlePayment}
       />
     </div>
+
   );
 }
