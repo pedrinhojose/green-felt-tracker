@@ -176,6 +176,7 @@ export async function applyPlayerPhotoMask(imageDataUrl: string): Promise<string
 
     // 2. Remove fundo (roda no browser, ~1-3s após primeiro carregamento do modelo)
     console.log("🖼️ Removendo fundo...");
+    const removeBackground = await loadRemoveBackground();
     const cutoutBlob = await removeBackground(normalizedBlob, {
       output: { format: "image/png", quality: 0.9 },
     });
