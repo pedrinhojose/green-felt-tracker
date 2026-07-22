@@ -238,36 +238,65 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
             gridAutoFlow: columnCount > 1 ? 'column' : 'row',
             gridTemplateRows: columnCount > 1 ? `repeat(${Math.ceil(sortedPlayers.length / columnCount)}, minmax(0, 1fr))` : undefined
           }}>
-            {playersOrganizedVertically.map(player => (
-              <div 
-                key={player.id}
-                className={`${
-                  isMobile ? "p-3" : "p-3"
-                } rounded-lg flex items-center gap-3 cursor-pointer transition-all ${
-                  selectedPlayers.has(player.id) 
-                    ? 'bg-poker-dark-green border border-poker-gold shadow-lg' 
-                    : 'bg-poker-dark-green/50 hover:bg-poker-dark-green/70'
-                }`}
-                onClick={() => togglePlayerSelection(player.id)}
-              >
-                <Avatar className={isMobile ? "h-10 w-10" : "h-10 w-10"}>
-                  {player.photoUrl ? (
-                    <AvatarImage src={player.photoUrl} alt={player.name} />
-                  ) : null}
-                  <AvatarFallback className="bg-poker-navy text-white">
-                    {getInitials(player.name)}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <span className={`flex-1 ${isMobile ? "text-base" : ""}`}>{player.name}</span>
-                
-                <Checkbox 
-                  checked={selectedPlayers.has(player.id)}
-                  onCheckedChange={() => togglePlayerSelection(player.id)}
-                  className="pointer-events-none"
-                />
-              </div>
-            ))}
+            {playersOrganizedVertically.map(player => {
+              const openBal = openBalanceMap.get(player.id);
+              const net = openBal?.netBalance ?? 0;
+              const hasOpen = !!openBal && net !== 0;
+              return (
+                <div
+                  key={player.id}
+                  className={`${
+                    isMobile ? "p-3" : "p-3"
+                  } rounded-lg flex items-center gap-3 cursor-pointer transition-all ${
+                    selectedPlayers.has(player.id)
+                      ? 'bg-poker-dark-green border border-poker-gold shadow-lg'
+                      : 'bg-poker-dark-green/50 hover:bg-poker-dark-green/70'
+                  }`}
+                  onClick={() => togglePlayerSelection(player.id)}
+                >
+                  <Avatar className={isMobile ? "h-10 w-10" : "h-10 w-10"}>
+                    {player.photoUrl ? (
+                      <AvatarImage src={player.photoUrl} alt={player.name} />
+                    ) : null}
+                    <AvatarFallback className="bg-poker-navy text-white">
+                      {getInitials(player.name)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 min-w-0">
+                    <div className={`${isMobile ? "text-base" : ""} truncate`}>{player.name}</div>
+                    {hasOpen && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className={`mt-1 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                                net < 0
+                                  ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                                  : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                              }`}
+                            >
+                              <AlertCircle className="w-3 h-3" />
+                              {net < 0 ? '-' : '+'}{formatCurrency(Math.abs(net))}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {openBal!.openCount} partida{openBal!.openCount > 1 ? 's' : ''} em aberto — ver Recebimentos
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+
+                  <Checkbox
+                    checked={selectedPlayers.has(player.id)}
+                    onCheckedChange={() => togglePlayerSelection(player.id)}
+                    className="pointer-events-none"
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
         
