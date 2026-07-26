@@ -48,7 +48,7 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { name: 'Painel', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Configuração', path: '/season', icon: Settings, hideForViewer: true },
+  { name: 'Nova Temporada', path: '/season?new=1', icon: Settings, hideForViewer: true },
   { name: 'Temporadas', path: '/seasons', icon: CalendarDays },
   { name: 'Partidas', path: '/games', icon: Gamepad2 },
   { name: 'Ranking', path: '/ranking', icon: Trophy },
