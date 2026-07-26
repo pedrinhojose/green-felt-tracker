@@ -32,15 +32,25 @@ import {
 export default function SeasonConfig() {
   const { activeSeason, seasons, createSeason, updateSeason } = usePoker();
   const [searchParams] = useSearchParams();
+  const seasonIdParam = searchParams.get('seasonId');
   const forceNew = searchParams.get('new') === '1';
-  const [isCreating] = useState(forceNew || !activeSeason);
-  const [inheritFromPrevious, setInheritFromPrevious] = useState(true);
+
+  // Temporada alvo: só edita quando veio explicitamente pela URL.
+  // Sem seasonId => sempre formulário de NOVA temporada (evita mexer sem querer na ativa).
+  const targetSeason = useMemo(() => {
+    if (forceNew || !seasonIdParam) return null;
+    return seasons?.find(s => s.id === seasonIdParam) ?? null;
+  }, [forceNew, seasonIdParam, seasons]);
+
+  const isCreating = forceNew || !seasonIdParam;
+  const isFinishedSeason = !isCreating && !!targetSeason?.endDate;
+  const [inheritFromPrevious, setInheritFromPrevious] = useState(false);
   const [gamesCount, setGamesCount] = useState<number>(0);
   const [advancedUnlocked, setAdvancedUnlocked] = useState(false);
 
   const previousSeason = useMemo(() => {
     if (!seasons || seasons.length === 0) return null;
-    const candidates = seasons.filter(s => !activeSeason || s.id !== activeSeason.id);
+    const candidates = seasons.filter(s => !targetSeason || s.id !== targetSeason.id);
     if (candidates.length === 0) return null;
     const sorted = [...candidates].sort((a, b) => {
       const da = new Date(a.endDate ?? a.createdAt).getTime();
@@ -48,7 +58,8 @@ export default function SeasonConfig() {
       return db - da;
     });
     return sorted[0];
-  }, [seasons, activeSeason]);
+  }, [seasons, targetSeason]);
+
 
   // Detectar partidas já jogadas para bloqueio de edição avançada
   useEffect(() => {
