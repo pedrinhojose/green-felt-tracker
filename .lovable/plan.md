@@ -1,29 +1,48 @@
-## Problema
+## Diagnóstico confirmado
 
-A credencial ApaHub criada no painel grava apenas uma linha na tabela `apahub_access_keys` (com a senha criptografada). Ela **não cria um usuário de autenticação** no Supabase. Como o app ApaHub faz login pelo método padrão de autenticação, ele nunca encontra esse usuário e retorna "Invalid login credentials".
+A recompensa é calculada **isoladamente por partida** em `src/hooks/usePrizeDistribution.ts` (linhas 146-189): conta as eliminações apenas daquela partida e faz `floor(kills / 4)`. O resto é descartado quando a partida encerra.
 
-## Solução
+Dados reais do DANIEL CUNHA na 2ª Temporada 2026 (config: `frequency: 4`, `rewardValue: 1`, `rewardType: points`, `maxRewardsPerGame: 0`):
+- Partida #1 (06/07): 3 kills → `floor(3/4) = 0`
+- Partida #2 (20/07): 2 kills → `floor(2/4) = 0`
+- Total 5 kills → 0 pontos de recompensa
 
-Passar a criar/atualizar um usuário de autenticação real (e-mail já confirmado) sempre que o admin criar a chave ou trocar a senha — mesmo padrão já usado na credencial de visitante.
+Por isso a premiação não aparece.
 
-### 1. Banco
-- Adicionar coluna `apahub_user_id` (uuid) em `apahub_access_keys` para guardar o usuário de autenticação vinculado.
+## O que será feito
 
-### 2. Nova função de servidor `create-apahub-account`
-Espelhada em `create-viewer-account`:
-- Valida que quem chama é admin/owner da organização.
-- Se já existe `apahub_user_id`: atualiza e-mail e senha desse usuário.
-- Se não existe: cria o usuário com e-mail confirmado; se o e-mail já existir no sistema, reaproveita e apenas atualiza a senha.
-- Garante que esse usuário seja membro da organização com papel de leitura (`viewer`), para que as regras de acesso já existentes entreguem só os dados do clube dele.
-- Grava a chave via a função existente `create_apahub_access_key` e salva o `apahub_user_id`.
+### 1. Nova regra: acumulado por temporada
+Alterar a lógica para considerar o total de eliminações do jogador na temporada até aquela partida (ordenadas por data/número), e não só na partida atual:
 
-### 3. Frontend
-- `src/hooks/useApahubAccessKey.ts`: `createAccessKey` e `updatePassword` passam a chamar a nova função de servidor em vez das RPCs diretas (a RPC de senha continua sendo atualizada em conjunto, para manter a tabela coerente).
-- Mensagens de erro repassadas ao admin (ex.: senha curta, e-mail inválido, e-mail já em uso por outro clube).
-- Nenhuma mudança visual nos cards/modais.
+```text
+kills_antes  = eliminações do jogador em partidas anteriores da temporada
+kills_ate    = kills_antes + kills_da_partida_atual
+recompensas  = floor(kills_ate / freq) - floor(kills_antes / freq)
+pontos       = recompensas * rewardValue
+```
 
-### 4. Credenciais já existentes
-A chave atual do clube não tem usuário de autenticação. Depois do ajuste, basta o admin clicar em **Alterar senha** (ou regenerar) uma vez — isso cria o usuário e a credencial passa a funcionar. Vou avisar isso na resposta final.
+Com 3 kills na #1 e 2 na #2, o 4º kill acontece na partida #2 → 1 ponto lançado na #2, e sobra 1 kill para o próximo ciclo. O resto nunca se perde.
 
-## Observação técnica
-A função `verify_apahub_login` continua existindo, então, se o app ApaHub usar essa validação alternativa em vez do login padrão, ele segue funcionando. Nenhuma mudança é obrigatória do lado do app ApaHub.
+O limite `maxRewardsPerGame` continua como teto de recompensas lançadas em uma única partida (0 = sem limite).
+
+### 2. Onde o ponto aparece
+Atribuído à partida que fechou o ciclo, gravado em `pointsFromEliminations` do jogador naquela partida e somado ao `points` — igual a hoje. A exibição atual ("X coloc. + Y elim." no ranking, relatórios, views públicas e histórico do jogador) segue funcionando sem mudanças.
+
+### 3. Correção única das partidas já encerradas (sem botão)
+Faço o reprocessamento retroativo uma única vez, agora, direto nos dados — sem criar nenhum botão na interface:
+- percorrer as partidas encerradas de cada temporada em ordem cronológica
+- recalcular `pointsFromEliminations` e `points` de cada jogador com a regra acumulada
+- atualizar a tabela `rankings` (pontos totais e pontos por eliminação) de acordo
+- reportar o resumo do que mudou (quais jogadores ganharam pontos adicionais)
+
+Nenhum valor financeiro é alterado — apenas pontuação.
+
+### 4. Partidas avulsas
+Partidas avulsas (`isStandalone`) não pertencem a uma temporada e não entram no acumulado; mantêm o comportamento por partida.
+
+## Detalhes técnicos
+
+- `src/hooks/useEliminationRewards.ts`: adicionar `calculateCumulativeEliminationRewards(killsBefore, killsInGame, config)`, mantendo a função atual para compatibilidade.
+- `src/hooks/usePrizeDistribution.ts`: buscar eliminações da temporada inteira (join `eliminations` + `games` por `season_id`, considerando partidas com data anterior à atual) em vez de só `game_id`, e usar a nova função.
+- Backfill executado como operação de dados pontual sobre `games.players` (jsonb) e `rankings`, validando antes com consultas de leitura.
+- Sem mudanças de schema e sem novos componentes de UI.
