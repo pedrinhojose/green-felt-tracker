@@ -37,6 +37,9 @@ export default function GameManagement() {
   const [playerToEliminate, setPlayerToEliminate] = useState<GamePlayer | null>(null);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [isRemovingPlayer, setIsRemovingPlayer] = useState(false);
+  const [isStandaloneSetupOpen, setIsStandaloneSetupOpen] = useState(false);
+  const [isApplyingConfig, setIsApplyingConfig] = useState(false);
+
   
   // Custom hooks for game management
   const {
