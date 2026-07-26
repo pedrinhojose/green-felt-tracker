@@ -3,14 +3,21 @@ import { Game, Season, StandaloneGameConfig } from "@/lib/db/models";
 
 /**
  * Retorna uma "temporada efetiva" para os cálculos financeiros / de prêmios da partida.
- * - Partidas vinculadas à temporada: retorna a temporada ativa.
+ * - Partidas vinculadas à temporada: retorna a temporada da própria partida (fallback: ativa).
  * - Partidas avulsas: sintetiza uma temporada mínima a partir de game.standaloneConfig.
  */
 export function useEffectiveSeason(game: Game | null): Season | null {
-  const { activeSeason } = usePoker();
+  const { activeSeason, seasons } = usePoker();
 
   if (!game) return activeSeason;
-  if (!game.isStandalone) return activeSeason;
+
+  if (!game.isStandalone) {
+    if (game.seasonId) {
+      const own = seasons?.find(s => s.id === game.seasonId);
+      if (own) return own;
+    }
+    return activeSeason;
+  }
 
   const cfg: StandaloneGameConfig = game.standaloneConfig ?? {
     buyIn: 0,
@@ -40,7 +47,7 @@ export function useEffectiveSeason(game: Game | null): Season | null {
       jackpotContribution: 0,
       clubFundContribution: 0,
     },
-    blindStructure: [],
+    blindStructure: cfg.blindStructure ?? [],
     jackpot: 0,
     clubFund: 0,
     houseRules: "",
