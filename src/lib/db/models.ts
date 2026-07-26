@@ -70,7 +70,14 @@ export interface StandaloneGameConfig {
   rebuy: number;
   addon: number;
   weeklyPrizeSchema: PrizeEntry[];
+  /** Snapshot opcional da estrutura de blinds (usado quando herdada da temporada) */
+  blindStructure?: BlindLevel[];
+  /** Origem da configuração: manual ou herdada da temporada ativa */
+  source?: 'manual' | 'season';
+  /** Nome da temporada de origem, quando herdada */
+  sourceSeasonName?: string;
 }
+
 
 export interface Game {
   id: string;
