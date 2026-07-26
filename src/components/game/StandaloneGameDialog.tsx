@@ -38,7 +38,7 @@ function loadDefault(): StandaloneGameConfig {
   return { buyIn: 50, rebuy: 50, addon: 50, weeklyPrizeSchema: DEFAULT_SCHEMA };
 }
 
-export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, initial, loading }: Props) {
+export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, initial, loading, confirmLabel }: Props) {
   const [config, setConfig] = useState<StandaloneGameConfig>(initial ?? loadDefault());
 
   useEffect(() => {
