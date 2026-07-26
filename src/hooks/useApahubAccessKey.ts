@@ -75,27 +75,19 @@ export function useApahubAccessKey() {
 
     try {
       setIsSaving(true);
-      const { data, error } = await supabase.rpc('create_apahub_access_key', {
-        p_organization_id: currentOrganization.id,
-        p_access_email: email.toLowerCase(),
-        p_password: password,
-        p_organization_name: currentOrganization.name
+      const { data, error } = await supabase.functions.invoke('create-apahub-account', {
+        body: {
+          organization_id: currentOrganization.id,
+          access_email: email.toLowerCase().trim(),
+          password,
+          organization_name: currentOrganization.name,
+        },
       });
 
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
 
-      if (data && data.length > 0) {
-        const row = data[0] as any;
-        setAccessKey({
-          id: row.key_id,
-          organization_id: row.key_organization_id,
-          access_email: row.key_access_email,
-          organization_name: row.key_organization_name,
-          is_active: row.key_is_active,
-          created_at: row.key_created_at,
-          updated_at: row.key_updated_at,
-        });
-      }
+      await fetchAccessKey();
 
       toast({
         title: 'Chave criada',
@@ -128,12 +120,17 @@ export function useApahubAccessKey() {
 
     try {
       setIsSaving(true);
-      const { error } = await supabase.rpc('update_apahub_access_key_password', {
-        p_organization_id: currentOrganization.id,
-        p_new_password: newPassword
+      const { data, error } = await supabase.functions.invoke('create-apahub-account', {
+        body: {
+          organization_id: currentOrganization.id,
+          access_email: (accessKey?.access_email ?? '').toLowerCase().trim(),
+          password: newPassword,
+          organization_name: currentOrganization.name,
+        },
       });
 
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
 
       await fetchAccessKey();
 
@@ -155,6 +152,7 @@ export function useApahubAccessKey() {
       setIsSaving(false);
     }
   };
+
 
   const regeneratePassword = async (): Promise<string | null> => {
     const newPassword = generateRandomPassword(12);
