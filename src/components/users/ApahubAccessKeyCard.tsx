@@ -26,6 +26,8 @@ export function ApahubAccessKeyCard() {
   
   // Dialog state
   const [editPasswordOpen, setEditPasswordOpen] = useState(false);
+  const [shareAppOpen, setShareAppOpen] = useState(false);
+
   const [credentialsDialog, setCredentialsDialog] = useState<{
     open: boolean;
     email: string;
@@ -192,6 +194,11 @@ export function ApahubAccessKeyCard() {
                 )}
                 Gerar nova senha
               </Button>
+              <Button onClick={() => setShareAppOpen(true)}>
+                <Smartphone className="mr-2 h-4 w-4" />
+                Enviar app ao jogador
+              </Button>
+
             </div>
           </CardContent>
         </Card>
