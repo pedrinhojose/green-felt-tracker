@@ -68,7 +68,7 @@ export function ShareApahubAppDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Smartphone className="h-5 w-5" /> Enviar app ao jogador
@@ -142,18 +142,18 @@ export function ShareApahubAppDialog({
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
           {hasLink && (
             <>
-              <Button variant="outline" onClick={() => copy(buildMessage(), 'Mensagem')}>
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => copy(buildMessage(), 'Mensagem')}>
                 <Copy className="mr-2 h-4 w-4" /> Copiar mensagem
               </Button>
-              <Button onClick={openWhatsApp}>
+              <Button className="w-full sm:w-auto" onClick={openWhatsApp}>
                 <MessageCircle className="mr-2 h-4 w-4" /> Abrir WhatsApp
               </Button>
             </>
           )}
-          <Button variant={hasLink ? 'ghost' : 'default'} onClick={() => onOpenChange(false)}>
+          <Button className="w-full sm:w-auto" variant={hasLink ? 'ghost' : 'default'} onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
         </DialogFooter>

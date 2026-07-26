@@ -50,7 +50,7 @@ export function ApahubCredentialsDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -89,14 +89,14 @@ export function ApahubCredentialsDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={copyBoth}>
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
+          <Button className="w-full sm:w-auto" variant="outline" onClick={copyBoth}>
             <Copy className="mr-2 h-4 w-4" /> Copiar email e senha
           </Button>
-          <Button variant="outline" onClick={() => setShareAppOpen(true)}>
+          <Button className="w-full sm:w-auto" variant="outline" onClick={() => setShareAppOpen(true)}>
             <Smartphone className="mr-2 h-4 w-4" /> Enviar app ao jogador
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Fechar</Button>
+          <Button className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
