@@ -101,6 +101,35 @@ export function ShareApahubAppDialog({
               </div>
             </div>
 
+            {email && (
+              <div className="space-y-2">
+                <Label>Email de acesso</Label>
+                <code className="block rounded bg-muted px-3 py-2 text-sm break-all">{email}</code>
+              </div>
+            )}
+
+            {email && !password && (
+              <div className="space-y-2">
+                <Label htmlFor="share-password">Senha do clube</Label>
+                <Input
+                  id="share-password"
+                  type="text"
+                  placeholder="Digite a senha que você cadastrou"
+                  value={manualPassword}
+                  onChange={(e) => setManualPassword(e.target.value)}
+                />
+                <div className="rounded-md border border-muted bg-muted/40 p-3 flex gap-2 text-xs text-muted-foreground">
+                  <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    A senha é guardada criptografada e não pode ser recuperada pelo sistema.
+                    Digite aqui a senha que você cadastrou para incluí-la na mensagem — ou use
+                    <strong> Gerar nova senha</strong> no card da chave.
+                  </span>
+                </div>
+              </div>
+            )}
+
+
             <div className="rounded-md border border-muted bg-muted/40 p-3 text-sm whitespace-pre-wrap text-muted-foreground">
               {buildMessage()}
             </div>
