@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Copy, Check, AlertTriangle } from 'lucide-react';
+import { Copy, Check, AlertTriangle, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ShareApahubAppDialog } from './ShareApahubAppDialog';
 
 interface ApahubCredentialsDialogProps {
   open: boolean;
