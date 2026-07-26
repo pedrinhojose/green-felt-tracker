@@ -169,7 +169,7 @@ export default function GamesList() {
           {canEdit && (
             <Button
               variant="outline"
-              onClick={handleCreateStandaloneGame}
+              onClick={() => setStandaloneDialogOpen(true)}
               disabled={isCreating}
             >
               {isCreating ? "Criando..." : "Nova partida avulsa"}
@@ -177,6 +177,15 @@ export default function GamesList() {
           )}
         </div>
       </div>
+
+      <StandaloneGameSetupDialog
+        open={standaloneDialogOpen}
+        onOpenChange={setStandaloneDialogOpen}
+        activeSeason={activeSeason}
+        onConfirm={handleConfirmStandalone}
+        loading={isCreating}
+      />
+
       
       {sortedGames.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
