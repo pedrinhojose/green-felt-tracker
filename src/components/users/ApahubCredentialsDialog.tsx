@@ -99,14 +99,15 @@ export function ApahubCredentialsDialog({
           <Button onClick={() => onOpenChange(false)}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
-
-      <ShareApahubAppDialog
-        open={shareAppOpen}
-        onOpenChange={setShareAppOpen}
-        email={email}
-        password={password}
-      />
     </Dialog>
+
+    <ShareApahubAppDialog
+      open={shareAppOpen}
+      onOpenChange={setShareAppOpen}
+      email={email}
+      password={password}
+    />
+    </>
   );
 }
 
