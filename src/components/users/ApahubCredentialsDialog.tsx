@@ -48,6 +48,7 @@ export function ApahubCredentialsDialog({
     copy(`Email: ${email}\nSenha: ${password}`, 'Credenciais');
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
