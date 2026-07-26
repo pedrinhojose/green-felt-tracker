@@ -77,7 +77,7 @@ export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, in
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configurar partida avulsa</DialogTitle>
           <DialogDescription>
