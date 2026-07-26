@@ -91,11 +91,17 @@ export function useGameFunctions(
    * Standalone games skip caixinha/jackpot/ranking logic entirely.
    */
   const createStandaloneGame = async (config?: import("@/lib/db/models").StandaloneGameConfig) => {
+    // Nunca criar partida avulsa sem valores: sem config os rebuys/add-ons valeriam R$ 0,00.
+    if (!config) {
+      throw new Error("Partida avulsa sem configuração: defina buy-in, rebuy, add-on e premiação antes de iniciar.");
+    }
+
     // Standalone games get their own numbering per organization,
     // scoped simply by picking the next available number among existing standalone games.
     const existingStandalone = games.filter(g => g.isStandalone);
     const existingNumbers = existingStandalone.map(g => g.number);
     const gameNumber = findNextAvailableNumber(existingNumbers);
+
 
     const newGame: Game = {
       id: uuidv4(),

@@ -19,6 +19,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import StandaloneGameSetupDialog from "@/components/game/StandaloneGameSetupDialog";
+import { StandaloneGameConfig } from "@/lib/db/models";
+
 
 export default function GamesList() {
   const { toast } = useToast();
@@ -29,6 +32,8 @@ export default function GamesList() {
   const [isCreating, setIsCreating] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [standaloneDialogOpen, setStandaloneDialogOpen] = useState(false);
+
   
   // Sort games by number in descending order
   const sortedGames = [...games].sort((a, b) => b.number - a.number);
@@ -69,22 +74,24 @@ export default function GamesList() {
     }
   };
 
-  const handleCreateStandaloneGame = async () => {
+  const handleConfirmStandalone = async (config: StandaloneGameConfig) => {
     try {
       setIsCreating(true);
-      const gameId = await createStandaloneGame();
+      const gameId = await createStandaloneGame(config);
+      setStandaloneDialogOpen(false);
       navigate(`/games/${gameId}`);
     } catch (error) {
       console.error("Error creating standalone game:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar uma partida avulsa.",
+        description: error instanceof Error ? error.message : "Não foi possível criar uma partida avulsa.",
         variant: "destructive",
       });
     } finally {
       setIsCreating(false);
     }
   };
+
 
   
   const handleDeleteGame = async (gameId: string) => {
@@ -162,7 +169,7 @@ export default function GamesList() {
           {canEdit && (
             <Button
               variant="outline"
-              onClick={handleCreateStandaloneGame}
+              onClick={() => setStandaloneDialogOpen(true)}
               disabled={isCreating}
             >
               {isCreating ? "Criando..." : "Nova partida avulsa"}
@@ -170,6 +177,15 @@ export default function GamesList() {
           )}
         </div>
       </div>
+
+      <StandaloneGameSetupDialog
+        open={standaloneDialogOpen}
+        onOpenChange={setStandaloneDialogOpen}
+        activeSeason={activeSeason}
+        onConfirm={handleConfirmStandalone}
+        loading={isCreating}
+      />
+
       
       {sortedGames.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

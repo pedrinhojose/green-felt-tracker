@@ -18,7 +18,9 @@ interface Props {
   onConfirm: (config: StandaloneGameConfig) => void | Promise<void>;
   initial?: StandaloneGameConfig;
   loading?: boolean;
+  confirmLabel?: string;
 }
+
 
 const STORAGE_KEY = "apapoker.standaloneConfig.default";
 
@@ -36,7 +38,7 @@ function loadDefault(): StandaloneGameConfig {
   return { buyIn: 50, rebuy: 50, addon: 50, weeklyPrizeSchema: DEFAULT_SCHEMA };
 }
 
-export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, initial, loading }: Props) {
+export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, initial, loading, confirmLabel }: Props) {
   const [config, setConfig] = useState<StandaloneGameConfig>(initial ?? loadDefault());
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, in
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configurar partida avulsa</DialogTitle>
           <DialogDescription>
@@ -127,8 +129,9 @@ export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, in
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
           <Button onClick={handleConfirm} disabled={!pctOk || loading}>
-            {loading ? "Criando..." : "Iniciar partida"}
+            {loading ? "Salvando..." : (confirmLabel ?? "Iniciar partida")}
           </Button>
+
         </DialogFooter>
       </DialogContent>
     </Dialog>

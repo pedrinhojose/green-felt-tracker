@@ -19,9 +19,13 @@ import GameHeader from "@/components/game/GameHeader";
 import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
 import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
 import { PlayerEliminationDialog } from "@/components/game/PlayerEliminationDialog";
-import { UserPlus, UserMinus } from "lucide-react";
+import { UserPlus, UserMinus, AlertTriangle, Settings2 } from "lucide-react";
 import { GamePlayer } from "@/lib/db/models";
 import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
+import StandaloneGameSetupDialog from "@/components/game/StandaloneGameSetupDialog";
+import { useStandaloneConfig } from "@/hooks/useStandaloneConfig";
+import { isStandaloneConfigured } from "@/lib/utils/standaloneConfig";
+
 
 export default function GameManagement() {
   const navigate = useNavigate();
@@ -33,6 +37,9 @@ export default function GameManagement() {
   const [playerToEliminate, setPlayerToEliminate] = useState<GamePlayer | null>(null);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [isRemovingPlayer, setIsRemovingPlayer] = useState(false);
+  const [isStandaloneSetupOpen, setIsStandaloneSetupOpen] = useState(false);
+  const [isApplyingConfig, setIsApplyingConfig] = useState(false);
+
   
   // Custom hooks for game management
   const {
@@ -54,6 +61,20 @@ export default function GameManagement() {
     handleDeleteGame,
   } = useGameManagement();
   const activeSeason = useEffectiveSeason(game) ?? rawActiveSeason;
+  const { applyConfig } = useStandaloneConfig(game, setGame);
+  const needsStandaloneConfig = !!game?.isStandalone && !isStandaloneConfigured(game?.standaloneConfig);
+
+  const handleApplyStandaloneConfig = async (config: import("@/lib/db/models").StandaloneGameConfig) => {
+    setIsApplyingConfig(true);
+    try {
+      const ok = await applyConfig(config);
+      if (ok) setIsStandaloneSetupOpen(false);
+    } finally {
+      setIsApplyingConfig(false);
+    }
+  };
+  
+
   
   // Player actions hook
   const {
@@ -255,6 +276,50 @@ export default function GameManagement() {
           onCancelEdit={handleCancelEdit}
         />
       )}
+
+      {/* Configuração da partida avulsa */}
+      {game.isStandalone && !isViewer && !game.isFinished && (
+        <div className={`mb-4 rounded-lg border p-4 ${needsStandaloneConfig ? 'border-amber-500 bg-amber-500/10' : 'border-white/10 bg-white/5'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2">
+              {needsStandaloneConfig
+                ? <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                : <Settings2 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />}
+              <div>
+                <p className={`font-semibold ${needsStandaloneConfig ? 'text-amber-500' : ''}`}>
+                  {needsStandaloneConfig ? 'Partida avulsa sem configuração' : 'Partida avulsa configurada'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {needsStandaloneConfig
+                    ? 'Esta partida não tem buy-in/rebuy/add-on definidos — os valores ficarão zerados. Configure agora ou use os valores da temporada atual.'
+                    : `Buy-in R$ ${(game.standaloneConfig?.buyIn ?? 0).toFixed(2)} • Rebuy R$ ${(game.standaloneConfig?.rebuy ?? 0).toFixed(2)} • Add-on R$ ${(game.standaloneConfig?.addon ?? 0).toFixed(2)}${game.standaloneConfig?.source === 'season' && game.standaloneConfig?.sourceSeasonName ? ` • herdado de ${game.standaloneConfig.sourceSeasonName}` : ''}`}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={needsStandaloneConfig ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsStandaloneSetupOpen(true)}
+              className="shrink-0"
+            >
+              <Settings2 className="mr-2 h-4 w-4" />
+              Configurar partida
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <StandaloneGameSetupDialog
+        open={isStandaloneSetupOpen}
+        onOpenChange={setIsStandaloneSetupOpen}
+        activeSeason={rawActiveSeason}
+        initial={game.standaloneConfig}
+        confirmLabel="Salvar configuração"
+        loading={isApplyingConfig}
+        onConfirm={handleApplyStandaloneConfig}
+      />
+      
+
       
       {isSelectingPlayers && !isViewer ? (
         // Player selection screen
@@ -265,10 +330,15 @@ export default function GameManagement() {
           onCancel={handleDeleteGame}
           isCancelling={isDeleting}
           onStartGame={(selectedPlayers) => {
+            if (needsStandaloneConfig) {
+              setIsStandaloneSetupOpen(true);
+              return;
+            }
             handleStartGame(selectedPlayers).then(success => {
               if (success) setIsSelectingPlayers(false);
             });
           }}
+
         />
       ) : (
         // Game management screen
