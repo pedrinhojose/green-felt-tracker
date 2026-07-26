@@ -30,6 +30,8 @@ export function ApahubCredentialsDialog({
 }: ApahubCredentialsDialogProps) {
   const { toast } = useToast();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [shareAppOpen, setShareAppOpen] = useState(false);
+
 
   const copy = async (value: string, field: string) => {
     try {
@@ -90,9 +92,20 @@ export function ApahubCredentialsDialog({
           <Button variant="outline" onClick={copyBoth}>
             <Copy className="mr-2 h-4 w-4" /> Copiar email e senha
           </Button>
+          <Button variant="outline" onClick={() => setShareAppOpen(true)}>
+            <Smartphone className="mr-2 h-4 w-4" /> Enviar app ao jogador
+          </Button>
           <Button onClick={() => onOpenChange(false)}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
+
+      <ShareApahubAppDialog
+        open={shareAppOpen}
+        onOpenChange={setShareAppOpen}
+        email={email}
+        password={password}
+      />
     </Dialog>
   );
 }
+
