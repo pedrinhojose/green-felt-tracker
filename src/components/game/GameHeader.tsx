@@ -124,10 +124,11 @@ export default function GameHeader({
       <div className={`${isMobile ? 'w-full' : 'mt-4 sm:mt-0'} flex ${isMobile ? 'flex-col space-y-2' : 'flex-wrap gap-2'}`}>
         <Button
           onClick={onExportReport}
-          disabled={isExporting}
+          disabled={isExporting || !isFinished}
           variant="outline"
           size={isMobile ? "sm" : "sm"}
           className={isMobile ? "w-full justify-center" : ""}
+          title={!isFinished ? "Disponível apenas após encerrar a partida" : undefined}
         >
           {isExporting ? "Exportando..." : isMobile ? "PDF" : "Exportar Relatório"}
           <FileImage className="ml-2 h-4 w-4" />
@@ -135,10 +136,11 @@ export default function GameHeader({
         
         <Button
           onClick={onExportReportAsImage}
-          disabled={isExportingImage}
+          disabled={isExportingImage || !isFinished}
           variant="outline"
           size={isMobile ? "sm" : "sm"}
           className={isMobile ? "w-full justify-center" : ""}
+          title={!isFinished ? "Disponível apenas após encerrar a partida" : undefined}
         >
           {isExportingImage ? "Exportando..." : isMobile ? "Imagem" : "Exportar Imagem"}
           <Image className="ml-2 h-4 w-4" />
