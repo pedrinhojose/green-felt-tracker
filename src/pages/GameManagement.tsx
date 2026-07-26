@@ -19,9 +19,13 @@ import GameHeader from "@/components/game/GameHeader";
 import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
 import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
 import { PlayerEliminationDialog } from "@/components/game/PlayerEliminationDialog";
-import { UserPlus, UserMinus } from "lucide-react";
+import { UserPlus, UserMinus, AlertTriangle, Settings2 } from "lucide-react";
 import { GamePlayer } from "@/lib/db/models";
 import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
+import StandaloneGameSetupDialog from "@/components/game/StandaloneGameSetupDialog";
+import { useStandaloneConfig } from "@/hooks/useStandaloneConfig";
+import { isStandaloneConfigured } from "@/lib/utils/standaloneConfig";
+
 
 export default function GameManagement() {
   const navigate = useNavigate();
