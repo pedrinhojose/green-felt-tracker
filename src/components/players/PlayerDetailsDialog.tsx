@@ -107,7 +107,8 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
     ? "Carregando..."
     : lastEver
       ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatRowLabel(lastEver)}`
-      : "Nunca participou";
+      : "Sem participação em partidas de temporada";
+
 
   return (
     <Dialog open={!!player} onOpenChange={onOpenChange}>
