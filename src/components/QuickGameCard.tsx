@@ -4,8 +4,9 @@ import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import StandaloneGameDialog from "@/components/game/StandaloneGameDialog";
+import StandaloneGameSetupDialog from "@/components/game/StandaloneGameSetupDialog";
 import { StandaloneGameConfig } from "@/lib/db/models";
+
 
 const QuickGameCard = memo(function QuickGameCard() {
   const { activeSeason, createGame, createStandaloneGame } = usePoker();
