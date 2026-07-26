@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
 import { Building2, Users, Crown, Lock, Unlock, Loader2 } from 'lucide-react';
+import { ApahubAppLinkCard } from '@/components/users/ApahubAppLinkCard';
 
 interface ClubRow {
   id: string;
@@ -119,6 +120,8 @@ export default function SuperAdminDashboard() {
           <p className="text-white/60 text-sm">Visão global de todos os clubes da plataforma.</p>
         </div>
       </header>
+
+      <ApahubAppLinkCard />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="bg-slate-900/60 border-white/10">

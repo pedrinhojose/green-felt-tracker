@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Copy, Check, AlertTriangle } from 'lucide-react';
+import { Copy, Check, AlertTriangle, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ShareApahubAppDialog } from './ShareApahubAppDialog';
 
 interface ApahubCredentialsDialogProps {
   open: boolean;
@@ -29,6 +30,8 @@ export function ApahubCredentialsDialog({
 }: ApahubCredentialsDialogProps) {
   const { toast } = useToast();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [shareAppOpen, setShareAppOpen] = useState(false);
+
 
   const copy = async (value: string, field: string) => {
     try {
@@ -45,6 +48,7 @@ export function ApahubCredentialsDialog({
     copy(`Email: ${email}\nSenha: ${password}`, 'Credenciais');
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
@@ -89,9 +93,21 @@ export function ApahubCredentialsDialog({
           <Button variant="outline" onClick={copyBoth}>
             <Copy className="mr-2 h-4 w-4" /> Copiar email e senha
           </Button>
+          <Button variant="outline" onClick={() => setShareAppOpen(true)}>
+            <Smartphone className="mr-2 h-4 w-4" /> Enviar app ao jogador
+          </Button>
           <Button onClick={() => onOpenChange(false)}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <ShareApahubAppDialog
+      open={shareAppOpen}
+      onOpenChange={setShareAppOpen}
+      email={email}
+      password={password}
+    />
+    </>
   );
 }
+

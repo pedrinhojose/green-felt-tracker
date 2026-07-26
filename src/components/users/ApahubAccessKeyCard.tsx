@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Key, Mail, Eye, EyeOff, Loader2, Calendar, CheckCircle2, XCircle, RefreshCw, Info } from 'lucide-react';
+import { Key, Mail, Eye, EyeOff, Loader2, Calendar, CheckCircle2, XCircle, RefreshCw, Info, Smartphone } from 'lucide-react';
 import { useApahubAccessKey } from '@/hooks/useApahubAccessKey';
 import { EditApahubPasswordDialog } from './EditApahubPasswordDialog';
 import { ApahubCredentialsDialog } from './ApahubCredentialsDialog';
+import { ShareApahubAppDialog } from './ShareApahubAppDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -25,6 +26,8 @@ export function ApahubAccessKeyCard() {
   
   // Dialog state
   const [editPasswordOpen, setEditPasswordOpen] = useState(false);
+  const [shareAppOpen, setShareAppOpen] = useState(false);
+
   const [credentialsDialog, setCredentialsDialog] = useState<{
     open: boolean;
     email: string;
@@ -191,6 +194,11 @@ export function ApahubAccessKeyCard() {
                 )}
                 Gerar nova senha
               </Button>
+              <Button onClick={() => setShareAppOpen(true)}>
+                <Smartphone className="mr-2 h-4 w-4" />
+                Enviar app ao jogador
+              </Button>
+
             </div>
           </CardContent>
         </Card>
@@ -220,7 +228,14 @@ export function ApahubAccessKeyCard() {
           password={credentialsDialog.password}
           title={credentialsDialog.title}
         />
+
+        <ShareApahubAppDialog
+          open={shareAppOpen}
+          onOpenChange={setShareAppOpen}
+          email={accessKey.access_email}
+        />
       </>
+
     );
   }
 
