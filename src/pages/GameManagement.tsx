@@ -276,6 +276,50 @@ export default function GameManagement() {
           onCancelEdit={handleCancelEdit}
         />
       )}
+
+      {/* Configuração da partida avulsa */}
+      {game.isStandalone && !isViewer && !game.isFinished && (
+        <div className={`mb-4 rounded-lg border p-4 ${needsStandaloneConfig ? 'border-amber-500 bg-amber-500/10' : 'border-white/10 bg-white/5'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2">
+              {needsStandaloneConfig
+                ? <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                : <Settings2 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />}
+              <div>
+                <p className={`font-semibold ${needsStandaloneConfig ? 'text-amber-500' : ''}`}>
+                  {needsStandaloneConfig ? 'Partida avulsa sem configuração' : 'Partida avulsa configurada'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {needsStandaloneConfig
+                    ? 'Esta partida não tem buy-in/rebuy/add-on definidos — os valores ficarão zerados. Configure agora ou use os valores da temporada atual.'
+                    : `Buy-in R$ ${(game.standaloneConfig?.buyIn ?? 0).toFixed(2)} • Rebuy R$ ${(game.standaloneConfig?.rebuy ?? 0).toFixed(2)} • Add-on R$ ${(game.standaloneConfig?.addon ?? 0).toFixed(2)}${game.standaloneConfig?.source === 'season' && game.standaloneConfig?.sourceSeasonName ? ` • herdado de ${game.standaloneConfig.sourceSeasonName}` : ''}`}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={needsStandaloneConfig ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsStandaloneSetupOpen(true)}
+              className="shrink-0"
+            >
+              <Settings2 className="mr-2 h-4 w-4" />
+              Configurar partida
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <StandaloneGameSetupDialog
+        open={isStandaloneSetupOpen}
+        onOpenChange={setIsStandaloneSetupOpen}
+        activeSeason={rawActiveSeason}
+        initial={game.standaloneConfig}
+        confirmLabel="Salvar configuração"
+        loading={isApplyingConfig}
+        onConfirm={handleApplyStandaloneConfig}
+      />
+      
+
       
       {isSelectingPlayers && !isViewer ? (
         // Player selection screen
