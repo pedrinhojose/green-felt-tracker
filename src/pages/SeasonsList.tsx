@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Trophy, Trash, Play, Pause, FileText } from "lucide-react";
+import { Calendar, ChevronRight, Trophy, Trash, Play, Pause, FileText, Settings } from "lucide-react";
 import { formatDate } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
@@ -329,6 +329,18 @@ export default function SeasonsList() {
                       >
                         Ver detalhes
                         <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex w-full items-center justify-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/season?seasonId=${season.id}`);
+                        }}
+                      >
+                        <Settings className="h-4 w-4 mr-1" />
+                        Conf. da Temporada
                       </Button>
                     </div>
                   </div>

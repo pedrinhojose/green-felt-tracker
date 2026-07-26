@@ -48,7 +48,7 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { name: 'Painel', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Configuração', path: '/season', icon: Settings, hideForViewer: true },
+  { name: 'Nova Temporada', path: '/season?new=1', icon: Settings, hideForViewer: true },
   { name: 'Temporadas', path: '/seasons', icon: CalendarDays },
   { name: 'Partidas', path: '/games', icon: Gamepad2 },
   { name: 'Ranking', path: '/ranking', icon: Trophy },
@@ -87,7 +87,10 @@ export function AppSidebar() {
 
   const filteredMainItems = useFilteredItems(mainNavItems);
 
-  const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
+  const isActive = (path: string) => {
+    const base = path.split('?')[0];
+    return pathname === base || pathname.startsWith(`${base}/`);
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-white/5">
