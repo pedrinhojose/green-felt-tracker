@@ -330,10 +330,15 @@ export default function GameManagement() {
           onCancel={handleDeleteGame}
           isCancelling={isDeleting}
           onStartGame={(selectedPlayers) => {
+            if (needsStandaloneConfig) {
+              setIsStandaloneSetupOpen(true);
+              return;
+            }
             handleStartGame(selectedPlayers).then(success => {
               if (success) setIsSelectingPlayers(false);
             });
           }}
+
         />
       ) : (
         // Game management screen
