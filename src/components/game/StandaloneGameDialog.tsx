@@ -18,7 +18,9 @@ interface Props {
   onConfirm: (config: StandaloneGameConfig) => void | Promise<void>;
   initial?: StandaloneGameConfig;
   loading?: boolean;
+  confirmLabel?: string;
 }
+
 
 const STORAGE_KEY = "apapoker.standaloneConfig.default";
 
