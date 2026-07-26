@@ -330,6 +330,18 @@ export default function SeasonsList() {
                         Ver detalhes
                         <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex w-full items-center justify-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/season?seasonId=${season.id}`);
+                        }}
+                      >
+                        <Settings className="h-4 w-4 mr-1" />
+                        Conf. da Temporada
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
