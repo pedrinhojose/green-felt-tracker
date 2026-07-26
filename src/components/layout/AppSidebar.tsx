@@ -87,7 +87,10 @@ export function AppSidebar() {
 
   const filteredMainItems = useFilteredItems(mainNavItems);
 
-  const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
+  const isActive = (path: string) => {
+    const base = path.split('?')[0];
+    return pathname === base || pathname.startsWith(`${base}/`);
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-white/5">
