@@ -44,6 +44,7 @@ export type Database = {
       apahub_access_keys: {
         Row: {
           access_email: string
+          apahub_user_id: string | null
           created_at: string
           created_by: string
           id: string
@@ -55,6 +56,7 @@ export type Database = {
         }
         Insert: {
           access_email: string
+          apahub_user_id?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -66,6 +68,7 @@ export type Database = {
         }
         Update: {
           access_email?: string
+          apahub_user_id?: string | null
           created_at?: string
           created_by?: string
           id?: string

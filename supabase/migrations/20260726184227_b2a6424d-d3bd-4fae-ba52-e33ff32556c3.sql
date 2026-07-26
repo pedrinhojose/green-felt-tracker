@@ -1,0 +1,1 @@
+ALTER TABLE public.apahub_access_keys ADD COLUMN IF NOT EXISTS apahub_user_id uuid;
