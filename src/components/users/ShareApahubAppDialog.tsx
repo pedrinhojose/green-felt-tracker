@@ -8,8 +8,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Copy, Check, Smartphone, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Copy, Check, Smartphone, AlertTriangle, MessageCircle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useApahubAppLink } from '@/hooks/useApahubAppLink';
 
@@ -31,6 +32,9 @@ export function ShareApahubAppDialog({
   const { appUrl, isLoading } = useApahubAppLink();
   const { toast } = useToast();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [manualPassword, setManualPassword] = useState('');
+
+  const effectivePassword = password || manualPassword.trim();
 
   const buildMessage = () => {
     const lines = [
@@ -39,7 +43,7 @@ export function ShareApahubAppDialog({
     ];
     if (email) {
       lines.push('', 'Seus dados de acesso:', `Email: ${email}`);
-      if (password) lines.push(`Senha: ${password}`);
+      if (effectivePassword) lines.push(`Senha: ${effectivePassword}`);
     }
     return lines.join('\n');
   };
@@ -60,6 +64,7 @@ export function ShareApahubAppDialog({
   };
 
   const hasLink = Boolean(appUrl);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,6 +100,35 @@ export function ShareApahubAppDialog({
                 </Button>
               </div>
             </div>
+
+            {email && (
+              <div className="space-y-2">
+                <Label>Email de acesso</Label>
+                <code className="block rounded bg-muted px-3 py-2 text-sm break-all">{email}</code>
+              </div>
+            )}
+
+            {email && !password && (
+              <div className="space-y-2">
+                <Label htmlFor="share-password">Senha do clube</Label>
+                <Input
+                  id="share-password"
+                  type="text"
+                  placeholder="Digite a senha que você cadastrou"
+                  value={manualPassword}
+                  onChange={(e) => setManualPassword(e.target.value)}
+                />
+                <div className="rounded-md border border-muted bg-muted/40 p-3 flex gap-2 text-xs text-muted-foreground">
+                  <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    A senha é guardada criptografada e não pode ser recuperada pelo sistema.
+                    Digite aqui a senha que você cadastrou para incluí-la na mensagem — ou use
+                    <strong> Gerar nova senha</strong> no card da chave.
+                  </span>
+                </div>
+              </div>
+            )}
+
 
             <div className="rounded-md border border-muted bg-muted/40 p-3 text-sm whitespace-pre-wrap text-muted-foreground">
               {buildMessage()}
