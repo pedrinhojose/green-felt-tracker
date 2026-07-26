@@ -298,8 +298,9 @@ export default function SeasonConfig() {
                 <FinancialParamsConfig register={register} errors={errors} />
               </fieldset>
 
-              {activeSeason && !isCreating && (
-                <JackpotCard activeSeason={activeSeason} />
+              {targetSeason && !isCreating && (
+                <JackpotCard activeSeason={targetSeason} />
+
               )}
             </div>
           </TabsContent>
