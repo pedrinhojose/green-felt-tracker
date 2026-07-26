@@ -1,46 +1,30 @@
 ## Objetivo
 
-Tornar **partidas avulsas 100% independentes** de temporada — hoje elas exigem uma temporada ativa para calcular buy-in, rebuy, addon e prize pool inicial.
+Permitir que o Super Admin cadastre **um link único do app ApaHub**, e que qualquer admin de clube compartilhe esse link com os jogadores por um botão **"Enviar app ao jogador"** na tela de credenciais.
 
-## Mudanças
+## Onde aparece
 
-### 1. Configuração global de "Partida Avulsa" (padrão do clube)
-Nova aba em **Configurações** (ou seção no Dashboard) para definir os valores padrão de partida avulsa por organização:
-- Buy-in, Rebuy, Add-on
-- Distribuição de prêmios (schema semanal simplificado — 1º, 2º, 3º %)
-- Contribuição para caixinha (opcional, padrão 0)
+1. **Card "Chave de Acesso ApaHub"** (tela Gerenciamento de Usuários) — novo botão "Enviar app ao jogador" ao lado de "Alterar Senha" / "Gerar nova senha".
+2. **Modal de credenciais** (exibido logo após criar a chave ou gerar nova senha) — mesmo botão, para o admin já enviar tudo junto.
+3. **Painel do Super Admin** — novo campo para digitar/editar o link e salvar.
 
-Armazenado em nova tabela `organization_standalone_config` (org_id, buy_in, rebuy, addon, prize_schema jsonb, caixinha_contribution, updated_at) com RLS por organização e os GRANTs padrão.
+## Modal "Enviar app ao jogador"
 
-### 2. Diálogo ao iniciar partida avulsa
-Ao clicar em **"Iniciar partida avulsa"**, abrir modal com:
-- Valores pré-preenchidos do padrão do clube (editáveis só para esta partida).
-- Botão "Salvar como novo padrão" (opcional).
-- Confirmar → cria a partida com esses valores no snapshot.
-
-### 3. Snapshot no `games`
-Adicionar coluna `standalone_config jsonb` na tabela `games` para armazenar buy-in/rebuy/addon/prize_schema usados naquela partida específica. Assim a partida avulsa não depende mais de `activeSeason` nem do padrão futuro do clube.
-
-### 4. Refatorar hooks
-- `useStartGame`: quando `isStandalone`, ler do `standalone_config` da partida (ou do modal) em vez de `activeSeason`.
-- `usePrizeDistribution` / cálculo de prêmios: quando `isStandalone`, usar `game.standalone_config.prize_schema`.
-- Remover o fallback silencioso para `activeSeason` em partidas avulsas.
-
-### 5. Permitir partida avulsa sem nenhuma temporada
-Hoje, se não há temporada ativa, o botão "Iniciar partida avulsa" ainda depende de dados de temporada em segundo plano. Após a mudança, será possível criar partida avulsa mesmo em clubes que nunca criaram uma temporada.
+- Texto explicativo curto: o jogador precisa baixar o app ApaHub e entrar com o email e a senha fornecidos.
+- Mostra o link do app.
+- Botões:
+  - **Copiar link** (só o link)
+  - **Copiar mensagem completa** (link + email + senha, quando aberto a partir do modal de credenciais)
+  - **Abrir WhatsApp** — abre o WhatsApp com a mensagem pronta para o admin escolher o contato
+- Se o link ainda não foi cadastrado: aviso de que o Super Admin ainda não configurou o link do app.
 
 ## Detalhes técnicos
 
-- Migração: nova tabela `organization_standalone_config` + coluna `standalone_config jsonb` em `games` + GRANTs + RLS.
-- Novo hook `useStandaloneConfig(orgId)` para ler/salvar padrão.
-- Novo componente `StandaloneGameDialog.tsx` (formulário buy-in/rebuy/addon/prêmios).
-- Editar `QuickGameCard.tsx` para abrir o diálogo em vez de iniciar direto.
-- Editar `useStartGame.ts` para aceitar `standaloneConfig` como parâmetro e persistir no `games.standalone_config`.
-- Editar `usePrizeDistribution.ts` (e onde mais consumir buy-in/prêmios) para checar `game.isStandalone` e usar o snapshot.
-- Sem impacto em partidas de temporada: fluxo atual preservado.
-
-## Fora do escopo
-
-- Ranking próprio de avulsas (continuam sem ranking).
-- Contribuição para jackpot em avulsas (continua sem).
-- Snapshot de config por partida de temporada (item 4 do plano anterior, ainda pendente).
+- Nova tabela `public.app_settings` (chave/valor de configuração global), com a chave `apahub_app_url`.
+  - Leitura liberada para usuários autenticados (todos os admins de clube precisam ler o link).
+  - Escrita restrita a `super_admin` (via `is_super_admin(auth.uid())`).
+  - GRANTs para `authenticated` e `service_role`.
+- Novo hook `useAppSettings` (ou `useApahubAppLink`) para ler e salvar o link.
+- Novo componente `ShareApahubAppDialog.tsx` com o conteúdo do modal e as ações de cópia/WhatsApp.
+- Ajustes em `ApahubAccessKeyCard.tsx`, `ApahubCredentialsDialog.tsx` e `SuperAdminDashboard.tsx`.
+- Validação simples do link (deve começar com `http://` ou `https://`).
