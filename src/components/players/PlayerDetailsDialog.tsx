@@ -58,8 +58,14 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
           .from("games")
           .select("id,date,season_id,players")
           .eq("organization_id", currentOrganization.id)
+          // Apenas partidas oficiais: de temporada e já encerradas.
+          // Partidas avulsas e em andamento não contam como participação.
+          .eq("is_finished", true)
+          .eq("is_standalone", false)
+          .not("season_id", "is", null)
           .order("date", { ascending: false })
           .limit(5000);
+
         if (error) throw error;
         if (cancelled) return;
         const rows = ((data || []) as ParticipationRow[]).filter(row => rowHasPlayer(row, player.id));
@@ -101,7 +107,8 @@ export function PlayerDetailsDialog({ player, onOpenChange, onEdit }: PlayerDeta
     ? "Carregando..."
     : lastEver
       ? `${lastSeasonName ? `Temporada "${lastSeasonName}" • ` : ""}${formatRowLabel(lastEver)}`
-      : "Nunca participou";
+      : "Sem participação em partidas de temporada";
+
 
   return (
     <Dialog open={!!player} onOpenChange={onOpenChange}>
