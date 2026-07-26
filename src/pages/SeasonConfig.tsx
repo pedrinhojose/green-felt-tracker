@@ -306,11 +306,13 @@ export default function SeasonConfig() {
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting} className="bg-poker-gold hover:bg-poker-gold/80 text-black font-bold">
-            {isSubmitting ? "Salvando..." : "Salvar Configurações"}
-          </Button>
-        </div>
+        {!isFinishedSeason && (
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isSubmitting} className="bg-poker-gold hover:bg-poker-gold/80 text-black font-bold">
+              {isSubmitting ? "Salvando..." : "Salvar Configurações"}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );
