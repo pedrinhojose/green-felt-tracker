@@ -8,8 +8,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Copy, Check, Smartphone, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Copy, Check, Smartphone, AlertTriangle, MessageCircle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useApahubAppLink } from '@/hooks/useApahubAppLink';
 
@@ -31,6 +32,9 @@ export function ShareApahubAppDialog({
   const { appUrl, isLoading } = useApahubAppLink();
   const { toast } = useToast();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [manualPassword, setManualPassword] = useState('');
+
+  const effectivePassword = password || manualPassword.trim();
 
   const buildMessage = () => {
     const lines = [
@@ -39,7 +43,7 @@ export function ShareApahubAppDialog({
     ];
     if (email) {
       lines.push('', 'Seus dados de acesso:', `Email: ${email}`);
-      if (password) lines.push(`Senha: ${password}`);
+      if (effectivePassword) lines.push(`Senha: ${effectivePassword}`);
     }
     return lines.join('\n');
   };
@@ -60,6 +64,7 @@ export function ShareApahubAppDialog({
   };
 
   const hasLink = Boolean(appUrl);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
