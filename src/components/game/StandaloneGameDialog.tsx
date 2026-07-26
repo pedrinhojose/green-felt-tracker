@@ -129,8 +129,9 @@ export default function StandaloneGameDialog({ open, onOpenChange, onConfirm, in
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
           <Button onClick={handleConfirm} disabled={!pctOk || loading}>
-            {loading ? "Criando..." : "Iniciar partida"}
+            {loading ? "Salvando..." : (confirmLabel ?? "Iniciar partida")}
           </Button>
+
         </DialogFooter>
       </DialogContent>
     </Dialog>
