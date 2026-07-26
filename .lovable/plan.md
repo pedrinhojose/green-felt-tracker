@@ -1,30 +1,29 @@
-## Objetivo
+## Problema
 
-Permitir que o Super Admin cadastre **um link único do app ApaHub**, e que qualquer admin de clube compartilhe esse link com os jogadores por um botão **"Enviar app ao jogador"** na tela de credenciais.
+A credencial ApaHub criada no painel grava apenas uma linha na tabela `apahub_access_keys` (com a senha criptografada). Ela **não cria um usuário de autenticação** no Supabase. Como o app ApaHub faz login pelo método padrão de autenticação, ele nunca encontra esse usuário e retorna "Invalid login credentials".
 
-## Onde aparece
+## Solução
 
-1. **Card "Chave de Acesso ApaHub"** (tela Gerenciamento de Usuários) — novo botão "Enviar app ao jogador" ao lado de "Alterar Senha" / "Gerar nova senha".
-2. **Modal de credenciais** (exibido logo após criar a chave ou gerar nova senha) — mesmo botão, para o admin já enviar tudo junto.
-3. **Painel do Super Admin** — novo campo para digitar/editar o link e salvar.
+Passar a criar/atualizar um usuário de autenticação real (e-mail já confirmado) sempre que o admin criar a chave ou trocar a senha — mesmo padrão já usado na credencial de visitante.
 
-## Modal "Enviar app ao jogador"
+### 1. Banco
+- Adicionar coluna `apahub_user_id` (uuid) em `apahub_access_keys` para guardar o usuário de autenticação vinculado.
 
-- Texto explicativo curto: o jogador precisa baixar o app ApaHub e entrar com o email e a senha fornecidos.
-- Mostra o link do app.
-- Botões:
-  - **Copiar link** (só o link)
-  - **Copiar mensagem completa** (link + email + senha, quando aberto a partir do modal de credenciais)
-  - **Abrir WhatsApp** — abre o WhatsApp com a mensagem pronta para o admin escolher o contato
-- Se o link ainda não foi cadastrado: aviso de que o Super Admin ainda não configurou o link do app.
+### 2. Nova função de servidor `create-apahub-account`
+Espelhada em `create-viewer-account`:
+- Valida que quem chama é admin/owner da organização.
+- Se já existe `apahub_user_id`: atualiza e-mail e senha desse usuário.
+- Se não existe: cria o usuário com e-mail confirmado; se o e-mail já existir no sistema, reaproveita e apenas atualiza a senha.
+- Garante que esse usuário seja membro da organização com papel de leitura (`viewer`), para que as regras de acesso já existentes entreguem só os dados do clube dele.
+- Grava a chave via a função existente `create_apahub_access_key` e salva o `apahub_user_id`.
 
-## Detalhes técnicos
+### 3. Frontend
+- `src/hooks/useApahubAccessKey.ts`: `createAccessKey` e `updatePassword` passam a chamar a nova função de servidor em vez das RPCs diretas (a RPC de senha continua sendo atualizada em conjunto, para manter a tabela coerente).
+- Mensagens de erro repassadas ao admin (ex.: senha curta, e-mail inválido, e-mail já em uso por outro clube).
+- Nenhuma mudança visual nos cards/modais.
 
-- Nova tabela `public.app_settings` (chave/valor de configuração global), com a chave `apahub_app_url`.
-  - Leitura liberada para usuários autenticados (todos os admins de clube precisam ler o link).
-  - Escrita restrita a `super_admin` (via `is_super_admin(auth.uid())`).
-  - GRANTs para `authenticated` e `service_role`.
-- Novo hook `useAppSettings` (ou `useApahubAppLink`) para ler e salvar o link.
-- Novo componente `ShareApahubAppDialog.tsx` com o conteúdo do modal e as ações de cópia/WhatsApp.
-- Ajustes em `ApahubAccessKeyCard.tsx`, `ApahubCredentialsDialog.tsx` e `SuperAdminDashboard.tsx`.
-- Validação simples do link (deve começar com `http://` ou `https://`).
+### 4. Credenciais já existentes
+A chave atual do clube não tem usuário de autenticação. Depois do ajuste, basta o admin clicar em **Alterar senha** (ou regenerar) uma vez — isso cria o usuário e a credencial passa a funcionar. Vou avisar isso na resposta final.
+
+## Observação técnica
+A função `verify_apahub_login` continua existindo, então, se o app ApaHub usar essa validação alternativa em vez do login padrão, ele segue funcionando. Nenhuma mudança é obrigatória do lado do app ApaHub.
