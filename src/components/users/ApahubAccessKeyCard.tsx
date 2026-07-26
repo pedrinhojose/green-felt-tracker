@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Key, Mail, Eye, EyeOff, Loader2, Calendar, CheckCircle2, XCircle, RefreshCw, Info } from 'lucide-react';
+import { Key, Mail, Eye, EyeOff, Loader2, Calendar, CheckCircle2, XCircle, RefreshCw, Info, Smartphone } from 'lucide-react';
 import { useApahubAccessKey } from '@/hooks/useApahubAccessKey';
 import { EditApahubPasswordDialog } from './EditApahubPasswordDialog';
 import { ApahubCredentialsDialog } from './ApahubCredentialsDialog';
+import { ShareApahubAppDialog } from './ShareApahubAppDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
