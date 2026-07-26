@@ -3,7 +3,7 @@ import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Game } from "@/lib/db/models";
 import { supabase } from "@/integrations/supabase/client";
-import { calculateEliminationRewards } from "@/hooks/useEliminationRewards";
+import { calculateCumulativeEliminationRewards } from "@/hooks/useEliminationRewards";
 import { useEffectiveSeason } from "@/hooks/useEffectiveSeason";
 
 export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
@@ -145,6 +145,8 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
       
       // Count eliminations per player for this game (for elimination-reward points)
       const eliminationsByPlayer: Record<string, number> = {};
+      // Eliminations accumulated in previous games of the same season
+      const previousEliminationsByPlayer: Record<string, number> = {};
       try {
         const orgId = localStorage.getItem('currentOrganizationId');
         let query = supabase
@@ -158,6 +160,33 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
           if (!eid) return;
           eliminationsByPlayer[eid] = (eliminationsByPlayer[eid] || 0) + 1;
         });
+
+        // Standalone games don't belong to a season, so they never accumulate
+        if (game.seasonId && !game.isStandalone) {
+          let prevGamesQuery = supabase
+            .from('games')
+            .select('id')
+            .eq('season_id', game.seasonId)
+            .neq('id', game.id)
+            .lt('date', game.date instanceof Date ? game.date.toISOString() : game.date);
+          if (orgId) prevGamesQuery = prevGamesQuery.eq('organization_id', orgId);
+          const { data: prevGames } = await prevGamesQuery;
+          const prevIds = (prevGames || []).map((g) => g.id);
+
+          if (prevIds.length > 0) {
+            let prevElimQuery = supabase
+              .from('eliminations')
+              .select('eliminator_player_id')
+              .in('game_id', prevIds);
+            if (orgId) prevElimQuery = prevElimQuery.eq('organization_id', orgId);
+            const { data: prevElimRows } = await prevElimQuery;
+            (prevElimRows || []).forEach((row) => {
+              const eid = row.eliminator_player_id;
+              if (!eid) return;
+              previousEliminationsByPlayer[eid] = (previousEliminationsByPlayer[eid] || 0) + 1;
+            });
+          }
+        }
       } catch (err) {
         console.error('Error loading eliminations for points calculation:', err);
       }
@@ -178,15 +207,17 @@ export function usePrizeDistribution(game: Game | null, setGame: React.Dispatch<
         const scoreEntry = activeSeason.scoreSchema.find(entry => entry.position === player.position);
         const positionPoints = scoreEntry ? scoreEntry.points : 0;
 
-        // Points from eliminations (only when reward is enabled and type === 'points')
+        // Points from eliminations (cumulative within the season; only when type === 'points')
         const playerElims = eliminationsByPlayer[player.playerId] || 0;
-        const elimResult = calculateEliminationRewards(playerElims, elimConfig);
+        const playerPrevElims = previousEliminationsByPlayer[player.playerId] || 0;
+        const elimResult = calculateCumulativeEliminationRewards(playerPrevElims, playerElims, elimConfig);
         const elimPoints = elimResult.type === 'points' ? elimResult.value : 0;
 
         player.pointsFromPosition = positionPoints;
         player.pointsFromEliminations = elimPoints;
         player.points = positionPoints + elimPoints;
       }
+      
       
       // Contar participantes da janta para calcular o custo por pessoa
       const dinnerParticipants = updatedPlayers.filter(p => p.joinedDinner).length;
