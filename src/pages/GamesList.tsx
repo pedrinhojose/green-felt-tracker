@@ -69,22 +69,24 @@ export default function GamesList() {
     }
   };
 
-  const handleCreateStandaloneGame = async () => {
+  const handleConfirmStandalone = async (config: StandaloneGameConfig) => {
     try {
       setIsCreating(true);
-      const gameId = await createStandaloneGame();
+      const gameId = await createStandaloneGame(config);
+      setStandaloneDialogOpen(false);
       navigate(`/games/${gameId}`);
     } catch (error) {
       console.error("Error creating standalone game:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar uma partida avulsa.",
+        description: error instanceof Error ? error.message : "Não foi possível criar uma partida avulsa.",
         variant: "destructive",
       });
     } finally {
       setIsCreating(false);
     }
   };
+
 
   
   const handleDeleteGame = async (gameId: string) => {
