@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronRight, Trophy, Trash, Play, Pause, FileText } from "lucide-react";
+import { Calendar, ChevronRight, Trophy, Trash, Play, Pause, FileText, Settings } from "lucide-react";
 import { formatDate } from "@/lib/utils/dateUtils";
 import { Season } from "@/lib/db/models";
 import { pokerDB } from "@/lib/db";
