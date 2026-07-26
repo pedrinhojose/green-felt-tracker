@@ -36,6 +36,39 @@ export function calculateEliminationRewards(
   };
 }
 
+/**
+ * Calcula as recompensas ganhas EM UMA PARTIDA considerando o acumulado da temporada.
+ * O resto de eliminações nunca se perde: ele continua contando para o próximo ciclo.
+ *
+ * @param killsBefore - eliminações do jogador em partidas anteriores da mesma temporada
+ * @param killsInGame - eliminações do jogador na partida atual
+ */
+export function calculateCumulativeEliminationRewards(
+  killsBefore: number,
+  killsInGame: number,
+  config?: EliminationRewardConfig
+): EliminationRewardResult {
+  if (!config || !config.enabled || killsInGame <= 0) {
+    return { rewards: 0, value: 0, type: config?.rewardType ?? 'points' };
+  }
+
+  const frequency = Math.max(1, config.frequency);
+  const before = Math.max(0, killsBefore);
+  const total = before + killsInGame;
+
+  let rewards = Math.floor(total / frequency) - Math.floor(before / frequency);
+
+  if (config.maxRewardsPerGame > 0) {
+    rewards = Math.min(rewards, config.maxRewardsPerGame);
+  }
+
+  return {
+    rewards,
+    value: rewards * config.rewardValue,
+    type: config.rewardType,
+  };
+}
+
 export function useEliminationRewards(config?: EliminationRewardConfig) {
   /**
    * Calcula as recompensas de eliminação para um jogador
