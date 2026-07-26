@@ -65,21 +65,21 @@ export default function SeasonConfig() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (isCreating || !activeSeason) {
+      if (isCreating || !targetSeason) {
         setGamesCount(0);
         return;
       }
       try {
-        const games = await pokerDB.getGames(activeSeason.id);
+        const games = await pokerDB.getGames(targetSeason.id);
         if (!cancelled) setGamesCount(games?.length || 0);
       } catch {
         if (!cancelled) setGamesCount(0);
       }
     })();
     return () => { cancelled = true; };
-  }, [activeSeason, isCreating]);
+  }, [targetSeason, isCreating]);
 
-  const advancedLocked = !isCreating && gamesCount > 0 && !advancedUnlocked;
+  const advancedLocked = isFinishedSeason || (!isCreating && gamesCount > 0 && !advancedUnlocked);
 
   const {
     register,
@@ -99,7 +99,7 @@ export default function SeasonConfig() {
     setHostSchedule,
     onSubmit,
     isSubmitting,
-  } = useSeasonForm(activeSeason, isCreating, createSeason, updateSeason, previousSeason, inheritFromPrevious);
+  } = useSeasonForm(targetSeason, isCreating, createSeason, updateSeason, previousSeason, inheritFromPrevious);
 
   const showInheritBanner = isCreating && !!previousSeason;
 
@@ -109,18 +109,30 @@ export default function SeasonConfig() {
       return {
         tone: "bg-emerald-500/10 border-emerald-500/40 text-emerald-100",
         title: "Nova Temporada (não salva ainda)",
-        subtitle: "Preencha as configurações e clique em Salvar para criar.",
+        subtitle: "Preencha as configurações e clique em Salvar para criar. Nenhuma temporada existente é alterada aqui.",
       };
     }
-    if (!activeSeason) return null;
-    const status = activeSeason.isActive ? "Ativa" : (activeSeason.endDate ? "Encerrada" : "Inativa");
-    const range = `Início ${formatDate(activeSeason.startDate)}${activeSeason.endDate ? ` • Fim ${formatDate(activeSeason.endDate)}` : ""}`;
+    if (!targetSeason) return null;
+    const status = targetSeason.isActive ? "Ativa" : (targetSeason.endDate ? "Encerrada" : "Inativa");
+    const range = `Início ${formatDate(targetSeason.startDate)}${targetSeason.endDate ? ` • Fim ${formatDate(targetSeason.endDate)}` : ""}`;
     return {
       tone: "bg-poker-gold/10 border-poker-gold/40 text-white",
-      title: `Editando: ${activeSeason.name} — ${status}`,
-      subtitle: range,
+      title: `${isFinishedSeason ? "Visualizando" : "Editando"}: ${targetSeason.name} — ${status}`,
+      subtitle: isFinishedSeason ? `${range} • Somente leitura (temporada encerrada)` : range,
     };
   })();
+
+  // seasonId inválido / temporada não encontrada
+  if (!isCreating && !targetSeason) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-white">
+          Temporada não encontrada. Volte para a lista de temporadas e tente novamente.
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-6">
