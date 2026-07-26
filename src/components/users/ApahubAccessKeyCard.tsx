@@ -228,7 +228,14 @@ export function ApahubAccessKeyCard() {
           password={credentialsDialog.password}
           title={credentialsDialog.title}
         />
+
+        <ShareApahubAppDialog
+          open={shareAppOpen}
+          onOpenChange={setShareAppOpen}
+          email={accessKey.access_email}
+        />
       </>
+
     );
   }
 
