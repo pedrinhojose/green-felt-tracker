@@ -19,6 +19,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import StandaloneGameSetupDialog from "@/components/game/StandaloneGameSetupDialog";
+import { StandaloneGameConfig } from "@/lib/db/models";
+
 
 export default function GamesList() {
   const { toast } = useToast();
