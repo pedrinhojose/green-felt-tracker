@@ -61,6 +61,20 @@ export default function GameManagement() {
     handleDeleteGame,
   } = useGameManagement();
   const activeSeason = useEffectiveSeason(game) ?? rawActiveSeason;
+  const { applyConfig } = useStandaloneConfig(game, setGame);
+  const needsStandaloneConfig = !!game?.isStandalone && !isStandaloneConfigured(game?.standaloneConfig);
+
+  const handleApplyStandaloneConfig = async (config: import("@/lib/db/models").StandaloneGameConfig) => {
+    setIsApplyingConfig(true);
+    try {
+      const ok = await applyConfig(config);
+      if (ok) setIsStandaloneSetupOpen(false);
+    } finally {
+      setIsApplyingConfig(false);
+    }
+  };
+  
+
   
   // Player actions hook
   const {
