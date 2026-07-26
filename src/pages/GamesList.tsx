@@ -32,6 +32,8 @@ export default function GamesList() {
   const [isCreating, setIsCreating] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [standaloneDialogOpen, setStandaloneDialogOpen] = useState(false);
+
   
   // Sort games by number in descending order
   const sortedGames = [...games].sort((a, b) => b.number - a.number);
