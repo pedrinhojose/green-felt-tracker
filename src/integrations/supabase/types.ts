@@ -148,6 +148,199 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_players_sessions: {
+        Row: {
+          cash_table_id: string
+          cashout_amount: number
+          created_at: string
+          id: string
+          joined_at: string
+          left_at: string | null
+          notes: string | null
+          organization_id: string
+          player_id: string
+          seat_number: number | null
+          status: Database["public"]["Enums"]["cash_session_status"]
+          total_buyin: number
+          updated_at: string
+        }
+        Insert: {
+          cash_table_id: string
+          cashout_amount?: number
+          created_at?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          notes?: string | null
+          organization_id: string
+          player_id: string
+          seat_number?: number | null
+          status?: Database["public"]["Enums"]["cash_session_status"]
+          total_buyin?: number
+          updated_at?: string
+        }
+        Update: {
+          cash_table_id?: string
+          cashout_amount?: number
+          created_at?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          notes?: string | null
+          organization_id?: string
+          player_id?: string
+          seat_number?: number | null
+          status?: Database["public"]["Enums"]["cash_session_status"]
+          total_buyin?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_players_sessions_cash_table_id_fkey"
+            columns: ["cash_table_id"]
+            isOneToOne: false
+            referencedRelation: "cash_tables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_players_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_players_sessions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_tables: {
+        Row: {
+          big_blind: number
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          game_variant: string
+          id: string
+          max_buyin: number
+          min_buyin: number
+          name: string
+          notes: string | null
+          organization_id: string
+          rake_cap: number
+          rake_percent: number
+          small_blind: number
+          status: Database["public"]["Enums"]["cash_table_status"]
+          updated_at: string
+        }
+        Insert: {
+          big_blind?: number
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          game_variant?: string
+          id?: string
+          max_buyin?: number
+          min_buyin?: number
+          name: string
+          notes?: string | null
+          organization_id: string
+          rake_cap?: number
+          rake_percent?: number
+          small_blind?: number
+          status?: Database["public"]["Enums"]["cash_table_status"]
+          updated_at?: string
+        }
+        Update: {
+          big_blind?: number
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          game_variant?: string
+          id?: string
+          max_buyin?: number
+          min_buyin?: number
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          rake_cap?: number
+          rake_percent?: number
+          small_blind?: number
+          status?: Database["public"]["Enums"]["cash_table_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_tables_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_transactions: {
+        Row: {
+          amount: number
+          cash_table_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          session_id: string
+          transaction_type: Database["public"]["Enums"]["cash_transaction_type"]
+        }
+        Insert: {
+          amount?: number
+          cash_table_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          session_id: string
+          transaction_type: Database["public"]["Enums"]["cash_transaction_type"]
+        }
+        Update: {
+          amount?: number
+          cash_table_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          session_id?: string
+          transaction_type?: Database["public"]["Enums"]["cash_transaction_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_transactions_cash_table_id_fkey"
+            columns: ["cash_table_id"]
+            isOneToOne: false
+            referencedRelation: "cash_tables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_players_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_fund_transactions: {
         Row: {
           amount: number
@@ -985,6 +1178,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "player" | "viewer" | "super_admin"
+      cash_session_status: "sitting" | "cashed_out"
+      cash_table_status: "active" | "closed"
+      cash_transaction_type: "buyin" | "rebuy" | "cashout"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1113,6 +1309,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "player", "viewer", "super_admin"],
+      cash_session_status: ["sitting", "cashed_out"],
+      cash_table_status: ["active", "closed"],
+      cash_transaction_type: ["buyin", "rebuy", "cashout"],
     },
   },
 } as const
