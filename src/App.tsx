@@ -44,6 +44,8 @@ import PublicGameView from '@/pages/PublicGameView';
 import ResetPassword from '@/pages/ResetPassword';
 import GalleryPage from '@/pages/GalleryPage';
 import ThemesPage from '@/pages/ThemesPage';
+import CashGamePage from '@/pages/CashGame';
+import CashTableDetail from '@/pages/CashTableDetail';
 
 const queryClient = new QueryClient();
 
@@ -89,6 +91,8 @@ function App() {
                     <Route path="/reports/season" element={<SeasonReport />} />
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/themes" element={<ThemesPage />} />
+                    <Route path="/cash-game" element={<CashGamePage />} />
+                    <Route path="/cash-game/mesa/:id" element={<CashTableDetail />} />
 
                     {/* Rotas bloqueadas para visitantes */}
                     <Route element={<RequireEditor />}>

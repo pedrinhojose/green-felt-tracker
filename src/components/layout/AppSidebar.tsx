@@ -13,6 +13,7 @@ import {
   Crown,
   Palette,
   Wallet,
+  Coins,
 } from 'lucide-react';
 
 import {
@@ -52,6 +53,7 @@ const mainNavItems: NavItem[] = [
   { name: 'Temporadas', path: '/seasons', icon: CalendarDays },
   { name: 'Partidas', path: '/games', icon: Gamepad2 },
   { name: 'Ranking', path: '/ranking', icon: Trophy },
+  { name: 'Cash Game', path: '/cash-game', icon: Coins },
   { name: 'Jogadores', path: '/players', icon: UsersIcon, hideForViewer: true },
   { name: 'Estatísticas', path: '/statistics', icon: BarChart3 },
   { name: 'Galeria', path: '/gallery', icon: ImageIcon },
