@@ -117,6 +117,17 @@ export function useCashTableSession(tableId?: string) {
     [sessions]
   );
 
+  const totalCashouts = useMemo(
+    () => sessions.reduce((sum, s) => sum + Number(s.cashout_amount || 0), 0),
+    [sessions]
+  );
+
+  const uniquePlayersCount = useMemo(
+    () => new Set(sessions.map((s) => s.player_id)).size,
+    [sessions]
+  );
+
+
   const addPlayer = useCallback(
     async (playerId: string, amount: number) => {
       if (!tableId || !currentOrganization?.id) return false;
@@ -256,7 +267,7 @@ export function useCashTableSession(tableId?: string) {
     [tableId, currentOrganization?.id, fetchAll, toast]
   );
 
-  const closeTable = useCallback(async () => {
+  const closeTable = useCallback(async (notes?: string) => {
     if (!tableId) return false;
     if (sittingSessions.length > 0) {
       toast({
@@ -269,9 +280,15 @@ export function useCashTableSession(tableId?: string) {
 
     setIsSaving(true);
     try {
+      const payload: Record<string, unknown> = {
+        status: 'closed',
+        closed_at: new Date().toISOString(),
+      };
+      if (notes) payload.notes = notes;
+
       const { error } = await supabase
         .from('cash_tables')
-        .update({ status: 'closed', closed_at: new Date().toISOString() })
+        .update(payload)
         .eq('id', tableId);
       if (error) throw error;
 
@@ -298,6 +315,8 @@ export function useCashTableSession(tableId?: string) {
     cashedOutSessions,
     transactions,
     totalBuyins,
+    totalCashouts,
+    uniquePlayersCount,
     isLoading,
     isSaving,
     addPlayer,
@@ -307,3 +326,4 @@ export function useCashTableSession(tableId?: string) {
     refresh: fetchAll,
   };
 }
+

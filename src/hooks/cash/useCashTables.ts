@@ -19,7 +19,12 @@ export interface CashTable {
   status: 'active' | 'closed';
   created_at: string;
   closed_at: string | null;
+  notes?: string | null;
   sittingCount?: number;
+  totalBuyins?: number;
+  totalCashouts?: number;
+  rake?: number;
+  playersCount?: number;
 }
 
 export interface NewCashTableInput {
@@ -61,18 +66,51 @@ export function useCashTables() {
 
       const { data: sessions, error: sessionsError } = await supabase
         .from('cash_players_sessions')
-        .select('cash_table_id, status')
-        .eq('organization_id', currentOrganization.id)
-        .eq('status', 'sitting');
+        .select('cash_table_id, status, player_id, total_buyin, cashout_amount')
+        .eq('organization_id', currentOrganization.id);
 
       if (sessionsError) throw sessionsError;
 
-      const counts = new Map<string, number>();
-      (sessions || []).forEach((s: { cash_table_id: string }) => {
-        counts.set(s.cash_table_id, (counts.get(s.cash_table_id) || 0) + 1);
+      type SessionRow = {
+        cash_table_id: string;
+        status: string;
+        player_id: string;
+        total_buyin: number | null;
+        cashout_amount: number | null;
+      };
+
+      const sitting = new Map<string, number>();
+      const buyins = new Map<string, number>();
+      const cashouts = new Map<string, number>();
+      const players = new Map<string, Set<string>>();
+
+      ((sessions || []) as SessionRow[]).forEach((s) => {
+        if (s.status === 'sitting') {
+          sitting.set(s.cash_table_id, (sitting.get(s.cash_table_id) || 0) + 1);
+        }
+        buyins.set(s.cash_table_id, (buyins.get(s.cash_table_id) || 0) + Number(s.total_buyin || 0));
+        cashouts.set(
+          s.cash_table_id,
+          (cashouts.get(s.cash_table_id) || 0) + Number(s.cashout_amount || 0)
+        );
+        if (!players.has(s.cash_table_id)) players.set(s.cash_table_id, new Set());
+        players.get(s.cash_table_id)!.add(s.player_id);
       });
 
-      setTables(list.map((t) => ({ ...t, sittingCount: counts.get(t.id) || 0 })));
+      setTables(
+        list.map((t) => {
+          const totalBuyins = buyins.get(t.id) || 0;
+          const totalCashouts = cashouts.get(t.id) || 0;
+          return {
+            ...t,
+            sittingCount: sitting.get(t.id) || 0,
+            totalBuyins,
+            totalCashouts,
+            rake: totalBuyins - totalCashouts,
+            playersCount: players.get(t.id)?.size || 0,
+          };
+        })
+      );
     } catch (error) {
       console.error('useCashTables: erro ao carregar mesas', error);
       toast({

@@ -12,16 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { ArrowLeft, Plus, Users, Coins, Clock, LogOut, RotateCcw, Lock } from 'lucide-react';
 import { usePoker } from '@/contexts/PokerContext';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
@@ -29,6 +19,8 @@ import { formatCurrency } from '@/lib/utils/dateUtils';
 import { useCashTableSession, CashSession } from '@/hooks/cash/useCashTableSession';
 import AddCashPlayerDialog from '@/components/cash/AddCashPlayerDialog';
 import CashAmountDialog from '@/components/cash/CashAmountDialog';
+import CloseCashTableDialog from '@/components/cash/CloseCashTableDialog';
+
 import { cn } from '@/lib/utils';
 
 function formatTime(iso: string) {
@@ -54,6 +46,8 @@ export default function CashTableDetail() {
     sittingSessions,
     cashedOutSessions,
     totalBuyins,
+    totalCashouts,
+    uniquePlayersCount,
     isLoading,
     isSaving,
     addPlayer,
@@ -61,6 +55,7 @@ export default function CashTableDetail() {
     cashOut,
     closeTable,
   } = useCashTableSession(id);
+
 
   const [now, setNow] = useState(Date.now());
   const [addOpen, setAddOpen] = useState(false);
@@ -347,30 +342,24 @@ export default function CashTableDetail() {
         />
       )}
 
-      <AlertDialog open={closeOpen} onOpenChange={setCloseOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Encerrar mesa</AlertDialogTitle>
-            <AlertDialogDescription>
-              {sittingSessions.length > 0
-                ? `Ainda existem ${sittingSessions.length} jogador(es) na mesa. Realize o cash-out de todos antes de encerrar.`
-                : 'A mesa será marcada como encerrada e entrará no histórico. Esta ação não pode ser desfeita.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={sittingSessions.length > 0 || isSaving}
-              onClick={async () => {
-                const ok = await closeTable();
-                if (ok) setCloseOpen(false);
-              }}
-            >
-              Encerrar mesa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CloseCashTableDialog
+        open={closeOpen}
+        onOpenChange={setCloseOpen}
+        totalBuyins={totalBuyins}
+        totalCashouts={totalCashouts}
+        duration={formatDuration(table.created_at, table.closed_at, now)}
+        playersCount={uniquePlayersCount}
+        sittingCount={sittingSessions.length}
+        isSaving={isSaving}
+        onConfirm={async (notes) => {
+          const ok = await closeTable(notes);
+          if (ok) {
+            setCloseOpen(false);
+            navigate('/cash-game');
+          }
+        }}
+      />
+
     </div>
   );
 }
