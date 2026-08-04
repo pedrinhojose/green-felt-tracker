@@ -184,6 +184,43 @@ export function useCashTables() {
     [currentOrganization?.id, fetchTables, toast]
   );
 
+  const deleteTable = useCallback(
+    async (tableId: string): Promise<boolean> => {
+      setIsSaving(true);
+      try {
+        const { error: txError } = await supabase
+          .from('cash_transactions')
+          .delete()
+          .eq('cash_table_id', tableId);
+        if (txError) throw txError;
+
+        const { error: sessError } = await supabase
+          .from('cash_players_sessions')
+          .delete()
+          .eq('cash_table_id', tableId);
+        if (sessError) throw sessError;
+
+        const { error } = await supabase.from('cash_tables').delete().eq('id', tableId);
+        if (error) throw error;
+
+        toast({ title: 'Mesa excluída', description: 'A mesa foi removida com sucesso.' });
+        await fetchTables();
+        return true;
+      } catch (error) {
+        console.error('useCashTables: erro ao excluir mesa', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível excluir a mesa.',
+          variant: 'destructive',
+        });
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [fetchTables, toast]
+  );
+
   return {
     tables,
     activeTables: tables.filter((t) => t.status === 'active'),
@@ -191,6 +228,7 @@ export function useCashTables() {
     isLoading,
     isSaving,
     createTable,
+    deleteTable,
     refresh: fetchTables,
   };
 }

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Coins, Percent, CalendarClock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, Coins, Percent, CalendarClock, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/dateUtils';
 import { CashTable } from '@/hooks/cash/useCashTables';
 import { cn } from '@/lib/utils';
@@ -18,9 +19,10 @@ function formatDateTime(iso: string) {
 interface CashTableCardProps {
   table: CashTable;
   onClick?: () => void;
+  onDelete?: () => void;
 }
 
-export default function CashTableCard({ table, onClick }: CashTableCardProps) {
+export default function CashTableCard({ table, onClick, onDelete }: CashTableCardProps) {
   const isActive = table.status === 'active';
 
   return (
@@ -34,9 +36,25 @@ export default function CashTableCard({ table, onClick }: CashTableCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base truncate">{table.name}</CardTitle>
-          <Badge variant={isActive ? 'default' : 'secondary'}>
-            {isActive ? 'Ativa' : 'Encerrada'}
-          </Badge>
+          <div className="flex items-center gap-1 shrink-0">
+            <Badge variant={isActive ? 'default' : 'secondary'}>
+              {isActive ? 'Ativa' : 'Encerrada'}
+            </Badge>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                aria-label="Excluir mesa"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <Badge variant="outline" className="w-fit">
           {table.game_variant}
