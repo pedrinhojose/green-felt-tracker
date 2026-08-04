@@ -3,8 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Plus, ExternalLink, Coins } from 'lucide-react';
-import { useCashTables, NewCashTableInput } from '@/hooks/cash/useCashTables';
+import { useCashTables, NewCashTableInput, CashTable } from '@/hooks/cash/useCashTables';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import CashTableCard from '@/components/cash/CashTableCard';
 import NewCashTableDialog from '@/components/cash/NewCashTableDialog';
@@ -12,12 +22,20 @@ import NewCashTableDialog from '@/components/cash/NewCashTableDialog';
 export default function CashGamePage() {
   const navigate = useNavigate();
   const { canEdit } = useOrgMemberRole();
-  const { activeTables, closedTables, isLoading, isSaving, createTable } = useCashTables();
+  const { activeTables, closedTables, isLoading, isSaving, createTable, deleteTable } =
+    useCashTables();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [tableToDelete, setTableToDelete] = useState<CashTable | null>(null);
 
   const handleCreate = async (input: NewCashTableInput) => {
     const id = await createTable(input);
     if (id) setDialogOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tableToDelete) return;
+    const ok = await deleteTable(tableToDelete.id);
+    if (ok) setTableToDelete(null);
   };
 
   const renderList = (list: typeof activeTables, emptyText: string) => {
@@ -41,6 +59,7 @@ export default function CashGamePage() {
             key={table.id}
             table={table}
             onClick={() => navigate(`/cash-game/mesa/${table.id}`)}
+            onDelete={canEdit ? () => setTableToDelete(table) : undefined}
           />
         ))}
       </div>
@@ -92,6 +111,31 @@ export default function CashGamePage() {
         onConfirm={handleCreate}
         isSaving={isSaving}
       />
+
+      <AlertDialog open={!!tableToDelete} onOpenChange={(o) => !o && setTableToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir mesa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A mesa "{tableToDelete?.name}" e todos os seus jogadores, buy-ins e cash-outs serão
+              apagados permanentemente. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              disabled={isSaving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSaving ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
