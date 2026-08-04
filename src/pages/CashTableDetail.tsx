@@ -12,16 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { ArrowLeft, Plus, Users, Coins, Clock, LogOut, RotateCcw, Lock } from 'lucide-react';
 import { usePoker } from '@/contexts/PokerContext';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
@@ -29,6 +19,8 @@ import { formatCurrency } from '@/lib/utils/dateUtils';
 import { useCashTableSession, CashSession } from '@/hooks/cash/useCashTableSession';
 import AddCashPlayerDialog from '@/components/cash/AddCashPlayerDialog';
 import CashAmountDialog from '@/components/cash/CashAmountDialog';
+import CloseCashTableDialog from '@/components/cash/CloseCashTableDialog';
+
 import { cn } from '@/lib/utils';
 
 function formatTime(iso: string) {
