@@ -54,6 +54,8 @@ export default function CashTableDetail() {
     sittingSessions,
     cashedOutSessions,
     totalBuyins,
+    totalCashouts,
+    uniquePlayersCount,
     isLoading,
     isSaving,
     addPlayer,
@@ -61,6 +63,7 @@ export default function CashTableDetail() {
     cashOut,
     closeTable,
   } = useCashTableSession(id);
+
 
   const [now, setNow] = useState(Date.now());
   const [addOpen, setAddOpen] = useState(false);
