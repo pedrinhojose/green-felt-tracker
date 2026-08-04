@@ -350,30 +350,24 @@ export default function CashTableDetail() {
         />
       )}
 
-      <AlertDialog open={closeOpen} onOpenChange={setCloseOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Encerrar mesa</AlertDialogTitle>
-            <AlertDialogDescription>
-              {sittingSessions.length > 0
-                ? `Ainda existem ${sittingSessions.length} jogador(es) na mesa. Realize o cash-out de todos antes de encerrar.`
-                : 'A mesa será marcada como encerrada e entrará no histórico. Esta ação não pode ser desfeita.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={sittingSessions.length > 0 || isSaving}
-              onClick={async () => {
-                const ok = await closeTable();
-                if (ok) setCloseOpen(false);
-              }}
-            >
-              Encerrar mesa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CloseCashTableDialog
+        open={closeOpen}
+        onOpenChange={setCloseOpen}
+        totalBuyins={totalBuyins}
+        totalCashouts={totalCashouts}
+        duration={formatDuration(table.created_at, table.closed_at, now)}
+        playersCount={uniquePlayersCount}
+        sittingCount={sittingSessions.length}
+        isSaving={isSaving}
+        onConfirm={async (notes) => {
+          const ok = await closeTable(notes);
+          if (ok) {
+            setCloseOpen(false);
+            navigate('/cash-game');
+          }
+        }}
+      />
+
     </div>
   );
 }
