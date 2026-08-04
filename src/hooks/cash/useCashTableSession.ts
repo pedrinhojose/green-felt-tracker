@@ -117,6 +117,17 @@ export function useCashTableSession(tableId?: string) {
     [sessions]
   );
 
+  const totalCashouts = useMemo(
+    () => sessions.reduce((sum, s) => sum + Number(s.cashout_amount || 0), 0),
+    [sessions]
+  );
+
+  const uniquePlayersCount = useMemo(
+    () => new Set(sessions.map((s) => s.player_id)).size,
+    [sessions]
+  );
+
+
   const addPlayer = useCallback(
     async (playerId: string, amount: number) => {
       if (!tableId || !currentOrganization?.id) return false;
