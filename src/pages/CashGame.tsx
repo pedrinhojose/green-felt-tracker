@@ -111,6 +111,31 @@ export default function CashGamePage() {
         onConfirm={handleCreate}
         isSaving={isSaving}
       />
+
+      <AlertDialog open={!!tableToDelete} onOpenChange={(o) => !o && setTableToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir mesa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A mesa "{tableToDelete?.name}" e todos os seus jogadores, buy-ins e cash-outs serão
+              apagados permanentemente. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              disabled={isSaving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSaving ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
