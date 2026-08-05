@@ -19,6 +19,9 @@ import {
 } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils/dateUtils';
 import { Player } from '@/lib/db/models';
+import { usePoker } from '@/contexts/PokerContext';
+import { useToast } from '@/hooks/use-toast';
+import { UserPlus } from 'lucide-react';
 
 interface AddCashPlayerDialogProps {
   open: boolean;
@@ -39,9 +42,15 @@ export default function AddCashPlayerDialog({
   isSaving,
   onConfirm,
 }: AddCashPlayerDialogProps) {
+  const { savePlayer } = usePoker();
+  const { toast } = useToast();
   const [playerId, setPlayerId] = useState('');
   const [amount, setAmount] = useState(String(minBuyin || 0));
   const [search, setSearch] = useState('');
+  const [showNewPlayer, setShowNewPlayer] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   const value = parseFloat(amount.replace(',', '.'));
   const amountValid =
@@ -53,13 +62,42 @@ export default function AddCashPlayerDialog({
     return list.slice(0, 100);
   }, [players, search]);
 
-  const handleSubmit = async () => {
-    if (!playerId || !amountValid) return;
-    await onConfirm(playerId, value);
+  const reset = () => {
     setPlayerId('');
     setSearch('');
     setAmount(String(minBuyin || 0));
+    setShowNewPlayer(false);
+    setNewName('');
+    setNewPhone('');
   };
+
+  const handleSubmit = async () => {
+    if (!playerId || !amountValid) return;
+    await onConfirm(playerId, value);
+    reset();
+  };
+
+  const handleCreateAndSeat = async () => {
+    const name = newName.trim();
+    if (!name || !amountValid) return;
+    setIsCreating(true);
+    try {
+      const id = await savePlayer({ name, phone: newPhone.trim() || undefined });
+      if (!id) throw new Error('Falha ao cadastrar jogador');
+      await onConfirm(id, value);
+      reset();
+    } catch (error) {
+      console.error('AddCashPlayerDialog: erro ao cadastrar jogador', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível cadastrar o jogador.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
