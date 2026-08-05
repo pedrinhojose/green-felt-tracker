@@ -12,14 +12,40 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Plus, Users, Coins, Clock, LogOut, RotateCcw, Lock } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  Users,
+  Coins,
+  Clock,
+  LogOut,
+  RotateCcw,
+  Lock,
+  Undo2,
+  Trash2,
+  Unlock,
+  Receipt,
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { usePoker } from '@/contexts/PokerContext';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { formatCurrency } from '@/lib/utils/dateUtils';
 import { useCashTableSession, CashSession } from '@/hooks/cash/useCashTableSession';
 import AddCashPlayerDialog from '@/components/cash/AddCashPlayerDialog';
 import CashAmountDialog from '@/components/cash/CashAmountDialog';
+import CashRebuyDialog from '@/components/cash/CashRebuyDialog';
 import CloseCashTableDialog from '@/components/cash/CloseCashTableDialog';
+import CashSessionReceiptDialog from '@/components/cash/CashSessionReceiptDialog';
+
 
 import { cn } from '@/lib/utils';
 
