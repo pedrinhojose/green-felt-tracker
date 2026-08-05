@@ -69,8 +69,10 @@ export default function CashTableDetail() {
   const { canEdit } = useOrgMemberRole();
   const {
     table,
+    sessions,
     sittingSessions,
     cashedOutSessions,
+    rebuyCountBySession,
     totalBuyins,
     totalCashouts,
     uniquePlayersCount,
@@ -80,16 +82,25 @@ export default function CashTableDetail() {
     addRebuy,
     cashOut,
     closeTable,
+    reopenTable,
+    undoLastRebuy,
+    reopenSession,
+    removeSession,
   } = useCashTableSession(id);
 
 
   const [now, setNow] = useState(Date.now());
   const [addOpen, setAddOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [reopenOpen, setReopenOpen] = useState(false);
+  const [rebuySession, setRebuySession] = useState<CashSession | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<CashSession | null>(null);
   const [amountDialog, setAmountDialog] = useState<{
     mode: 'rebuy' | 'cashout';
     session: CashSession;
   } | null>(null);
+
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000);
