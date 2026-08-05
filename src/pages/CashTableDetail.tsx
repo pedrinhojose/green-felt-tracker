@@ -355,6 +355,7 @@ export default function CashTableDetail() {
                       <TableHead className="text-right">Compras</TableHead>
                       <TableHead className="text-right">Fichas finais</TableHead>
                       <TableHead className="text-right">Resultado</TableHead>
+                      {canEdit && <TableHead className="text-right">Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -382,6 +383,36 @@ export default function CashTableDetail() {
                             {result >= 0 ? '+' : '-'}
                             {formatCurrency(Math.abs(result))}
                           </TableCell>
+                          {canEdit && (
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2 flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={isSaving || !isActive}
+                                  onClick={() => reopenSession(s)}
+                                  title={
+                                    isActive
+                                      ? 'Reativar jogador na mesa'
+                                      : 'Reabra a mesa para reativar o jogador'
+                                  }
+                                >
+                                  <Undo2 className="h-3.5 w-3.5 mr-1" />
+                                  Voltar / Reentrar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive"
+                                  disabled={isSaving || !isActive}
+                                  onClick={() => setRemoveTarget(s)}
+                                  title="Remover lançamento do jogador"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          )}
                         </TableRow>
                       );
                     })}
@@ -405,6 +436,22 @@ export default function CashTableDetail() {
           if (ok) setAddOpen(false);
         }}
       />
+
+      {rebuySession && (
+        <CashRebuyDialog
+          open
+          onOpenChange={(open) => !open && setRebuySession(null)}
+          playerName={playerNames.get(rebuySession.player_id) || 'Jogador'}
+          totalBuyin={Number(rebuySession.total_buyin)}
+          minBuyin={Number(table.min_buyin)}
+          maxBuyin={Number(table.max_buyin)}
+          isSaving={isSaving}
+          onConfirm={async (value) => {
+            const ok = await addRebuy(rebuySession, value);
+            if (ok) setRebuySession(null);
+          }}
+        />
+      )}
 
       {amountDialog && (
         <CashAmountDialog
@@ -437,11 +484,75 @@ export default function CashTableDetail() {
           const ok = await closeTable(notes);
           if (ok) {
             setCloseOpen(false);
-            navigate('/cash-game');
+            setReceiptOpen(true);
           }
         }}
       />
 
+      <CashSessionReceiptDialog
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        tableName={table.name}
+        gameVariant={table.game_variant}
+        startedAt={table.created_at}
+        endedAt={table.closed_at}
+        duration={formatDuration(table.created_at, table.closed_at, now)}
+        totalBuyins={totalBuyins}
+        totalCashouts={totalCashouts}
+        rows={receiptRows}
+        notes={table.notes}
+      />
+
+      <AlertDialog open={reopenOpen} onOpenChange={setReopenOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reabrir mesa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A mesa voltará para o status ativo e novos lançamentos poderão ser feitos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await reopenTable();
+                setReopenOpen(false);
+              }}
+            >
+              Reabrir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover lançamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Todos os buy-ins, re-buys e cash-outs de{' '}
+              {removeTarget ? playerNames.get(removeTarget.player_id) || 'Jogador' : ''} nesta mesa
+              serão apagados e os totais recalculados. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (removeTarget) await removeSession(removeTarget);
+                setRemoveTarget(null);
+              }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
