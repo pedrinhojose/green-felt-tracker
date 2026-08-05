@@ -287,15 +287,27 @@ export default function CashTableDetail() {
                         </TableCell>
                         {canEdit && isActive && (
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2 flex-wrap">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setAmountDialog({ mode: 'rebuy', session: s })}
+                                onClick={() => setRebuySession(s)}
                               >
                                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
                                 Re-buy
                               </Button>
+                              {(rebuyCountBySession.get(s.id) || 0) > 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={isSaving}
+                                  onClick={() => undoLastRebuy(s)}
+                                  title="Desfazer último re-buy"
+                                >
+                                  <Undo2 className="h-3.5 w-3.5 mr-1" />
+                                  Desfazer re-buy
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 onClick={() => setAmountDialog({ mode: 'cashout', session: s })}
@@ -303,9 +315,20 @@ export default function CashTableDetail() {
                                 <LogOut className="h-3.5 w-3.5 mr-1" />
                                 Cash-out
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive"
+                                disabled={isSaving}
+                                onClick={() => setRemoveTarget(s)}
+                                title="Remover lançamento do jogador"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           </TableCell>
                         )}
+
                       </TableRow>
                     ))}
                   </TableBody>
