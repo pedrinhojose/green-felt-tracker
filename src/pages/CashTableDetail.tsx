@@ -182,9 +182,15 @@ export default function CashTableDetail() {
           </p>
         </div>
 
-        {canEdit && (
-          <div className="flex flex-wrap gap-2">
-            {isActive && (
+        <div className="flex flex-wrap gap-2">
+          {sessions.length > 0 && (
+            <Button variant="outline" onClick={() => setReceiptOpen(true)}>
+              <Receipt className="h-4 w-4 mr-2" />
+              Cupom / Resumo
+            </Button>
+          )}
+          {canEdit &&
+            (isActive ? (
               <>
                 <Button onClick={() => setAddOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -195,10 +201,15 @@ export default function CashTableDetail() {
                   Encerrar mesa
                 </Button>
               </>
-            )}
-          </div>
-        )}
+            ) : (
+              <Button variant="outline" onClick={() => setReopenOpen(true)} disabled={isSaving}>
+                <Unlock className="h-4 w-4 mr-2" />
+                Reabrir mesa
+              </Button>
+            ))}
+        </div>
       </div>
+
 
       {/* Resumo */}
       <div className="grid gap-4 sm:grid-cols-3">
