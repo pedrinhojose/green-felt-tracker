@@ -12,14 +12,40 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Plus, Users, Coins, Clock, LogOut, RotateCcw, Lock } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  Users,
+  Coins,
+  Clock,
+  LogOut,
+  RotateCcw,
+  Lock,
+  Undo2,
+  Trash2,
+  Unlock,
+  Receipt,
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { usePoker } from '@/contexts/PokerContext';
 import { useOrgMemberRole } from '@/hooks/useOrgMemberRole';
 import { formatCurrency } from '@/lib/utils/dateUtils';
 import { useCashTableSession, CashSession } from '@/hooks/cash/useCashTableSession';
 import AddCashPlayerDialog from '@/components/cash/AddCashPlayerDialog';
 import CashAmountDialog from '@/components/cash/CashAmountDialog';
+import CashRebuyDialog from '@/components/cash/CashRebuyDialog';
 import CloseCashTableDialog from '@/components/cash/CloseCashTableDialog';
+import CashSessionReceiptDialog from '@/components/cash/CashSessionReceiptDialog';
+
 
 import { cn } from '@/lib/utils';
 
@@ -43,8 +69,10 @@ export default function CashTableDetail() {
   const { canEdit } = useOrgMemberRole();
   const {
     table,
+    sessions,
     sittingSessions,
     cashedOutSessions,
+    rebuyCountBySession,
     totalBuyins,
     totalCashouts,
     uniquePlayersCount,
@@ -54,16 +82,25 @@ export default function CashTableDetail() {
     addRebuy,
     cashOut,
     closeTable,
+    reopenTable,
+    undoLastRebuy,
+    reopenSession,
+    removeSession,
   } = useCashTableSession(id);
 
 
   const [now, setNow] = useState(Date.now());
   const [addOpen, setAddOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [reopenOpen, setReopenOpen] = useState(false);
+  const [rebuySession, setRebuySession] = useState<CashSession | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<CashSession | null>(null);
   const [amountDialog, setAmountDialog] = useState<{
     mode: 'rebuy' | 'cashout';
     session: CashSession;
   } | null>(null);
+
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000);
@@ -83,7 +120,18 @@ export default function CashTableDetail() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [players, sittingSessions]);
 
+  const receiptRows = useMemo(
+    () =>
+      sessions.map((s) => ({
+        name: playerNames.get(s.player_id) || 'Jogador',
+        buyin: Number(s.total_buyin || 0),
+        cashout: Number(s.cashout_amount || 0),
+      })),
+    [sessions, playerNames]
+  );
+
   const isActive = table?.status === 'active';
+
 
   if (isLoading) {
     return (
@@ -134,9 +182,15 @@ export default function CashTableDetail() {
           </p>
         </div>
 
-        {canEdit && (
-          <div className="flex flex-wrap gap-2">
-            {isActive && (
+        <div className="flex flex-wrap gap-2">
+          {sessions.length > 0 && (
+            <Button variant="outline" onClick={() => setReceiptOpen(true)}>
+              <Receipt className="h-4 w-4 mr-2" />
+              Cupom / Resumo
+            </Button>
+          )}
+          {canEdit &&
+            (isActive ? (
               <>
                 <Button onClick={() => setAddOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -147,10 +201,15 @@ export default function CashTableDetail() {
                   Encerrar mesa
                 </Button>
               </>
-            )}
-          </div>
-        )}
+            ) : (
+              <Button variant="outline" onClick={() => setReopenOpen(true)} disabled={isSaving}>
+                <Unlock className="h-4 w-4 mr-2" />
+                Reabrir mesa
+              </Button>
+            ))}
+        </div>
       </div>
+
 
       {/* Resumo */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -228,15 +287,27 @@ export default function CashTableDetail() {
                         </TableCell>
                         {canEdit && isActive && (
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2 flex-wrap">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setAmountDialog({ mode: 'rebuy', session: s })}
+                                onClick={() => setRebuySession(s)}
                               >
                                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
                                 Re-buy
                               </Button>
+                              {(rebuyCountBySession.get(s.id) || 0) > 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={isSaving}
+                                  onClick={() => undoLastRebuy(s)}
+                                  title="Desfazer último re-buy"
+                                >
+                                  <Undo2 className="h-3.5 w-3.5 mr-1" />
+                                  Desfazer re-buy
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 onClick={() => setAmountDialog({ mode: 'cashout', session: s })}
@@ -244,9 +315,20 @@ export default function CashTableDetail() {
                                 <LogOut className="h-3.5 w-3.5 mr-1" />
                                 Cash-out
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive"
+                                disabled={isSaving}
+                                onClick={() => setRemoveTarget(s)}
+                                title="Remover lançamento do jogador"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           </TableCell>
                         )}
+
                       </TableRow>
                     ))}
                   </TableBody>
@@ -273,6 +355,7 @@ export default function CashTableDetail() {
                       <TableHead className="text-right">Compras</TableHead>
                       <TableHead className="text-right">Fichas finais</TableHead>
                       <TableHead className="text-right">Resultado</TableHead>
+                      {canEdit && <TableHead className="text-right">Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -300,6 +383,36 @@ export default function CashTableDetail() {
                             {result >= 0 ? '+' : '-'}
                             {formatCurrency(Math.abs(result))}
                           </TableCell>
+                          {canEdit && (
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2 flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={isSaving || !isActive}
+                                  onClick={() => reopenSession(s)}
+                                  title={
+                                    isActive
+                                      ? 'Reativar jogador na mesa'
+                                      : 'Reabra a mesa para reativar o jogador'
+                                  }
+                                >
+                                  <Undo2 className="h-3.5 w-3.5 mr-1" />
+                                  Voltar / Reentrar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive"
+                                  disabled={isSaving || !isActive}
+                                  onClick={() => setRemoveTarget(s)}
+                                  title="Remover lançamento do jogador"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          )}
                         </TableRow>
                       );
                     })}
@@ -323,6 +436,22 @@ export default function CashTableDetail() {
           if (ok) setAddOpen(false);
         }}
       />
+
+      {rebuySession && (
+        <CashRebuyDialog
+          open
+          onOpenChange={(open) => !open && setRebuySession(null)}
+          playerName={playerNames.get(rebuySession.player_id) || 'Jogador'}
+          totalBuyin={Number(rebuySession.total_buyin)}
+          minBuyin={Number(table.min_buyin)}
+          maxBuyin={Number(table.max_buyin)}
+          isSaving={isSaving}
+          onConfirm={async (value) => {
+            const ok = await addRebuy(rebuySession, value);
+            if (ok) setRebuySession(null);
+          }}
+        />
+      )}
 
       {amountDialog && (
         <CashAmountDialog
@@ -355,11 +484,75 @@ export default function CashTableDetail() {
           const ok = await closeTable(notes);
           if (ok) {
             setCloseOpen(false);
-            navigate('/cash-game');
+            setReceiptOpen(true);
           }
         }}
       />
 
+      <CashSessionReceiptDialog
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        tableName={table.name}
+        gameVariant={table.game_variant}
+        startedAt={table.created_at}
+        endedAt={table.closed_at}
+        duration={formatDuration(table.created_at, table.closed_at, now)}
+        totalBuyins={totalBuyins}
+        totalCashouts={totalCashouts}
+        rows={receiptRows}
+        notes={table.notes}
+      />
+
+      <AlertDialog open={reopenOpen} onOpenChange={setReopenOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reabrir mesa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A mesa voltará para o status ativo e novos lançamentos poderão ser feitos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await reopenTable();
+                setReopenOpen(false);
+              }}
+            >
+              Reabrir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover lançamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Todos os buy-ins, re-buys e cash-outs de{' '}
+              {removeTarget ? playerNames.get(removeTarget.player_id) || 'Jogador' : ''} nesta mesa
+              serão apagados e os totais recalculados. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (removeTarget) await removeSession(removeTarget);
+                setRemoveTarget(null);
+              }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+

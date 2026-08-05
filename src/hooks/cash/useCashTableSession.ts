@@ -267,6 +267,133 @@ export function useCashTableSession(tableId?: string) {
     [tableId, currentOrganization?.id, fetchAll, toast]
   );
 
+  // Desfaz o último re-buy do jogador (lançamento por engano)
+  const undoLastRebuy = useCallback(
+    async (session: CashSession) => {
+      setIsSaving(true);
+      try {
+        const rebuys = transactions
+          .filter((t) => t.session_id === session.id && t.transaction_type === 'rebuy')
+          .sort((a, b) => a.created_at.localeCompare(b.created_at));
+        const last = rebuys[rebuys.length - 1];
+        if (!last) {
+          toast({
+            title: 'Nada para desfazer',
+            description: 'Este jogador não possui re-buys registrados.',
+            variant: 'destructive',
+          });
+          return false;
+        }
+
+        const { error: delError } = await supabase
+          .from('cash_transactions')
+          .delete()
+          .eq('id', last.id);
+        if (delError) throw delError;
+
+        const newTotal = Math.max(0, Number(session.total_buyin || 0) - Number(last.amount || 0));
+        const { error: updError } = await supabase
+          .from('cash_players_sessions')
+          .update({ total_buyin: newTotal })
+          .eq('id', session.id);
+        if (updError) throw updError;
+
+        toast({ title: 'Re-buy desfeito' });
+        await fetchAll();
+        return true;
+      } catch (error) {
+        console.error('useCashTableSession: erro ao desfazer re-buy', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível desfazer o re-buy.',
+          variant: 'destructive',
+        });
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [transactions, fetchAll, toast]
+  );
+
+  // Reativa o jogador na mesa (desfaz cash-out / reentrada)
+  const reopenSession = useCallback(
+    async (session: CashSession) => {
+      setIsSaving(true);
+      try {
+        const cashouts = transactions.filter(
+          (t) => t.session_id === session.id && t.transaction_type === 'cashout'
+        );
+        if (cashouts.length > 0) {
+          const { error: delError } = await supabase
+            .from('cash_transactions')
+            .delete()
+            .in(
+              'id',
+              cashouts.map((t) => t.id)
+            );
+          if (delError) throw delError;
+        }
+
+        const { error } = await supabase
+          .from('cash_players_sessions')
+          .update({ cashout_amount: 0, status: 'sitting', left_at: null })
+          .eq('id', session.id);
+        if (error) throw error;
+
+        toast({ title: 'Jogador reativado', description: 'O jogador voltou para a mesa.' });
+        await fetchAll();
+        return true;
+      } catch (error) {
+        console.error('useCashTableSession: erro ao reabrir jogador', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível reativar o jogador.',
+          variant: 'destructive',
+        });
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [transactions, fetchAll, toast]
+  );
+
+  // Remove totalmente o jogador e seus lançamentos da mesa
+  const removeSession = useCallback(
+    async (session: CashSession) => {
+      setIsSaving(true);
+      try {
+        const { error: txError } = await supabase
+          .from('cash_transactions')
+          .delete()
+          .eq('session_id', session.id);
+        if (txError) throw txError;
+
+        const { error } = await supabase
+          .from('cash_players_sessions')
+          .delete()
+          .eq('id', session.id);
+        if (error) throw error;
+
+        toast({ title: 'Lançamento removido', description: 'Jogador retirado da mesa.' });
+        await fetchAll();
+        return true;
+      } catch (error) {
+        console.error('useCashTableSession: erro ao remover jogador', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível remover o jogador.',
+          variant: 'destructive',
+        });
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [fetchAll, toast]
+  );
+
   const closeTable = useCallback(async (notes?: string) => {
     if (!tableId) return false;
     if (sittingSessions.length > 0) {
@@ -308,12 +435,49 @@ export function useCashTableSession(tableId?: string) {
     }
   }, [tableId, sittingSessions.length, fetchAll, toast]);
 
+  const reopenTable = useCallback(async () => {
+    if (!tableId) return false;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('cash_tables')
+        .update({ status: 'active', closed_at: null })
+        .eq('id', tableId);
+      if (error) throw error;
+
+      toast({ title: 'Mesa reaberta', description: 'A mesa voltou para o status ativo.' });
+      await fetchAll();
+      return true;
+    } catch (error) {
+      console.error('useCashTableSession: erro ao reabrir mesa', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível reabrir a mesa.',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [tableId, fetchAll, toast]);
+
+  const rebuyCountBySession = useMemo(() => {
+    const map = new Map<string, number>();
+    transactions.forEach((t) => {
+      if (t.transaction_type === 'rebuy') {
+        map.set(t.session_id, (map.get(t.session_id) || 0) + 1);
+      }
+    });
+    return map;
+  }, [transactions]);
+
   return {
     table,
     sessions,
     sittingSessions,
     cashedOutSessions,
     transactions,
+    rebuyCountBySession,
     totalBuyins,
     totalCashouts,
     uniquePlayersCount,
@@ -323,7 +487,12 @@ export function useCashTableSession(tableId?: string) {
     addRebuy,
     cashOut,
     closeTable,
+    reopenTable,
+    undoLastRebuy,
+    reopenSession,
+    removeSession,
     refresh: fetchAll,
   };
 }
+
 
