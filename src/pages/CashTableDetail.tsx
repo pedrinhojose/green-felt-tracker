@@ -120,7 +120,18 @@ export default function CashTableDetail() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [players, sittingSessions]);
 
+  const receiptRows = useMemo(
+    () =>
+      sessions.map((s) => ({
+        name: playerNames.get(s.player_id) || 'Jogador',
+        buyin: Number(s.total_buyin || 0),
+        cashout: Number(s.cashout_amount || 0),
+      })),
+    [sessions, playerNames]
+  );
+
   const isActive = table?.status === 'active';
+
 
   if (isLoading) {
     return (
