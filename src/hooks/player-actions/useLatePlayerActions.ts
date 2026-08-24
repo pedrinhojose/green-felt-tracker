@@ -3,11 +3,14 @@ import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Game, GamePlayer } from "@/lib/db/models";
 import { useEffectiveSeason } from "@/hooks/useEffectiveSeason";
+import { useCaixinhaMonthlyStatus } from "@/hooks/useCaixinhaMonthlyStatus";
 
 export function useLatePlayerActions(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame } = usePoker();
   const { toast } = useToast();
   const effectiveSeason = useEffectiveSeason(game);
+  const { hasPaidThisMonth } = useCaixinhaMonthlyStatus(game);
+
 
   const addLatePlayer = async (playerId: string) => {
     if (!game || !effectiveSeason) return false;
@@ -27,6 +30,9 @@ export function useLatePlayerActions(game: Game | null, setGame: React.Dispatch<
       const jackpotContribution = effectiveSeason.financialParams.jackpotContribution || 0;
       const prizeContribution = buyInAmount - jackpotContribution;
 
+      const clubFundValue = effectiveSeason.financialParams.clubFundContribution || 0;
+      const participates = !game.isStandalone && clubFundValue > 0 && !hasPaidThisMonth(playerId);
+
       const newGamePlayer: GamePlayer = {
         id: `${playerId}-${Date.now()}`,
         playerId,
@@ -35,13 +41,14 @@ export function useLatePlayerActions(game: Game | null, setGame: React.Dispatch<
         rebuys: 0,
         addons: 0,
         joinedDinner: false,
-        participatesInClubFund: false,
+        participatesInClubFund: participates,
         isEliminated: false,
         prize: 0,
         points: 0,
         balance: 0,
-        clubFundContribution: 0,
+        clubFundContribution: participates ? clubFundValue : 0,
       };
+
 
       const updatedPlayers = [...game.players, newGamePlayer];
       const updatedPrizePool = game.totalPrizePool + prizeContribution;

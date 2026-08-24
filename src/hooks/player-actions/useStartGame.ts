@@ -3,11 +3,14 @@ import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Game, GamePlayer } from "@/lib/db/models";
 import { useEffectiveSeason } from "@/hooks/useEffectiveSeason";
+import { useCaixinhaMonthlyStatus } from "@/hooks/useCaixinhaMonthlyStatus";
 
 export function useStartGame(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame, players } = usePoker();
   const { toast } = useToast();
   const effectiveSeason = useEffectiveSeason(game);
+  const { hasPaidThisMonth } = useCaixinhaMonthlyStatus(game);
+
 
   const handleStartGame = async (selectedPlayers: Set<string>) => {
     if (!game || selectedPlayers.size === 0) return;
@@ -36,21 +39,28 @@ export function useStartGame(game: Game | null, setGame: React.Dispatch<React.Se
         return false;
       }
 
-      const gamePlayers: GamePlayer[] = Array.from(selectedPlayers).map(playerId => ({
-        id: `${playerId}-${Date.now()}`,
-        playerId,
-        position: null,
-        buyIn: true,
-        rebuys: 0,
-        addons: 0,
-        joinedDinner: false,
-        participatesInClubFund: false,
-        isEliminated: false,
-        prize: 0,
-        points: 0,
-        balance: 0,
-        clubFundContribution: 0,
-      }));
+      const clubFundValue = effectiveSeason.financialParams.clubFundContribution || 0;
+      const chargeClubFund = !game.isStandalone && clubFundValue > 0;
+
+      const gamePlayers: GamePlayer[] = Array.from(selectedPlayers).map(playerId => {
+        const participates = chargeClubFund && !hasPaidThisMonth(playerId);
+        return {
+          id: `${playerId}-${Date.now()}`,
+          playerId,
+          position: null,
+          buyIn: true,
+          rebuys: 0,
+          addons: 0,
+          joinedDinner: false,
+          participatesInClubFund: participates,
+          isEliminated: false,
+          prize: 0,
+          points: 0,
+          balance: 0,
+          clubFundContribution: participates ? clubFundValue : 0,
+        };
+      });
+
 
       const buyInAmount = effectiveSeason.financialParams.buyIn || 0;
       const jackpotContribution = effectiveSeason.financialParams.jackpotContribution || 0;

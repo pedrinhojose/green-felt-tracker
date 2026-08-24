@@ -11,10 +11,12 @@ import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { usePlayerPhotoManager } from "@/hooks/usePlayerPhotoManager";
 import { usePoker } from "@/contexts/PokerContext";
-import { UserPlus, AlertCircle } from "lucide-react";
+import { UserPlus, AlertCircle, PiggyBank } from "lucide-react";
 import { useReceivables } from "@/hooks/useReceivables";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useCaixinhaMonthlyStatus } from "@/hooks/useCaixinhaMonthlyStatus";
+
 
 
 interface PlayerSelectionProps {
@@ -43,6 +45,8 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
   const photoManager = usePlayerPhotoManager();
   const { receivablesByPlayer } = useReceivables();
   const openBalanceMap = new Map(receivablesByPlayer.map(p => [p.playerId, p]));
+  const { hasPaidThisMonth } = useCaixinhaMonthlyStatus(game ?? null);
+
 
   
   // Filter players based on search query and active status (only active players)
@@ -287,7 +291,26 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
                         </Tooltip>
                       </TooltipProvider>
                     )}
+                    {!game?.isStandalone && hasPaidThisMonth(player.id) && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1 ml-1 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/30"
+                            >
+                              <PiggyBank className="w-3 h-3" />
+                              Caixinha do mês paga
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            Já contribuiu para o caixinha neste mês — não será cobrado novamente
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
+
 
                   <Checkbox
                     checked={selectedPlayers.has(player.id)}
