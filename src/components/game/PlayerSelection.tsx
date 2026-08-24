@@ -11,10 +11,12 @@ import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { usePlayerPhotoManager } from "@/hooks/usePlayerPhotoManager";
 import { usePoker } from "@/contexts/PokerContext";
-import { UserPlus, AlertCircle } from "lucide-react";
+import { UserPlus, AlertCircle, PiggyBank } from "lucide-react";
 import { useReceivables } from "@/hooks/useReceivables";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useCaixinhaMonthlyStatus } from "@/hooks/useCaixinhaMonthlyStatus";
+
 
 
 interface PlayerSelectionProps {
