@@ -3,11 +3,14 @@ import { usePoker } from "@/contexts/PokerContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Game, GamePlayer } from "@/lib/db/models";
 import { useEffectiveSeason } from "@/hooks/useEffectiveSeason";
+import { useCaixinhaMonthlyStatus } from "@/hooks/useCaixinhaMonthlyStatus";
 
 export function useStartGame(game: Game | null, setGame: React.Dispatch<React.SetStateAction<Game | null>>) {
   const { updateGame, players } = usePoker();
   const { toast } = useToast();
   const effectiveSeason = useEffectiveSeason(game);
+  const { hasPaidThisMonth } = useCaixinhaMonthlyStatus(game);
+
 
   const handleStartGame = async (selectedPlayers: Set<string>) => {
     if (!game || selectedPlayers.size === 0) return;
