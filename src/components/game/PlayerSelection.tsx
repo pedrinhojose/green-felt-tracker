@@ -291,7 +291,26 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
                         </Tooltip>
                       </TooltipProvider>
                     )}
+                    {!game?.isStandalone && hasPaidThisMonth(player.id) && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1 ml-1 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/30"
+                            >
+                              <PiggyBank className="w-3 h-3" />
+                              Caixinha do mês paga
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            Já contribuiu para o caixinha neste mês — não será cobrado novamente
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
+
 
                   <Checkbox
                     checked={selectedPlayers.has(player.id)}
