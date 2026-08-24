@@ -45,6 +45,8 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
   const photoManager = usePlayerPhotoManager();
   const { receivablesByPlayer } = useReceivables();
   const openBalanceMap = new Map(receivablesByPlayer.map(p => [p.playerId, p]));
+  const { hasPaidThisMonth } = useCaixinhaMonthlyStatus(game ?? null);
+
 
   
   // Filter players based on search query and active status (only active players)
