@@ -1,31 +1,31 @@
-## Problema (confirmado nos dados)
+# Caixinha automática por mês
 
-O modal de detalhes do jogador busca todas as partidas da organização sem filtrar status nem tipo. Por isso a partida avulsa aberta hoje (26/07/2026, ainda em andamento) passou a contar como participação.
+Hoje, ao montar uma partida da temporada, todos os jogadores entram com o caixinha **desmarcado** e o admin precisa marcar manualmente quem paga. A ideia é o sistema decidir sozinho.
 
-Exemplo real verificado no banco:
+## Regra de negócio
 
-- ANDRÉ — última partida encerrada de temporada: **08/06/2026**
-- ANDRÉ — o que o app mostra hoje: **há ~17 minutos** (a avulsa em andamento)
+- O caixinha é cobrado **uma vez por mês** de cada jogador.
+- Ao iniciar uma partida da temporada, cada jogador selecionado entra com o caixinha:
+  - **marcado** se ele ainda não pagou no mês da data da partida;
+  - **desmarcado** se já pagou em alguma partida daquele mesmo mês.
+- Exemplo: partida do dia 07/08 → todos marcados. Partida do dia 14/08 → quem jogou no dia 07 vem desmarcado; quem não jogou no dia 07 vem marcado.
+- Sem cobrança retroativa: só conta o mês da data da própria partida (nunca meses anteriores).
+- Partidas avulsas não têm caixinha: continuam sempre desmarcadas e **não** contam como pagamento do mês.
+- O admin continua podendo marcar/desmarcar manualmente na mesa (comportamento atual mantido).
 
-A última partida oficial de temporada registrada no clube é a de **20/07/2026**, então quem jogou nela deve aparecer com essa data — e não com a avulsa de hoje.
+## Onde aparece
 
-## Correção
-
-Em `src/components/players/PlayerDetailsDialog.tsx`, restringir a consulta de participações a partidas que sejam, ao mesmo tempo:
-
-- **encerradas** (`is_finished = true`), e
-- **de temporada** (`is_standalone = false` e `season_id` preenchido).
-
-Com isso:
-
-- "Última participação" volta a refletir a última partida oficial encerrada (ex.: André → 08/06/2026, "há cerca de 1 mês").
-- Partidas avulsas e partidas em andamento deixam de influenciar a métrica, conforme sua escolha.
-- "Temporada atual" continua funcionando igual, apenas sem partidas em andamento contaminando a data.
+1. **Ao iniciar a partida** (`Iniciar Partida`): os jogadores já entram com o caixinha correto.
+2. **Jogador adicionado depois** (entrada atrasada / late player): mesma regra aplicada no momento da inclusão.
+3. **Tela de seleção de jogadores**: cada jogador que já pagou o caixinha no mês recebe um selo discreto "Caixinha do mês paga", para o admin entender por que ele virá desmarcado.
 
 ## Detalhes técnicos
 
-- Adicionar `.eq("is_finished", true)`, `.eq("is_standalone", false)` e `.not("season_id", "is", null)` à query do `useEffect`, mantendo o filtro por `organization_id` e a ordenação por data desc.
-- Ajustar os textos de vazio para ficarem precisos: "Sem participação em partidas de temporada" quando não houver nenhuma.
-- Revisar se algum outro ponto usa a mesma métrica (ex.: cards de jogador na listagem) e aplicar o mesmo critério, para não haver duas leituras diferentes na mesma tela.
-
-Nenhuma alteração de banco, RLS ou de lógica financeira é necessária — é só o critério de leitura da métrica.
+- Novo hook `src/hooks/useCaixinhaMonthlyStatus.ts`: recebe a data de referência da partida e retorna um `Set<playerId>` de quem já pagou no mês.
+  - Fonte: tabela `games` da organização atual, filtrando `is_standalone = false`, data dentro do mês de referência (limites locais, via `parseLocalDate`/início e fim do mês local para evitar deslocamento de fuso), e o jogo atual excluído.
+  - Considera pago quando, no JSONB `players`, o jogador tem `participatesInClubFund = true` e `clubFundContribution > 0`.
+  - Inclui partidas ainda não finalizadas do mês (o caixinha já foi lançado), evitando cobrança dupla se duas partidas do mês estiverem abertas.
+- `src/hooks/player-actions/useStartGame.ts`: substituir `participatesInClubFund: false` por `!alreadyPaidThisMonth(playerId)` quando não for partida avulsa (avulsa permanece `false`), e já calcular `clubFundContribution` coerente com `effectiveSeason.financialParams.clubFundContribution`.
+- `src/hooks/player-actions/useLatePlayerActions.ts`: mesma lógica para o jogador que entra depois.
+- `src/components/game/PlayerSelection.tsx`: exibir o selo "Caixinha do mês paga" usando o mesmo `Set`, sem alterar a lógica de seleção de jogadores.
+- Nenhuma mudança de banco de dados, nenhuma alteração em partidas já existentes ou em cálculo de ranking/jackpot.
