@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sword, Target, Clock } from 'lucide-react';
 import { usePlayerEliminationHistory } from '@/hooks/elimination/usePlayerEliminationHistory';
+import { useEliminationRewardsSummary } from '@/hooks/elimination/useEliminationRewardsSummary';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
