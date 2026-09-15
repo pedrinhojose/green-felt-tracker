@@ -81,10 +81,17 @@ export function PlayerGameHistory({ games, playerId, players }: PlayerGameHistor
                     </div>
 
                     {/* Pontos */}
-                    <Badge variant="outline" className="border-poker-gold/30 text-poker-gold">
-                      {gamePlayer.points} pts
-                      {eliminationPoints > 0 && ` (${positionPoints}+${eliminationPoints} elim.)`}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="border-poker-gold/30 text-poker-gold">
+                        {gamePlayer.points} pts
+                        {eliminationPoints > 0 && ` (${positionPoints} colocação + ${eliminationPoints} elim.)`}
+                      </Badge>
+                      {eliminationPoints > 0 && (
+                        <Badge variant="outline" className="border-destructive/40 text-destructive text-xs">
+                          Bônus eliminações: +{eliminationPoints}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   {/* Estatísticas da Partida */}

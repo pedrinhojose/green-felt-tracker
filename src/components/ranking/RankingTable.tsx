@@ -45,6 +45,11 @@ export default function RankingTable({
       <Card className="shadow-mobile">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">Classificação</CardTitle>
+          {hasAnyElimPoints && (
+            <p className="text-xs text-muted-foreground">
+              Pontos = colocação nas partidas + bônus por eliminações.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="px-3">
           <div className="space-y-2">
