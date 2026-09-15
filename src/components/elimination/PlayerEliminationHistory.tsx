@@ -13,6 +13,13 @@ interface PlayerEliminationHistoryProps {
 
 export function PlayerEliminationHistory({ playerId, seasonId }: PlayerEliminationHistoryProps) {
   const { asEliminator, asEliminated, recentEliminations, loading } = usePlayerEliminationHistory(playerId, seasonId);
+  const rewards = useEliminationRewardsSummary(seasonId);
+  const playerRewards = rewards.byPlayer[playerId];
+
+  const formatReward = (value: number) =>
+    rewards.rewardType === 'points'
+      ? `${value} ${value === 1 ? 'ponto' : 'pontos'}`
+      : `R$ ${value.toFixed(2)}`;
 
   if (loading) {
     return (
@@ -55,7 +62,7 @@ export function PlayerEliminationHistory({ playerId, seasonId }: PlayerEliminati
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div className="text-center">
               <div className="text-2xl font-bold text-destructive">{asEliminator.count}</div>
               <div className="text-sm text-muted-foreground">Eliminou</div>
@@ -64,7 +71,22 @@ export function PlayerEliminationHistory({ playerId, seasonId }: PlayerEliminati
               <div className="text-2xl font-bold text-orange-500">{asEliminated.count}</div>
               <div className="text-sm text-muted-foreground">Foi eliminado</div>
             </div>
+            {rewards.enabled && (
+              <div className="text-center col-span-2 sm:col-span-1">
+                <div className="text-2xl font-bold text-primary">
+                  {formatReward(playerRewards?.rewardValue ?? 0)}
+                </div>
+                <div className="text-sm text-muted-foreground">Bônus por eliminação</div>
+              </div>
+            )}
           </div>
+
+          <p className="text-xs text-muted-foreground mt-4">
+            {rewards.ruleLabel}
+            {rewards.enabled && playerRewards && playerRewards.toNextReward > 0 && rewards.frequency > 1 && (
+              <> • faltam {playerRewards.toNextReward} eliminações para o próximo bônus</>
+            )}
+          </p>
         </CardContent>
       </Card>
 
