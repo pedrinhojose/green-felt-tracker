@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sword } from 'lucide-react';
 import { useEliminationStats } from '@/hooks/elimination/useEliminationStats';
+import { useEliminationRewardsSummary } from '@/hooks/elimination/useEliminationRewardsSummary';
 
 interface EliminationStatsCardProps {
   seasonId?: string;
