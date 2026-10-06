@@ -33,24 +33,10 @@ export function useGameFunctions(
     }
   };
 
+  // Sempre o maior número da temporada + 1 (não reaproveita números de partidas excluídas)
   const findNextAvailableNumber = (existingNumbers: number[]): number => {
-    if (existingNumbers.length === 0) {
-      return 1;
-    }
-    
-    // Sort numbers to ensure proper order
-    const sortedNumbers = [...existingNumbers].sort((a, b) => a - b);
-    
-    // Find the first gap in the sequence
-    for (let i = 0; i < sortedNumbers.length; i++) {
-      const expectedNumber = i + 1;
-      if (sortedNumbers[i] !== expectedNumber) {
-        return expectedNumber;
-      }
-    }
-    
-    // If no gaps, return the next sequential number
-    return sortedNumbers.length + 1;
+    if (existingNumbers.length === 0) return 1;
+    return Math.max(...existingNumbers) + 1;
   };
 
   const getGameNumber = async (seasonId: string) => {
