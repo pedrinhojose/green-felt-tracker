@@ -11,7 +11,7 @@ import { PlayerSearch } from "@/components/players/PlayerSearch";
 import { AddPlayerDialog } from "@/components/players/AddPlayerDialog";
 import { usePlayerPhotoManager } from "@/hooks/usePlayerPhotoManager";
 import { usePoker } from "@/contexts/PokerContext";
-import { UserPlus, AlertCircle, PiggyBank } from "lucide-react";
+import { UserPlus, AlertCircle, PiggyBank, X } from "lucide-react";
 import { useReceivables } from "@/hooks/useReceivables";
 import { formatCurrency } from "@/lib/utils/dateUtils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -58,6 +58,9 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
   
   // Sort players alphabetically by name
   const sortedPlayers = [...filteredPlayers].sort((a, b) => 
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+  );
+  const sortedPlayersAll = [...players].sort((a, b) =>
     a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
   );
   
@@ -233,97 +236,73 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
           </div>
         )}
         
+        {selectedPlayers.size > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {sortedPlayersAll.filter(p => selectedPlayers.has(p.id)).map(p => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => togglePlayerSelection(p.id)}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-poker-gold/20 border border-poker-gold/40 hover:bg-poker-gold/30"
+              >
+                {p.name} <X className="w-3 h-3" />
+              </button>
+            ))}
+          </div>
+        )}
+
         {sortedPlayers.length > 0 && (
-           <div className={`grid gap-2 ${
-            isMobile 
-              ? "grid-cols-1" 
-              : columnCount === 2 ? "grid-cols-2" : "grid-cols-3"
-          }`} style={{ 
-            gridAutoFlow: columnCount > 1 ? 'column' : 'row',
-            gridTemplateRows: columnCount > 1 ? `repeat(${Math.ceil(sortedPlayers.length / columnCount)}, minmax(0, 1fr))` : undefined
-          }}>
-            {playersOrganizedVertically.map(player => {
+          <div className="rounded-lg border border-border divide-y divide-border overflow-hidden">
+            {sortedPlayers.map((player, idx) => {
+              const letter = player.name.charAt(0).toLocaleUpperCase('pt-BR');
+              const prevLetter = idx > 0 ? sortedPlayers[idx - 1].name.charAt(0).toLocaleUpperCase('pt-BR') : null;
               const openBal = openBalanceMap.get(player.id);
               const net = openBal?.netBalance ?? 0;
               const hasOpen = !!openBal && net !== 0;
+              const selected = selectedPlayers.has(player.id);
               return (
-                <div
-                  key={player.id}
-                  className={`${
-                    isMobile ? "p-3" : "p-3"
-                  } rounded-lg flex items-center gap-3 cursor-pointer transition-all ${
-                    selectedPlayers.has(player.id)
-                      ? 'bg-poker-dark-green border border-poker-gold shadow-lg'
-                      : 'bg-poker-dark-green/50 hover:bg-poker-dark-green/70'
-                  }`}
-                  onClick={() => togglePlayerSelection(player.id)}
-                >
-                  <Avatar className={isMobile ? "h-10 w-10" : "h-10 w-10"}>
-                    {player.photoUrl ? (
-                      <AvatarImage src={player.photoUrl} alt={player.name} />
-                    ) : null}
-                    <AvatarFallback className="bg-poker-navy text-white">
-                      {getInitials(player.name)}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="flex-1 min-w-0">
-                    <div className={`${isMobile ? "text-base" : ""} truncate`}>{player.name}</div>
+                <div key={player.id}>
+                  {letter !== prevLetter && (
+                    <div className="px-3 py-1 text-xs font-bold text-poker-gold bg-muted/40">{letter}</div>
+                  )}
+                  <div
+                    onClick={() => togglePlayerSelection(player.id)}
+                    className={`flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors border-l-4 ${
+                      selected ? 'border-l-poker-gold bg-poker-gold/10' : 'border-l-transparent hover:bg-muted/40'
+                    }`}
+                  >
+                    <span className={`flex-1 truncate ${selected ? 'font-semibold' : ''}`}>{player.name}</span>
                     {hasOpen && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              onClick={(e) => e.stopPropagation()}
-                              className={`mt-1 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                                net < 0
-                                  ? 'bg-red-500/15 text-red-400 border-red-500/30'
-                                  : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                              }`}
-                            >
-                              <AlertCircle className="w-3 h-3" />
-                              {net < 0 ? '-' : '+'}{formatCurrency(Math.abs(net))}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {openBal!.openCount} partida{openBal!.openCount > 1 ? 's' : ''} em aberto — ver Recebimentos
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <span
+                        title={`${openBal!.openCount} partida(s) em aberto — ver Recebimentos`}
+                        className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                          net < 0
+                            ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                            : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        }`}
+                      >
+                        <AlertCircle className="w-3 h-3" />
+                        {net < 0 ? '-' : '+'}{formatCurrency(Math.abs(net))}
+                      </span>
                     )}
                     {!game?.isStandalone && hasPaidThisMonth(player.id) && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div
-                              onClick={(e) => e.stopPropagation()}
-                              className="mt-1 ml-1 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/30"
-                            >
-                              <PiggyBank className="w-3 h-3" />
-                              Caixinha do mês paga
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            Já contribuiu para o caixinha neste mês — não será cobrado novamente
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <span
+                        title="Já contribuiu para o caixinha neste mês — não será cobrado novamente"
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/30"
+                      >
+                        <PiggyBank className="w-3 h-3" />
+                        {isMobile ? "Pago" : "Caixinha paga"}
+                      </span>
                     )}
+                    <Checkbox checked={selected} className="pointer-events-none" />
                   </div>
-
-
-                  <Checkbox
-                    checked={selectedPlayers.has(player.id)}
-                    onCheckedChange={() => togglePlayerSelection(player.id)}
-                    className="pointer-events-none"
-                  />
                 </div>
               );
             })}
           </div>
         )}
-        
-        <div className={`${isMobile ? "mt-4" : "mt-6"} flex ${isMobile ? "flex-col" : "flex-row justify-center"} gap-3`}>
+
+        <div className={`sticky bottom-0 bg-card py-3 mt-4 flex ${isMobile ? "flex-col" : "flex-row justify-center"} gap-3 border-t border-border`}>
           {onCancel && (
             <Button
               type="button"
@@ -342,7 +321,7 @@ export default function PlayerSelection({ players, onStartGame, onCancel, isCanc
               isMobile ? "w-full py-3 text-lg" : ""
             }`}
           >
-            Iniciar Partida
+            Iniciar Partida ({selectedPlayers.size})
           </Button>
         </div>
       </CardContent>
