@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect } from "react";
 import { useAudioContext } from "@/contexts/AudioContext";
+import { useRebuyAnnouncer } from "@/hooks/game-management/useRebuyAnnouncer";
 
 export default function TimerPage() {
   const { gameId } = useParams<{ gameId?: string }>();
@@ -16,6 +17,7 @@ export default function TimerPage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { enableTimerAudio, setGlobalAudioEnabled } = useAudioContext();
+  useRebuyAnnouncer(gameId);
   
   // Enable audio when TimerPage mounts
   useEffect(() => {

@@ -1,3 +1,5 @@
+import { announceRebuy } from "@/lib/audio/announceRebuy";
+import { Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useGameManagement } from "@/hooks/useGameManagement";
@@ -259,6 +261,11 @@ export default function GameManagement() {
           onClick={() => navigate(`/games/${game.id}/mesa`)}
         >
           <Smartphone className="h-5 w-5" /> Gerência de Partida
+        </Button>
+      )}
+      {!isSelectingPlayers && !isViewer && !game.isFinished && (
+        <Button variant="outline" className={`mb-3 gap-2 ${isMobile ? 'w-full' : 'ml-2'}`} onClick={() => announceRebuy()}>
+          <Volume2 className="h-5 w-5" /> Testar som
         </Button>
       )}
       {(!isSelectingPlayers || isViewer) && (
