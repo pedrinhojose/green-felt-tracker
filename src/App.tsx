@@ -18,6 +18,7 @@ import SeasonsList from '@/pages/SeasonsList';
 import SeasonDetails from '@/pages/SeasonDetails';
 import GamesList from '@/pages/GamesList';
 import GameManagement from '@/pages/GameManagement';
+import GameRemoteControl from '@/pages/GameRemoteControl';
 import TimerPage from '@/pages/TimerPage';
 import RankingPage from '@/pages/RankingPage';
 import PlayersManagement from '@/pages/PlayersManagement';
@@ -83,6 +84,7 @@ function App() {
                     <Route path="/seasons/:seasonId" element={<SeasonDetails />} />
                     <Route path="/games" element={<GamesList />} />
                     <Route path="/games/:gameId" element={<GameManagement />} />
+                    <Route path="/games/:gameId/mesa" element={<GameRemoteControl />} />
                     <Route path="/timer/:gameId" element={<TimerPage />} />
                     <Route path="/ranking" element={<RankingPage />} />
                     <Route path="/statistics" element={<PlayerStatistics />} />

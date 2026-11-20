@@ -17,3 +17,8 @@ export function announceRebuy() {
     /* ignore */
   }
 }
+
+// Permite silenciar o anúncio no aparelho que está fazendo o rebuy (celular).
+let muted = false;
+export function setRebuyAnnounceMuted(v: boolean) { muted = v; }
+export function isRebuyAnnounceMuted() { return muted; }

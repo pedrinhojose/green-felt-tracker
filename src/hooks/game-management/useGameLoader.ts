@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { announceRebuy } from "@/lib/audio/announceRebuy";
+import { announceRebuy, isRebuyAnnounceMuted } from "@/lib/audio/announceRebuy";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { usePoker } from "@/contexts/PokerContext";
@@ -69,7 +69,7 @@ export function useGameLoader() {
   useEffect(() => {
     if (game) {
       const total = game.players.reduce((s, p) => s + (p.rebuys || 0), 0);
-      if (rebuyTotalRef.current !== null && total > rebuyTotalRef.current) announceRebuy();
+      if (rebuyTotalRef.current !== null && total > rebuyTotalRef.current && !isRebuyAnnounceMuted()) announceRebuy();
       rebuyTotalRef.current = total;
     }
   }, [game]);

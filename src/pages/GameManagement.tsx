@@ -19,7 +19,7 @@ import GameHeader from "@/components/game/GameHeader";
 import { AddLatePlayerDialog } from "@/components/game/AddLatePlayerDialog";
 import { RemovePlayerDialog } from "@/components/game/RemovePlayerDialog";
 import { PlayerEliminationDialog } from "@/components/game/PlayerEliminationDialog";
-import { UserPlus, UserMinus, AlertTriangle, Settings2 } from "lucide-react";
+import { UserPlus, UserMinus, AlertTriangle, Settings2, Smartphone } from "lucide-react";
 import { GamePlayer } from "@/lib/db/models";
 import { useOrgMemberRole } from "@/hooks/useOrgMemberRole";
 import StandaloneGameSetupDialog from "@/components/game/StandaloneGameSetupDialog";
@@ -252,6 +252,15 @@ export default function GameManagement() {
 
   return (
     <div className={`container mx-auto ${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
+      {!isSelectingPlayers && !isViewer && !game.isFinished && (
+        <Button
+          size={isMobile ? "lg" : "sm"}
+          className={`mb-3 gap-2 ${isMobile ? 'w-full h-14 text-base font-bold' : ''}`}
+          onClick={() => navigate(`/games/${game.id}/mesa`)}
+        >
+          <Smartphone className="h-5 w-5" /> Gerência de Partida
+        </Button>
+      )}
       {(!isSelectingPlayers || isViewer) && (
         <GameHeader
           gameNumber={game.number}
