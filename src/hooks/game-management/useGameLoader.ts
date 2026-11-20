@@ -1,5 +1,7 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { announceRebuy } from "@/lib/audio/announceRebuy";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { usePoker } from "@/contexts/PokerContext";
@@ -61,6 +63,44 @@ export function useGameLoader() {
     loadGame();
   }, [gameId, games, navigate, toast]);
   
+  // Sincronização em tempo real (celular <-> desktop). Só atualiza os dados
+  // da partida; o timer vive em outro contexto e não é tocado.
+  const rebuyTotalRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (game) {
+      const total = game.players.reduce((s, p) => s + (p.rebuys || 0), 0);
+      if (rebuyTotalRef.current !== null && total > rebuyTotalRef.current) announceRebuy();
+      rebuyTotalRef.current = total;
+    }
+  }, [game]);
+
+  useEffect(() => {
+    if (!gameId) return;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const channel = supabase
+      .channel(`game-live-${gameId}-${Math.random().toString(36).slice(2)}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "games", filter: `id=eq.${gameId}` },
+        () => {
+          if (timeout) clearTimeout(timeout);
+          timeout = setTimeout(async () => {
+            try {
+              const fresh = await pokerDB.getGame(gameId);
+              if (fresh) setGame(fresh);
+            } catch (e) {
+              console.error("useGameLoader realtime refresh error:", e);
+            }
+          }, 250);
+        }
+      )
+      .subscribe();
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      supabase.removeChannel(channel);
+    };
+  }, [gameId]);
+
   return {
     game,
     setGame,
