@@ -9,7 +9,26 @@ import { useRankingFunctions } from './useRankingFunctions';
 import { usePokerUtils } from './usePokerUtils';
 import { useGameFunctions } from './useGameFunctions';
 import { useOrganization } from './OrganizationContext';
+import { supabase } from '@/integrations/supabase/client';
 import { enrichRankingsWithPointBreakdown } from '@/lib/utils/pointsBreakdown';
+
+
+// Open standalone games (no season) so they show up on every device
+async function loadOpenStandaloneGames(orgId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('games').select('*')
+      .eq('organization_id', orgId).eq('is_standalone', true).eq('is_finished', false);
+    if (error || !data) return [];
+    return data.map((g: any) => ({
+      id: g.id, number: g.number, seasonId: g.season_id, date: new Date(g.date),
+      players: g.players, totalPrizePool: Number(g.total_prize_pool),
+      dinnerCost: g.dinner_cost ? Number(g.dinner_cost) : undefined,
+      isFinished: g.is_finished, createdAt: new Date(g.created_at),
+      isStandalone: true, standaloneConfig: g.standalone_config ?? undefined,
+    }));
+  } catch { return []; }
+}
 
 // Create context with undefined as initial value
 const PokerContext = createContext<PokerContextProps | undefined>(undefined);
@@ -104,7 +123,8 @@ export function PokerProvider({ children }: { children: ReactNode }) {
           console.log("PokerContext: Carregando jogos para temporada:", chosenSeason.id);
           const gamesData = await pokerDB.getGames(chosenSeason.id);
           console.log("PokerContext: Jogos carregados:", gamesData.length);
-          setGames(gamesData);
+          const openStandalone = currentOrganization ? await loadOpenStandaloneGames(currentOrganization.id) : [];
+          setGames([...gamesData, ...openStandalone.filter(sg => !gamesData.some(g => g.id === sg.id))] as any);
           
           console.log("PokerContext: Carregando rankings para temporada:", chosenSeason.id);
           const rankingsData = await pokerDB.getRankings(chosenSeason.id);
@@ -117,7 +137,8 @@ export function PokerProvider({ children }: { children: ReactNode }) {
           setRankings(enrichedRankings);
         } else {
           console.log("PokerContext: Nenhuma temporada, limpando jogos e rankings");
-          setGames([]);
+          const openStandalone = currentOrganization ? await loadOpenStandaloneGames(currentOrganization.id) : [];
+          setGames(openStandalone as any);
           setRankings([]);
         }
         
