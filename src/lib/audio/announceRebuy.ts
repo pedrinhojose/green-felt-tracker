@@ -1,18 +1,18 @@
-// Locutor "Reee-buy!" (~1s) usando a voz do navegador. Falha silenciosa se indisponível.
+import rebuyAsset from "@/assets/rebuy.mp3.asset.json";
+
+// Toca o áudio de locutor "Re-buy" enviado pelo clube. Falha silenciosa se o navegador bloquear.
+let audio: HTMLAudioElement | null = null;
+
 export function announceRebuy() {
   try {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance("Reee-buy!");
-    const voices = window.speechSynthesis.getVoices();
-    const en = voices.find(v => /en[-_]US/i.test(v.lang) && /male|david|daniel|google us/i.test(v.name))
-      || voices.find(v => /^en/i.test(v.lang));
-    if (en) u.voice = en;
-    u.lang = en?.lang || "en-US";
-    u.rate = 0.75;
-    u.pitch = 0.5;
-    u.volume = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+    if (typeof window === "undefined") return;
+    if (!audio) {
+      audio = new Audio(rebuyAsset.url);
+      audio.preload = "auto";
+    }
+    audio.currentTime = 0;
+    audio.volume = 1;
+    void audio.play().catch(() => {});
   } catch {
     /* ignore */
   }
