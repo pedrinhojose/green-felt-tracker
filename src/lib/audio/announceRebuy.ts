@@ -1,4 +1,5 @@
-import rebuyAsset from "@/assets/rebuy.mp3.asset.json";
+// Áudio servido de public/ para funcionar em qualquer hospedagem (Lovable e Vercel).
+const REBUY_AUDIO_URL = "/rebuy.mp3";
 
 // Toca o áudio de locutor "Re-buy" enviado pelo clube.
 let audio: HTMLAudioElement | null = null;
@@ -8,7 +9,7 @@ let playbackVersion = 0;
 
 function getAudio() {
   if (!audio) {
-    audio = new Audio(rebuyAsset.url);
+    audio = new Audio(REBUY_AUDIO_URL);
     audio.preload = "auto";
     audio.load();
   }
