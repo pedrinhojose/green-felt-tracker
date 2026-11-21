@@ -3,6 +3,8 @@ import rebuyAsset from "@/assets/rebuy.mp3.asset.json";
 // Toca o áudio de locutor "Re-buy" enviado pelo clube.
 let audio: HTMLAudioElement | null = null;
 let unlocked = false;
+let unlocking = false;
+let playbackVersion = 0;
 
 function getAudio() {
   if (!audio) {
@@ -15,12 +17,24 @@ function getAudio() {
 
 // Libera o som no primeiro clique/toque/tecla (exigência dos navegadores).
 export function unlockRebuyAudio() {
-  if (unlocked || typeof window === "undefined") return;
+  if (unlocked || unlocking || typeof window === "undefined") return;
   const a = getAudio();
+  unlocking = true;
+  const version = playbackVersion;
   a.muted = true;
   a.play()
-    .then(() => { a.pause(); a.currentTime = 0; a.muted = false; unlocked = true; })
-    .catch(() => { a.muted = false; });
+    .then(() => {
+      // A click on “Testar som” may start audible playback before this resolves.
+      // Never pause that newer announcement while completing the silent unlock.
+      if (version === playbackVersion) {
+        a.pause();
+        a.currentTime = 0;
+        a.muted = false;
+      }
+      unlocked = true;
+    })
+    .catch(() => { if (version === playbackVersion) a.muted = false; })
+    .finally(() => { unlocking = false; });
 }
 
 if (typeof window !== "undefined") {
@@ -39,6 +53,7 @@ export function announceRebuy() {
   try {
     if (typeof window === "undefined") return;
     const a = getAudio();
+    playbackVersion += 1;
     a.muted = false;
     a.currentTime = 0;
     a.volume = 1;
